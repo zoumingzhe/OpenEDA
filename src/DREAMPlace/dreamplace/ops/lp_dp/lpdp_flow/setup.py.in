@@ -1,0 +1,93 @@
+##
+# @file   setup.py.in
+# @author Fei
+# @date   Oct 2020
+# @brief  For CMake to generate setup.py file 
+#
+
+from setuptools import setup
+import torch 
+from torch.utils.cpp_extension import BuildExtension, CppExtension, CUDAExtension
+
+import os 
+import sys
+import copy
+
+os.environ["CC"] = "${CMAKE_C_COMPILER}"
+os.environ["CXX"] = "${CMAKE_CXX_COMPILER}"
+os.environ["CUDA_HOME"] = "${CUDA_TOOLKIT_ROOT_DIR}"
+
+limbo_source_dir = "${LIMBO_SOURCE_DIR}"
+limbo_binary_dir = "${LIMBO_BINARY_DIR}"
+ops_dir = "${OPS_DIR}"
+cub_dir = "${CUB_DIR}"
+cuda_flags = '${CMAKE_CUDA_FLAGS}'.split(';')
+print("cuda_flags = %s" % (' '.join(cuda_flags)))
+#lib_dirs = ['${UTILITY_LIBRARY_DIRS}', '${UTILITY_LIBRARY_DIRS}/../macro_legalize', '${UTILITY_LIBRARY_DIRS}/../greedy_legalize', '${UTILITY_LIBRARY_DIRS}/../legality_check', '${UTILITY_LIBRARY_DIRS}/../abacus_legalize', '${UTILITY_LIBRARY_DIRS}/../independent_set_matching', '${UTILITY_LIBRARY_DIRS}/../k_reorder', '${UTILITY_LIBRARY_DIRS}/../global_swap']
+#libs = ['utility', 'macro_legalize', 'greedy_legalize', 'legality_check', 'abacus_legalize', 'independent_set_matching', 'k_reorder', 'global_swap'] 
+include_dirs = [ops_dir, os.path.abspath(limbo_source_dir), cub_dir, '${Boost_INCLUDE_DIRS}'] 
+lib_dirs = ['${UTILITY_LIBRARY_DIRS}',
+            '${MUNKRES_CPP_LINK_DIRS}', '${LEMON_LINK_DIRS}', '${CMAKE_CURRENT_BINARY_DIR}',
+            os.path.join(os.path.abspath(limbo_binary_dir), 'limbo/thirdparty/lemon'),
+            os.path.join(os.path.abspath(limbo_binary_dir), 'limbo/parsers/gdsii/stream'),
+            os.path.join(os.path.abspath(limbo_source_dir), 'limbo/thirdparty/lemon'),
+            os.path.join(os.path.abspath(limbo_binary_dir), 'limbo/thirdparty/gzstream'), 
+            os.path.dirname('${ZLIB_LIBRARIES}')
+            ]
+libs = ['utility', 'emon', 'gdsparser', 'gzstream', 'z', 'munkres', 'gomp']
+
+tokens = str(torch.__version__).split('.')
+torch_major_version = "-DTORCH_MAJOR_VERSION=%d" % (int(tokens[0]))
+torch_minor_version = "-DTORCH_MINOR_VERSION=%d" % (int(tokens[1]))
+
+def add_prefix(filename):
+    return os.path.join('${CMAKE_CURRENT_SOURCE_DIR}/src', filename)
+def add_flow_prefix(filename):
+    return os.path.join('${OPS_DIR}/flow/src', filename)
+def add_macro_prefix(filename):
+    return os.path.join('${OPS_DIR}/lp_dp/macro_legalize/src', filename)
+def add_greedy_prefix(filename):
+    return os.path.join('${OPS_DIR}/lp_dp/greedy_legalize/src', filename)
+def add_check_prefix(filename):
+    return os.path.join('${OPS_DIR}/lp_dp/legality_check/src', filename)
+def add_abacus_prefix(filename):
+    return os.path.join('${OPS_DIR}/lp_dp/abacus_legalize/src', filename)
+def add_ism_prefix(filename):
+    return os.path.join('${OPS_DIR}/lp_dp/independent_set_matching/src', filename)
+def add_kr_prefix(filename):
+    return os.path.join('${OPS_DIR}/lp_dp/k_reorder/src', filename)
+def add_gs_prefix(filename):
+    return os.path.join('${OPS_DIR}/lp_dp/global_swap/src', filename)
+
+modules = []
+
+modules.extend([
+    CppExtension('lpdp_flow_cpp', 
+        [
+            add_prefix('lpdp_flow.cpp'),
+            add_flow_prefix('common_place_DB.cpp'),
+            add_flow_prefix('lpdp_place.cpp'),
+            add_abacus_prefix('abacus_legalize.cpp'),
+            add_check_prefix('legality_check.cpp'),
+            add_greedy_prefix('greedy_legalize.cpp'),
+            add_macro_prefix('macro_legalize.cpp'),
+            add_kr_prefix('k_reorder.cpp'),
+            add_ism_prefix('independent_set_matching.cpp'),
+            add_gs_prefix('global_swap.cpp')
+            ], 
+        include_dirs=copy.deepcopy(include_dirs), 
+        library_dirs=copy.deepcopy(lib_dirs),
+        libraries=copy.deepcopy(libs),
+        extra_compile_args={
+            'cxx': ['-O2', torch_major_version, torch_minor_version], 
+            }
+        )
+    ])
+
+
+setup(
+        name='lpdp_flow',
+        ext_modules=modules,
+        cmdclass={
+            'build_ext': BuildExtension
+            })

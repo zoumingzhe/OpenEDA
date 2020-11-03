@@ -1,0 +1,6 @@
+verilog_lexer.cc
+verilog_parser.output
+verilog_parser.tab.cc
+verilog_parser.tab.hh
+verilog.tab.cpp
+verilog.tab.hpp

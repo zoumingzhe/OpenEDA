@@ -1,0 +1,34 @@
+<RCC>
+    <qresource prefix="/res">
+        <file>res/addroute.png</file>
+        <file>res/addvia.png</file>
+        <file>res/changewirewidth.png</file>
+        <file>res/changewirelayer.png</file>
+        <file>res/clearHighlight.png</file>
+        <file>res/clearruler.png</file>
+        <file>res/copy.png</file>
+        <file>res/createpin.png</file>
+        <file>res/createplacement.png</file>
+        <file>res/createrouting.png</file>
+        <file>res/cutwire.png</file>
+        <file>res/design.png</file>
+        <file>res/fix.png</file>
+        <file>res/movewire.png</file>
+        <file>res/move.png</file>
+        <file>res/highlightselected.png</file>
+        <file>res/floorplan.png</file>
+        <file>res/zoomfit.png</file>
+        <file>res/violation.png</file>
+        <file>res/redo.png</file>
+        <file>res/redraw.png</file>
+        <file>res/ruler.png</file>
+        <file>res/select.png</file>
+        <file>res/spreadwire.png</file>
+        <file>res/stretchwire.png</file>
+        <file>res/undo.png</file>
+        <file>res/unfix.png</file>
+        <file>res/zoomIn.png</file>
+        <file>res/zoomout.png</file>
+        <file>res/zoomtoselect.png</file>
+    </qresource>
+</RCC>

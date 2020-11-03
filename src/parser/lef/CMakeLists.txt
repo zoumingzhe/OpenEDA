@@ -1,0 +1,7 @@
+add_subdirectory(lef)
+add_subdirectory(clef)
+add_subdirectory(clefzlib)
+add_subdirectory(lefdiff)
+add_subdirectory(lefrw)
+#add_subdirectory(lefwrite)
+add_subdirectory(lefzlib)

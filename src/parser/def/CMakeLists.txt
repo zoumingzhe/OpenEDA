@@ -1,0 +1,7 @@
+add_subdirectory(def)
+add_subdirectory(cdef)
+add_subdirectory(cdefzlib)
+add_subdirectory(defdiff)
+add_subdirectory(defrw)
+#add_subdirectory(defwrite)
+add_subdirectory(defzlib)
