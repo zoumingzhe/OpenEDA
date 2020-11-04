@@ -257,6 +257,9 @@ static bool readVerilogWireToDB(Cell *hcell,
                         net_name.c_str(), hcell->getName().c_str());
                 return false;
         }
+        if (is_tri) {
+            net->setType(NetType::kNetTypeTri);
+        }
         if (is_term) {
             // a term should has pin and net with the same name
             Pin *pin = hcell->createIOPin(net_name);
