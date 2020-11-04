@@ -37,7 +37,7 @@ class LibSyn {
 
     bool isLibertySyntaxValid(void);
 
-    void dumpLibFile(const char *const filename, bool clearFileContent = true);
+    bool dumpLibFile(const char *const filename, bool clearFileContent = true);
 
     LibAnalysis *getAnalysis(void);
 

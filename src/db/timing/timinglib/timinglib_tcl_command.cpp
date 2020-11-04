@@ -226,7 +226,9 @@ bool parseLib(LibSet *libset, const std::string &file,
     }
 
     if (dump_lib_file != "") {
-        libSyn.dumpLibFile(dump_lib_file.c_str(), clearFileContent);
+        if (false ==
+            libSyn.dumpLibFile(dump_lib_file.c_str(), clearFileContent))
+            return false;
     }
     uint8_t endl_c = '\n';
     if (dump_log_file != "") {
@@ -238,6 +240,12 @@ bool parseLib(LibSet *libset, const std::string &file,
         else
             mode = mode | std::ios::app;
         std::ofstream os_log(dump_log_file.c_str(), mode);
+        if (os_log.fail()) {
+            open_edi::util::message->issueMsg(
+                kError, "Could not open %s for writing.\n",
+                dump_log_file.c_str());
+            return false;
+        }
         os_log << parseLogStr << endl_c;
         os_log.close();
         // open_edi::util::message->info("Write file %s finished.\n",
@@ -252,6 +260,12 @@ bool parseLib(LibSet *libset, const std::string &file,
         else
             mode = mode | std::ios::app;
         OStream<std::ofstream> os(dump_db_file.c_str(), mode);
+        if (!os.isOpen()) {
+            open_edi::util::message->issueMsg(
+                kError, "Could not open %s for writing.\n",
+                dump_db_file.c_str());
+            return false;
+        }
         os << *libset << endl_c;
         os.close();
         // open_edi::util::message->info("Write file %s...\n",
@@ -273,17 +287,32 @@ int readTimingLibCommand(ClientData cld, Tcl_Interp *itp, int argc,
         std::string dump_db_file = "";
         std::string dump_log_file = "";
         for (int i = 1; i < argc; ++i) {
-            if (!strcasecmp(argv[i], "-dump_lib")) {
+            if (!strcmp(argv[i], "-dump_lib")) {
                 if ((i + 1) < argc) {
                     dump_lib_file = argv[++i];
+                } else {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
                 }
-            } else if (!strcasecmp(argv[i], "-dump_db")) {
+            } else if (!strcmp(argv[i], "-dump_db")) {
                 if ((i + 1) < argc) {
                     dump_db_file = argv[++i];
+                } else {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
                 }
-            } else if (!strcasecmp(argv[i], "-dump_log")) {
+            } else if (!strcmp(argv[i], "-dump_log")) {
                 if ((i + 1) < argc) {
                     dump_log_file = argv[++i];
+                } else {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
                 }
             } else {
                 files.emplace_back(argv[i]);
@@ -291,7 +320,7 @@ int readTimingLibCommand(ClientData cld, Tcl_Interp *itp, int argc,
         }
         if (files.empty()) {
             open_edi::util::message->issueMsg(
-                kInfo, "Please specify the liberty file.");
+                kError, "Please specify the liberty file.");
             return TCL_ERROR;
         }
         Cell *topCell = getTopCell();
@@ -375,7 +404,7 @@ int readTimingLibCommand(ClientData cld, Tcl_Interp *itp, int argc,
             }
         }
     } else {
-        open_edi::util::message->issueMsg(kInfo,
+        open_edi::util::message->issueMsg(kError,
                                           "Please specify the liberty file.\n");
         return TCL_ERROR;
     }
@@ -400,20 +429,20 @@ void printAnalysisViewCommandHelp() {
 int createAnalysisViewCommand(ClientData cld, Tcl_Interp *itp, int argc,
                               const char *argv[]) {
     AnalysisViewArgs args;
-    if (argc == 2 && !strcasecmp(argv[1], "-help")) {
+    if (argc == 2 && !strcmp(argv[1], "-help")) {
         printAnalysisViewCommandHelp();
         return TCL_OK;
     }
     if (argc == 7) {
         for (int i = 1; i < argc; ++i) {
-            if (!strcasecmp(argv[i], "-name")) {
+            if (!strcmp(argv[i], "-name")) {
                 ++i;
                 args.name = argv[i];
 
-            } else if (!strcasecmp(argv[i], "-mode")) {
+            } else if (!strcmp(argv[i], "-mode")) {
                 ++i;
                 args.mode = argv[i];
-            } else if (!strcasecmp(argv[i], "-corner")) {
+            } else if (!strcmp(argv[i], "-corner")) {
                 ++i;
                 args.corner = argv[i];
             } else {
@@ -512,17 +541,17 @@ void printAnalysisModeCommandHelp() {
 }
 int createAnalysisModeCommand(ClientData cld, Tcl_Interp *itp, int argc,
                               const char *argv[]) {
-    if (argc == 2 && !strcasecmp(argv[1], "-help")) {
+    if (argc == 2 && !strcmp(argv[1], "-help")) {
         printAnalysisModeCommandHelp();
         return TCL_OK;
     }
     if (argc == 5) {
         AnalysisModeArgs args;
         for (int i = 1; i < argc; ++i) {
-            if (!strcasecmp(argv[i], "-name")) {
+            if (!strcmp(argv[i], "-name")) {
                 ++i;
                 args.name = argv[i];
-            } else if (!strcasecmp(argv[i], "-constraint_file")) {
+            } else if (!strcmp(argv[i], "-constraint_file")) {
                 ++i;
                 args.constraint_file = argv[i];
             } else {
@@ -581,7 +610,7 @@ void printAnalysisCornerCommandHelp() {
 }
 int createAnalysisCornerCommand(ClientData cld, Tcl_Interp *itp, int argc,
                                 const char *argv[]) {
-    if (argc == 2 && !strcasecmp(argv[1], "-help")) {
+    if (argc == 2 && !strcmp(argv[1], "-help")) {
         printAnalysisCornerCommandHelp();
         return TCL_OK;
     }
@@ -591,20 +620,20 @@ int createAnalysisCornerCommand(ClientData cld, Tcl_Interp *itp, int argc,
         std::string dump_db_file = "";
         std::string dump_log_file = "";
         for (int i = 1; i < argc; ++i) {
-            if (!strcasecmp(argv[i], "-name")) {
+            if (!strcmp(argv[i], "-name")) {
                 ++i;
                 args.name = argv[i];
-            } else if (!strcasecmp(argv[i], "-rc_tech")) {
+            } else if (!strcmp(argv[i], "-rc_tech")) {
                 ++i;
                 args.rc_tech = argv[i];
-            } else if (!strcasecmp(argv[i], "-lib_set")) {
+            } else if (!strcmp(argv[i], "-lib_set")) {
                 ++i;
                 args.lib_set = argv[i];
-            } else if (!strcasecmp(argv[i], "-dump_lib")) {
+            } else if (!strcmp(argv[i], "-dump_lib")) {
                 if ((i + 1) < argc) dump_lib_file = argv[++i];
-            } else if (!strcasecmp(argv[i], "-dump_db")) {
+            } else if (!strcmp(argv[i], "-dump_db")) {
                 if ((i + 1) < argc) dump_db_file = argv[++i];
-            } else if (!strcasecmp(argv[i], "-dump_log")) {
+            } else if (!strcmp(argv[i], "-dump_log")) {
                 if ((i + 1) < argc) dump_log_file = argv[++i];
             } else {
                 printAnalysisCornerCommandHelp();
@@ -710,49 +739,72 @@ void printSetAnalysisViewStatusCommandHelp() {
 }
 int setAnalysisViewStatusCommand(ClientData cld, Tcl_Interp *itp, int argc,
                                  const char *argv[]) {
-    auto getBool = [](const char *str) {
-        if (!strcasecmp(str, "true")) return true;
-        return false;
+    auto getBool = [](const char *optionName, const char *value,
+                      bool *retValue) {
+        if (!strcmp(value, "true")) {
+            *retValue = true;
+            return true;
+        } else if (!strcmp(value, "false")) {
+            *retValue = false;
+            return true;
+        } else {
+            open_edi::util::message->issueMsg(
+                open_edi::util::kError,
+                "Value \"%s\" is not a valid value for \"%s\" option, please "
+                "correct it.\n",
+                value, optionName);
+            return false;
+        }
     };
 
-    if (argc == 2 && !strcasecmp(argv[1], "-help")) {
+    if (argc == 2 && !strcmp(argv[1], "-help")) {
         printSetAnalysisViewStatusCommandHelp();
         return TCL_OK;
     }
     if (argc == 23) {
         SetAnalysisViewStatusArgs args;
         for (int i = 1; i < argc; ++i) {
-            if (!strcasecmp(argv[i], "-active")) {
+            if (!strcmp(argv[i], "-active")) {
+                if (!getBool(argv[i], argv[i + 1], &(args.active)))
+                    return TCL_ERROR;
                 ++i;
-                args.active = getBool(argv[i]);
-            } else if (!strcasecmp(argv[i], "-setup")) {
+            } else if (!strcmp(argv[i], "-setup")) {
+                if (!getBool(argv[i], argv[i + 1], &(args.setup)))
+                    return TCL_ERROR;
                 ++i;
-                args.setup = getBool(argv[i]);
-            } else if (!strcasecmp(argv[i], "-hold")) {
+            } else if (!strcmp(argv[i], "-hold")) {
+                if (!getBool(argv[i], argv[i + 1], &(args.hold)))
+                    return TCL_ERROR;
                 ++i;
-                args.hold = getBool(argv[i]);
-            } else if (!strcasecmp(argv[i], "-max_tran")) {
+            } else if (!strcmp(argv[i], "-max_tran")) {
+                if (!getBool(argv[i], argv[i + 1], &(args.max_tran)))
+                    return TCL_ERROR;
                 ++i;
-                args.max_tran = getBool(argv[i]);
-            } else if (!strcasecmp(argv[i], "-max_cap")) {
+            } else if (!strcmp(argv[i], "-max_cap")) {
+                if (!getBool(argv[i], argv[i + 1], &(args.max_cap)))
+                    return TCL_ERROR;
                 ++i;
-                args.max_cap = getBool(argv[i]);
-            } else if (!strcasecmp(argv[i], "-min_cap")) {
+            } else if (!strcmp(argv[i], "-min_cap")) {
+                if (!getBool(argv[i], argv[i + 1], &(args.min_cap)))
+                    return TCL_ERROR;
                 ++i;
-                args.min_cap = getBool(argv[i]);
-            } else if (!strcasecmp(argv[i], "-leakage_power")) {
+            } else if (!strcmp(argv[i], "-leakage_power")) {
+                if (!getBool(argv[i], argv[i + 1], &(args.leakage_power)))
+                    return TCL_ERROR;
                 ++i;
-                args.leakage_power = getBool(argv[i]);
-            } else if (!strcasecmp(argv[i], "-dynamic_power")) {
+            } else if (!strcmp(argv[i], "-dynamic_power")) {
+                if (!getBool(argv[i], argv[i + 1], &(args.dynamic_power)))
+                    return TCL_ERROR;
                 ++i;
-                args.dynamic_power = getBool(argv[i]);
-            } else if (!strcasecmp(argv[i], "-cell_em")) {
+            } else if (!strcmp(argv[i], "-cell_em")) {
+                if (!getBool(argv[i], argv[i + 1], &(args.cell_em)))
+                    return TCL_ERROR;
                 ++i;
-                args.cell_em = getBool(argv[i]);
-            } else if (!strcasecmp(argv[i], "-signal_em")) {
+            } else if (!strcmp(argv[i], "-signal_em")) {
+                if (!getBool(argv[i], argv[i + 1], &(args.signal_em)))
+                    return TCL_ERROR;
                 ++i;
-                args.signal_em = getBool(argv[i]);
-            } else if (!strcasecmp(argv[i], "-view")) {
+            } else if (!strcmp(argv[i], "-view")) {
                 ++i;
                 args.view_name = argv[i];
             } else {
