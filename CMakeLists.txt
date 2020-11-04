@@ -65,7 +65,7 @@ find_package(Doxygen)
 #  set(EDI_BIND_TCL OFF)
 #endif(TCL_FOUND)
 
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -Wreturn-type )
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wreturn-type  -Wno-attributes")
 
 message(STATUS "CMAKE_HOST_SYSTEM: ${CMAKE_HOST_SYSTEM}")
 message(STATUS "CMAKE_CXX_COMPILER_VERSION: ${CMAKE_CXX_COMPILER_VERSION}")
@@ -87,6 +87,14 @@ message(STATUS "EDI_BIND_TCL: ${EDI_BIND_TCL}")
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 # testing are defined in unittest directory 
 enable_testing()
+
+OPTION(ENABLE_GCOV "Enable gcov (debug, Linux builds only)" OFF)
+message(STATUS "GCOV: ${ENABLE_GCOV}")
+IF (ENABLE_GCOV)
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage -lgcov")
+ENDIF()
 
 option(CMAKE_USE_PYTHON2 "Whether use python2 instead of python3" OFF)
 if(CMAKE_USE_PYTHON2)
