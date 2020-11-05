@@ -45,6 +45,7 @@ bool initTopCell() {
     kTopCell->setId(cell_id);
     kTopCell->setOwner(cell_id);
     kTopCell->setObjectType(kObjectTypeCell);
+    kTopCell->setCellType(CellType::kHierCell);
     kTopCell->setPool(pool);
     MemPool::insertPagePool(cell_id, pool);
 
