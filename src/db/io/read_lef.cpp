@@ -677,6 +677,16 @@ int macroEndCB(lefrCallbackType_e c, const char *macroName, lefiUserData) {
 int manufacturingCB(lefrCallbackType_e c, double num, lefiUserData) {
     checkType(c);
     Tech *lib = getTopCell()->getTechLib();
+    //Based on the recommended behaviors, when manufacture-grids is smaller than db-microns,
+    //the db-microns will be changed.
+    Units *units = lib->getUnits();
+    if (units) {
+        UInt32 dbu = units->getLengthFactor();
+        double dbu_based_grid = (1.0 / num);
+        if ((UInt32)dbu_based_grid > dbu) {
+            units->setLengthFactor((UInt32)dbu_based_grid);
+        }
+    }
     lib->setManuGrids(lib->micronsToDBU(num));
     return 0;
 }
