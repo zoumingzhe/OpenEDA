@@ -54,15 +54,15 @@ enum class CellType : uint8_t {
 inline std::string toString(CellType const &v) {
     switch (v) {
         case CellType::kCell:
-            return "kCell";
+            return "Cell";
         case CellType::kIOPin:
-            return "kIOPin";
+            return "IOPin";
         case CellType::kHierCell:
-            return "kHierarchicalCell";
+            return "HierarchicalCell";
         case CellType::kTerm:
-            return "kTerm";
+            return "Term";
         case CellType::kSplitCell:
-            return "kSplitCelt";
+            return "SplitCelt";
         default:
             return "Unknown";
     }
