@@ -106,7 +106,7 @@ class PlaceObj(nn.Module):
             dtype=self.data_collections.pos[0].dtype,
             device=self.data_collections.pos[0].device)
 
-        ###shenhai to add global_density_weight for bin sizing loop,2020/07/29
+        #to add global_density_weight for bin sizing loop,2020/07/29
         
         # compute weighted average wirelength from position
         if "num_bins_x" in global_place_params:
@@ -440,9 +440,9 @@ class PlaceObj(nn.Module):
             cy=torch.tensor(cy.ravel(),
                             dtype=data_collections.pos[0].dtype,
                             device=data_collections.pos[0].device),
-            # shenhai modified to use bin_size_x, bin_size_y based on global placement,2020/07/29
-            bin_center_x=self.bin_center_x_padded(bin_size_x,padding),
-            bin_center_y=self.bin_center_y_padded(bin_size_y,padding),
+            #to use bin_size_x, bin_size_y based on global placement,2020/07/29
+            bin_center_x=self.bin_center_x_padded(placedb,bin_size_x,padding),
+            bin_center_y=self.bin_center_y_padded(placedb,bin_size_y,padding),
            
             #bin_center_x=data_collections.bin_center_x_padded(placedb,padding),
             #bin_center_y=data_collections.bin_center_y_padded(placedb,padding),
@@ -506,14 +506,14 @@ class PlaceObj(nn.Module):
         self.bin_center_x = placedb.bin_centers(xl, xh, bin_size_x)
         self.bin_center_y = placedb.bin_centers(yl, yh, bin_size_y)
 
-        # shenhai modified to use bin_size_x, bin_size_y based on global placement,2020/07/29
+        #to use bin_size_x, bin_size_y based on global placement,2020/07/29
         return electric_potential.ElectricPotential(
             node_size_x=data_collections.node_size_x,
             node_size_y=data_collections.node_size_y,
             bin_center_x=self.bin_center_x_padded(
-                bin_size_x, padding),
+                placedb,bin_size_x, padding),
             bin_center_y=self.bin_center_y_padded(
-                bin_size_y, padding),
+                placedb,bin_size_y, padding),
             target_density=data_collections.target_density,
             xl=xl,
             yl=yl,
@@ -817,8 +817,8 @@ class PlaceObj(nn.Module):
         return build_adjust_node_area_op
 
 
-    #shenhai add for global palcement to recalcuate bin center based on  bin numbers at each loop,2020/07/29
-    def bin_center_x_padded(self, bin_size_x, padding):
+    #for global palcement to recalcuate bin center based on  bin numbers at each loop,2020/07/29
+    def bin_center_x_padded(self,placedb,bin_size_x, padding):
         """
         @brief compute array of bin center horizontal coordinates with padding 
         @param placedb placement database 
@@ -839,7 +839,7 @@ class PlaceObj(nn.Module):
                    dtype=self.data_collections.pos[0].dtype,
                    device=self.data_collections.pos[0].device)
 
-    def bin_center_y_padded(self, bin_size_y, padding):
+    def bin_center_y_padded(self,placedb, bin_size_y, padding):
         """
         @brief compute array of bin center vertical coordinates with padding 
         @param placedb placement database 

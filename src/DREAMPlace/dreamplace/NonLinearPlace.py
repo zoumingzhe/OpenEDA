@@ -176,7 +176,7 @@ class NonLinearPlace (BasicPlace.BasicPlace):
         self.model.overflow = cur_metric.overflow.data.clone()
        #logging.debug("evaluation %.3f ms" % ((time.time()-t1)*1000))
        #t2 = time.time()
-        # shenhai add clone for these two values for deep copy, 2020/08/20
+        # add clone for these two values for deep copy, 2020/08/20
         cur_metric.density_weight = self.model.density_weight.data.clone()
         cur_metric.gamma = self.model.gamma.data.clone() 
         # as nesterov requires line search, we cannot follow the convention of other solvers

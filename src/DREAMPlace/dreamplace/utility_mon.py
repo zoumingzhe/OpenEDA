@@ -232,7 +232,7 @@ def sysload_monitoring(fp,pid,peakmemory_pid,device,device_id,peak_memory_gpu):
             fp.write('%10.3f\t%9.1f\t %4.1f\t  %5.2f\t        %5.0f\t     %5.0f\t\t       %5.0f\t\t   %5.0f\n'%(tt, memory_free, memory_used,cpu_load,memory_pid,peak_memory,gpu_mem,peak_memory_gpu)) 
             fp.flush()
         except Exception as err:
-            logging.warning('Cannot write mon file ' + monfile)
+            logging.warning('Cannot write mon file ')
             return 0
     else:
         try:
@@ -240,7 +240,7 @@ def sysload_monitoring(fp,pid,peakmemory_pid,device,device_id,peak_memory_gpu):
             fp.write('%10.3f\t%9.1f\t %4.1f\t  %5.2f\t        %5.0f\t     %5.0f\n'%(tt, memory_free, memory_used,cpu_load,memory_pid,peak_memory)) 
             fp.flush()
         except Exception as err:
-            logging.warning('Cannot write mon file ' + monfile)
+            logging.warning('Cannot write mon file ')
             return 0
 
     return 1

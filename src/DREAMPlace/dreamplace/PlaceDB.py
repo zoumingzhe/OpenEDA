@@ -430,7 +430,7 @@ class PlaceDB (object):
         @param row_id row index 
         """
         logging.debug("row %d %s" % (row_id, self.rows[row_id]))
-    #shenhai for cell info debug
+    #for cell info debug
     def get_cell_index(self, cell_name_array):
 
         arg_index = []
@@ -452,7 +452,7 @@ class PlaceDB (object):
         @return a pair of (elements, cumulative column indices of the beginning element of each row)
         """
         # flat netpin map, length of #pins
-        flat_net2pin_map = np.zeros(len(pin2net_map), dtype=np.int32)
+        flat_net2pin_map = np.zeros(len(net2pin_map), dtype=np.int32)
         # starting index in netpin map for each net, length of #nets+1, the last entry is #pins  
         flat_net2pin_start_map = np.zeros(len(net2pin_map)+1, dtype=np.int32)
         count = 0
@@ -461,7 +461,7 @@ class PlaceDB (object):
             flat_net2pin_start_map[i] = count 
             count += len(net2pin_map[i])
         assert flat_net2pin_map[-1] != 0
-        flat_net2pin_start_map[len(net2pin_map)] = len(pin2net_map)
+        flat_net2pin_start_map[len(net2pin_map)] = len(net2pin_map)
 
         return flat_net2pin_map, flat_net2pin_start_map
 
@@ -485,7 +485,7 @@ class PlaceDB (object):
         self.num_terminals = pydb.num_terminals
         self.num_terminal_NIs = pydb.num_terminal_NIs
         self.node_name2id_map = pydb.node_name2id_map
-        #shenhai modified for better table lookup and print,2020/07/20
+        # modified for better table lookup and print,2020/07/20
         self.node_names = np.array(pydb.node_names)
         #self.node_names = np.array(pydb.node_names, dtype=np.string_)
         
