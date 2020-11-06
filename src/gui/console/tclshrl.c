@@ -20,20 +20,16 @@
 
 extern int Tclreadline_Init(Tcl_Interp *interp);
 extern int Tclreadline_SafeInit(Tcl_Interp *interp);
-extern void TclsetInstallPath(const char* installPath);
+extern void TclsetHistoryPath(const char* historyPath);
 
 int
 TclreadlineAppInit(Tcl_Interp* interp, const char* installPath)
 {
     char rcPath[0xff] = {0};
-    char initPath[0xff] = {0};
-
+    char setupPath[0xff] = {0};
+    char completerPath[0xff] = {0};
     int status;
-    // if (TCL_ERROR == Tcl_Init(interp)) {
-    //     return TCL_ERROR;
-    // }
 
-    TclsetInstallPath(installPath);
 
     if (TCL_ERROR == Tclreadline_Init(interp)) {
         return TCL_ERROR;
@@ -41,30 +37,49 @@ TclreadlineAppInit(Tcl_Interp* interp, const char* installPath)
     Tcl_StaticPackage(interp, "tclreadline",
                       Tclreadline_Init, Tclreadline_SafeInit);
 
+    TclsetHistoryPath(installPath);
+
+
     strcpy(rcPath,installPath);
     strcat(rcPath,"/src/gui/console/lib/config.tclshrc");
-    Tcl_SetVar(interp, "tcl_rcFileName", rcPath, TCL_GLOBAL_ONLY);
+    if(access(rcPath,F_OK) != 0) {
+        memset(rcPath, 0, sizeof(rcPath));
+        strcpy(rcPath,installPath);
+        strcat(rcPath,"/include/src/gui/console/lib/config.tcl");
+    }
 
-    
-    strcpy(initPath,installPath);
-    strcat(initPath,"/src/gui/console/lib/tclreadlineInit.tcl");
-    if(access(initPath,F_OK) != 0) {
-        memset(initPath, 0, 255);
-        strcpy(initPath,installPath);
-        strcat(initPath,"/include/src/gui/console/lib/tclreadlineInit.tcl");
+    Tcl_SetVar(interp, "tcl_rcFileName", rcPath, TCL_GLOBAL_ONLY);
+    Tcl_Eval(interp,"::tclreadline::readline customcompleter ::tclreadline::ScriptCompleter");
+
+
+    strcpy(setupPath,installPath);
+    strcat(setupPath,"/src/gui/console/lib/tclreadlineSetup.tcl");
+    if(access(setupPath,F_OK) != 0) {
+        memset(setupPath, 0, sizeof(setupPath));
+        strcpy(setupPath,installPath);
+        strcat(setupPath,"/include/src/gui/console/lib/tclreadlineSetup.tcl");
     }
-    
-    if ((status = Tcl_EvalFile(interp, initPath))) {
-        fprintf(stderr, "(TclreadlineAppInit) unable to eval %s\n", initPath);
-        exit (EXIT_FAILURE);
+    if ((status = Tcl_EvalFile(interp,setupPath))) {
+        fprintf(stderr, "(tclreadlineSetup) unable to eval %s\n", setupPath);
+        exit (EXIT_FAILURE);       
     }
+
+
+    strcpy(completerPath,installPath);
+    strcat(completerPath,"/src/gui/console/lib/tclreadlineCompleter.tcl");
+    if(access(completerPath,F_OK) != 0) {
+        memset(completerPath, 0, sizeof(completerPath));
+        strcpy(completerPath,installPath);
+        strcat(completerPath,"/include/src/gui/console/lib/tclreadlineCompleter.tcl");
+    }
+
+    if ((status = Tcl_EvalFile(interp,completerPath))) {
+        fprintf(stderr, "(tclreadlineCompleter) unable to eval %s\n", completerPath);
+        exit (EXIT_FAILURE);       
+    }
+
     return TCL_OK;
 }
 
-// int
-// main(int argc, char *argv[])
-// {
-//     Tcl_Main(argc, argv, TclreadlineAppInit);
-//     return EXIT_SUCCESS;
-// }
+
 
