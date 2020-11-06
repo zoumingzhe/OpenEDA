@@ -220,12 +220,11 @@ namespace eval tclreadline {
                 set historyfile [lindex $args 0]
             }
         } else {
-#            if {[info exists env(HOME)]} {
-#                set historyfile .tclsh-history
-#            } else {
-#                set historyfile .tclsh-history
-#            }
-            set historyfile $tclreadline::installPath/src/gui/console/lib/.tclsh-history
+           if {[file exists $tclreadline::historyPath/include/src/gui/console/lib]} {
+               set historyfile $tclreadline::historyPath/include/src/gui/console/lib/.tclsh-history
+           } else {
+               set historyfile $tclreadline::historyPath/src/gui/console/lib/.tclsh-history
+           }            
         }
         set ::tclreadline::errorMsg [readline initialize $historyfile]
         if {$::tclreadline::errorMsg != ""} {
