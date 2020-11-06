@@ -60,8 +60,8 @@ class Row : public Object {
     Floorplan *getFloorplan();
 
     bool setName(const char *name);
-    bool setName(const std::string &name);
-    void setName(const SymbolIndex &name);
+    bool setName(std::string &name);
+    void setName(SymbolIndex &name);
     std::string &getName();
     SymbolIndex getNameIndex();
 
@@ -260,8 +260,8 @@ class Constraint : public Object {
     SymbolIndex getNameIndex();
     std::string &getName();
     bool setName(const char *name);
-    bool setName(const std::string &name);
-    void setName(const SymbolIndex &name);
+    bool setName(std::string &name);
+    void setName(SymbolIndex &name);
     ConstraintType getConstraintType();
     void setConstraintType(ConstraintType t);
     ConstraintSubType getConstraintSubType();

@@ -52,7 +52,7 @@ std::string &Row::getName() {
 /// @brief setName
 ///
 /// @param name
-void Row::setName(const SymbolIndex &row_name_index) {
+void Row::setName(SymbolIndex &row_name_index) {
     row_name_index_ = row_name_index;
     getFloorplan()->getCell()->addSymbolReference(row_name_index_,
                                                   this->getId());
@@ -63,7 +63,7 @@ void Row::setName(const SymbolIndex &row_name_index) {
 /// @param name
 ///
 /// @return
-bool Row::setName(const std::string &name) {
+bool Row::setName(std::string &name) {
     int64_t index = getFloorplan()->getCell()->getOrCreateSymbol(name);
     if (index == -1) return false;
 
@@ -716,12 +716,12 @@ std::string &Constraint::getName() {
     return getFloorplan()->getCell()->getSymbolByIndex(name_);
 }
 
-void Constraint::setName(const SymbolIndex &name) {
+void Constraint::setName(SymbolIndex &name) {
     name_ = name;
     getFloorplan()->getCell()->addSymbolReference(name_, this->getId());
 }
 
-bool Constraint::setName(const std::string &name) {
+bool Constraint::setName(std::string &name) {
     int64_t index = getFloorplan()->getCell()->getOrCreateSymbol(name);
     if (index == -1) return false;
 

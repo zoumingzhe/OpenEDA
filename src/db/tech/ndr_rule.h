@@ -293,8 +293,6 @@ class NonDefaultRule : public Object {
     ObjectId vias_;
     ObjectId use_vias_;
     ObjectId use_via_rules_;
-    Bits hard_spacing_ : 1;
-    Bits from_def_ : 1;    
 };
 
 }  // namespace db
