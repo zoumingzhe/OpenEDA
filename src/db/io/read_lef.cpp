@@ -606,7 +606,7 @@ int macroCB(lefrCallbackType_e c, lefiMacro *macro, lefiUserData) {
         
     // fprintf(fout, "  SITE %s ;\n", macro->lefiMacro::siteName());
     if (macro->lefiMacro::hasSitePattern()) {
-        cell->setNumSites(macro->lefiMacro::numSitePattern());
+        //cell->setNumSites(macro->lefiMacro::numSitePattern());
         for (i = 0; i < macro->lefiMacro::numSitePattern(); i++) {
             SitePattern *siteP = current_top_cell->createObject<SitePattern>(
                 kObjectTypeCellSitePattern);
@@ -640,7 +640,7 @@ int macroCB(lefrCallbackType_e c, lefiMacro *macro, lefiUserData) {
     }
 
     if (macro->lefiMacro::hasForeign()) {
-        cell->setNumForeigns(macro->lefiMacro::numForeigns());
+        //cell->setNumForeigns(macro->lefiMacro::numForeigns());
         for (i = 0; i < macro->lefiMacro::numForeigns(); i++) {
             Foreign *f =
                 current_top_cell->createObject<Foreign>(kObjectTypeForeign);
@@ -677,16 +677,6 @@ int macroEndCB(lefrCallbackType_e c, const char *macroName, lefiUserData) {
 int manufacturingCB(lefrCallbackType_e c, double num, lefiUserData) {
     checkType(c);
     Tech *lib = getTopCell()->getTechLib();
-    //Based on the recommended behaviors, when manufacture-grids is smaller than db-microns,
-    //the db-microns will be changed.
-    Units *units = lib->getUnits();
-    if (units) {
-        UInt32 dbu = units->getLengthFactor();
-        double dbu_based_grid = (1.0 / num);
-        if ((UInt32)dbu_based_grid > dbu) {
-            units->setLengthFactor((UInt32)dbu_based_grid);
-        }
-    }
     lib->setManuGrids(lib->micronsToDBU(num));
     return 0;
 }

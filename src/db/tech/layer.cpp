@@ -2122,8 +2122,7 @@ uint64_t Layer::getNameId() const {
 ///
 /// @return 
 const char* Layer::getName() {
-    std::string name = getCell_()->getSymbolByIndex(nameId_);
-    return name.c_str();
+    return getCell_()->getSymbolByIndex(nameId_).c_str();
 }
 
 /**
