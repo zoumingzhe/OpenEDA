@@ -21,6 +21,7 @@
 #include "db/tech/site.h"
 #include "db/tech/units.h"
 #include "db/tech/via_rule.h"
+#include "db/util/array.h"
 #include "util/util.h"
 
 namespace open_edi {
@@ -80,9 +81,15 @@ class Tech : public Object {
     ObjectId getNonDefaultRuleVectorId() const;
     ObjectId getViaMasterVectorId() const;
     ObjectId getViaRuleVectorId() const;
+    ObjectId getSiteVectorId() const;
     ObjectId getNonDefaultRuleIdByName(const char *ndr_rule_name) const;
     NonDefaultRule *getNonDefaultRule(const char *ndr_rule_name) const;
     void addNonDefaultRule(ObjectId ndr_rule_id);
+
+    ArrayObject<ObjectId> *getNonDefaultRuleArray() const;
+    ArrayObject<ObjectId> *getViaMasterArray() const;
+    ArrayObject<ObjectId> *getViaRuleArray() const;
+    ArrayObject<ObjectId> *getSiteArray() const;
 
     ViaMaster *createAndAddViaMaster(std::string &name);
     ViaRule *createViaRule(std::string &name);
@@ -95,7 +102,6 @@ class Tech : public Object {
 
     void addSite(Site *site);
     Site *getSiteByName(const char *site_name) const;
-    ObjectId getSiteVectorId() const;
 
     // transfer between user unit and db unit
     Int32 micronsToDBU(double microns);
