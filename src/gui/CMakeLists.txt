@@ -43,5 +43,5 @@ install(TARGETS ${_SUBLIBNAME}
      )
 
 # install headers 
-file(GLOB_RECURSE HEADERS *.h *.hpp)
+file(GLOB HEADERS *.h *.hpp)
 install(FILES ${HEADERS} DESTINATION include/src/${_SUBDIRNAME})
