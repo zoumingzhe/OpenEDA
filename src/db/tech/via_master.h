@@ -112,6 +112,7 @@ class ViaMaster : public Object {
     bool hasCutPatten();
     bool hasGenerated();
     bool hasResistance();
+    bool getHasProperty();
     ObjectId getViaLayerVector();
     ObjectId getPropertiesId() const;
     uint64_t numProperties() const;
@@ -159,16 +160,18 @@ class ViaMaster : public Object {
     SymbolIndex pattern_index_;
     SymbolIndex cut_patten_index_;
 
-    Bits is_default_ : 1;
-    Bits has_via_rule_ : 1;
-    Bits is_array_ : 1;
-    Bits is_from_def_ : 1;
-    Bits is_from_ndr_ : 1;
-    Bits has_origin_ : 1;
-    Bits has_offset_ : 1;
-    Bits has_generated_ : 1;
-    Bits has_cut_pattern_ : 1;
-    Bits has_resistance_ : 1;
+    bool is_default_      :1;
+    bool has_via_rule_    :1;
+    bool is_array_        :1;
+    bool is_from_def_     :1;
+    bool is_from_ndr_     :1;
+    bool has_origin_      :1;
+    bool has_offset_      :1;
+    bool has_generated_   :1;
+    bool has_cut_pattern_ :1;
+    bool has_resistance_  :1;
+    bool has_property_    :1;
+    Bits64 reserved_      :53;
 
     int x_size_;
     int y_size_;
@@ -206,7 +209,6 @@ class ViaMaster : public Object {
 
     double resistance_; /**< resistance value */
     ObjectId via_layers_;
-    ObjectId properties_;
 };
 
 }  // namespace db

@@ -184,7 +184,7 @@ class Cell : public Object {
     PolygonTable *getPolygonTable();
     std::string &getSymbolByIndex(SymbolIndex index);
     int64_t getOrCreateSymbol(const char *name);
-    int64_t getOrCreateSymbol(std::string &name);
+    int64_t getOrCreateSymbol(const std::string &name);
     bool addSymbolReference(SymbolIndex index, ObjectId owner);
     void setPool(MemPagePool *p);
     MemPagePool *getPool();

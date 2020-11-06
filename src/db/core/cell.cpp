@@ -237,7 +237,7 @@ int64_t Cell::getOrCreateSymbol(const char *name) {
 /// @param name
 ///
 /// @return
-SymbolIndex Cell::getOrCreateSymbol(std::string &name) {
+SymbolIndex Cell::getOrCreateSymbol(const std::string &name) {
     return getSymbolTable()->getOrCreateSymbol(name.c_str());
 }
 

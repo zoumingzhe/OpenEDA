@@ -107,7 +107,7 @@ typedef enum ObjectType {
     kObjectTypeArray,
     kObjectTypeArraySegment,
     kObjectTypeInternalVectorStarts = 4096,
-    kObjectTypeMax
+    kObjectTypeMax // must less than 65,536
 } ObjectType;
 
 /// @brief Base class for all objects.
@@ -199,6 +199,9 @@ class Object {
     void setIsMarked(int v);
     int  getIsMarked();
 
+    void deleteSparseObject(ObjectType type); 
+    void deleteSparseObject(ObjectType type, ObjectId obj_id); 
+
   protected:
     /// @brief copy object
     void copy(Object const &rhs);
@@ -212,14 +215,16 @@ class Object {
     template <class T>
     static int __getInternalTypeForVectorObject();
 
-    IndexType is_valid_ : 1;
-    IndexType is_selected_ : 1;
-    IndexType is_highlight_ : 1;
-    IndexType is_modified_ : 1;
-    IndexType is_marked_ : 1;
-    IndexType null_ : 3;
-    ObjectId id_ : 56;  ///< object index
-    ObjectType type_;
+    IndexType is_valid_     :1;
+    IndexType is_selected_  :1;
+    IndexType is_highlight_ :1;
+    IndexType is_modified_  :1;
+    IndexType is_marked_    :1;
+    IndexType reserved1_    :3;
+    ObjectId  id_           :56;  ///< object index
+
+    ObjectType type_        :16;
+    Bits64 reserved2_       :48;
 
     ObjectId owner_;  ///< parent object of this object
 };
@@ -283,6 +288,15 @@ T* Object::addr(uint64_t obj_id)
         return nullptr;
     }
 }
+
+// Store sparse data for all Object
+typedef std::pair<ObjectId, uint32_t> IdType;
+typedef std::multimap<IdType, ObjectId> SparseMap;
+typedef std::pair<SparseMap::iterator, SparseMap::iterator> SparsePair;
+
+extern SparseMap kSparseMap;
+extern SparsePair kSparsePair;
+extern SparseMap::iterator kSparseIt;
 
 }  // namespace db
 }  // namespace open_edi

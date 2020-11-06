@@ -62,7 +62,6 @@ bool parseNonDefaultRuleArgument(int argc, const char *argv[],
                 testObj.setMinCutsSize(size);
                 testObj.setUseViaSize(size);
                 testObj.setUseViaRuleSize(size);
-                testObj.setPropertySize(size);
                 break;
             case kNonDefaultRuleLayer:
                 layer = current_top_cell->createObject<NonDefaultRuleLayer>(
@@ -140,12 +139,11 @@ int nonDefaultRuleTest(ClientData cld, Tcl_Interp *itp, int argc,
     OStream<std::ofstream> os("test_ndr_rule.txt",
                               std::ios::out | std::ios::app);
     os << *testObj << endl_c;
-    ObjectId prop_vector_id = testObj->getPropertiesId();
-    VectorObject16 *vector_obj =
-        MemPool::getObjectPtr<VectorObject16>(prop_vector_id);
-    for (int i = 0; i < vector_obj->totalSize(); ++i) {
-        ObjectId obj_id = (*vector_obj)[i];
-        Property *prop = MemPool::getObjectPtr<Property>(obj_id);
+    kSparsePair = kSparseMap.equal_range(IdType(testObj->getId(),
+                                                         kObjectTypeProperty));
+    for (kSparseIt = kSparsePair.first; kSparseIt != kSparsePair.second;
+                                                             ++kSparseIt) {
+        Property *prop = Object::addr<Property>(kSparseIt->second);
         os << *prop << endl_c;
     }
     os.close();

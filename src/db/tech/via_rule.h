@@ -84,17 +84,16 @@ class ViaRule : public Object {
     void printLEF(std::ofstream &ofs);
 
   private:
-    Bits is_generate_ : 1;  // for VIARULE GENERATE
-    Bits is_default_ : 1;
-    Bits has_property_ : 1;
-    Bits unused_ : 29;
+    Bits is_generate_   :1;  // for VIARULE GENERATE
+    Bits is_default_    :1;
+    Bits has_property_  :1;
+    Bits64 reserved_    :61;
     SymbolIndex name_index_;
 
     ObjectId metal_layers_;
     ObjectId cut_layer_;
     ObjectId via_masters_;
     // std::vector<ViaMaster *> via_masters_;
-    ObjectId properties_;
 };
 
 class ViaRuleMetalLayer : public Object {

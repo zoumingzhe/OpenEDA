@@ -2440,7 +2440,6 @@ int readViaMaster(lefiVia *io_via, bool is_from_ndr) {
     db_via_master->setIsFromDEF(0);
 
     // property
-    db_via_master->setPropertySize(io_via->numProperties());
     for (int i = 0; i < io_via->numProperties(); i++) {
         Property *property =
             top_cell->createObject<Property>(kObjectTypeProperty);
@@ -2560,7 +2559,6 @@ int readViaRule(lefiViaRule *io_via_rule) {
     }
     // add property
     // property
-    db_via_rule->setPropertySize(io_via_rule->numProps());
     for (int i = 0; i < io_via_rule->numProps(); i++) {
         Property *property =
             top_cell->createObject<Property>(kObjectTypeProperty);
@@ -2870,7 +2868,6 @@ int readNonDefaultRule(lefiNonDefault *io_ndr_rule) {
         edi_ndr_rule->addUseViaRule(use_via_rule->getId());
     }
     // property
-    edi_ndr_rule->setPropertySize(io_ndr_rule->lefiNonDefault::numProps());
     for (i = 0; i < io_ndr_rule->lefiNonDefault::numProps(); i++) {
         Property *property =
             current_top_cell->createObject<Property>(kObjectTypeProperty);

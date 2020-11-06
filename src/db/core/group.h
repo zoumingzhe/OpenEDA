@@ -50,22 +50,25 @@ class Group : public Object {
     uint64_t getNumProperties() const;
     void addProperty(ObjectId prop_id);
     ObjectId getPropertiesId() const;
+    bool getHasProperty() const;
 
     void print();
     void print(FILE* fp);
 
   private:
+    bool has_region_       :1;
+    bool has_property_     :1;
+    int64_t reserved_      :62;
     ObjectId cell_;
     // definition in DEF
     SymbolIndex name_index_;
     std::vector<SymbolIndex> pattern_index_vector_;
-    bool has_region_;
     SymbolIndex region_index_;
     ObjectId properties_id_;
 
     // relation to other objects
     std::vector<ObjectId> instance_id_vector_;
-};
+};  // class Group
 }  // namespace db
 }  // namespace open_edi
 

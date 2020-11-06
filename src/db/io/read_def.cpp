@@ -59,7 +59,6 @@ static void readProperties(PropType prop_type, void* from, void* to) {
 
     Cell* top_cell = getTopCell();
 
-    to_object->setPropertySize(from_object->numProps());
     for (int i = 0; i < from_object->numProps(); i++) {
         Property* property =
             top_cell->createObject<Property>(kObjectTypeProperty);
@@ -2652,7 +2651,6 @@ int readNonDefaultRule(defiNonDefault* io_ndr_rule) {
         ndr_rule->addUseViaRule(use_via_rule->getId());
     }
     // property
-    ndr_rule->setPropertySize(io_ndr_rule->numProps());
     for (i = 0; i < io_ndr_rule->numProps(); i++) {
         Property* property =
             top_cell->createObject<Property>(kObjectTypeProperty);

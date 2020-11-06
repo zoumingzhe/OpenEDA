@@ -232,6 +232,7 @@ class NonDefaultRule : public Object {
     SymbolIndex getNameIndex() const;
     bool getHardSpacing() const;
     bool getFromDEF() const;
+    bool getHasProperty() const;
     uint64_t numLayers() const;
     uint64_t numMinCuts() const;
     uint64_t numVias() const;
@@ -244,7 +245,6 @@ class NonDefaultRule : public Object {
     ObjectId getViasId() const;
     ObjectId getUseViasId() const;
     ObjectId getUseViaRulesId() const;
-    ObjectId getPropertiesId() const;
 
     // Set:
     void setName(const char *v);
@@ -263,8 +263,8 @@ class NonDefaultRule : public Object {
     void setHardSpacing(bool v);
     void setFromDEF(bool v);
     // print:
-    void printLEF(std::ofstream &ofs) const;
-    void printDEF(FILE *fp) const;
+    void printLEF(std::ofstream &ofs);
+    void printDEF(FILE *fp);
 
   protected:
     /// @brief copy object
@@ -279,12 +279,14 @@ class NonDefaultRule : public Object {
   private:
     void __init();
     // DATA
+    bool hard_spacing_   :1;
+    bool from_def_       :1;
+    bool has_property_   :1;
+    Bits64 reserved_     :61;
+
     SymbolIndex name_index_; /**< name */
-    bool hard_spacing_;
-    bool from_def_;
     ObjectId layers_;
     ObjectId min_cuts_;
-    ObjectId properties_;
     ObjectId vias_;
     ObjectId use_vias_;
     ObjectId use_via_rules_;
