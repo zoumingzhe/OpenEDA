@@ -25,6 +25,7 @@ using namespace open_edi::util;
 typedef enum ObjectType {
     kObjectTypeNone = 0,
     kObjectTypeCell,
+    kObjecTypeHierData,
     kObjectTypeFloorplan,
     kObjectTypeCellSitePattern,
     kObjectTypeForeign,
