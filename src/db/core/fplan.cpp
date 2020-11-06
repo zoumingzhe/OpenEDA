@@ -10,6 +10,12 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 
+#include <map>
+#include <algorithm>
+#include <utility>
+#include <vector>
+#include <string>
+
 #include "db/core/fplan.h"
 
 #include "db/core/cell.h"
@@ -23,27 +29,18 @@ namespace db {
 
 /// @brief Row
 Row::Row() {
-    memset((void *)this, 0, sizeof(Row));
+    memset(reinterpret_cast<void *>(this), 0, sizeof(Row));
     row_name_index_ = 0;
     site_name_index_ = 0;
     bbox_ = Box();
-    legal_orient_ = Orient::kN;
-    orient_ = Orient::kN;
+    row_orient_ = Direction::kUnknown;
     site_count_ = 0;
 }
 
-/// @brief Row
-///
-/// @param r
-Row::Row(Row &r) { copy(r); }
-
-/// @brief Row
-///
-/// @param r
-Row::Row(Row &&r) { move(std::move(r)); }
-
 /// @brief ~Row
-Row::~Row() {}
+Row::~Row() {
+    deleteSparseObject(kObjectTypeProperty);
+}
 
 /// @brief getName
 ///
@@ -55,7 +52,7 @@ std::string &Row::getName() {
 /// @brief setName
 ///
 /// @param name
-void Row::setName(SymbolIndex &row_name_index) {
+void Row::setName(const SymbolIndex &row_name_index) {
     row_name_index_ = row_name_index;
     getFloorplan()->getCell()->addSymbolReference(row_name_index_,
                                                   this->getId());
@@ -66,7 +63,7 @@ void Row::setName(SymbolIndex &row_name_index) {
 /// @param name
 ///
 /// @return
-bool Row::setName(std::string &name) {
+bool Row::setName(const std::string &name) {
     int64_t index = getFloorplan()->getCell()->getOrCreateSymbol(name);
     if (index == -1) return false;
 
@@ -99,29 +96,19 @@ Box Row::getBox() const { return bbox_; }
 /// @brief setBox
 ///
 /// @param b
-void Row::setBox(Box &b) { bbox_ = b; }
-
-/// @brief getLegalOrient
-///
-/// @return
-Orient Row::getLegalOrient() const { return legal_orient_; }
-
-/// @brief setLegalOrient
-///
-/// @param o
-void Row::setLegalOrient(Orient &o) { legal_orient_ = o; }
+void Row::setBox(const Box &b) { bbox_ = b; }
 
 /// @brief getOrient
 ///
 /// @return
-Orient Row::getOrient() const { return orient_; }
+Direction Row::getRowOrient() const { return row_orient_; }
 
 /// @brief setOrient
 ///
 /// @param o
-void Row::setOrient(Orient &o) { orient_ = o; }
+void Row::setRowOrient(const Direction &o) { row_orient_ = o; }
 
-void Row::setSiteId(ObjectId &site_id) { site_id_ = site_id; }
+void Row::setSiteId(const ObjectId &site_id) { site_id_ = site_id; }
 
 Site *Row::getSite() const {
     return addr<Site>(site_id_);
@@ -137,32 +124,7 @@ int32_t Row::getSiteCount() const { return site_count_; }
 /// @brief setSiteCount
 ///
 /// @param sc
-void Row::setSiteCount(int32_t &sc) { site_count_ = sc; }
-
-/// @brief copy
-///
-/// @param r
-void Row::copy(Row const &r) {
-    this->BaseType::copy(r);
-    bbox_ = r.bbox_;
-    legal_orient_ = r.legal_orient_;
-    orient_ = r.orient_;
-    site_name_index_ = r.site_id_;
-    site_count_ = r.site_count_;
-}
-
-/// @brief move
-///
-/// @param rhs
-void Row::move(Row &&r) {
-    this->BaseType::move(std::move(r));
-    row_name_index_ = std::move(r.row_name_index_);
-    bbox_ = std::move(r.bbox_);
-    legal_orient_ = std::move(r.legal_orient_);
-    orient_ = std::move(r.orient_);
-    site_name_index_ = std::move(r.site_name_index_);
-    site_count_ = std::move(r.site_count_);
-}
+void Row::setSiteCount(const int32_t &sc) { site_count_ = sc; }
 
 /// @brief setFloorplan
 ///
@@ -191,44 +153,19 @@ std::string &Row::getSiteName() {
     return getFloorplan()->getCell()->getSymbolByIndex(site_name_index_);
 }
 
-void Row::setPropertySize(uint64_t v) {
-    if (v == 0) {
-        if (properties_id_) {
-            VectorObject16::deleteDBVectorObjectVar(properties_id_);
-        }
-        return;
-    }
-    if (!properties_id_) {
-        VectorObject16 *vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        properties_id_ = vobj->getId();
-    }
-}
-
 uint64_t Row::getNumProperties() const {
-    if (!properties_id_) return 0;
-
-    return addr<VectorObject16>(properties_id_)->totalSize();
+    kSparsePair = kSparseMap.equal_range(IdType(getId(), kObjectTypeProperty));
+    return std::distance(kSparsePair.first, kSparsePair.second);
 }
 
 void Row::addProperty(ObjectId obj_id) {
-    VectorObject16 *vobj = nullptr;
     if (obj_id == 0) return;
 
-    if (properties_id_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        properties_id_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(properties_id_);
-    }
-    ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
-}
+    kSparseMap.insert(
+            std::make_pair(IdType(this->getId(), kObjectTypeProperty), obj_id));
 
-ObjectId Row::getPropertiesId() const { return properties_id_; }
+    has_property_ = true;
+}
 
 void Row::print() {
     message->info("ROW %s %s %d %d %s", getName().c_str(),
@@ -257,23 +194,13 @@ void Row::print(FILE *fp) {
         }
     }
 
-    writeDEFProperty<Row>((void *)this, fp);
+    writeDEFProperty<Row>(reinterpret_cast<void *>(this), fp);
 
     fprintf(fp, " ;\n");
 }
 
 /// @brief Track default constructor
-Track::Track() { memset((void *)this, 0, sizeof(Track)); }
-
-/// @brief Track copy constructor
-///
-/// @param t
-Track::Track(Track &t) { copy(t); }
-
-/// @brief Track move constructor
-///
-/// @param rhs
-Track::Track(Track &&rhs) { move(std::move(rhs)); }
+Track::Track() { memset(reinterpret_cast<void *>(this), 0, sizeof(Track)); }
 
 /// @brief ~Track
 Track::~Track() {}
@@ -307,13 +234,13 @@ void Track::setHasSameMask(bool has_same_mask) {
 }
 bool Track::getHasSameMask() { return has_same_mask_; }
 
-void Track::addLayer(Int32 &layer_index) {
+void Track::addLayer(const Int32 &layer_index) {
     ArrayObject<Int32> *vct = nullptr;
     if (layers_ == 0) {
         vct = getTopCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
         if (vct == nullptr) return;
         vct->setPool(getTopCell()->getPool());
-        vct->reserve(256);        
+        vct->reserve(256);
         layers_ = vct->getId();
     } else {
         vct = addr< ArrayObject<Int32> >(layers_);
@@ -341,7 +268,7 @@ void Track::addLayer(const char *layer_name) {
         vct = getTopCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
         if (vct == nullptr) return;
         vct->setPool(getTopCell()->getPool());
-        vct->reserve(256);        
+        vct->reserve(256);
         layers_ = vct->getId();
     } else {
         vct = addr< ArrayObject<Int32> >(layers_);
@@ -350,7 +277,7 @@ void Track::addLayer(const char *layer_name) {
     if (vct) vct->pushBack(layer_index);
 }
 
-void Track::addLayer(std::string &layer_name) {
+void Track::addLayer(const std::string &layer_name) {
     Cell *top_cell = getTopCell();
     Tech *tech_lib = top_cell->getTechLib();
     if (!tech_lib) {
@@ -370,7 +297,7 @@ void Track::addLayer(std::string &layer_name) {
         vct = getTopCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
         if (vct == nullptr) return;
         vct->setPool(getTopCell()->getPool());
-        vct->reserve(256);        
+        vct->reserve(256);
         layers_ = vct->getId();
     } else {
         vct = addr< ArrayObject<Int32> >(layers_);
@@ -445,47 +372,15 @@ void Track::print(FILE *fp) {
     fprintf(fp, " ;\n");
 }
 
-void Track::copy(Track const &t) {
-    this->BaseType::copy(t);
-    direction_x_ = t.direction_x_;
-    start_ = t.start_;
-    num_tracks_ = t.num_tracks_;
-    space_ = t.space_;
-    has_mask_ = t.has_mask_;
-    mask_ = t.mask_;
-    has_same_mask_ = t.has_same_mask_;
-    layers_ = t.layers_;
-}
-
-/// @brief move
-///
-/// @param rhs
-#if 0
-void Track::move(Track &&rhs)
-{
-    this->BaseType::move(std::move(rhs));
-    mask_ = std::move(rhs.mask_);
-    layer_ = std::move(rhs.layer_);
-    spacing_ = std::move(rhs.spacing_);
-    width_ = std::move(rhs.width_);
-    offset_ = std::move(rhs.offset_);
-}
-#endif
-
-Grid::Grid() { memset((void *)this, 0, sizeof(Grid)); }
+Grid::Grid() { memset(reinterpret_cast<void *>(this), 0, sizeof(Grid)); }
 
 /// @brief Grid
 ///
 /// @param t
 Grid::Grid(Grid::GridType t) {
-    memset((void *)this, 0, sizeof(Grid));
+    memset(reinterpret_cast<void *>(this), 0, sizeof(Grid));
     grid_type_ = t;
 }
-
-/// @brief Grid
-///
-/// @param rhs
-Grid::Grid(Grid &&rhs) { move(std::move(rhs)); }
 
 Grid::~Grid() {}
 
@@ -546,27 +441,6 @@ void Grid::print(FILE *fp) {
 
     fprintf(fp, " ;\n");
 }
-
-void Grid::copy(Grid const &t) {
-    this->BaseType::copy(t);
-    direction_x_ = t.direction_x_;
-    start_ = t.start_;
-    number_ = t.number_;
-    space_ = t.space_;
-}
-
-/// @brief move
-///
-/// @param rhs
-#if 0
-void Grid::move(Grid &&rhs)
-{
-    this->BaseType::move(std::move(rhs));
-    mask_ = std::move(rhs.mask_);
-    layer_ = std::move(rhs.layer_);
-    spacing_ = std::move(rhs.spacing_);
-}
-#endif
 
 uint64_t Floorplan::getNumOfRows() const {
     if (rows_ == 0) return 0;
@@ -639,7 +513,7 @@ Polygon *Floorplan::getDieAreaPolygon() {
     if (die_area_ == -1) {
         return nullptr;
     }
-    
+
     if (!getCell()) {
         message->issueMsg(kError,
                           "Cannot get top cell when getting die area.\n");
@@ -657,18 +531,10 @@ Polygon *Floorplan::getDieAreaPolygon() {
 // Floorplan class
 /// @brief Floorplan
 Floorplan::Floorplan() {
-    memset((void *)this, 0, sizeof(Floorplan));
+    memset(reinterpret_cast<void *>(this), 0, sizeof(Floorplan));
     die_area_ = -1;
 }
 
-/// @brief Floorplan
-///
-/// @param fp
-Floorplan::Floorplan(Floorplan &fp) { copy(fp); }
-/// @brief Floorplan
-///
-/// @param fp
-Floorplan::Floorplan(Floorplan &&fp) { move(std::move(fp)); }
 /// @brief ~Floorplan
 Floorplan::~Floorplan() {}
 
@@ -679,7 +545,7 @@ Box Floorplan::getCoreBox() const { return core_box_; }
 /// @brief setCoreBox
 ///
 /// @param box
-void Floorplan::setCoreBox(Box &box) { core_box_ = box; }
+void Floorplan::setCoreBox(const Box &box) { core_box_ = box; }
 
 /// @brief getXOffset
 ///
@@ -688,7 +554,7 @@ int32_t Floorplan::getXOffset() const { return x_offset_; }
 /// @brief setXOffset
 ///
 /// @param offset
-void Floorplan::setXOffset(int32_t &offset) { x_offset_ = offset; }
+void Floorplan::setXOffset(const int32_t &offset) { x_offset_ = offset; }
 
 /// @brief getYOffset
 ///
@@ -697,7 +563,7 @@ int32_t Floorplan::getYOffset() const { return y_offset_; }
 /// @brief setYOffset
 ///
 /// @param offset
-void Floorplan::setYOffset(int32_t &offset) { y_offset_ = offset; }
+void Floorplan::setYOffset(const int32_t &offset) { y_offset_ = offset; }
 
 /// @brief getCoreSite
 ///
@@ -712,35 +578,11 @@ ObjectId Floorplan::getCoreSiteId() const { return core_site_id_; }
 /// @brief setCoreSite
 ///
 /// @param id
-void Floorplan::setCoreSiteId(ObjectId &id) { core_site_id_ = id; }
+void Floorplan::setCoreSiteId(const ObjectId &id) { core_site_id_ = id; }
 
 void Floorplan::setCell(ObjectId cell) { cell_ = cell; }
 
 Cell *Floorplan::getCell() { return addr<Cell>(cell_); }
-
-/// @brief copy
-///
-/// @param fp
-void Floorplan::copy(Floorplan const &fp) {
-    this->BaseType::copy(fp);
-    core_box_ = fp.core_box_;
-    x_offset_ = fp.x_offset_;
-    y_offset_ = fp.y_offset_;
-    core_site_id_ = fp.core_site_id_;
-    // TODO: copy tracks & rows
-}
-
-/// @brief move
-///
-/// @param fp
-void Floorplan::move(Floorplan &&fp) {
-    this->BaseType::move(std::move(fp));
-    core_box_ = std::move(fp.core_box_);
-    x_offset_ = std::move(fp.x_offset_);
-    y_offset_ = std::move(fp.y_offset_);
-    core_site_id_ = std::move(fp.core_site_id_);
-    // TODO: move tracks & rows
-}
 
 Constraint *Floorplan::createPlaceBlockage() {
     VectorObject32 *vct = nullptr;
@@ -797,7 +639,7 @@ uint64_t Floorplan::getNumOfRegions() const {
     return obj_vector->totalSize();
 }
 ObjectId Floorplan::getRegions() const { return regions_; }
-Constraint *Floorplan::getRegion(std::string &name) const {
+Constraint *Floorplan::getRegion(const std::string &name) const {
     if (regions_ == 0) return nullptr;
     Cell *top_cell = getTopCell();
     SymbolIndex symbol_index = top_cell->getOrCreateSymbol(name.c_str());
@@ -863,27 +705,9 @@ using ConstraintSubType = Constraint::ConstraintSubType;
 
 Constraint::Constraint() { type_ = kConstraintNone; }
 
-Constraint::Constraint(const char *name, ConstraintType t /*, Shape &s*/) {
-    // name_ = name; TODO: use symtable to gen id
-    name_ = getFloorplan()->getCell()->getOrCreateSymbol(name);
-    type_ = t;
-}
-
-Constraint::Constraint(SymbolIndex &name, ConstraintType t /*, Shape &s*/) {
-    name_ = name;
-    type_ = t;
-}
-
-/* TODO
-Constraint::Constraint(Shape &s)
-{
-}
-*/
-Constraint::Constraint(Constraint::ConstraintType &t) { type_ = t; }
-
 Constraint::~Constraint() {
     type_ = kConstraintNone;
-    setPropertySize(0);
+    deleteSparseObject(kObjectTypeProperty);
 }
 
 SymbolIndex Constraint::getNameIndex() { return name_; }
@@ -892,12 +716,12 @@ std::string &Constraint::getName() {
     return getFloorplan()->getCell()->getSymbolByIndex(name_);
 }
 
-void Constraint::setName(SymbolIndex &name) {
+void Constraint::setName(const SymbolIndex &name) {
     name_ = name;
     getFloorplan()->getCell()->addSymbolReference(name_, this->getId());
 }
 
-bool Constraint::setName(std::string &name) {
+bool Constraint::setName(const std::string &name) {
     int64_t index = getFloorplan()->getCell()->getOrCreateSymbol(name);
     if (index == -1) return false;
 
@@ -925,7 +749,7 @@ void Constraint::setConstraintSubType(ConstraintSubType st) { sub_type_ = st; }
 
 int32_t Constraint::getUtilization() { return utilization_; }
 
-void Constraint::setUtilization(int32_t &u) { utilization_ = u; }
+void Constraint::setUtilization(const int32_t &u) { utilization_ = u; }
 
 /* TODO
 Shape Constraint::getShape()
@@ -996,7 +820,7 @@ bool Constraint::setComponent(const char *name) {
 }
 /// @brief component get component pointer
 ///
-/// @return 
+/// @return
 Inst *Constraint::component() const {
     return addr<Inst>(component_id_);
 }
@@ -1285,44 +1109,21 @@ void Constraint::printBlockage(FILE *fp) const {
     }
 }
 
-void Constraint::setPropertySize(uint64_t v) {
-    if (v == 0) {
-        if (properties_id_) {
-            VectorObject16::deleteDBVectorObjectVar(properties_id_);
-        }
-        return;
-    }
-    if (!properties_id_) {
-        VectorObject16 *vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        properties_id_ = vobj->getId();
-    }
-}
-
 uint64_t Constraint::getNumProperties() const {
-    if (!properties_id_) return 0;
-
-    return addr<VectorObject16>(properties_id_)->totalSize();
+    kSparsePair = kSparseMap.equal_range(IdType(getId(), kObjectTypeProperty));
+    return std::distance(kSparsePair.first, kSparsePair.second);
 }
 
 void Constraint::addProperty(ObjectId obj_id) {
-    VectorObject16 *vobj = nullptr;
     if (obj_id == 0) return;
 
-    if (properties_id_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        properties_id_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(properties_id_);
-    }
-    ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+    kSparseMap.insert(
+            std::make_pair(IdType(this->getId(), kObjectTypeProperty), obj_id));
+
+    has_property_ = true;
 }
 
-ObjectId Constraint::getPropertiesId() const { return properties_id_; }
+bool Constraint::getHasProperty() const { return has_property_; }
 
 void Constraint::printRegion(FILE *fp) {
     std::string name = getName();
@@ -1346,7 +1147,7 @@ void Constraint::printRegion(FILE *fp) {
         fprintf(fp, "  + TYPE GUIDE");
     }
 
-    writeDEFProperty<Constraint>((void *)this, fp);
+    writeDEFProperty<Constraint>(reinterpret_cast<void *>(this), fp);
 
     fprintf(fp, " ;\n");
 }

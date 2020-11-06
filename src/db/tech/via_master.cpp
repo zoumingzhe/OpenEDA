@@ -159,6 +159,7 @@ ViaMaster::ViaMaster() {
     has_offset_ = 0;
     has_cut_pattern_ = 0;
     has_resistance_ = 0;
+    has_property_ = 0;
     x_size_ = 0;
     y_size_ = 0;
     via_rule_ = "";
@@ -409,6 +410,15 @@ bool ViaMaster::hasGenerated() { return has_generated_; }
  * @return false
  */
 bool ViaMaster::hasResistance() { return has_resistance_; }
+
+/**
+ * @brief has property
+ *
+ * @return true
+ * @return false
+ */
+
+bool ViaMaster::getHasProperty() { return has_property_; }
 
 /**
  * @brief Get the Via Layer Vector object
@@ -782,43 +792,19 @@ int ViaMaster::addViaLayer(ViaLayer* via_layer) {
 }
 
 uint64_t ViaMaster::numProperties() const {
-    if (!properties_) return 0;
-
-    return addr<VectorObject16>(properties_)->totalSize();
-}
-
-void ViaMaster::setPropertySize(uint64_t v) {
-    if (v == 0) {
-        if (properties_) {
-            VectorObject16::deleteDBVectorObjectVar(properties_);
-        }
-        return;
-    }
-    if (!properties_) {
-        VectorObject16* vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        properties_ = vobj->getId();
-    }
+    kSparsePair = kSparseMap.equal_range(IdType(getId(), kObjectTypeProperty));
+    return std::distance(kSparsePair.first, kSparsePair.second);
 }
 
 void ViaMaster::addProperty(ObjectId obj_id) {
-    VectorObject16* vobj = nullptr;
     if (obj_id == 0) return;
 
-    if (properties_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        properties_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(properties_);
-    }
-    ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+    kSparseMap.insert(
+            std::make_pair(IdType(this->getId(), kObjectTypeProperty), obj_id));
+
+    has_property_ = true;
 }
 
-ObjectId ViaMaster::getPropertiesId() const { return properties_; }
 /**
  * @brief Set the viaMaster default status
  *
@@ -1063,18 +1049,8 @@ void ViaMaster::printLEF(std::ofstream& ofs, uint32_t num_spaces) {
         }
     }
 
-    if (numProperties() > 0) {
-        ofs << space_str << "   PROPERTY";
-        VectorObject16* vobj =
-            addr<VectorObject16>(properties_);
-        for (int i = 0; i < numProperties(); i++) {
-            ObjectId obj_id = (*vobj)[i];
-            Property* obj_data = addr<Property>(obj_id);
-            if (obj_data == nullptr) continue;
-            ofs << " ";
-            obj_data->printLEF(ofs);
-        }
-        ofs << " ;\n";
+    if (getHasProperty() > 0) {
+        writeLEFProperty<ViaMaster>(reinterpret_cast<void *>(this), ofs);
     }
 
     ofs << space_str << "END " << getName().c_str() << "\n\n";

@@ -677,6 +677,16 @@ int macroEndCB(lefrCallbackType_e c, const char *macroName, lefiUserData) {
 int manufacturingCB(lefrCallbackType_e c, double num, lefiUserData) {
     checkType(c);
     Tech *lib = getTopCell()->getTechLib();
+    //Based on the recommended behaviors, when manufacture-grids is smaller than db-microns,
+    //the db-microns will be changed.
+    Units *units = lib->getUnits();
+    if (units) {
+        UInt32 dbu = units->getLengthFactor();
+        double dbu_based_grid = (1.0 / num);
+        if ((UInt32)dbu_based_grid > dbu) {
+            units->setLengthFactor((UInt32)dbu_based_grid);
+        }
+    }
     lib->setManuGrids(lib->micronsToDBU(num));
     return 0;
 }
@@ -2430,7 +2440,6 @@ int readViaMaster(lefiVia *io_via, bool is_from_ndr) {
     db_via_master->setIsFromDEF(0);
 
     // property
-    db_via_master->setPropertySize(io_via->numProperties());
     for (int i = 0; i < io_via->numProperties(); i++) {
         Property *property =
             top_cell->createObject<Property>(kObjectTypeProperty);
@@ -2550,7 +2559,6 @@ int readViaRule(lefiViaRule *io_via_rule) {
     }
     // add property
     // property
-    db_via_rule->setPropertySize(io_via_rule->numProps());
     for (int i = 0; i < io_via_rule->numProps(); i++) {
         Property *property =
             top_cell->createObject<Property>(kObjectTypeProperty);
@@ -2860,7 +2868,6 @@ int readNonDefaultRule(lefiNonDefault *io_ndr_rule) {
         edi_ndr_rule->addUseViaRule(use_via_rule->getId());
     }
     // property
-    edi_ndr_rule->setPropertySize(io_ndr_rule->lefiNonDefault::numProps());
     for (i = 0; i < io_ndr_rule->lefiNonDefault::numProps(); i++) {
         Property *property =
             current_top_cell->createObject<Property>(kObjectTypeProperty);

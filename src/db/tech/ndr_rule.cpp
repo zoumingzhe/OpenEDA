@@ -371,9 +371,9 @@ void NonDefaultRule::__init() {
     name_index_ = -1;
     hard_spacing_ = false;
     from_def_ = false;
+    has_property_ = false;
     layers_ = 0;
     min_cuts_ = 0;
-    properties_ = 0;
     use_vias_ = 0;
     use_via_rules_ = 0;
 }
@@ -396,7 +396,7 @@ NonDefaultRule::~NonDefaultRule() {
     setViaSize(0);
     setUseViaSize(0);
     setUseViaRuleSize(0);
-    setPropertySize(0);
+    deleteSparseObject(kObjectTypeProperty);
 }
 
 NonDefaultRule &NonDefaultRule::operator=(NonDefaultRule const &rhs) {
@@ -420,7 +420,6 @@ void NonDefaultRule::copy(NonDefaultRule const &rhs) {
     from_def_ = rhs.from_def_;
     layers_ = rhs.layers_;
     min_cuts_ = rhs.min_cuts_;
-    properties_ = rhs.properties_;
     use_vias_ = rhs.use_vias_;
     use_via_rules_ = rhs.use_via_rules_;
 }
@@ -428,18 +427,18 @@ void NonDefaultRule::copy(NonDefaultRule const &rhs) {
 void NonDefaultRule::move(NonDefaultRule &&rhs) {
     this->BaseType::move(std::move(rhs));
     name_index_ = std::move(rhs.name_index_);
-    hard_spacing_ = std::move(rhs.hard_spacing_);
-    from_def_ = std::move(rhs.from_def_);
+    hard_spacing_ = rhs.hard_spacing_;
+    from_def_ = rhs.from_def_;
+    has_property_ = rhs.has_property_;
     layers_ = std::move(rhs.layers_);
     min_cuts_ = std::move(rhs.min_cuts_);
-    properties_ = std::move(rhs.properties_);
     use_vias_ = std::move(rhs.use_vias_);
     use_via_rules_ = std::move(rhs.use_via_rules_);
 }
 
 UInt32 NonDefaultRule::memory() const {
     UInt32 ret = this->BaseType::memory();
-    ret += sizeof(name_index_) + sizeof(hard_spacing_) + sizeof(from_def_);
+    ret += sizeof(name_index_) + sizeof(Bits64);
     ret += sizeof(ObjectId) *
            5;  // layers+min_cuts+property+use_vias+use_via_rules.
     VectorObject16 *vobj = addr<VectorObject16>(use_vias_);
@@ -447,10 +446,6 @@ UInt32 NonDefaultRule::memory() const {
         ret += vobj->memory();
     }
     vobj = addr<VectorObject16>(use_via_rules_);
-    if (vobj) {
-        ret += vobj->memory();
-    }
-    vobj = addr<VectorObject16>(properties_);
     if (vobj) {
         ret += vobj->memory();
     }
@@ -475,6 +470,8 @@ SymbolIndex NonDefaultRule::getNameIndex() const { return name_index_; }
 bool NonDefaultRule::getHardSpacing() const { return hard_spacing_; }
 
 bool NonDefaultRule::getFromDEF() const { return from_def_; }
+
+bool NonDefaultRule::getHasProperty() const { return has_property_; }
 
 uint64_t NonDefaultRule::numLayers() const {
     if (!layers_) return 0;
@@ -507,9 +504,8 @@ uint64_t NonDefaultRule::numUseViaRules() const {
 }
 
 uint64_t NonDefaultRule::numProperties() const {
-    if (!properties_) return 0;
-
-    return addr<VectorObject16>(properties_)->totalSize();
+    kSparsePair = kSparseMap.equal_range(IdType(getId(), kObjectTypeProperty));
+    return std::distance(kSparsePair.first, kSparsePair.second);
 }
 
 ObjectId NonDefaultRule::getLayersId() const { return layers_; }
@@ -521,8 +517,6 @@ ObjectId NonDefaultRule::getViasId() const { return vias_; }
 ObjectId NonDefaultRule::getUseViasId() const { return use_vias_; }
 
 ObjectId NonDefaultRule::getUseViaRulesId() const { return use_via_rules_; }
-
-ObjectId NonDefaultRule::getPropertiesId() const { return properties_; }
 
 // Set:
 void NonDefaultRule::setName(const char *v) {
@@ -618,23 +612,6 @@ void NonDefaultRule::setUseViaRuleSize(uint64_t v) {
     }
 }
 
-void NonDefaultRule::setPropertySize(uint64_t v) {
-    if (v == 0) {
-        if (properties_) {
-            VectorObject16::deleteDBVectorObjectVar(properties_);
-        }
-        return;
-    }
-    if (!properties_) {
-        VectorObject16 *vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        properties_ = vobj->getId();
-    }
-}
-
 void NonDefaultRule::addLayer(ObjectId obj_id) {
     VectorObject16 *vobj = nullptr;
     if (obj_id == 0) return;
@@ -718,24 +695,19 @@ void NonDefaultRule::addUseViaRule(ObjectId obj_id) {
 }
 
 void NonDefaultRule::addProperty(ObjectId obj_id) {
-    VectorObject16 *vobj = nullptr;
     if (obj_id == 0) return;
 
-    if (properties_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        properties_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(properties_);
-    }
-    ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+    kSparseMap.insert(
+            std::make_pair(IdType(this->getId(), kObjectTypeProperty), obj_id));
+
+    has_property_ = true;
 }
 
 void NonDefaultRule::setHardSpacing(bool v) { hard_spacing_ = v; }
 
 void NonDefaultRule::setFromDEF(bool v) { from_def_ = v; }
 
-void NonDefaultRule::printLEF(std::ofstream &ofs) const {
+void NonDefaultRule::printLEF(std::ofstream &ofs) {
     ofs << "\nNONDEFAULTRULE " << getName() << "\n";
     if (getHardSpacing()) {
         ofs << " HARDSPACING ;\n";
@@ -797,24 +769,14 @@ void NonDefaultRule::printLEF(std::ofstream &ofs) const {
         }
     }
 
-    if (numProperties() > 0) {
-        ofs << "   PROPERTY";
-        VectorObject16 *vobj =
-            addr<VectorObject16>(properties_);
-        for (i = 0; i < numProperties(); i++) {
-            ObjectId obj_id = (*vobj)[i];
-            Property *obj_data = addr<Property>(obj_id);
-            if (obj_data == nullptr) continue;
-            ofs << " ";
-            obj_data->printLEF(ofs);
-        }
-        ofs << " ;\n";
+    if (getHasProperty()) {
+        writeLEFProperty<ViaMaster>(reinterpret_cast<void *>(this), ofs);
     }
     ofs << "END " << getName() << "\n";
 }
 
 // DEF style print:
-void NonDefaultRule::printDEF(FILE *fp) const {
+void NonDefaultRule::printDEF(FILE *fp) {
     fprintf(fp, "- %s", getName());
     if (getHardSpacing()) {
         fprintf(fp, "\n  + HARDSPACING");
@@ -869,16 +831,8 @@ void NonDefaultRule::printDEF(FILE *fp) const {
         }
     }
 
-    if (numProperties() > 0) {
-        VectorObject16 *vobj =
-            addr<VectorObject16>(properties_);
-        for (i = 0; i < numProperties(); i++) {
-            ObjectId obj_id = (*vobj)[i];
-            if (!obj_id) continue;
-            Property *obj_data = addr<Property>(obj_id);
-            if (obj_data == nullptr) continue;
-            obj_data->printDEF(fp);
-        }
+    if (getHasProperty()) {
+        writeDEFProperty<NonDefaultRule>(reinterpret_cast<void *>(this), fp);
     }
     fprintf(fp, " ;\n");
 }
@@ -932,15 +886,6 @@ OStreamBase &operator<<(OStreamBase &os, NonDefaultRule const &rhs) {
                 delimiter = DataDelimiter();
             }
             os << DataEnd("]");
-        }
-    }
-    os << DataFieldName("properties_") << rhs.getPropertiesId()
-       << DataDelimiter();
-    if (rhs.getPropertiesId()) {
-        VectorObject16 *vobj =
-            Object::addr<VectorObject16>(rhs.getPropertiesId());
-        if (vobj != nullptr) {
-            os << *vobj << DataDelimiter();
         }
     }
     os << DataFieldName("use_vias_") << rhs.getUseViasId() << DataDelimiter();

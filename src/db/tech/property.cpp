@@ -234,6 +234,7 @@ void Property::setStringValue(const std::string &v) {
 }
 
 void Property::printLEF(std::ofstream &ofs) const {
+    ofs << std::endl << "   PROPERTY ";
     PropDataType data_type = getDataType();
     ofs << getPropName();
     switch (data_type) {
@@ -247,6 +248,7 @@ void Property::printLEF(std::ofstream &ofs) const {
             ofs << " \"" << getStringValue() << "\"";
             break;
     }
+    ofs << " ;";
 }
 
 void Property::printDEF(FILE *fp) const {

@@ -140,6 +140,14 @@ enum class Orient : uint8_t {
     kUnknown
 };
 
+/// @brief orientation
+enum class Direction : uint8_t {
+    kHorizontal,
+    kVertical,
+    kDiagonal,
+    kUnknown
+};
+
 /// @brief convert enum to string
 inline std::string toString(Orient const &v) {
     switch (v) {

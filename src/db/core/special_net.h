@@ -64,6 +64,7 @@ class SpecialNet : public Object {
     SpecialWireSection* createWireSection();
     int addWireSection(SpecialWireSection* section);
     void addProperty(ObjectId prop_id);
+    bool getHasProperty() const;
 
     int addPin(Pin* pin);
     int addVia(Via* via);
@@ -75,25 +76,26 @@ class SpecialNet : public Object {
     void print();
     void printDEF(FILE* file);
 
-  private:
-    SymbolIndex name_index_; /**< via name id */
+ private:
+    Bits fix_bump_     :1;
+    Bits net_type_     :4; /**< net type */
+    Bits status_       :4;   /**< net status */
+    Bits source_       :4;   /**< net status */
+    Bits pattern_      :3;
+    bool has_property_ :1;
+    int voltage_       :32;
+    Bits64 reserved_   :15;
 
-    Bits fix_bump_ : 1;
-    Bits net_type_ : 4; /**< net type */
-    Bits status_ : 4;   /**< net status */
-    Bits source_ : 4;   /**< net status */
-    Bits pattern_ : 3;
     ObjectId rule_;                        /**< rule in net */
     ObjectId pins_;                        /**< pins */
-    std::vector<SpecialWire*> wire_rects_; /**< wire list in net */
     ObjectId vias_;                        /**< Via list in net */
-    int voltage_;
+    std::vector<SpecialWire*> wire_rects_; /**< wire list in net */
+    SymbolIndex name_index_; /**< via name id */
     int frequency_;
     double cap_;
     double weight_;
     ObjectId wire_sections_;
     ObjectId origin_net_;
-    ObjectId properties_id_;
 };
 
 }  // namespace db

@@ -112,6 +112,7 @@ class Net : public Object {
     const char* getOriginNet() const;
     uint64_t getNumProperties() const;
     ObjectId getPropertiesId() const;
+    bool getHasProperty() const;
 
     void setFixBump(Bits fix_bump);
     void setMustJoin(Bits must_join);
@@ -156,20 +157,21 @@ class Net : public Object {
     void printDEF(FILE* fp);
 
   private:
-    SymbolIndex name_index_; /**< net name id */
+    bool is_bus_net_        :1; /**< the net is a bus */
+    bool is_of_bus_         :1; /**< the net is belong to a bus*/
+    bool is_from_term_      :1; /**< the net is from module's term*/
+    bool is_sub_net_        :1;
+    bool fix_bump_          :1;
+    bool must_jion_         :1;
+    bool has_property_      :1;
+    AssignType assign_type_ :3; /**< the type of right assign statement*/
+    Bits net_type_          :4; /**< net type */
+    Bits status_            :4; /**< net status */
+    Bits source_            :4; /**< net status */
+    Bits pattern_           :3;
+    Bits reserved_          :39;
 
-    bool is_bus_net_: 1;    /**< the net is a bus */
-    bool is_of_bus_ : 1; /**< the net is belong to a bus*/
-    bool is_from_term_ : 1; /**< the net is from module's term*/
-    bool is_sub_net_ : 1;
-    bool fix_bump_ : 1;
-    bool must_jion_ : 1;
-    AssignType assign_type_ : 3; /**< the type of right assign statement*/
-    Bits net_type_ : 4; /**< net type */
-    Bits status_ : 4;   /**< net status */
-    Bits source_ : 4;   /**< net status */
-    Bits pattern_ : 3;
-    Bits reserved_ : 8;
+    SymbolIndex name_index_; /**< net name id */
     ObjectId cell_;
     ObjectId rule_; /**< rule in net */
     ObjectId pins_; /**< pins */

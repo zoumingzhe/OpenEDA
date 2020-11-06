@@ -1059,20 +1059,16 @@ uint64_t Net::getNumProperties() const {
 }
 
 void Net::addProperty(ObjectId obj_id) {
-    VectorObject16* vobj = nullptr;
     if (obj_id == 0) return;
 
-    if (properties_id_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        properties_id_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(properties_id_);
-    }
-    ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+    kSparseMap.insert(
+            std::make_pair(IdType(this->getId(), kObjectTypeProperty), obj_id));
+
+    has_property_ = true;
 }
 
 ObjectId Net::getPropertiesId() const { return properties_id_; }
+bool Net::getHasProperty() const { return has_property_; }
 
 }  // namespace db
 }  // namespace open_edi

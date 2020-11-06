@@ -102,17 +102,38 @@ class Property : public Object {
     } value_u_;
 };
 
+typedef std::pair<ObjectId, uint32_t> IdType;
+typedef std::multimap<IdType, ObjectId> SparseMap;
+
+extern SparseMap kSparseMap;
+
+extern SparseMap::iterator kSparseIt;
+
+template <class object_type>
+void writeLEFProperty(void *obj, std::ofstream& ofs) {
+    object_type *object = (object_type *)obj;
+
+    if (object->getHasProperty()) {
+        kSparsePair = kSparseMap.equal_range(IdType(object->getId(),
+                                                         kObjectTypeProperty));
+        for (kSparseIt = kSparsePair.first; kSparseIt != kSparsePair.second;
+                                                                 ++kSparseIt) {
+            Property *property = Object::addr<Property>(kSparseIt->second);
+            if (property == nullptr) continue;
+            property->printLEF(ofs);
+        }
+    }
+}
 template <class object_type>
 void writeDEFProperty(void *obj, FILE *fp) {
     object_type *object = (object_type *)obj;
 
-    if (object->getNumProperties() > 0) {
-        VectorObject16 *vobj =
-            Object::addr<VectorObject16>(object->getPropertiesId());
-        for (int i = 0; i < object->getNumProperties(); i++) {
-            ObjectId obj_id = (*vobj)[i];
-            if (!obj_id) continue;
-            Property *property = Object::addr<Property>(obj_id);
+    if (object->getHasProperty()) {
+        kSparsePair = kSparseMap.equal_range(IdType(object->getId(),
+                                                         kObjectTypeProperty));
+        for (kSparseIt = kSparsePair.first; kSparseIt != kSparsePair.second;
+                                                                 ++kSparseIt) {
+            Property *property = Object::addr<Property>(kSparseIt->second);
             if (property == nullptr) continue;
             property->printDEF(fp);
         }

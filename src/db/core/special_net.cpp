@@ -526,43 +526,15 @@ void SpecialNet::printDEF(FILE* fp) {
     fprintf(fp, " ;\n");
 }
 
-void SpecialNet::setPropertySize(uint64_t v) {
-    if (v == 0) {
-        if (properties_id_) {
-            VectorObject16::deleteDBVectorObjectVar(properties_id_);
-        }
-        return;
-    }
-    if (!properties_id_) {
-        VectorObject16* vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        properties_id_ = vobj->getId();
-    }
-}
-
-uint64_t SpecialNet::getNumProperties() const {
-    if (!properties_id_) return 0;
-
-    return addr<VectorObject16>(properties_id_)->totalSize();
-}
-
 void SpecialNet::addProperty(ObjectId obj_id) {
-    VectorObject16* vobj = nullptr;
     if (obj_id == 0) return;
 
-    if (properties_id_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        properties_id_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(properties_id_);
-    }
-    ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+    kSparseMap.insert(
+            std::make_pair(IdType(this->getId(), kObjectTypeProperty), obj_id));
+
+    has_property_ = true;
 }
 
-ObjectId SpecialNet::getPropertiesId() const { return properties_id_; }
+bool SpecialNet::getHasProperty() const { return has_property_; }
 }  // namespace db
 }  // namespace open_edi

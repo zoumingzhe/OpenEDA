@@ -472,16 +472,12 @@ uint64_t Inst::getNumProperties() const {
 }
 
 void Inst::addProperty(ObjectId obj_id) {
-    ArrayObject <ObjectId> *vobj = nullptr;
     if (obj_id == 0) return;
 
-    if (properties_id_ == 0) {
-        properties_id_ = __createPropertyArray();
-    } else {
-        vobj = addr<ArrayObject <ObjectId> >(properties_id_);
-    }
-    ediAssert(vobj != nullptr);
-    vobj->pushBack(obj_id);
+    kSparseMap.insert(
+            std::make_pair(IdType(this->getId(), kObjectTypeProperty), obj_id));
+
+    has_property_ = true;
 }
 
 ObjectId Inst::getPropertiesId() const { return properties_id_; }

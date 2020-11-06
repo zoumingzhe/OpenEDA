@@ -160,6 +160,21 @@ OStreamBase& operator<<(OStreamBase& os, Object const& rhs) {
     return os;
 }
 
+void Object::deleteSparseObject(ObjectType type) {
+    kSparseMap.erase(IdType(getId(), type));
+}
+
+void Object::deleteSparseObject(ObjectType type, ObjectId obj_id) {
+    kSparsePair = kSparseMap.equal_range(IdType(getId(), type));
+    for (kSparseIt = kSparsePair.first; kSparseIt != kSparsePair.second;
+                                                             ++kSparseIt) {
+        if (obj_id == kSparseIt->second) {
+            kSparseMap.erase(kSparseIt);
+            break;
+        }
+    }
+}
+
 /// @brief operator>> 
 ///
 /// @param is
@@ -192,6 +207,12 @@ IStreamBase& operator>>(IStreamBase& is, Object& rhs) {
     is >> DataEnd(")");
     return is;
 }
+
+// Store sparse data for all Object
+SparseMap kSparseMap;
+SparsePair kSparsePair;
+SparseMap::iterator kSparseIt;
+
 
 }  // namespace db
 }  // namespace open_edi
