@@ -105,131 +105,343 @@ int Density::getDensityLayerNum() const {
     return 0;
 }
 
-/// @brief Cell default constructor
-Cell::Cell() : Cell::BaseType() {
-    name_index_ = -1;
+//HierData
+void HierData::__init() {
     pool_ = nullptr;
+    symtbl_ = nullptr;
+    polytbl_ = nullptr;
+
     tech_lib_ = 0;
     fills_ = 0;
     scan_chains_ = 0;
-    is_fixed_mask_    = 0;
-    has_origin_       = 0;
-    has_eeq_          = 0;
-    has_size_         = 0;
-    has_site_name_    = 0;
-    has_x_symmetry_   = 0;
-    has_y_symmetry_   = 0;
-    has_90_symmetry_  = 0;
 
-    // initialization of vector_cells/terms/instances/nets/pins/io_pins/views.
     cells_ = 0;
-    terms_ = 0;
+    buses_ = 0;
     instances_ = 0;
     nets_ = 0;
     special_nets_ = 0;
     io_pins_ = 0;
-    site_patterns_ = 0;
-    foreigns_ = 0;
-    densities_ = 0;
-    obses_ = 0;
-    analysis_modes_ = 0;
-    analysis_corners_ = 0;
-    analysis_views_ = 0;
-    active_setup_views_ = 0;
-    active_hold_views_ = 0;
-    // end of vector objects initialization.
 
-    macro_class_index_ = -1;
-    eeq_index_ = -1;
-
-    setObjectType(kObjectTypeTCell);
-}
-
-/// @brief Cell constructor with owner and id, once id is given, assume pool is
-/// already there.
-Cell::Cell(Object *owner, ObjectId id) : Cell::BaseType(owner, id) {
-    name_index_ = 0;
-    tech_lib_ = 0;
+    floor_plan_ = 0;
+    groups_ = 0;
     fills_ = 0;
     scan_chains_ = 0;
-
-    analysis_modes_ = 0;
-    analysis_corners_ = 0;
-    analysis_views_ = 0;
-    active_setup_views_ = 0;
-    active_hold_views_ = 0;
-
-    setObjectType(kObjectTypeTCell);
-}
-
-
-/// @brief ~Cell default deconstructor
-Cell::~Cell() {
-    // removed the original cells_ removal.
+    regions_ = 0;
 }
 
 /// @brief setPool set memory pool to a cell
-void Cell::setPool(MemPagePool *p) { pool_ = p; }
-
-/// @brief getPool get memory pool of a cell
-MemPagePool *Cell::getPool() { 
-  //TODO: when a cell is a leaf cell, it doesn't have own memory pool
-  //fetch the pool from its owner cell
-  // getCellType() != CellType::kHierCell
-  if (pool_ == nullptr) {
-      Cell *owner_cell = addr<Cell>(getOwnerId());
-      if (owner_cell) {
-          return owner_cell->getPool();
-      }
-  }
-  return pool_; 
+void HierData::setPool(MemPagePool *p) { 
+    pool_ = p; 
 }
 
-/// @brief setSymbolTable
-///
-/// @param stb
-void Cell::setSymbolTable(SymbolTable *stb) { symtbl_ = stb; }
-
-void Cell::setPolygonTable(PolygonTable *pt) { polytbl_ = pt; }
-
-PolygonTable *Cell::getPolygonTable() {
-    Cell *top_cell = getTopCell();
-    if (!top_cell) {
-        message->issueMsg(kError,
-                          "Cannot find top cell when finding polygontable.\n");
-        return nullptr;
-    }
-    if (this == top_cell) {
-        return polytbl_;
-    } else {
-        return top_cell->getPolygonTable();
-    }
+/// @brief getPool get memory pool of a cell
+MemPagePool *HierData::getPool() { 
+  return pool_; 
 }
 
 /// @brief getSymbolTable
 ///
 /// @return
-SymbolTable *Cell::getSymbolTable() {
-    Cell *top_cell = getTopCell();
-    if (!top_cell) {
-        message->issueMsg(kError,
-                          "Cannot find top cell when finding symboltable.\n");
+SymbolTable *HierData::getSymbolTable() {
+    return symtbl_;
+}
+
+/// @brief setSymbolTable
+///
+/// @param stb
+void HierData::setSymbolTable(SymbolTable *stb) { 
+    symtbl_ = stb; 
+}
+
+PolygonTable *HierData::getPolygonTable() {
+    return polytbl_;
+}
+
+void HierData::setPolygonTable(PolygonTable *pt) { 
+    polytbl_ = pt; 
+}
+
+void HierData::setTechLibId(ObjectId v) {
+    tech_lib_ = v;
+}
+
+ObjectId HierData::getTechLibId() const {
+    return tech_lib_;
+}
+
+void HierData::setFloorplanId(ObjectId v) {
+    floor_plan_ = v;
+}
+
+ObjectId HierData::getFloorplanId() const {
+    return floor_plan_;
+}
+
+// Get object vector:
+ObjectId HierData::getCells() const {
+    return cells_;
+}
+
+ObjectId HierData::getInstances() const {
+    return instances_;
+}
+
+ObjectId HierData::getNets() const {
+    return nets_;
+}
+
+ObjectId HierData::getBuses() const {
+    return buses_;
+}
+
+ObjectId HierData::getSpecialNets() const {
+    return special_nets_;
+}
+
+ObjectId HierData::getIOPins() const {
+    return io_pins_;
+}
+
+ObjectId HierData::getGroups() const {
+    return groups_;
+}
+
+ObjectId HierData::getFills() const {
+    return fills_;
+}
+
+ObjectId HierData::getScanChains() const {
+    return scan_chains_;
+}
+
+ObjectId HierData::getRegions() const {
+    return regions_;
+}
+
+// Set object vector:
+void HierData::setCells(ObjectId v) {
+    cells_ = v;
+}
+
+void HierData::setInstances(ObjectId v) {
+    instances_ = v;
+}
+
+void HierData::setNets(ObjectId v) {
+    nets_ = v;
+}
+
+void HierData::setBuses(ObjectId v) {
+    buses_ = v;
+}
+
+void HierData::setSpecialNets(ObjectId v) {
+    special_nets_ = v;
+}
+
+void HierData::setIOPins(ObjectId v) {
+    io_pins_ = v;
+}
+
+void HierData::setGroups(ObjectId v) {
+    groups_ = v;
+}
+
+void HierData::setFills(ObjectId v) {
+    fills_ = v;
+}
+
+void HierData::setScanChains(ObjectId v) {
+    scan_chains_ = v;
+}
+
+void HierData::setRegions(ObjectId v) {
+    regions_ = v;
+}
+
+//End of HierData
+void Cell::__init() {
+    name_index_ = -1;
+    cell_type_ = CellType::kUnknown;
+    hier_data_id_ = 0;
+
+    originX_ = 0;
+    originY_ = 0;
+    sizeX_ = 0;
+    sizeY_ = 0;
+
+    terms_ = 0;
+    
+    class_index_ = -1;
+    eeq_index_ = -1;
+    
+    site_ = 0;
+    site_patterns_ = 0;
+    foreigns_ = 0;
+    densities_ = 0;
+    obses_ = 0;
+    memset(mask_shift_layers_, '0', sizeof(ObjectId)*max_layer_num);
+    num_mask_shift_layers_ = 0;
+    //flag:
+    has_origin_ = 0;
+    has_eeq_ = 0;
+    has_size_ = 0;
+    has_x_symmetry_ = 0;
+    has_y_symmetry_ = 0;
+    has_90_symmetry_ = 0;
+    has_site_name_ = 0;
+    is_fixed_mask_ = 0;
+    //timing lib:
+    analysis_modes_ = 0;
+    analysis_corners_ = 0;
+    analysis_views_ = 0;
+    active_setup_views_ = 0;
+    active_hold_views_ = 0;
+
+    //setObjectType(kObjectTypeTCell);
+}
+/// @brief Cell default constructor
+Cell::Cell() : Cell::BaseType() {
+    __init();
+}
+
+/// @brief Cell constructor with owner and id, once id is given, assume pool is
+/// already there.
+Cell::Cell(Object *owner, ObjectId id) : Cell::BaseType(owner, id) {
+    __init();
+}
+
+
+/// @brief ~Cell default deconstructor
+Cell::~Cell() {
+
+}
+
+/// @brief true if this is a hierarchical cell.
+bool Cell::isHierCell() const {
+    if (cell_type_ == CellType::kHierCell) {
+        return true;
+    }
+    return false;
+}
+
+const HierData *Cell::__getConstHierData() const {
+    if (hier_data_id_== 0 || !isHierCell()) {
         return nullptr;
     }
-    if (this == top_cell) {
-        return symtbl_;
-    } else {
-        return top_cell->getSymbolTable();
+    return addr<HierData>(hier_data_id_);
+}
+
+HierData *Cell::__getHierData() {
+    if (hier_data_id_== 0 || !isHierCell()) {
+        return nullptr;
+    }
+    return addr<HierData>(hier_data_id_);
+}
+
+void Cell::__initHierData() {
+    if (!isHierCell() || hier_data_id_ != 0) {
+        return;
+    }
+    MemPagePool *pool = MemPool::getPagePoolByObjectId(this->getId());
+    ediAssert(pool != nullptr);
+    (void) pool->allocate <HierData> (
+            kObjecTypeHierData, hier_data_id_);
+}
+
+/// @brief setCellType set  a cell
+void Cell::setCellType(CellType const &v) {
+    cell_type_ = v;
+    if (isHierCell()) {
+        __initHierData();
     }
 }
 
+/// @brief setPool set memory pool to a cell
+void Cell::setPool(MemPagePool *pool) {
+    HierData * hier_data = __getHierData();
+    if (!hier_data) {
+        // TODO error message:
+        
+    } else {
+        hier_data->setPool(pool);
+    }
+}
+
+/// @brief getPool get memory pool of a cell
+MemPagePool *Cell::getPool() { 
+  //when a cell is a leaf cell, it doesn't have HierData
+  //fetch the data from its owner cell
+  if (__getConstHierData() == nullptr) {
+      Cell *owner_cell = addr<Cell>(getOwnerId());
+      if (owner_cell) {
+          return owner_cell->getPool();
+      } else {
+          return nullptr;
+      }
+  }
+  return __getHierData()->getPool(); 
+}
+
+/// @brief setPolygonTable set polygon table to a cell
+void Cell::setPolygonTable(PolygonTable *pt) { 
+    HierData * hier_data = __getHierData();
+    if (!hier_data) {
+        // TODO error message:
+        
+    } else {
+        hier_data->setPolygonTable(pt);
+    }
+}
+
+/// @brief getPolygonTable get polygon table of a cell
+PolygonTable *Cell::getPolygonTable() {
+  //when a cell is a leaf cell, it doesn't have HierData
+  //fetch the data from its owner cell
+  if (__getConstHierData() == nullptr) {
+      Cell *owner_cell = addr<Cell>(getOwnerId());
+      if (owner_cell) {
+          return owner_cell->getPolygonTable();
+      } else {
+          return nullptr;
+      }
+  }
+  return __getHierData()->getPolygonTable();  
+}
+
+/// @brief setSymbolTable
+void Cell::setSymbolTable(SymbolTable *stb) { 
+    HierData * hier_data = __getHierData();
+    if (!hier_data) {
+        // TODO error message:
+        
+    } else {
+        hier_data->setSymbolTable(stb);
+    }
+}
+
+/// @brief getSymbolTable
+SymbolTable *Cell::getSymbolTable() {
+  //when a cell is a leaf cell, it doesn't have HierData
+  //fetch the data from its owner cell
+  if (__getConstHierData() == nullptr) {
+      Cell *owner_cell = addr<Cell>(getOwnerId());
+      if (owner_cell) {
+          return owner_cell->getSymbolTable();
+      } else {
+          return nullptr;
+      }
+  }
+  return __getHierData()->getSymbolTable();
+}
+
 /// @brief getOrCreateSymbol
-///
-/// @param name
-///
-/// @return
-int64_t Cell::getOrCreateSymbol(const char *name) {
-    return getSymbolTable()->getOrCreateSymbol(name);
+SymbolIndex Cell::getOrCreateSymbol(const char *name) {
+    SymbolTable *sym_table = getSymbolTable();
+    if (sym_table == nullptr) {
+        return -1;
+    }
+    return sym_table->getOrCreateSymbol(name);
 }
 
 /// @brief getOrCreateSymbol
@@ -238,7 +450,7 @@ int64_t Cell::getOrCreateSymbol(const char *name) {
 ///
 /// @return
 SymbolIndex Cell::getOrCreateSymbol(std::string &name) {
-    return getSymbolTable()->getOrCreateSymbol(name.c_str());
+    return getOrCreateSymbol(name.c_str());
 }
 
 /// @brief addSymbolReference
@@ -286,12 +498,31 @@ void Cell::setName(std::string &v) {
 /// @brief setTechLib
 ///
 /// @param t
-void Cell::setTechLib(Tech *t) { tech_lib_ = t->getId(); }
+void Cell::setTechLib(Tech *t) {
+    if (!isHierCell()) {
+        //TODO error message
+        return;
+    }
+    __getHierData()->setTechLibId(t->getId());  
+}
 
 /// @brief getTechLib
 ///
 /// @return
-Tech *Cell::getTechLib() { return addr<Tech>(tech_lib_); }
+Tech *Cell::getTechLib() {
+    //when a cell is a leaf cell, it doesn't have HierData
+    //fetch the data from its owner cell
+    if (__getConstHierData() == nullptr) {
+        Cell *owner_cell = addr<Cell>(getOwnerId());
+        if (owner_cell) {
+            return owner_cell->getTechLib();
+        } else {
+            return nullptr;
+        }
+    }
+    ObjectId id = __getHierData()->getTechLibId();  
+    return addr<Tech>(id); 
+}
 
 Layer *Cell::getLayerByLayerId(Int32 id) {
     Cell *top_cell = getTopCell();
@@ -307,13 +538,30 @@ Layer *Cell::getLayerByLayerId(Int32 id) {
 /// @brief setFloorplan
 ///
 /// @param fp
-void Cell::setFloorplan(Floorplan *fp) { floor_plan_ = fp->getId(); }
+void Cell::setFloorplan(Floorplan *fp) { 
+    if (!isHierCell()) {
+        //TODO error message
+        return;
+    }
+    __getHierData()->setFloorplanId(fp->getId());
+}
 
 /// @brief getFloorplan
 ///
 /// @return
 Floorplan *Cell::getFloorplan() {
-    return addr<Floorplan>(floor_plan_);
+    //when a cell is a leaf cell, it doesn't have HierData
+    //fetch the data from its owner cell
+    if (__getConstHierData() == nullptr) {
+        Cell *owner_cell = addr<Cell>(getOwnerId());
+        if (owner_cell) {
+            return owner_cell->getFloorplan();
+        } else {
+            return nullptr;
+        }
+    }
+    ObjectId id = __getHierData()->getFloorplanId();  
+    return addr<Floorplan>(id);  
 }
 
 Floorplan *Cell::createFloorplan() {
@@ -323,23 +571,26 @@ Floorplan *Cell::createFloorplan() {
         return nullptr;
     }
     floorplan->setOwner(this);
-    floor_plan_ = floorplan->getId();
+    setFloorplan(floorplan);
     return floorplan;
 }
 
 /// @brief added a cell into array cells_
 /// @return none
 void Cell::addCell(ObjectId id) {
+    if (__getConstHierData() == nullptr) {
+        return;
+    }
     ArrayObject<ObjectId> *vct = nullptr;
-
-    if (cells_ == 0) {
+    ObjectId cell_array = __getHierData()->getCells();
+    if (cell_array == 0) {
         vct = createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
         if (vct == nullptr) return;
         vct->setPool(getPool());
         vct->reserve(256);        
-        cells_ = vct->getId();
+        __getHierData()->setCells(vct->getId());
     } else {
-        vct = addr< ArrayObject<ObjectId> >(cells_);
+        vct = addr< ArrayObject<ObjectId> >(cell_array);
     }
 
     if (vct) vct->pushBack(id);
@@ -356,11 +607,16 @@ Cell *Cell::createCell(std::string &name, bool isHier) {
     if (isHier) {
         cell->setCellType(CellType::kHierCell);
         MemPagePool *page_pool = MemPool::newPagePool(cell->getId());
-        if (!page_pool) {
-            message->issueMsg(kError, "cannot crate a new page pool when create hierarchical cell %s\n", name.c_str());
+        SymbolTable *st = new SymbolTable;
+        PolygonTable *pt = new PolygonTable();        
+        if (page_pool == nullptr || st == nullptr || pt == nullptr) {
+            message->issueMsg(kError, "Fail in creating hierarchical cell %s due to the initialization of memory pool / symbol table / polygon table.\n", name.c_str());
             return nullptr;
         }
         cell->setPool(page_pool);
+        cell->setSymbolTable(st);
+        cell->setPolygonTable(pt);
+        MemPool::insertPagePool(cell->getId(), page_pool);
     }
     else {
         //TODO: check enum CellType
@@ -431,16 +687,18 @@ Term *Cell::createTerm(std::string &name) {
 /// @brief added a bus into array buses_
 /// @return none
 void Cell::addBus(ObjectId id) {
-    ArrayObject<ObjectId>  *vct = nullptr;
-
-    if (buses_ == 0) {
+    if (__getConstHierData() == nullptr) {
+        return;
+    }
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (getBuses() == 0) {
         vct = createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
         if (vct == nullptr) return;
         vct->setPool(getPool());
         vct->reserve(32);        
-        buses_ = vct->getId();
+        __getHierData()->setBuses(vct->getId());
     } else {
-        vct = addr< ArrayObject<ObjectId> >(buses_);
+        vct = addr< ArrayObject<ObjectId> >(getBuses());
     }
 
     if (vct) vct->pushBack(id);
@@ -463,22 +721,18 @@ Bus *Cell::createBus(std::string &name) {
 /// @brief added a net into array nets_
 /// @return none
 void Cell::addNet(ObjectId id) {
-    ArrayObject<ObjectId>  *vct = nullptr;
-
-    if (nets_ == 0) {
-        Cell *top_cell = getTopCell();
-        if (!top_cell) {
-            message->issueMsg(
-                kError, "Cannot find top cell when create vectorobject256.\n");
-            return;  // risk , need opt
-        }
+    if (__getConstHierData() == nullptr) {
+        return;
+    }
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (getNets() == 0) {
         vct = createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
         if (vct == nullptr) return;
         vct->setPool(getPool());
         vct->reserve(256);        
-        nets_ = vct->getId();
+        __getHierData()->setNets(vct->getId());
     } else {
-        vct = addr< ArrayObject<ObjectId> >(nets_);
+        vct = addr< ArrayObject<ObjectId> >(getNets());
     }
 
     if (vct) vct->pushBack(id);
@@ -500,16 +754,18 @@ Net *Cell::createNet(std::string &name) {
 /// @brief added a special_net into array special_nets_
 /// @return none
 void Cell::addSpecialNet(ObjectId id) {
+    if (__getConstHierData() == nullptr) return;
+
     ArrayObject<ObjectId>  *vct = nullptr;
 
-    if (special_nets_ == 0) {
+    if (getSpecialNets() == 0) {
         vct = createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
         if (vct == nullptr) return;
         vct->setPool(getPool());
         vct->reserve(256);        
-        special_nets_ = vct->getId();
+        __getHierData()->setSpecialNets(vct->getId());
     } else {
-        vct = addr< ArrayObject<ObjectId> >(special_nets_);
+        vct = addr< ArrayObject<ObjectId> >(getSpecialNets());
     }
 
     if (vct) vct->pushBack(id);
@@ -530,16 +786,18 @@ SpecialNet *Cell::createSpecialNet(std::string &name) {
 /// @brief added a instance into array instances_
 /// @return none
 void Cell::addInstance(ObjectId id) {
+    if (__getConstHierData() == nullptr) return;
+
     ArrayObject<ObjectId>  *vct = nullptr;
 
-    if (instances_ == 0) {
+    if (getInstances() == 0) {
         vct = createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
         if (vct == nullptr) return;
         vct->setPool(getPool());
         vct->reserve(256);        
-        instances_ = vct->getId();
+        __getHierData()->setInstances(vct->getId());
     } else {
-        vct = addr< ArrayObject<ObjectId> >(instances_);
+        vct = addr< ArrayObject<ObjectId> >(getInstances());
     }
 
     if (vct) vct->pushBack(id);
@@ -560,16 +818,18 @@ Inst *Cell::createInstance(std::string &name) {
 /// @brief added a io_pin into array io_pins_
 /// @return none
 void Cell::addIOPin(ObjectId id) {
+    if (__getConstHierData() == nullptr) return;
+
     ArrayObject<ObjectId>  *vct = nullptr;
 
-    if (io_pins_ == 0) {
+    if (getIOPins() == 0) {
         vct = createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
         if (vct == nullptr) return;
         vct->setPool(getPool());
         vct->reserve(64);        
-        io_pins_ = vct->getId();
+        __getHierData()->setIOPins(vct->getId());
     } else {
-        vct = addr< ArrayObject<ObjectId> >(io_pins_);
+        vct = addr< ArrayObject<ObjectId> >(getIOPins());
     }
 
     if (vct) vct->pushBack(id);
@@ -583,110 +843,161 @@ Pin *Cell::createIOPin(std::string &name) {
     return pin;
 }
 
-/// @brief added a virtual_pin into array virtual_pins_
-/// @return none
-void Cell::addVPin(ObjectId id) {
-    ArrayObject<ObjectId>  *vct = nullptr;
-
-    if (virtual_pins_ == 0) {
-        vct = createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
-        if (vct == nullptr) return;
-        vct->setPool(getPool());
-        vct->reserve(64);        
-        virtual_pins_ = vct->getId();
-    } else {
-        vct = addr< ArrayObject<ObjectId> >(io_pins_);
-    }
-
-    if (vct) vct->pushBack(id);
-}
-
-Pin *Cell::createVPin(std::string &name) {
-    Pin *pin = createObject<Pin>(kObjectTypePin);
-    pin->setName(name);
-    pin->setOwner(this);
-    addVPin(pin->getId());
-    return pin;
-}
-
 uint64_t Cell::getNumOfCells() const {
-    if (cells_ == 0) return 0;
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    ObjectId id = __getConstHierData()->getCells();
+    if (id == 0) {
+        return 0;
+    }
     ArrayObject<ObjectId>  *obj_vector =
-        addr< ArrayObject<ObjectId> >(cells_);
+        addr< ArrayObject<ObjectId> >(id);
     if (obj_vector == nullptr) return 0;
     return obj_vector->getSize();
 }
 
 uint64_t Cell::getNumOfTerms() const {
-    ArrayObject<ObjectId>  *vct = nullptr;
-    if (terms_ == 0) {
+    ObjectId id = getTerms();
+    if (id == 0) {
         return 0;
-    } else {
-        vct = addr< ArrayObject<ObjectId> >(terms_);
     }
-    if (vct) {
-        return vct->getSize();
+    ArrayObject<ObjectId>  *obj_vector =
+        addr< ArrayObject<ObjectId> >(id);
+    if (obj_vector == nullptr) return 0;
+    return obj_vector->getSize();
+}
+
+uint64_t Cell::getNumOfSitePatterns() const {
+    ObjectId id = site_patterns_;
+    if (id == 0) {
+        return 0;
     }
-    return 0;
+    ArrayObject<ObjectId>  *obj_vector =
+        addr< ArrayObject<ObjectId> >(id);
+    if (obj_vector == nullptr) return 0;
+    return obj_vector->getSize();
+}
+
+uint64_t Cell::getNumOfForeigns() const {
+    ObjectId id = getForeigns();
+    if (id == 0) {
+        return 0;
+    }
+    ArrayObject<ObjectId>  *obj_vector =
+        addr< ArrayObject<ObjectId> >(id);
+    if (obj_vector == nullptr) return 0;
+    return obj_vector->getSize();
 }
 
 uint64_t Cell::getNumOfBuses() const {
-    if (buses_ == 0) return 0;
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    ObjectId id = __getConstHierData()->getBuses();
+    if (id == 0) {
+        return 0;
+    }
     ArrayObject<ObjectId>  *obj_vector =
-        Object::addr< ArrayObject<ObjectId> >(buses_);
-    if (obj_vector == nullptr) return 0;
-    return obj_vector->getSize();
-}
-
-uint64_t Cell::getNumOfInsts() const {
-    if (instances_ == 0) return 0;
-    ArrayObject<ObjectId>  *obj_vector =
-        addr< ArrayObject<ObjectId> >(instances_);
-    if (obj_vector == nullptr) return 0;
-    return obj_vector->getSize();
-}
-
-uint64_t Cell::getNumOfNets() const {
-    if (nets_ == 0) return 0;
-    ArrayObject<ObjectId>  *obj_vector = addr< ArrayObject<ObjectId> >(nets_);
-    if (obj_vector == nullptr) return 0;
-    return obj_vector->getSize();
-}
-
-uint64_t Cell::getNumOfSpecialNets() const {
-    if (special_nets_ == 0) return 0;
-    ArrayObject<ObjectId>  *obj_vector =
-        addr< ArrayObject<ObjectId> >(special_nets_);
-    if (obj_vector == nullptr) return 0;
-    return obj_vector->getSize();
-}
-
-uint64_t Cell::getNumOfIOPins() const {
-    if (io_pins_ == 0) return 0;
-    ArrayObject<ObjectId>  *obj_vector =
-        addr< ArrayObject<ObjectId> >(io_pins_);
-    if (obj_vector == nullptr) return 0;
-    return obj_vector->getSize();
-}
-
-uint64_t Cell::getNumOfGroups() const {
-    if (groups_ == 0) return 0;
-    ArrayObject<ObjectId> *obj_vector = addr< ArrayObject<ObjectId> >(groups_);
-    if (obj_vector == nullptr) return 0;
-    return obj_vector->getSize();
-}
-
-uint64_t Cell::getNumOfFills() const {
-    if (fills_ == 0) return 0;
-    ArrayObject<ObjectId> *obj_vector = addr< ArrayObject<ObjectId> >(fills_);
+        addr< ArrayObject<ObjectId> >(id);
     if (obj_vector == nullptr) return 0;
     return obj_vector->getSize();
 }
 
 uint64_t Cell::getNumOfScanChains() const {
-    if (scan_chains_ == 0) return 0;
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    ObjectId id = __getConstHierData()->getScanChains();
+    if (id == 0) {
+        return 0;
+    }
     ArrayObject<ObjectId>  *obj_vector =
-        addr< ArrayObject<ObjectId> >(scan_chains_);
+        addr< ArrayObject<ObjectId> >(id);
+    if (obj_vector == nullptr) return 0;
+    return obj_vector->getSize();
+}
+
+uint64_t Cell::getNumOfFills() const {
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    ObjectId id = __getConstHierData()->getFills();
+    if (id == 0) {
+        return 0;
+    }
+    ArrayObject<ObjectId>  *obj_vector =
+        addr< ArrayObject<ObjectId> >(id);
+    if (obj_vector == nullptr) return 0;
+    return obj_vector->getSize();
+}
+
+uint64_t Cell::getNumOfGroups() const {
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    ObjectId id = __getConstHierData()->getGroups();
+    if (id == 0) {
+        return 0;
+    }
+    ArrayObject<ObjectId>  *obj_vector =
+        addr< ArrayObject<ObjectId> >(id);
+    if (obj_vector == nullptr) return 0;
+    return obj_vector->getSize();
+}
+
+uint64_t Cell::getNumOfIOPins() const {
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    ObjectId id = __getConstHierData()->getIOPins();
+    if (id == 0) {
+        return 0;
+    }
+    ArrayObject<ObjectId>  *obj_vector =
+        addr< ArrayObject<ObjectId> >(id);
+    if (obj_vector == nullptr) return 0;
+    return obj_vector->getSize();
+}
+
+uint64_t Cell::getNumOfInsts() const {
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    ObjectId id = __getConstHierData()->getInstances();
+    if (id == 0) {
+        return 0;
+    }
+    ArrayObject<ObjectId>  *obj_vector =
+        addr< ArrayObject<ObjectId> >(id);
+    if (obj_vector == nullptr) return 0;
+    return obj_vector->getSize();
+}
+
+uint64_t Cell::getNumOfNets() const {
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    ObjectId id = __getConstHierData()->getNets();
+    if (id == 0) {
+        return 0;
+    }
+    ArrayObject<ObjectId>  *obj_vector =
+        addr< ArrayObject<ObjectId> >(id);
+    if (obj_vector == nullptr) return 0;
+    return obj_vector->getSize();
+}
+
+uint64_t Cell::getNumOfSpecialNets() const {
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    ObjectId id = __getConstHierData()->getSpecialNets();
+    if (id == 0) {
+        return 0;
+    }
+    ArrayObject<ObjectId>  *obj_vector =
+        addr< ArrayObject<ObjectId> >(id);
     if (obj_vector == nullptr) return 0;
     return obj_vector->getSize();
 }
@@ -698,15 +1009,75 @@ uint64_t Cell::getNumOfAnalysisViews() const {
     return p->getSize();
 }
 
-ObjectId Cell::getInstances() const { return instances_; }
-ObjectId Cell::getCells() const { return cells_; }
-ObjectId Cell::getTerms() const { return terms_; }
-ObjectId Cell::getBuses() const { return buses_; }
-ObjectId Cell::getNets() const { return nets_; }
-ObjectId Cell::getSpecialNets() const { return special_nets_; }
+ObjectId Cell::getCells() const { 
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    return __getConstHierData()->getCells();
+}
+
+ObjectId Cell::getInstances() const {
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    return __getConstHierData()->getInstances();
+}
+
+ObjectId Cell::getTerms() const { 
+    return terms_;
+}
+
+ObjectId Cell::getBuses() const { 
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    return __getConstHierData()->getBuses();
+}
+
+ObjectId Cell::getNets() const {
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    return __getConstHierData()->getNets();  
+}
+
+ObjectId Cell::getSpecialNets() const { 
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    return __getConstHierData()->getSpecialNets(); 
+}
+
+ObjectId Cell::getIOPins() const { 
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    return __getConstHierData()->getIOPins(); 
+}
+
+ObjectId Cell::getGroups() const {
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    return __getConstHierData()->getGroups(); 
+}
+
+ObjectId Cell::getFills() const {
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    return __getConstHierData()->getFills(); 
+}
+
+ObjectId Cell::getScanChains() const {
+    if (__getConstHierData() == nullptr) {
+        return 0;
+    }
+    return __getConstHierData()->getScanChains(); 
+}
 
 Cell *Cell::getCell(std::string name) {
-    if (cells_ == 0) return nullptr;
+    if (getCells() == 0) return nullptr;
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
     if (symbol_index == -1) return nullptr;
 
@@ -724,7 +1095,7 @@ Cell *Cell::getCell(std::string name) {
 }
 
 Term *Cell::getTerm(std::string name) {
-    if (terms_ == 0) return nullptr;
+    if (getTerms() == 0) return nullptr;
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
     if (symbol_index == -1) return nullptr;
 
@@ -742,7 +1113,7 @@ Term *Cell::getTerm(std::string name) {
 }
 
 Bus *Cell::getBus(std::string name) {
-    if (buses_ == 0) return nullptr;
+    if (getBuses() == 0) return nullptr;
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
     if (symbol_index == -1) return nullptr;
 
@@ -760,7 +1131,7 @@ Bus *Cell::getBus(std::string name) {
 }
 
 Inst *Cell::getInstance(std::string name) {
-    if (instances_ == 0) return nullptr;
+    if (getInstances() == 0) return nullptr;
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
     if (symbol_index == -1) return nullptr;
 
@@ -779,7 +1150,7 @@ Inst *Cell::getInstance(std::string name) {
 }
 
 Pin *Cell::getIOPin(const std::string &name) {
-    if (io_pins_ == 0) return nullptr;
+    if (getIOPins() == 0) return nullptr;
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
     if (symbol_index == -1) return nullptr;
 
@@ -796,26 +1167,8 @@ Pin *Cell::getIOPin(const std::string &name) {
     return nullptr;
 }
 
-Pin *Cell::getVPin(const std::string &name) {
-    if (virtual_pins_ == 0) return nullptr;
-    SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
-    if (symbol_index == -1) return nullptr;
-
-    if (symbol_index) {
-        std::vector<ObjectId> object_vector =
-            getSymbolTable()->getReferences(symbol_index);
-        for (auto iter = object_vector.begin(); iter != object_vector.end();
-             iter++) {
-            Pin *target = addr<Pin>(*iter);
-            if (target && (target->getObjectType() == kObjectTypePin))
-                return target;
-        }
-    }
-    return nullptr;
-}
-
 Net *Cell::getNet(std::string name) {
-    if (nets_ == 0) return nullptr;
+    if (getNets() == 0) return nullptr;
 
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
     if (symbol_index == -1) return nullptr;
@@ -834,7 +1187,7 @@ Net *Cell::getNet(std::string name) {
 }
 
 SpecialNet *Cell::getSpecialNet(std::string name) {
-    if (nets_ == 0) return nullptr;
+    if (getSpecialNets() == 0) return nullptr;
 
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
     if (symbol_index == -1) return nullptr;
@@ -864,9 +1217,9 @@ Pin *Cell::getIOPinById(ObjectId obj_id) {
 }
 
 Pin *Cell::getIOPin(size_t idx) {
-    if (io_pins_ == 0) return nullptr;
+    if (getIOPins() == 0) return nullptr;
     ArrayObject<ObjectId>  *obj_vector =
-        addr< ArrayObject<ObjectId> >(io_pins_);
+        addr< ArrayObject<ObjectId> >(getIOPins());
     if (obj_vector == nullptr) return nullptr;
     ObjectId pin_id = (*obj_vector)[idx];
     return (addr<Pin>(pin_id));
@@ -875,10 +1228,11 @@ Pin *Cell::getIOPin(size_t idx) {
 
 Cell *Cell::getCell(int i) const {
     ArrayObject<ObjectId>  *vct = nullptr;
-    if (cells_ == 0) {
+    ObjectId cell_array = getCells();
+    if (cell_array == 0) {
         return nullptr;
     } else {
-        vct = addr< ArrayObject<ObjectId> >(cells_);
+        vct = addr< ArrayObject<ObjectId> >(cell_array);
     }
     if (vct) {
         Cell *obj_data = addr<Cell>((*vct)[i]);
@@ -890,8 +1244,8 @@ Cell *Cell::getCell(int i) const {
 }
 
 Term *Cell::getTerm(size_t idx) const {
-    if (terms_ == 0) return nullptr;
-    ArrayObject<ObjectId> *obj_vector = addr< ArrayObject<ObjectId> >(terms_);
+    if (getTerms() == 0) return nullptr;
+    ArrayObject<ObjectId> *obj_vector = addr< ArrayObject<ObjectId> >(getTerms());
     if (obj_vector == nullptr) return nullptr;
     ObjectId object_id = (*obj_vector)[idx];
     return (addr<Term>(object_id));
@@ -900,16 +1254,18 @@ Term *Cell::getTerm(size_t idx) const {
 /// @brief added a group into array groups_
 /// @return none
 void Cell::addGroup(ObjectId id) {
+    if (__getConstHierData() == nullptr) return;
+
     ArrayObject<ObjectId> *vct = nullptr;
 
-    if (groups_ == 0) {
+    if (getGroups() == 0) {
         vct = createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
         if (vct == nullptr) return;
         vct->setPool(getPool());
-        vct->reserve(32);        
-        groups_ = vct->getId();
+        vct->reserve(32);
+        __getHierData()->setGroups(vct->getId());
     } else {
-        vct = addr< ArrayObject<ObjectId> >(groups_);
+        vct = addr< ArrayObject<ObjectId> >(getGroups());
     }
 
     if (vct) vct->pushBack(id);
@@ -924,30 +1280,20 @@ Group *Cell::createGroup(std::string &name) {
     group->setCell(getId());
     group->setName(name);
     group->setOwner(this);
-    if (groups_ == 0) {
-        ArrayObject<ObjectId> *object_vector = createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
-        groups_ = object_vector->getId();
-        object_vector->setPool(getPool());
-        object_vector->reserve(32);      
-    }
-    ArrayObject<ObjectId> *object_vector =
-        addr< ArrayObject<ObjectId> >(groups_);
-    object_vector->pushBack(group->getId());
+    addGroup(group->getId());
     return group;
 }
 
-ObjectId Cell::getGroups() const { return groups_; }
-
 Group *Cell::getGroup(size_t idx) const {
-    if (groups_ == 0) return nullptr;
-    ArrayObject<ObjectId> *obj_vector = addr< ArrayObject<ObjectId> >(groups_);
+    if (getGroups() == 0) return nullptr;
+    ArrayObject<ObjectId> *obj_vector = addr< ArrayObject<ObjectId> >(getGroups());
     if (obj_vector == nullptr) return nullptr;
     ObjectId object_id = (*obj_vector)[idx];
     return (addr<Group>(object_id));
 }
 
 Group *Cell::getGroup(std::string &name) {
-    if (groups_ == 0) return nullptr;
+    if (getGroups() == 0) return nullptr;
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
     if (symbol_index == -1) return nullptr;
 
@@ -967,16 +1313,18 @@ Group *Cell::getGroup(std::string &name) {
 /// @brief added a fill into array fills_
 /// @return none
 void Cell::addFill(ObjectId id) {
+    if (__getConstHierData() == nullptr) return;
+
     ArrayObject<ObjectId> *vct = nullptr;
 
-    if (fills_ == 0) {
+    if (getFills() == 0) {
         vct = createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
         if (vct == nullptr) return;
         vct->setPool(getPool());
         vct->reserve(64);        
-        fills_ = vct->getId();
+        __getHierData()->setFills(vct->getId());
     } else {
-        vct = addr< ArrayObject<ObjectId> >(fills_);
+        vct = addr< ArrayObject<ObjectId> >(getFills());
     }
 
     if (vct) vct->pushBack(id);
@@ -990,9 +1338,9 @@ Fill *Cell::createFill() {
 }
 
 Fill *Cell::getFill(size_t idx) const {
-    if (fills_ == 0) return nullptr;
+    if (getFills() == 0) return nullptr;
     ArrayObject<ObjectId>  *obj_vector =
-        addr< ArrayObject<ObjectId> >(fills_);
+        addr< ArrayObject<ObjectId> >(getFills());
     if (obj_vector == nullptr) return nullptr;
     ObjectId fill_id = (*obj_vector)[idx];
     return (addr<Fill>(fill_id));
@@ -1002,16 +1350,16 @@ Fill *Cell::getFill(size_t idx) const {
 /// @brief added a scan_chain into array scan_chains_
 /// @return none
 void Cell::addScanChain(ObjectId id) {
+    if (__getConstHierData() == nullptr) return;
     ArrayObject<ObjectId> *vct = nullptr;
-
-    if (scan_chains_ == 0) {
+    if (getScanChains() == 0) {
         vct = createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
         if (vct == nullptr) return;
         vct->setPool(getPool());
         vct->reserve(64);        
-        scan_chains_ = vct->getId();
+        __getHierData()->setScanChains(vct->getId());
     } else {
-        vct = addr< ArrayObject<ObjectId> >(scan_chains_);
+        vct = addr< ArrayObject<ObjectId> >(getScanChains());
     }
 
     if (vct) vct->pushBack(id);
@@ -1026,9 +1374,9 @@ ScanChain *Cell::createScanChain(std::string &name) {
 }
 
 ScanChain *Cell::getScanChain(size_t idx) const {
-    if (scan_chains_ == 0) return nullptr;
+    if (getScanChains() == 0) return nullptr;
     ArrayObject<ObjectId>  *obj_vector =
-        addr< ArrayObject<ObjectId> >(scan_chains_);
+        addr< ArrayObject<ObjectId> >(getScanChains());
     if (obj_vector == nullptr) return nullptr;
     ObjectId sc_id = (*obj_vector)[idx];
     return (addr<ScanChain>(sc_id));
@@ -1201,13 +1549,13 @@ void Cell::addActiveHoldView(ObjectId id) {
 }
 
 std::string const &Cell::getClass() {
-    return getSymbolTable()->getSymbolByIndex(macro_class_index_);
+    return getSymbolTable()->getSymbolByIndex(class_index_);
 }
 
 void Cell::setClass(const char *v) {
     int64_t idx = getOrCreateSymbol(v);
     if (idx != -1) {
-        macro_class_index_ = idx;
+        class_index_ = idx;
     }
 }
 
@@ -1223,12 +1571,20 @@ void Cell::setEEQ(const char *v) {
 }
 
 std::string Cell::getSiteName() {
-    Site *target = addr<Site>(site_index_);
+    Site *target = addr<Site>(site_);
     return target->getName();
 }
 
 Site* Cell::getSite() {
-    return addr<Site>(site_index_);
+    return addr<Site>(site_);
+}
+
+ObjectId Cell::getForeigns() const {
+    return foreigns_;
+}
+
+void Cell::setForeigns(ObjectId v) {
+    foreigns_ = v;
 }
 
 void Cell::setNumMaskShiftLayers(uint8_t num) { num_mask_shift_layers_ = num; }
@@ -1257,17 +1613,16 @@ ObjectId Cell::getMaskShiftLayer(uint8_t index) {
 }
 
 std::string SitePattern::getName() const {
-    Site *target = addr<Site>(site_index_);
+    Site *target = addr<Site>(site_);
     return target->getName();
 }
 
 void SitePattern::setSiteID(ObjectId v) {
-    site_index_ = v;
-    //top_cell->addSymbolReference(name_index_, this->getId());
+    site_ = v;
 }
 
 Site* SitePattern::getSite() {
-    return addr<Site>(site_index_);
+    return addr<Site>(site_);
 }
 
 void Cell::addOBS(ObjectId id) {
@@ -1305,27 +1660,26 @@ LayerGeometry *Cell::getOBS(int i) const {
 
 void Cell::addForeign(ObjectId id) {
     ArrayObject<ObjectId> *vct = nullptr;
-
-    if (foreigns_ == 0) {
+    ObjectId foreign_array = getForeigns();
+    if (foreign_array == 0) {
         vct = createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
         if (vct == nullptr) return;
-        foreigns_ = vct->getId();
         vct->setPool(getPool());
         vct->reserve(32);        
+        setForeigns(vct->getId());
     } else {
-        vct = addr< ArrayObject<ObjectId> >(foreigns_);
+        vct = addr< ArrayObject<ObjectId> >(foreign_array);
     }
 
-    if (vct) vct->pushBack(id);
+    if (vct) vct->pushBack(id);  
 }
 
 Foreign *Cell::getForeign(int i) const {
-    ArrayObject<ObjectId> *vct = nullptr;
     if (foreigns_ == 0) {
         return nullptr;
-    } else {
-        vct = addr< ArrayObject<ObjectId> >(foreigns_);
     }
+
+    ArrayObject<ObjectId> *vct = addr< ArrayObject<ObjectId> >(foreigns_);
     if (vct) {
         Foreign *obj_data = addr<Foreign>((*vct)[i]);
         if (obj_data) {
@@ -1405,10 +1759,9 @@ Density *Cell::getDensity(int index) {
     return nullptr;
 }
 
+#if 0
 void Cell::print() {
     Tech *lib = getTopCell()->getTechLib();
-    // message->info("***************open-edi macro print
-    // begin******************\n");
     message->info("MACRO %s \n", getName().c_str());
     message->info("CLASS %s ;\n", getClass().c_str());
     if (getIsFixedMask()) {
@@ -1521,14 +1874,11 @@ void Cell::print() {
     }
 
     message->info("END %s\n", getName().c_str());
-    // message->info("***************open-edi macro print
-    // end******************\n");
 }
+#endif
 
 void Cell::printLEF(std::ofstream &ofs) {
     Tech *lib = getTopCell()->getTechLib();
-    // message->info("***************open-edi macro print
-    // begin******************\n");
     ofs << "MACRO"
         << " " << getName().c_str() << " \n";
     if (getClass().size() > 0) {
@@ -1538,8 +1888,8 @@ void Cell::printLEF(std::ofstream &ofs) {
     if (getIsFixedMask()) {
         ofs << "   FIXEDMASK ;\n";
     }
-    if (numForeigns() > 0) {
-        for (int i = 0; i < numForeigns(); i++) {
+    if (getNumOfForeigns() > 0) {
+        for (int i = 0; i < getNumOfForeigns(); i++) {
             Foreign *foreign = getForeign(i);
             ofs << "   FOREIGN"
                 << " " << foreign->getName().c_str() << " ";
@@ -1578,8 +1928,8 @@ void Cell::printLEF(std::ofstream &ofs) {
     if (hasSiteName())
         ofs << "   SITE"
             << " " << getSiteName().c_str() << " ;\n";
-    if (getNumSites() > 0) {
-        for (int i = 0; i < getNumSites(); i++) {
+    if (getNumOfSitePatterns() > 0) {
+        for (int i = 0; i < getNumOfSitePatterns(); i++) {
             SitePattern *pattern = getSitePattern(i);
             if (pattern) {
                 if (pattern->getStepPattern().getxCount() > 0) {

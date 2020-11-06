@@ -1235,7 +1235,7 @@ int readSubNet(defiNet* io_net, Net* net) {
                     Inst* inst = top_cell->getInstance(inst_name.c_str());
                     if (inst) pin = inst->getPin(io_net->pin(i));
                 }
-                if (!pin) pin = top_cell->getVPin(io_net->pin(i));
+                if (!pin) pin = top_cell->getIOPin(io_net->pin(i));
 
                 // if (pin) sub_net->addPin(pin);
             }
