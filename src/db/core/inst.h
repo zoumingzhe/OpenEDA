@@ -77,7 +77,6 @@ class Inst : public Object {
     Cell *getParent() const;
     void setParent(const std::string name);
     void setParent(const Cell *cell);
-    Cell *getOwnerCell() const;
     Cell *getMaster() const;
     void setMaster(ObjectId master);
     void setMaster(const std::string name);

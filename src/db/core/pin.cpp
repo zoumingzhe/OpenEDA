@@ -22,7 +22,7 @@ Pin::Pin(Pin const& rhs) { copy(rhs); }
 Pin::Pin(Pin&& rhs) noexcept { move(std::move(std::move(rhs))); }
 
 void Pin::setName(std::string name) {
-    Cell* top_cell = getTopCell();
+    Cell* top_cell = getOwnerCell();
     if (!top_cell) {
         message->issueMsg(kError,
                           "Cannot find top cell when set pin name %s \n",
@@ -34,7 +34,7 @@ void Pin::setName(std::string name) {
 }
 
 std::string& Pin::getName() const {
-    Cell* top_cell = getTopCell();
+    Cell* top_cell = getOwnerCell();
     return top_cell->getSymbolTable()->getSymbolByIndex(name_index_);
 }
 
@@ -101,9 +101,9 @@ void Pin::addNet(Net *net) {
     ArrayObject<ObjectId> *vct = nullptr;
 
     if (nets_ == 0) {
-        vct = getTopCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
         if (vct == nullptr) return;
-        vct->setPool(getTopCell()->getPool());
+        vct->setPool(getOwnerCell()->getPool());
         vct->reserve(8);
         nets_ = vct->getId();
     } else {

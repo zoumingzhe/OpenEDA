@@ -310,9 +310,9 @@ bool Track::getHasSameMask() { return has_same_mask_; }
 void Track::addLayer(Int32 &layer_index) {
     ArrayObject<Int32> *vct = nullptr;
     if (layers_ == 0) {
-        vct = getTopCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        vct = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
         if (vct == nullptr) return;
-        vct->setPool(getTopCell()->getPool());
+        vct->setPool(getOwnerCell()->getPool());
         vct->reserve(256);        
         layers_ = vct->getId();
     } else {
@@ -323,7 +323,7 @@ void Track::addLayer(Int32 &layer_index) {
 }
 
 void Track::addLayer(const char *layer_name) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     Tech *tech_lib = top_cell->getTechLib();
     if (!tech_lib) {
         message->issueMsg(kError, "Cannot find Tech LEF when reading Track \n");
@@ -338,9 +338,9 @@ void Track::addLayer(const char *layer_name) {
 
     ArrayObject<Int32> *vct = nullptr;
     if (layers_ == 0) {
-        vct = getTopCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        vct = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
         if (vct == nullptr) return;
-        vct->setPool(getTopCell()->getPool());
+        vct->setPool(getOwnerCell()->getPool());
         vct->reserve(256);        
         layers_ = vct->getId();
     } else {
@@ -351,7 +351,7 @@ void Track::addLayer(const char *layer_name) {
 }
 
 void Track::addLayer(std::string &layer_name) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     Tech *tech_lib = top_cell->getTechLib();
     if (!tech_lib) {
         message->issueMsg(kError, "Cannot find Tech LEF when reading Track \n");
@@ -367,9 +367,9 @@ void Track::addLayer(std::string &layer_name) {
 
     ArrayObject<Int32> *vct = nullptr;
     if (layers_ == 0) {
-        vct = getTopCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        vct = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
         if (vct == nullptr) return;
-        vct->setPool(getTopCell()->getPool());
+        vct->setPool(getOwnerCell()->getPool());
         vct->reserve(256);        
         layers_ = vct->getId();
     } else {
@@ -382,7 +382,7 @@ void Track::addLayer(std::string &layer_name) {
 ObjectId Track::getLayers() const { return layers_; }
 
 void Track::print() {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     Tech *tech_lib = top_cell->getTechLib();
     if (!tech_lib) {
         message->issueMsg(kError, "Cannot find Tech LEF when print Track \n");
@@ -413,7 +413,7 @@ void Track::print() {
 }
 
 void Track::print(FILE *fp) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     Tech *tech_lib = top_cell->getTechLib();
     if (!tech_lib) {
         message->issueMsg(kError, "Cannot find Tech LEF when print Track \n");
@@ -518,7 +518,7 @@ void Grid::setSpace(uint32_t space) { space_ = space; }
 uint32_t Grid::getSpace() { return space_; }
 
 void Grid::print() {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     Tech *tech_lib = top_cell->getTechLib();
     if (!tech_lib) {
         message->issueMsg(kError, "Cannot find Tech LEF when print Grid.\n");
@@ -533,7 +533,7 @@ void Grid::print() {
 }
 
 void Grid::print(FILE *fp) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     Tech *tech_lib = top_cell->getTechLib();
     if (!tech_lib) {
         message->issueMsg(kError, "Cannot find Tech LEF when print Grid.\n");
@@ -799,7 +799,7 @@ uint64_t Floorplan::getNumOfRegions() const {
 ObjectId Floorplan::getRegions() const { return regions_; }
 Constraint *Floorplan::getRegion(std::string &name) const {
     if (regions_ == 0) return nullptr;
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     SymbolIndex symbol_index = top_cell->getOrCreateSymbol(name.c_str());
     if (symbol_index == -1) return nullptr;
 
@@ -951,7 +951,7 @@ Floorplan *Constraint::getFloorplan() {
 void Constraint::setHasLayer(bool has_layer) { has_layer_ = has_layer; }
 
 bool Constraint::setLayer(const char *name) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     Tech *tech_lib = top_cell->getTechLib();
     if (!tech_lib) {
         message->issueMsg(
@@ -983,7 +983,7 @@ bool Constraint::setComponent(const char *name) {
         return false;
     }
     component_name_ = name;
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     Inst *instance = top_cell->getInstance(name);
     if (!instance) {
         message->issueMsg(kError, "Cannot find component %s in blockage.\n",
@@ -1078,7 +1078,7 @@ ObjectId Constraint::componentId() const { return component_id_; }
 std::string Constraint::componentName() const { return component_name_; }
 
 Box *Constraint::createBox(int64_t xl, int64_t yl, int64_t xh, int64_t yh) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     Box *box = top_cell->createObject<Box>(kObjectTypeBox);
     if (!box) {
         message->issueMsg(kError, "create box failed.\n");
@@ -1104,7 +1104,7 @@ ObjectId Constraint::getBoxesId() const { return boxes_id_; }
 ///
 /// @return
 void Constraint::addPolygon(Polygon *polygon) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     PolygonTable *polygon_table = top_cell->getPolygonTable();
     if (polygons_id_ == 0) {
         polygons_id_ = top_cell->createVectorObject<VectorObject8>()->getId();
@@ -1118,7 +1118,7 @@ void Constraint::addPolygon(Polygon *polygon) {
 ObjectId Constraint::getPolygonsId() const { return polygons_id_; }
 
 void Constraint::printBlockage() const {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     if (!top_cell) {
         message->issueMsg(kError,
                           "Cannot find top cell when outputting blockage.\n");
@@ -1203,7 +1203,7 @@ void Constraint::printBlockage() const {
 }
 
 void Constraint::printBlockage(FILE *fp) const {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     if (!top_cell) {
         message->issueMsg(kError,
                           "Cannot find top cell when outputting blockage.\n");

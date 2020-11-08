@@ -241,6 +241,7 @@ class Cell : public Object {
     // Utils: symbol table, polygon table, pool, etc.
     void setSymbolTable(SymbolTable *stb);
     SymbolTable *getSymbolTable();
+    SymbolTable *getParentOrTopSymbolTable();
     void setPolygonTable(PolygonTable *pt);
     PolygonTable *getPolygonTable();
     std::string &getSymbolByIndex(SymbolIndex index);

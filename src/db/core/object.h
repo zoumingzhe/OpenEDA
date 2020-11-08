@@ -31,7 +31,7 @@ typedef enum ObjectType {
     kObjectTypeForeign,
     kObjectTypeDensity,
     kObjectTypeDensityLayer,
-    kObjectTypeHierCell,
+    //kObjectTypeHierCell,
     kObjectTypeTerm,
     kObjectTypeBus,
     kObjectTypePort,
@@ -123,6 +123,9 @@ class ArrayObject : public std::vector<T> {
 #endif
 
 #define UNINIT_OBJECT_ID 0
+class Cell;
+// From db.h
+extern Cell* getTopCell();
 
 class Object {
   public:
@@ -159,13 +162,39 @@ class Object {
     ~Object();
 
     /// @brief get the owner of the object
-    /// @return the pointer of the owner
+    /// @return the owner id
     ObjectId const getOwnerId() const { return owner_; }
 
     /// @brief get the owner of the object
-    /// @return the pointer of the owner
+    /// @return the owner id
     ObjectId getOwnerId() { return owner_; }
 
+    /// @brief get the owner cell of the object
+    /// @return the owner Cell
+#if 0    
+    Cell* getOwnerCell() { 
+        if (owner_ != 0) {
+            Cell *owner_cell = addr<Cell>(owner_);
+            Object *owner_object = (Object *)owner_cell;
+            if (owner_object->getObjectType() == kObjectTypeCell) {
+                return owner_cell;
+            }
+        }
+        //otherwise, always returns current top cell:
+        return getTopCell();
+    }
+#endif    
+    Cell *getOwnerCell() const {
+        if (owner_ != 0) {
+            Cell *owner_cell = addr<Cell>(owner_);
+            Object *owner_object = (Object *)owner_cell;
+            if (owner_object->getObjectType() == kObjectTypeCell) {
+                return owner_cell;
+            }
+        }
+        //otherwise, always returns current top cell:
+        return getTopCell();
+    }
     /// @brief set the owner of the object
     void setOwner(Object *v) { owner_ = v->getId(); }
     void setOwner(ObjectId id) { owner_ = id; }
