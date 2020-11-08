@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include "util/util.h"
 
 namespace open_edi {
@@ -87,15 +88,66 @@ int utilInit() {
     return 0;
 }
 
-void* processBar(void* arg) {
+
+static int kVmrssLine = -1;
+
+
+/// @brief get current process's physical memory
+///
+/// @param pid
+///
+/// @return VmRSS memory with kB
+static int getMem() {
+    pid_t pid = getpid();
+    char file_name[64] = {0};
+    FILE *fp = nullptr;
+    char line_buff[256] = {0};
+    snprintf(file_name, sizeof(file_name), "/proc/%d/status", pid);
+    fp = fopen (file_name, "r");
+    int i;
+    char name[32];
+    char file_unit[32];
+    int vmrss;
+    if (-1 == kVmrssLine) {
+        kVmrssLine = 0;
+        while (NULL != fgets(line_buff, sizeof(line_buff), fp)) {
+            ++kVmrssLine;
+            sscanf(line_buff, "%s %d %s", name, &vmrss, file_unit);
+            if (0 == strncmp(name, "VmRSS", 5)) {
+                break;
+            }
+        }
+    } else {
+        for (i = 0; i < kVmrssLine - 1; i++)
+        {
+            char* ret = fgets (line_buff, sizeof(line_buff), fp);
+        }
+        char* ret1 = fgets (line_buff, sizeof(line_buff), fp);
+        sscanf(line_buff, "%s %d %s", name, &vmrss, file_unit);
+    }
+    fclose(fp);
+    if (0 == strncmp(file_unit, "mB", 2)) {
+        vmrss *= 1024;
+    } else if (0 == strncmp(file_unit, "tB", 2)) {
+        vmrss *= 1024 * 1024;
+    } else if (0 == strncmp(file_unit, "B", 1)) {
+        vmrss /= 1024;
+    }
+    return vmrss;
+}
+
+static void* processBar(void* arg) {
     clock_t start, current;
     uint32_t  duration;
+    int vmrss = 0;
     start = clock();
     while (true) {
         sleep(1);
         current = clock();
         duration = (uint32_t)(current - start) / CLOCKS_PER_SEC;
-        message->info("Elapsed Time(s): %d                       \r", duration);
+        vmrss = getMem();
+        message->info("Elapsed Time(s): %5d    Physical Memory(kB) %10d\r",
+                duration, vmrss);
         fflush(stdout);
     }
 }
