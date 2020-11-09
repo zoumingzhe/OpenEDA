@@ -47,7 +47,7 @@ extern char* EXECUTING_MACRO_NAME;
 static const char* tclrl_library = (const char*)NULL;
 static const char* tclrl_version_str = TCLRL_VERSION_STR;
 static const char* tclrl_patchlevel_str = TCLRL_PATCHLEVEL_STR;
-static const char* tclrl_installpath_str = (const char*)NULL;
+static const char* tclrl_historypath_str = (const char*)NULL;
 
 
 
@@ -593,10 +593,10 @@ TclReadlineLineCompleteHandler(char* ptr)
         FREE(expansion);
     }
 }
-void TclsetInstallPath(const char* installPath)
+void TclsetHistoryPath(const char* historyPath)
 {
-     tclrl_installpath_str = installPath;
-     tclrl_library = installPath;
+     tclrl_historypath_str = historyPath;
+     tclrl_library = historyPath;
 }
 int
 Tclreadline_SafeInit(Tcl_Interp *interp)
@@ -642,8 +642,8 @@ Tclreadline_Init(Tcl_Interp *interp)
     if (TCL_OK != (status = Tcl_LinkVar(interp, "tclreadline_patchLevel",
             (char*) &tclrl_patchlevel_str, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
         return status;
-    if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::installPath",
-        (char*) &tclrl_installpath_str, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
+    if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::historyPath",
+        (char*) &tclrl_historypath_str, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
     return status;
 
     return Tcl_PkgProvide(interp, "tclreadline", (char*)tclrl_version_str);

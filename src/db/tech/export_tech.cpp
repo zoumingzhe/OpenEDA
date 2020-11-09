@@ -960,7 +960,7 @@ void ExportTechLef::exportRoutingLayer(Layer* layer) {
     if (r->isXYOffset()) {
         ofs_ << "    OFFSET " << tech_lib_->dbuToMicrons(r->getOffsetX()) << " "
              << tech_lib_->dbuToMicrons(r->getOffsetY()) << " ;\n";
-    } else if (r->getOffset()) {
+    } else {
         ofs_ << "    OFFSET " << tech_lib_->dbuToMicrons(r->getOffset())
              << " ;\n";
     }

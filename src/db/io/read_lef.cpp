@@ -606,7 +606,7 @@ int macroCB(lefrCallbackType_e c, lefiMacro *macro, lefiUserData) {
         
     // fprintf(fout, "  SITE %s ;\n", macro->lefiMacro::siteName());
     if (macro->lefiMacro::hasSitePattern()) {
-        cell->setNumSites(macro->lefiMacro::numSitePattern());
+        //cell->setNumSites(macro->lefiMacro::numSitePattern());
         for (i = 0; i < macro->lefiMacro::numSitePattern(); i++) {
             SitePattern *siteP = current_top_cell->createObject<SitePattern>(
                 kObjectTypeCellSitePattern);
@@ -640,7 +640,7 @@ int macroCB(lefrCallbackType_e c, lefiMacro *macro, lefiUserData) {
     }
 
     if (macro->lefiMacro::hasForeign()) {
-        cell->setNumForeigns(macro->lefiMacro::numForeigns());
+        //cell->setNumForeigns(macro->lefiMacro::numForeigns());
         for (i = 0; i < macro->lefiMacro::numForeigns(); i++) {
             Foreign *f =
                 current_top_cell->createObject<Foreign>(kObjectTypeForeign);
