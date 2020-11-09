@@ -44,7 +44,6 @@ int utilInit();
 const char* getSpaceStr(uint32_t num_spaces);
 
 typedef int (*command_t)(int, const char **);
-void *processBar(void *arg);
 int runCommandWithProcessBar(command_t command, int argc, const char **argv);
 }  // namespace util
 }  // namespace open_edi
