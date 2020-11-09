@@ -1014,41 +1014,73 @@ Cell *Cell::getCell(std::string name) {
 }
 
 ArrayObject<ObjectId> *Cell::getCellArray() const {
-    ArrayObject<ObjectId> *cell_array = addr<ArrayObject<ObjectId>>(getCells());
-    return cell_array;
+    ObjectId id = getCells();
+    if (id != 0) {
+        ArrayObject<ObjectId> *cell_array = addr<ArrayObject<ObjectId>>(id);
+        return cell_array;
+    } else {
+        return nullptr;
+    }
 }
 
 ArrayObject<ObjectId> *Cell::getInstanceArray() const {
-    ArrayObject<ObjectId> *instance_array =
-        addr<ArrayObject<ObjectId>>(getInstances());
-    return instance_array;
+    ObjectId id = getInstances();
+    if (id != 0) {
+        ArrayObject<ObjectId> *instance_array = addr<ArrayObject<ObjectId>>(id);
+        return instance_array;
+    } else {
+        return nullptr;
+    }
 }
 
 ArrayObject<ObjectId> *Cell::getTermArray() const {
-    ArrayObject<ObjectId> *term_array = addr<ArrayObject<ObjectId>>(terms_);
-    return term_array;
+    if (terms_ != 0) {
+        ArrayObject<ObjectId> *term_array = addr<ArrayObject<ObjectId>>(terms_);
+        return term_array;
+    } else {
+        return nullptr;
+    }
 }
 
 ArrayObject<ObjectId> *Cell::getBusArray() const {
-    ArrayObject<ObjectId> *bus_array = addr<ArrayObject<ObjectId>>(getBuses());
-    return bus_array;
+    ObjectId id = getBuses();
+    if (id != 0) {
+        ArrayObject<ObjectId> *bus_array = addr<ArrayObject<ObjectId>>(id);
+        return bus_array;
+    } else {
+        return nullptr;
+    }
 }
 
 ArrayObject<ObjectId> *Cell::getNetArray() const {
-    ArrayObject<ObjectId> *net_array = addr<ArrayObject<ObjectId>>(getNets());
-    return net_array;
+    ObjectId id = getNets();
+    if (id != 0) {
+        ArrayObject<ObjectId> *net_array = addr<ArrayObject<ObjectId>>(id);
+        return net_array;
+    } else {
+        return nullptr;
+    }
 }
 
 ArrayObject<ObjectId> *Cell::getSpecialNetArray() const {
-    ArrayObject<ObjectId> *special_net_array =
-        addr<ArrayObject<ObjectId>>(getSpecialNets());
-    return special_net_array;
-}
+    ObjectId id = getSpecialNets();
+    if (id != 0) {
+        ArrayObject<ObjectId> *special_net_array =
+            addr<ArrayObject<ObjectId>>(id);
+        return special_net_array;
+    } else {
+        return nullptr;
+    }
+}  // namespace db
 
 ArrayObject<ObjectId> *Cell::getGroupArray() const {
-    ArrayObject<ObjectId> *group_array =
-        addr<ArrayObject<ObjectId>>(getGroups());
-    return group_array;
+    ObjectId id = getGroups();
+    if (id != 0) {
+        ArrayObject<ObjectId> *group_array = addr<ArrayObject<ObjectId>>(id);
+        return group_array;
+    } else {
+        return nullptr;
+    }
 }
 
 Term *Cell::getTerm(std::string name) {
