@@ -38,7 +38,9 @@ const char* getAppPath() { return app_path.c_str(); }
 const char* getInstallPath() {
     size_t pos = app_path.rfind("open-edi");
     if (pos != std::string::npos) {
-        install_path = app_path.substr(0, pos + 9);
+        std::string from_open = app_path.substr(pos);
+        size_t slash_pos = from_open.find("/");
+        install_path = app_path.substr(0, pos + slash_pos + 1);
     } else {
         size_t pos = app_path.rfind("openeda");
         install_path = app_path.substr(0,pos-4);
