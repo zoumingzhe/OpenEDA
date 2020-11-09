@@ -14,6 +14,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string>
 #include "util/util.h"
 
 namespace open_edi {
@@ -42,7 +43,7 @@ const char* getInstallPath() {
         install_path = app_path.substr(0, pos + 9);
     } else {
         size_t pos = app_path.rfind("openeda");
-        install_path = app_path.substr(0,pos-4);
+        install_path = app_path.substr(0, pos-4);
     }
 
     return install_path.c_str();
@@ -73,7 +74,8 @@ static int MessageInit() {
 
     timinglib_msg_path = path + "src/db/timing/timinglib/timinglib.msg";
     if (access(timinglib_msg_path.c_str(), F_OK) != 0) {
-        timinglib_msg_path = path + "/include/src/db/timing/timinglib/timinglib.msg";
+        timinglib_msg_path = path +
+                               "/include/src/db/timing/timinglib/timinglib.msg";
     }
 
     message->registerMsgFile(
@@ -97,17 +99,17 @@ static int kVmrssLine = -1;
 /// @param pid
 ///
 /// @return VmRSS memory with kB
-static int getMem() {
+static int64_t getMem() {
     pid_t pid = getpid();
     char file_name[64] = {0};
     FILE *fp = nullptr;
     char line_buff[256] = {0};
     snprintf(file_name, sizeof(file_name), "/proc/%d/status", pid);
-    fp = fopen (file_name, "r");
+    fp = fopen(file_name, "r");
     int i;
     char name[32];
     char file_unit[32];
-    int vmrss;
+    int64_t vmrss;
     if (-1 == kVmrssLine) {
         kVmrssLine = 0;
         while (NULL != fgets(line_buff, sizeof(line_buff), fp)) {
@@ -118,8 +120,7 @@ static int getMem() {
             }
         }
     } else {
-        for (i = 0; i < kVmrssLine - 1; i++)
-        {
+        for (i = 0; i < kVmrssLine - 1; i++) {
             char* ret = fgets (line_buff, sizeof(line_buff), fp);
         }
         char* ret1 = fgets (line_buff, sizeof(line_buff), fp);
@@ -139,15 +140,22 @@ static int getMem() {
 static void* processBar(void* arg) {
     clock_t start, current;
     uint32_t  duration;
-    int vmrss = 0;
+    int64_t vmrss = 0;
     start = clock();
     while (true) {
         sleep(1);
         current = clock();
         duration = (uint32_t)(current - start) / CLOCKS_PER_SEC;
+
         vmrss = getMem();
-        message->info("Elapsed Time(s): %5d    Physical Memory(kB) %10d\r",
-                duration, vmrss);
+        std::string mem_str = std::to_string(vmrss);
+        size_t length = mem_str.length();
+        for (int i = length - 3; i > 0; i -= 3) {
+            mem_str.insert(i, ",");
+        }
+
+        message->info(" Elapsed Time(s): %d  Physical Memory(kB): %s\r",
+                duration, mem_str.c_str());
         fflush(stdout);
     }
 }
