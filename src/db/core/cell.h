@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 
+#include "db/core/bus.h"
 #include "db/core/fill.h"
 #include "db/core/fplan.h"
 #include "db/core/group.h"
@@ -24,7 +25,6 @@
 #include "db/core/scan_chain.h"
 #include "db/core/special_net.h"
 #include "db/core/term.h"
-#include "db/core/bus.h"
 #include "db/tech/tech.h"
 #include "db/util/box.h"
 #include "db/util/geometrys.h"
@@ -130,7 +130,7 @@ class SitePattern : public Object {
     SitePattern() {}
     ~SitePattern() {}
     std::string getName() const;
-	Site* getSite();
+    Site *getSite();
     void setSiteID(ObjectId v);
     void setxOrigin(int value) { x_origin_ = value; }
     int getxOrigin() const { return x_origin_; }
@@ -202,14 +202,13 @@ class HierData : public Object {
                       ///< blocks. Only used by hierarchical cell
     ObjectId instances_;  ///< Instantiation of a cell
     ObjectId buses_;
-    ObjectId nets_;       ///< connection between devices
+    ObjectId nets_;  ///< connection between devices
     ObjectId special_nets_;
     ObjectId io_pins_;  ///< IO pins in top cell
     ObjectId groups_;
     ObjectId fills_;        /// FILLS defined in DEF
     ObjectId scan_chains_;  /// SCANCHAINS defined in DEF
     ObjectId regions_;      /// REGIONS defined in DEF
-
 };
 
 /// @brief cell class for cells/stencils in the library
@@ -228,7 +227,7 @@ class Cell : public Object {
     Cell();
     Cell(Object *owner, ObjectId id);
     ~Cell();
-    
+
     // Name and CellType:
     CellType getCellType() const { return cell_type_; }
     void setCellType(CellType const &v);
@@ -236,7 +235,6 @@ class Cell : public Object {
     SymbolIndex getNameIndex();
     std::string const &getName();
     void setName(std::string &v);
-    
 
     // Utils: symbol table, polygon table, pool, etc.
     void setSymbolTable(SymbolTable *stb);
@@ -265,11 +263,11 @@ class Cell : public Object {
     uint64_t getNumOfForeigns() const;
     uint64_t getNumOfSitePatterns() const;
     uint64_t getNumOfAnalysisViews() const;
-    
+
     // Get object by name:
     Cell *getCell(std::string name);
     Term *getTerm(std::string name);
-    Bus  *getBus(std::string name);
+    Bus *getBus(std::string name);
     Net *getNet(std::string name);
     Inst *getInstance(std::string name);
     SpecialNet *getSpecialNet(std::string name);
@@ -277,7 +275,7 @@ class Cell : public Object {
     Pin *getIOPin(const std::string &name);
     Pin *getVPin(const std::string &name);
     Group *getGroup(std::string &name);
-    
+
     // Get object vector:
     ObjectId getInstances() const;
     ObjectId getCells() const;
@@ -290,10 +288,18 @@ class Cell : public Object {
     ObjectId getFills() const;
     ObjectId getScanChains() const;
     ObjectId getForeigns() const;
-    
+
+    ArrayObject<ObjectId> *getCellArray() const;
+    ArrayObject<ObjectId> *getInstanceArray() const;
+    ArrayObject<ObjectId> *getTermArray() const;
+    ArrayObject<ObjectId> *getBusArray() const;
+    ArrayObject<ObjectId> *getNetArray() const;
+    ArrayObject<ObjectId> *getSpecialNetArray() const;
+    ArrayObject<ObjectId> *getGroupArray() const;
+
     // Get object by index/ID:
-    Pin *getIOPinById(ObjectId obj_id);  //TODO: to be removed.
-    Inst *getInstance(ObjectId obj_id) const; //TODO: to be removed.
+    Pin *getIOPinById(ObjectId obj_id);        // TODO: to be removed.
+    Inst *getInstance(ObjectId obj_id) const;  // TODO: to be removed.
     Pin *getIOPin(size_t idx);
     Term *getTerm(size_t idx) const;
     Group *getGroup(size_t idx) const;
@@ -328,7 +334,7 @@ class Cell : public Object {
     Floorplan *createFloorplan();
     Cell *createCell(std::string &name, bool isHier = false);
     Term *createTerm(std::string &name);
-    Bus  *createBus(std::string &name);
+    Bus *createBus(std::string &name);
     Inst *createInstance(std::string &name);
     Net *createNet(std::string &name);
     SpecialNet *createSpecialNet(std::string &name);
@@ -341,7 +347,7 @@ class Cell : public Object {
     void deleteCell(Cell *cell);
 
     // timinglib
-    void resetTerms(const std::vector<Term*> &terms);
+    void resetTerms(const std::vector<Term *> &terms);
     AnalysisMode *getAnalysisMode(std::string name);
     AnalysisCorner *getAnalysisCorner(std::string name);
     AnalysisView *getAnalysisView(std::string name);
@@ -352,15 +358,15 @@ class Cell : public Object {
     AnalysisCorner *createAnalysisCorner(std::string &name);
     AnalysisView *createAnalysisView(std::string &name);
     // timinglib
-    
-    //Container: tech, floorplan, etc.
+
+    // Container: tech, floorplan, etc.
     void setTechLib(Tech *t);
     Tech *getTechLib();
     Layer *getLayerByLayerId(Int32 id);
     void setFloorplan(Floorplan *fp);
     Floorplan *getFloorplan();
 
-    //Physical attribute access:
+    // Physical attribute access:
     void setHasSize(int value) { has_size_ = value; }
     int hasSize() { return has_size_; }
     void setSizeX(int value) { sizeX_ = value; }
@@ -384,12 +390,12 @@ class Cell : public Object {
     void setSiteID(ObjectId v) { site_ = v; }
     ObjectId getSiteID() { return site_; }
     std::string getSiteName();
-    Site* getSite();
-    //void setNumSites(int value) { site_num_ = value; }
-    //int getNumSites() { return site_num_; }
+    Site *getSite();
+    // void setNumSites(int value) { site_num_ = value; }
+    // int getNumSites() { return site_num_; }
     SitePattern *getSitePattern(int i) const;
-    //int numForeigns() const { return foreign_num_; }
-    //void setNumForeigns(int value) { foreign_num_ = value; }
+    // int numForeigns() const { return foreign_num_; }
+    // void setNumForeigns(int value) { foreign_num_ = value; }
 
     void setClass(const char *cls);
     std::string const &getClass();
@@ -404,9 +410,9 @@ class Cell : public Object {
     uint8_t getNumMaskShiftLayers();
     bool addMaskShiftLayer(ObjectId layer_id);
     ObjectId getMaskShiftLayer(uint8_t index);
-    
-    //Print:
-    //void print();
+
+    // Print:
+    // void print();
     void printLEF(std::ofstream &ofs);
 
   private:
@@ -423,7 +429,7 @@ class Cell : public Object {
     int originY_;
     int sizeX_;
     int sizeY_;
-    
+
     ObjectId terms_;  ///< corresponding to Verilog module port definition or
                       ///< LEF macro pin definitions.
 
@@ -434,7 +440,8 @@ class Cell : public Object {
     ObjectId foreigns_;
     ObjectId densities_;
     ObjectId obses_;
-    ObjectId mask_shift_layers_[max_layer_num];///< Component mask shift in DEF
+    ObjectId
+        mask_shift_layers_[max_layer_num];  ///< Component mask shift in DEF
     uint8_t num_mask_shift_layers_;
 
     Bits has_origin_ : 1;

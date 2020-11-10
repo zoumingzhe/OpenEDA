@@ -25,16 +25,13 @@ namespace db {
  * @param null
  */
 Tech::Tech() {
-    memset((void *)this, 0, sizeof(Tech));
     bus_bits_index_ = -1;
     divider_name_index_ = -1;
     extensions_name_index_ = -1;
     layer_ids_ = 0;
 }
 
-Tech::~Tech()
-{
-}
+Tech::~Tech() {}
 
 /**
  * @brief getHasClearanceMeasure
@@ -364,11 +361,11 @@ Int32 Tech::getLayerLEFIndexByName(const char *name) {
     if (nullptr == cell) return -1;
 
     std::string layer_name(name);
-    layer_obj =
-        cell->getSymbolTable()->getObjectByTypeAndName<Layer>(kObjectTypeLayer, layer_name);
+    layer_obj = cell->getSymbolTable()->getObjectByTypeAndName<Layer>(
+        kObjectTypeLayer, layer_name);
 
     if (layer_obj) return layer_obj->getIndexInLef();
-    
+
     return -1;
 }
 
@@ -399,7 +396,7 @@ Layer *Tech::getLayer(Int32 layer_id) {
 
     array_obj = addr<ArrayObject<ObjectId>>(layer_ids_);
     if (nullptr == array_obj || !array_obj->getIsValid()) return nullptr;
-    
+
     if (layer_id < 0 || layer_id >= array_obj->getSize()) {
         return nullptr;
     }
@@ -441,8 +438,7 @@ UInt32 Tech::getNumLayers() const {
  * @param object id
  */
 void Tech::addPropertyDefinition(ObjectId pobj_id) {
-    PropertyDefinition *pobj =
-        addr<PropertyDefinition>(pobj_id);
+    PropertyDefinition *pobj = addr<PropertyDefinition>(pobj_id);
     ediAssert(pobj != nullptr);
     PropType type = pobj->getPropType();
     uint32_t index = toInteger<PropType>(type);
@@ -490,8 +486,7 @@ ObjectId Tech::getPropertyDefinitionId(PropType type, const char *prop_name) {
     for (int i = 0; i < size; ++i) {
         ObjectId prop_id = (*vobj)[i];
         if (prop_id == 0) continue;
-        PropertyDefinition *prop_data =
-            addr<PropertyDefinition>(prop_id);
+        PropertyDefinition *prop_data = addr<PropertyDefinition>(prop_id);
         if (prop_data == nullptr) continue;
         if (!prop_data->getPropName().compare(prop_name)) {
             return prop_id;
@@ -611,8 +606,7 @@ void Tech::addNonDefaultRule(ObjectId ndr_rule_id) {
         ediAssert(vobj != nullptr);
         ndr_rules_ = vobj->getId();
     }
-    VectorObject16 *ndr_rule_vector =
-        addr<VectorObject16>(ndr_rules_);
+    VectorObject16 *ndr_rule_vector = addr<VectorObject16>(ndr_rules_);
     ediAssert(ndr_rule_vector != nullptr);
     ndr_rule_vector->push_back(ndr_rule_id);
 }
@@ -647,21 +641,74 @@ ObjectId Tech::getViaMasterVectorId() const { return via_masters_; }
 ObjectId Tech::getViaRuleVectorId() const { return via_rules_; }
 
 /**
+ * @brief get non-default rule array
+ *
+ * @return ArrayObject<ObjectId>*
+ */
+ArrayObject<ObjectId> *Tech::getNonDefaultRuleArray() const {
+    if (ndr_rules_ != 0) {
+        ArrayObject<ObjectId> *ndr_array =
+            addr<ArrayObject<ObjectId>>(ndr_rules_);
+        return ndr_array;
+    } else {
+        return nullptr;
+    }
+}
+
+/**
+ * @brief get via master array
+ *
+ * @return ArrayObject<ObjectId>*
+ */
+ArrayObject<ObjectId> *Tech::getViaMasterArray() const {
+    if (via_masters_ != 0) {
+        ArrayObject<ObjectId> *via_master_array =
+            addr<ArrayObject<ObjectId>>(via_masters_);
+        return via_master_array;
+    } else {
+        return nullptr;
+    }
+}
+
+/**
+ * @brief get via rule array
+ *
+ * @return ArrayObject<ObjectId>*
+ */
+ArrayObject<ObjectId> *Tech::getViaRuleArray() const {
+    if (via_rules_ != 0) {
+        ArrayObject<ObjectId> *via_rule_array =
+            addr<ArrayObject<ObjectId>>(via_rules_);
+        return via_rule_array;
+    } else {
+        return nullptr;
+    }
+}  // namespace db
+
+/**
+ * @brief get site array
+ *
+ * @return ArrayObject<ObjectId>*
+ */
+ArrayObject<ObjectId> *Tech::getSiteArray() const {
+    ArrayObject<ObjectId> *site_array = addr<ArrayObject<ObjectId>>(sites_);
+    return site_array;
+}
+
+/**
  * @brief getNonDefaultRuleIdByName
  * use ndr_rule name to get ndr_rule id
  *
  * @param name
  */
 ObjectId Tech::getNonDefaultRuleIdByName(const char *name) const {
-    VectorObject16 *ndr_rule_vector =
-        addr<VectorObject16>(ndr_rules_);
+    VectorObject16 *ndr_rule_vector = addr<VectorObject16>(ndr_rules_);
     if (ndr_rule_vector == nullptr) {
         return 0;
     }
     for (UInt32 i = 0; i < ndr_rule_vector->totalSize(); i++) {
         ObjectId obj_id = (*ndr_rule_vector)[i];
-        NonDefaultRule *ndr_rule =
-            addr<NonDefaultRule>(obj_id);
+        NonDefaultRule *ndr_rule = addr<NonDefaultRule>(obj_id);
         if (strcmp(ndr_rule->getName(), name) == 0) {
             return obj_id;
         }
@@ -676,15 +723,13 @@ ObjectId Tech::getNonDefaultRuleIdByName(const char *name) const {
  * @param name
  */
 NonDefaultRule *Tech::getNonDefaultRule(const char *name) const {
-    VectorObject16 *ndr_rule_vector =
-        addr<VectorObject16>(ndr_rules_);
+    VectorObject16 *ndr_rule_vector = addr<VectorObject16>(ndr_rules_);
     if (ndr_rule_vector == nullptr) {
         return 0;
     }
     for (UInt32 i = 0; i < ndr_rule_vector->totalSize(); i++) {
         ObjectId obj_id = (*ndr_rule_vector)[i];
-        NonDefaultRule *ndr_rule =
-            addr<NonDefaultRule>(obj_id);
+        NonDefaultRule *ndr_rule = addr<NonDefaultRule>(obj_id);
         if (ndr_rule && strcmp(ndr_rule->getName(), name) == 0) {
             return ndr_rule;
         }
@@ -707,8 +752,7 @@ ViaMaster *Tech::createAndAddViaMaster(std::string &name) {
         via_masters_ =
             getTopCell()->createVectorObject<VectorObject64>()->getId();
     }
-    VectorObject64 *via_master_vector =
-        addr<VectorObject64>(via_masters_);
+    VectorObject64 *via_master_vector = addr<VectorObject64>(via_masters_);
     via_master_vector->push_back(via_master->getId());
     return via_master;
 }
@@ -726,15 +770,13 @@ void Tech::addViaRule(ViaRule *via_rule) {
         via_rules_ =
             getTopCell()->createVectorObject<VectorObject64>()->getId();
     }
-    VectorObject64 *via_rule_vector =
-        addr<VectorObject64>(via_rules_);
+    VectorObject64 *via_rule_vector = addr<VectorObject64>(via_rules_);
     via_rule_vector->push_back(via_rule->getId());
 }
 
 ViaRule *Tech::getViaRule(const std::string &name) const {
     if (via_rules_ == 0) return nullptr;
-    VectorObject64 *obj_vector =
-        addr<VectorObject64>(via_rules_);
+    VectorObject64 *obj_vector = addr<VectorObject64>(via_rules_);
     if (obj_vector == nullptr) return nullptr;
     for (int i = 0; i < obj_vector->totalSize(); i++) {
         ViaRule *obj_data = nullptr;
@@ -755,8 +797,7 @@ ViaRule *Tech::getViaRule(const std::string &name) const {
  */
 ViaMaster *Tech::getViaMaster(const std::string &name) const {
     if (via_masters_ == 0) return nullptr;
-    VectorObject64 *obj_vector =
-        addr<VectorObject64>(via_masters_);
+    VectorObject64 *obj_vector = addr<VectorObject64>(via_masters_);
     if (obj_vector == nullptr) return nullptr;
     for (int i = 0; i < obj_vector->totalSize(); i++) {
         ObjectId obj_id = (*obj_vector)[i];
