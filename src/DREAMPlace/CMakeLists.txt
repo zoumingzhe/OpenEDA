@@ -105,3 +105,69 @@ install(
 install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/dreamplace/configure.py DESTINATION dreamplace
     )
+
+# new added for open-edi
+if (CMAKE_PLACE)
+    if (CUDA_FOUND)
+        file(GLOB CUDA_SOURCES
+            "${CMAKE_CURRENT_SOURCE_DIR}/dreamplace/ops/flow/src/*.cu"
+            )
+        set(CUDA_LINKED ${PROJECT_NAME}_cuda_linked)
+        set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+        set(CUDA_SEPARABLE_COMPILATION TRUE)
+        list(APPEND CUDA_NVCC_FLAGS
+            -O3 -std=c++11 ${CMAKE_CUDA_FLAGS} 
+            )
+        list(APPEND CUDA_NVCC_FLAGS --compiler-options -fPIC)
+    
+        cuda_add_library(
+            ${CUDA_LINKED} STATIC 
+            ${CUDA_SOURCES}
+            )
+        set_target_properties( ${CUDA_LINKED}
+            PROPERTIES CUDA_SEPARABLE_COMPILATION ON
+            )
+    endif(CUDA_FOUND)
+    
+    file(GLOB_RECURSE SRCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/dreamplace/ops/tcl_command/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/dreamplace/ops/utility/*.cpp
+        )
+    link_directories(
+        ${PROJECT_BINARY_DIR}/src/db
+        ${PROJECT_BINARY_DIR}/src/parser
+        ${PROJECT_BINARY_DIR}/src/util
+        ${PROJECT_BINARY_DIR}/src/gui
+        ${PROJECT_BINARY_DIR}/src/console
+        ${TCL_DIR}/lib
+        ${Boost_LIBRARY_DIRS}
+        ${PROFILER_DIR}/lib
+        ${LIMBO_BINARY_DIR}
+        ${MUNKRES_CPP_LINK_DIRS}
+        ${LEMON_INCLUDE_DIRS}
+        )
+        
+    add_library(${PROJECT_NAME_LOWERCASE}_DREAMPlace STATIC 
+        ${SRCS}
+        )
+    target_link_libraries(${PROJECT_NAME_LOWERCASE}_DREAMPlace PUBLIC
+        tcl_command place_flow place_abacus_legalize place_global_swap place_greedy_legalize
+        place_independent_set_matching place_k_reorder place_legality_check
+        place_macro_legalize
+        )
+    target_include_directories(${PROJECT_NAME_LOWERCASE}_DREAMPlace PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+        ${CMAKE_CURRENT_SOURCE_DIR}/dreamplace/ops
+        ${LIMBO_SOURCE_DIR}
+        ${Boost_HEADERS} 
+        ${PROFILER_DIR}/include
+        ${TCL_DIR}/include
+        ${CUDA_LINKED} PUBLIC
+        ${CUB_DIR}
+        ${Boost_INCLUDE_DIRS}
+        ${MUNKRES_CPP_INCLUDE_DIRS}
+        ${LEMON_INCLUDE_DIRS}
+        )
+endif(CMAKE_PLACE)
+# end of open-edi

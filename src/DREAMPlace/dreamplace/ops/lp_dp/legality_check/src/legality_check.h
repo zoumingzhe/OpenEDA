@@ -28,7 +28,7 @@ class LegalityCheck
     LegalityCheck &operator=(const LegalityCheck&) = delete;  // no copy
 
     // common DB interface : get
-    bool           isCommonDBReady()          const { return db_->isCommonDBReady();          }
+    bool           isCommonDBReady()          const { return db_ && db_->isCommonDBReady();   }
     Coord*         getInitX()                 const { return db_->getInitX();                 }
     Coord*         getInitY()                 const { return db_->getInitX();                 }
     Coord*         getNodeSizeX()             const { return db_->getNodeSizeX();             }

@@ -103,6 +103,7 @@ add_subdirectory(thirdparty)
 # python version is determined by pybind11 in thirdparty 
 message(STATUS "PYTHON_EXECUTABLE: ${PYTHON_EXECUTABLE}")
 message(STATUS "PYTHON_VERSION: ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
+option(CMAKE_PLACE "Whether compile place" TRUE)
 
 add_subdirectory(src)
 add_subdirectory(unittest)
