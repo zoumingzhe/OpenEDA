@@ -562,7 +562,6 @@ Floorplan *Cell::createFloorplan() {
         message->issueMsg(kError, "create floorplan failed.\n");
         return nullptr;
     }
-    floorplan->setOwner(this);
     setFloorplan(floorplan);
     return floorplan;
 }
@@ -601,6 +600,7 @@ Cell *Cell::createCell(std::string &name, bool isHier) {
         message->issueMsg(kError, "create cell %s failed.\n", name.c_str());
         return nullptr;
     }
+
     if (isHier) {
         cell->setCellType(CellType::kHierCell);
         MemPagePool *page_pool = MemPool::newPagePool(cell->getId());
@@ -621,7 +621,6 @@ Cell *Cell::createCell(std::string &name, bool isHier) {
         cell->setCellType(CellType::kCell);
     }
     cell->setName(name);
-    cell->setOwner(this);
 
     addCell(cell->getId());
     return cell;
@@ -680,7 +679,6 @@ Term *Cell::createTerm(std::string &name) {
         return nullptr;
     }
     term->setName(name);
-    term->setOwner(this);
     addTerm(term->getId());
     return term;
 }
@@ -720,7 +718,6 @@ Bus *Cell::createBus(std::string &name) {
         return nullptr;
     }
     bus->setName(name);
-    bus->setOwner(this);
     addBus(bus->getId());
     return bus;
 }
@@ -758,7 +755,6 @@ Net *Cell::createNet(std::string &name) {
     }
     net->setCell(getId());
     net->setName(name);
-    net->setOwner(this);
     addNet(net->getId());
     return net;
 }
@@ -790,7 +786,6 @@ SpecialNet *Cell::createSpecialNet(std::string &name) {
         return nullptr;
     }
     net->setName(name);
-    net->setOwner(this);
     addSpecialNet(net->getId());
     return net;
 }
@@ -827,7 +822,6 @@ Inst *Cell::createInstance(std::string &name) {
         return nullptr;
     }
     inst->setName(name);
-    inst->setOwner(this);
     addInstance(inst->getId());
     return inst;
 }
@@ -856,7 +850,6 @@ Pin *Cell::createIOPin(std::string &name) {
     // TODO(ly): naming conflicts check.
     Pin *pin = createObject<Pin>(kObjectTypePin);
     pin->setName(name);
-    pin->setOwner(this);
     addIOPin(pin->getId());
     return pin;
 }
@@ -1298,7 +1291,6 @@ Group *Cell::createGroup(std::string &name) {
     }
     group->setCell(getId());
     group->setName(name);
-    group->setOwner(this);
     addGroup(group->getId());
     return group;
 }
@@ -1352,7 +1344,6 @@ void Cell::addFill(ObjectId id) {
 
 Fill *Cell::createFill() {
     Fill *fill = createObject<Fill>(kObjectTypeFill);
-    fill->setOwner(this);
     addFill(fill->getId());
     return fill;
 }
@@ -1387,7 +1378,6 @@ void Cell::addScanChain(ObjectId id) {
 
 ScanChain *Cell::createScanChain(std::string &name) {
     ScanChain *scan_chain = createObject<ScanChain>(kObjectTypeScanChain);
-    scan_chain->setOwner(this);
     scan_chain->setChainName(name.c_str());
     addScanChain(scan_chain->getId());
     return scan_chain;
