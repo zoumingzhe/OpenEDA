@@ -20,6 +20,7 @@ void
 CommonDB::__init()
 {
   // from edi db
+  isCommonDBReady_ = true;
   return;
 }
 void
@@ -86,7 +87,7 @@ void CommonPlaceDB::initDetailedPlaceDB(DetailedPlaceDB<int>& db, bool gpu=true)
     else
     {
 #ifdef _CUDA_FOUND
-        initDetailedPlaceDBGPU(db);
+        //initDetailedPlaceDBGPU(db);
 #endif
     }
 
@@ -103,7 +104,7 @@ void CommonPlaceDB::freeDetailedPlaceDB(DetailedPlaceDB<int>& db, bool gpu=true)
     if (gpu)
     {
 #ifdef _CUDA_FOUND
-        freeDetailedPlaceDBGPU(db);
+        //freeDetailedPlaceDBGPU(db);
 #endif
     }
     else

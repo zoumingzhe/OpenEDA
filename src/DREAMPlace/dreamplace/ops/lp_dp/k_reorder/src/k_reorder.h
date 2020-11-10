@@ -30,6 +30,7 @@ class KReorder
     KReorder(const KReorder&) = delete;            // no copy
     KReorder &operator=(const KReorder&) = delete; // no copy
 
+    bool           isCommonDBReady()          const { return db_ && db_->isCommonDBReady();   }
     // interface 
     void run();
 

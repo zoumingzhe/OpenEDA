@@ -14,8 +14,9 @@ DREAMPLACE_BEGIN_NAMESPACE
 
 void AbacusLegal::run()
 {
+  dreamplacePrint(kINFO, "Starting Abacus Legalization\n");
   // exit if no DB
-  if (!db_ || !db_->isCommonDBReady()) {
+  if (!isCommonDBReady()) {
     return;
   }
 }
