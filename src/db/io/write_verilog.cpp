@@ -193,10 +193,10 @@ static bool writeModule(std::ostream *out_stream, Cell *cell) {
                 case kAssignTypeInt: {
                     int int_constant = net->getAssignInt();
                     if (0 == int_constant) {
-                        *out_stream << "  supply0 " << net->getName() 
+                        *out_stream << "  supply0 " << net->getName()
                                     << ";" << std::endl;
                     } else if (1 == int_constant) {
-                        *out_stream << "  supply1 " << net->getName() 
+                        *out_stream << "  supply1 " << net->getName()
                                     << ";" << std::endl;
                     } else {
                         *out_stream << "  assign " << net->getName() << " = "
@@ -213,7 +213,6 @@ static bool writeModule(std::ostream *out_stream, Cell *cell) {
                 default:
                     break;
             }
-            
         }
     }
 
@@ -248,9 +247,10 @@ static bool writeModule(std::ostream *out_stream, Cell *cell) {
             *out_stream << "  " << master->getName() << " "
                         << inst->getName() << " (";
             ObjectId pins = inst->getPins();
-            VectorObject8 *pins_vector = cell->addr<VectorObject8>(pins);
+            ArrayObject<ObjectId> *pins_vector =
+                    cell->addr<ArrayObject<ObjectId>>(pins);
             first = true;
-            for (int i = 0; i < pins_vector->totalSize(); i++) {
+            for (int i = 0; i < pins_vector->getSize(); i++) {
                 ObjectId pin_id = (*pins_vector)[i];
                 Pin *pin = cell->addr<Pin>(pin_id);
                 if (!pin) {
