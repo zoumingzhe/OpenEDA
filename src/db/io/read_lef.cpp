@@ -677,6 +677,17 @@ int macroEndCB(lefrCallbackType_e c, const char *macroName, lefiUserData) {
 int manufacturingCB(lefrCallbackType_e c, double num, lefiUserData) {
     checkType(c);
     Tech *lib = getTopCell()->getTechLib();
+    // Based on the recommended behavior,
+    // when manufacture-grid is smaller than db-micron,
+    // the db-micron should be changed.
+    Units *units = lib->getUnits();
+    if (units) {
+        UInt32 dbu = units->getLengthFactor();
+        double dbu_based_grid = (1.0 / num);
+        if ((UInt32)dbu_based_grid > dbu) {
+            units->setLengthFactor((UInt32)dbu_based_grid);
+        }
+    }
     lib->setManuGrids(lib->micronsToDBU(num));
     return 0;
 }
@@ -687,13 +698,15 @@ int maxStackViaCB(lefrCallbackType_e c, lefiMaxStackVia *maxStack,
     MaxViaStack *mvs = new MaxViaStack();
     mvs->setNumStackedVia(maxStack->lefiMaxStackVia::maxStackVia());
     if (maxStack->lefiMaxStackVia::hasMaxStackViaRange()) {
-        mvs->setIsRange(true);
         int top_id = getTopCell()->getTechLib()->getLayerLEFIndexByName(
             maxStack->lefiMaxStackVia::maxStackViaTopLayer());
         mvs->setTopLayerId(top_id);
         int bot_id = getTopCell()->getTechLib()->getLayerLEFIndexByName(
             maxStack->lefiMaxStackVia::maxStackViaBottomLayer());
         mvs->setBotLayerId(bot_id);
+        if (top_id != -1 && bot_id != -1) {
+            mvs->setIsRange(true);
+        }
     }
     getTopCell()->getTechLib()->setMaxViaStack(mvs);
     return 0;
