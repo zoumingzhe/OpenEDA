@@ -125,13 +125,6 @@ class NonDefaultRuleLayer : public Object {
   private:
     // DATA
     SymbolIndex name_index_;
-    bool has_width_;
-    bool has_diag_width_;
-    bool has_spacing_;
-    bool has_wire_ext_;
-    bool has_resistance_per_square_;
-    bool has_capacitance_per_square_;
-    bool has_edge_capacitance_;
     UInt32 width_;
     UInt32 diag_width_;
     UInt32 spacing_;
@@ -139,6 +132,13 @@ class NonDefaultRuleLayer : public Object {
     float resistance_per_square_;
     float capacitance_per_square_;
     float edge_capacitance_;
+    Bits has_width_ : 1;
+    Bits has_diag_width_ : 1;
+    Bits has_spacing_ : 1;
+    Bits has_wire_ext_ : 1;
+    Bits has_resistance_per_square_ : 1;
+    Bits has_capacitance_per_square_ : 1;
+    Bits has_edge_capacitance_ : 1;    
 };
 
 // Class NonDefaultRuleMinCuts
@@ -278,16 +278,19 @@ class NonDefaultRule : public Object {
 
   private:
     void __init();
+    ObjectId __createObjectArray(int64_t size);
+    void __deleteObjectArray(ObjectId array_id);
+
     // DATA
     SymbolIndex name_index_; /**< name */
-    bool hard_spacing_;
-    bool from_def_;
     ObjectId layers_;
     ObjectId min_cuts_;
     ObjectId properties_;
     ObjectId vias_;
     ObjectId use_vias_;
     ObjectId use_via_rules_;
+    Bits hard_spacing_ : 1;
+    Bits from_def_ : 1;    
 };
 
 }  // namespace db

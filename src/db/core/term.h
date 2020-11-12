@@ -41,7 +41,7 @@ class AntennaArea : public Object {
     SymbolIndex layer_name_index_;
 };
 
-class AntennaModelTerm {
+class AntennaModelTerm : public Object {
   public:
     AntennaModelTerm();
     ~AntennaModelTerm() {}
