@@ -271,6 +271,8 @@ OStreamBase &operator<<(OStreamBase &os, NonDefaultRuleLayer const &rhs) {
        << rhs.has_capacitance_per_square_ << DataDelimiter();
     os << DataFieldName("has_edge_capacitance_") << rhs.has_edge_capacitance_;
     os << DataEnd(")");
+
+    return os;
 }
 
 // Class NonDefaultRuleMinCuts
@@ -355,6 +357,7 @@ OStreamBase &operator<<(OStreamBase &os, NonDefaultRuleMinCuts const &rhs) {
     os << DataFieldName("name_index_") << rhs.name_index_ << DataDelimiter();
     os << DataFieldName("num_cuts_") << rhs.num_cuts_;
     os << DataEnd(")");
+    return os;
 }
 
 // Class NonDefaultRule:
