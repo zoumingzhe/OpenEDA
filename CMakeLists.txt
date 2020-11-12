@@ -44,7 +44,10 @@ message(STATUS "TCL_DIR = ${TCL_DIR}")
 
 #endif (TCL_FOUND)
 
-set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
+# set install to default when it's not setted by user
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set (CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Prefix prepended to install directories" FORCE )
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 # set gperf path
 set(PROFILER_DIR ${OPT_PATH}/gperftools-2.7.90)

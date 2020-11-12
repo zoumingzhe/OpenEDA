@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.8.2)
 
 project(DREAMPlace)
-
-if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT AND (NOT CMAKE_PLACE))
     set (CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/install" CACHE PATH "Prefix prepended to install directories" FORCE )
 endif()
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
@@ -108,7 +108,7 @@ install(
 
 # new added for open-edi
 if (CMAKE_PLACE)
-    if (CUDA_FOUND)
+    if (FALSE AND CUDA_FOUND)
         file(GLOB CUDA_SOURCES
             "${CMAKE_CURRENT_SOURCE_DIR}/dreamplace/ops/flow/src/*.cu"
             )
