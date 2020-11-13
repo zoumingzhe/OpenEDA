@@ -36,7 +36,8 @@ file(GLOB HEADERS *.h)
 install(FILES ${HEADERS} DESTINATION include/src/gui/${_SUBDIRNAME})
 # install scripts
 file(GLOB_RECURSE SCRIPTS ./lib/*.tcl ./lib/*.tclshrc)
-install(FILES ${SCRIPTS} DESTINATION include/src/gui/${_SUBDIRNAME}/lib)
+# install(FILES ${SCRIPTS} DESTINATION include/src/gui/${_SUBDIRNAME}/lib)
+install(FILES ${SCRIPTS} DESTINATION share/etc/tcl)
 
 
 

@@ -16,7 +16,9 @@ DREAMPLACE_BEGIN_NAMESPACE
 void
 MainPlace::run()
 {
+  hr_clock_rep start_time = get_globaltime();
   // exit if db is not ready
+  dreamplacePrint(kINFO, "Starting place_design flow\n");
   if (!isDBReady()) {
     return;
   }
@@ -26,6 +28,8 @@ MainPlace::run()
   /// lpdp place 
   LpdpPlace lpdp;
   lpdp.run();
+  hr_clock_rep stop_time = get_globaltime();
+  dreamplacePrint(kINFO, "place_design time: %g ms\n", get_timer_period()*(stop_time - start_time));
 }
 
 DREAMPLACE_END_NAMESPACE
