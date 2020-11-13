@@ -13,10 +13,12 @@
 #include "db/core/cell.h"
 #include "db/core/db.h"
 #include "db/core/pin.h"
+#include "db/util/array.h"
 #include "db/util/vector_object_var.h"
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 /**
  * @brief Construct a new VPin::VPin object
@@ -1037,39 +1039,32 @@ void Net::printDEF(FILE* fp) {
 void Net::setPropertySize(uint64_t v) {
     if (v == 0) {
         if (properties_id_) {
-            VectorObject16::deleteDBVectorObjectVar(properties_id_);
+            __deleteObjectIdArray(properties_id_);
         }
         return;
     }
     if (!properties_id_) {
-        VectorObject16* vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        properties_id_ = vobj->getId();
-    }
+        properties_id_ = __createObjectIdArray(16);
+    }  
 }
 
 uint64_t Net::getNumProperties() const {
     if (!properties_id_) return 0;
 
-    return addr<VectorObject16>(properties_id_)
-        ->totalSize();
+    return addr<IdArray>(properties_id_)->getSize();  
 }
 
 void Net::addProperty(ObjectId obj_id) {
-    VectorObject16* vobj = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (obj_id == 0) return;
 
     if (properties_id_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        properties_id_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(properties_id_);
+        properties_id_ = __createObjectIdArray(16);
     }
-    ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+    ediAssert(properties_id_ != 0);
+    id_array_ptr = addr<IdArray>(properties_id_);
+    ediAssert(id_array_ptr != nullptr);
+    id_array_ptr->pushBack(obj_id);  
 }
 
 ObjectId Net::getPropertiesId() const { return properties_id_; }

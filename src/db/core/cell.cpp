@@ -1273,7 +1273,6 @@ Group *Cell::createGroup(std::string &name) {
         message->issueMsg(kError, "create group %s failed.\n", name.c_str());
         return nullptr;
     }
-    group->setCell(getId());
     group->setName(name);
     addGroup(group->getId());
     return group;

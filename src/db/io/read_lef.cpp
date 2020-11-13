@@ -827,7 +827,8 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
 
     for (j = 0; j < pin->lefiPin::numAntennaModel(); j++) {
         aModel = pin->lefiPin::antennaModel(j);
-        AntennaModelTerm *am = new AntennaModelTerm();
+        AntennaModelTerm *am = current_top_cell->createObject<AntennaModelTerm>(
+                    kObjectTypeAntennaModelTerm);
         std::string oxide_string = aModel->lefiPinAntennaModel::antennaOxide();
         oxide_string = oxide_string.substr(5);
         int oxide = stoi(oxide_string);

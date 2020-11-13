@@ -26,6 +26,7 @@
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 #define OK (0)
 #define ERROR (1)
@@ -437,13 +438,13 @@ static bool writeRows(FILE *fp) {
     if (0 == rows) {
         return true;
     }
-    VectorObject64 *obj_vector = Object::addr< VectorObject64 >(rows);
+    IdArray *obj_vector = Object::addr< IdArray >(rows);
     if (!obj_vector) {
         message->issueMsg(kError,
                           "Cannot find rows vector when writting DEF file.\n");
         return false;
     }
-    for (int i = 0; i < obj_vector->totalSize(); ++i) {
+    for (int i = 0; i < obj_vector->getSize(); ++i) {
         Row *row = Object::addr<Row>((*obj_vector)[i]);
         if (!row) {
             message->issueMsg(
@@ -479,14 +480,14 @@ static bool writeTracks(FILE *fp) {
     if (0 == tracks) {
         return true;
     }
-    VectorObject64 *obj_vector = Object::addr< VectorObject64 >(tracks);
+    IdArray *obj_vector = Object::addr< IdArray >(tracks);
     if (!obj_vector) {
         message->issueMsg(
             kError, "Cannot find tracks vector when writting DEF file.\n");
         return false;
     }
 
-    for (int i = 0; i < obj_vector->totalSize(); ++i) {
+    for (int i = 0; i < obj_vector->getSize(); ++i) {
         Track *track = Object::addr<Track>((*obj_vector)[i]);
         if (!track) {
             message->issueMsg(
@@ -520,15 +521,15 @@ static bool writeGcellGrid(FILE *fp) {
     if (0 == gcell_grids) {
         return true;
     }
-    VectorObject64 *obj_vector =
-        Object::addr< VectorObject64 >(gcell_grids);
+    IdArray *obj_vector =
+        Object::addr< IdArray >(gcell_grids);
     if (!obj_vector) {
         message->issueMsg(
             kError, "Cannot find gcell grid vector when writting DEF file.\n");
         return false;
     }
 
-    for (int i = 0; i < obj_vector->totalSize(); ++i) {
+    for (int i = 0; i < obj_vector->getSize(); ++i) {
         Grid *gcell_grid = Object::addr<Grid>((*obj_vector)[i]);
         if (!gcell_grid) {
             message->issueMsg(
@@ -654,8 +655,8 @@ static bool writeRegions(FILE *fp) {
             "#############\n");
     fprintf(fp, "REGIONS %d ;\n", region_num);
     ObjectId regions_id = floorplan->getRegions();
-    VectorObject32 *obj_vector =
-        Object::addr< VectorObject32 >(regions_id);
+    IdArray *obj_vector =
+        Object::addr< IdArray >(regions_id);
     for (int i = 0; i < region_num; i++) {
         Constraint *region =
             Object::addr<Constraint>((*obj_vector)[i]);
@@ -1050,9 +1051,9 @@ static bool writeBlockages(FILE *fp) {
     }
 
     ObjectId route_blockages = floorplan->getRouteBlockages();
-    VectorObject32 *route_vector = nullptr;
+    IdArray *route_vector = nullptr;
     if (route_blockages > 0) {
-        route_vector = Object::addr< VectorObject32 >(route_blockages);
+        route_vector = Object::addr< IdArray >(route_blockages);
         if (!route_vector) {
             message->issueMsg(
                 kError,
@@ -1061,9 +1062,9 @@ static bool writeBlockages(FILE *fp) {
         }
     }
     ObjectId place_blockages = floorplan->getPlaceBlockages();
-    VectorObject32 *place_vector = nullptr;
+    IdArray *place_vector = nullptr;
     if (place_blockages > 0) {
-        place_vector = Object::addr< VectorObject32 >(place_blockages);
+        place_vector = Object::addr< IdArray >(place_blockages);
         if (!place_vector) {
             message->issueMsg(
                 kError,
@@ -1100,7 +1101,7 @@ static bool writeBlockages(FILE *fp) {
 
     fprintf(fp, "BLOCKAGES %d ;\n", sum_blockages);
     if (route_vector) {
-        for (int i = 0; i < route_vector->totalSize(); ++i) {
+        for (int i = 0; i < route_vector->getSize(); ++i) {
             Constraint *route_blockage =
                 Object::addr<Constraint>((*route_vector)[i]);
             if (!route_blockage) {
@@ -1114,7 +1115,7 @@ static bool writeBlockages(FILE *fp) {
         }
     }
     if (place_vector) {
-        for (int i = 0; i < place_vector->totalSize(); ++i) {
+        for (int i = 0; i < place_vector->getSize(); ++i) {
             Constraint *place_blockage =
                 Object::addr<Constraint>((*place_vector)[i]);
             if (!place_blockage) {
