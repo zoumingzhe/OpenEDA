@@ -10,7 +10,7 @@
 #include "utility/src/Msg.h"
 #include "utility/src/Box.h"
 #include "legality_check/src/legality_check.h"
-#include "draw_place/src/draw_place.h"
+//#include "draw_place/src/draw_place.h"
 
 DREAMPLACE_BEGIN_NAMESPACE
 
@@ -424,8 +424,8 @@ struct DetailedPlaceDB
         }
         return legal_flag; 
     }
-    /// @brief draw placement 
-    void draw_place(const char* filename) const 
+    /// @brief draw placement, shield not used code 
+    /*void draw_place(const char* filename) const 
     {
         drawPlaceLauncher<T>(
                 x, y, 
@@ -441,7 +441,7 @@ struct DetailedPlaceDB
                 bin_size_x, bin_size_y, 
                 filename
                 );
-    }
+    }*/
 };
 
 DREAMPLACE_END_NAMESPACE

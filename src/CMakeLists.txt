@@ -18,5 +18,7 @@ endif(EDI_BIND_PYTHON)
 add_subdirectory(parser)
 # gui
 add_subdirectory(gui)
+# place
+add_subdirectory(DREAMPlace)
 # app main
 add_subdirectory(app)

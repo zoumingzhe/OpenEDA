@@ -16,6 +16,7 @@ link_directories(
     ${TCL_DIR}/lib
     ${Boost_LIBRARY_DIRS}
     ${PROFILER_DIR}/lib
+    ${PROJECT_BINARY_DIR}/src/DREAMPlace
     )
 
  
@@ -31,7 +32,7 @@ add_executable(${_SUBBINNAME} app_main.cpp)
 target_link_libraries(${_SUBBINNAME} PUBLIC 
     openedi_tcl openedi_db openedi_util z boost_system boost_filesystem openedi_parser
     openedi_lefrw openedi_lef openedi_defrw openedi_def openedi_tcl openedi_verilog
-    tcl8.6 profiler tcmalloc pthread openedi_gui)
+    tcl8.6 profiler tcmalloc pthread openedi_gui openedi_DREAMPlace)
 
 #target_link_libraries(${_SUBBINNAME} PUBLIC 
 #    ${_SUBLIBNAME} openedi_db openedi_util boost_system boost_filesystem openedi_parser
@@ -47,6 +48,7 @@ target_link_libraries(${_SUBBINNAME} PUBLIC
 
 target_include_directories(${_SUBBINNAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/.
+    ${CMAKE_CURRENT_SOURCE_DIR}/../DREAMPlace/dreamplace/ops
     ${PROFILER_DIR}/include
     ${Boost_HEADERS}
     ${TCL_DIR}/include)

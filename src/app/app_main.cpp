@@ -17,6 +17,7 @@
 #include "db/core/db_tcl_command.h"
 #include "tcl/test_app.h"
 #include "gui/gui_tcl_command.h"
+#include "DREAMPlace/dreamplace/ops/tcl_command/src/place_tcl_command.h"
 
 
 
@@ -31,6 +32,8 @@ static void registerSystemCommands(Tcl_Interp *itp)
     open_edi::db::registerDatabaseTclCommands(itp);
 
     open_edi::tcl::registerTestCommands(itp);
+    // register commands of place
+    DreamPlace::registerPlaceTclCommands(itp);
 
     open_edi::gui::registerGuiTclCommands(itp);
 
