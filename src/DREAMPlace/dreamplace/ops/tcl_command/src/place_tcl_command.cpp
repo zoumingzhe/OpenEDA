@@ -56,8 +56,8 @@ static int calcWLCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *
 
 void registerPlaceTclCommands(Tcl_Interp *itp)
 {
-  Tcl_CreateCommand(itp, "place_deigsn", placeDesignCommand, NULL, NULL);
-  Tcl_CreateCommand(itp, "calculate_wire_legth", calcWLCommand, NULL, NULL);
+  Tcl_CreateCommand(itp, "place_design", placeDesignCommand, NULL, NULL);
+  Tcl_CreateCommand(itp, "report_wire_length", calcWLCommand, NULL, NULL);
 }
 
 DREAMPLACE_END_NAMESPACE
