@@ -359,9 +359,9 @@ static bool writePropertyDefinitions(FILE *fp) {
         ObjectId vobj_id =
             tech_lib->getPropertyDefinitionVectorId(toEnum<PropType, int>(i));
         if (vobj_id == 0) continue;
-        VectorObject32 *vobj = Object::addr< VectorObject32 >(vobj_id);
-        if (!vobj) continue;
-        for (VectorObject32::iterator iter = vobj->begin(); iter != vobj->end();
+        ArrayObject<ObjectId> *arr_ptr = Object::addr<ArrayObject<ObjectId>>(vobj_id);
+        if (!arr_ptr) continue;
+        for (ArrayObject<ObjectId>::iterator iter = arr_ptr->begin(); iter != arr_ptr->end();
              ++iter) {
             ObjectId obj_id = (*iter);
             if (!obj_id) continue;
@@ -544,9 +544,9 @@ static bool writeVias(FILE *fp) {
     Tech *lib = getTopCell()->getTechLib();
     ObjectId vias = lib->getViaMasterVectorId();
     if (vias == 0) return true;
-    VectorObject64 *via_vector = Object::addr< VectorObject64 >(vias);
+    ArrayObject<ObjectId> *via_vector = Object::addr<ArrayObject<ObjectId>>(vias);
     int num_vias = 0;
-    for (int i = 0; i < via_vector->totalSize(); ++i) {
+    for (int i = 0; i < via_vector->getSize(); ++i) {
         ViaMaster *via = Object::addr<ViaMaster>((*via_vector)[i]);
         if (!via) {
             continue;
@@ -555,7 +555,7 @@ static bool writeVias(FILE *fp) {
         ++num_vias;
     }
     fprintf(fp, "\nVIAS %d ;\n", num_vias);
-    for (int i = 0; i < via_vector->totalSize(); ++i) {
+    for (int i = 0; i < via_vector->getSize(); ++i) {
         ViaMaster *via = Object::addr<ViaMaster>((*via_vector)[i]);
         if (!via) {
             message->issueMsg(
@@ -589,12 +589,12 @@ static bool writeNonDefaultRules(FILE *fp) {
 
     ObjectId vobj_id = tech_lib->getNonDefaultRuleVectorId();
     if (vobj_id == 0) return true;
-    VectorObject16 *vobj = Object::addr<VectorObject16>(vobj_id);
-    if (!vobj) return true;
+    ArrayObject<ObjectId> *arr_ptr = Object::addr<ArrayObject<ObjectId>>(vobj_id);
+    if (!arr_ptr) return true;
     int defrule_count = 0;
     int nondefault_count = 0;
 
-    for (VectorObject16::iterator iter = vobj->begin(); iter != vobj->end();
+    for (ArrayObject<ObjectId>::iterator iter = arr_ptr->begin(); iter != arr_ptr->end();
          ++iter) {
         ObjectId obj_id = (*iter);
         if (!obj_id) continue;
@@ -614,7 +614,7 @@ static bool writeNonDefaultRules(FILE *fp) {
 
     fprintf(fp, "NONDEFAULTRULES %d ;\n", nondefault_count);
 
-    for (VectorObject16::iterator iter = vobj->begin(); iter != vobj->end();
+    for (ArrayObject<ObjectId>::iterator iter = arr_ptr->begin(); iter != arr_ptr->end();
          ++iter) {
         ObjectId obj_id = (*iter);
         if (!obj_id) continue;
