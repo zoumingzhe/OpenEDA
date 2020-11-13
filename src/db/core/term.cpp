@@ -42,7 +42,7 @@ Term::Term(Term const &rhs) { copy(rhs); }
 Term::Term(Term &&rhs) noexcept { move(std::move(rhs)); }
 
 void Term::setName(std::string name) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     if (!top_cell) {
         message->issueMsg(kError,
                           "Cannot find top cell when set term name %s \n",
@@ -54,7 +54,7 @@ void Term::setName(std::string name) {
 }
 
 std::string &Term::getName() const {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     return top_cell->getSymbolTable()->getSymbolByIndex(name_index_);
 }
 
@@ -106,12 +106,12 @@ IStreamBase &operator>>(IStreamBase &is, Term &rhs) {
 }
 
 std::string const &Term::getTaperRule() const {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     return top_cell->getSymbolTable()->getSymbolByIndex(taper_rule_index_);
 }
 
 void Term::setTaperRule(const char *v) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     if (!top_cell) {
         message->issueMsg(kError, "Cannot find top cell \n");
         return;
@@ -176,12 +176,12 @@ bool Term::isPGType() const {
 SymbolIndex Term::getNetExprIndex() const { return net_expr_index_; }
 
 std::string const &Term::getNetExpr() const {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     return top_cell->getSymbolTable()->getSymbolByIndex(net_expr_index_);
 }
 
 void Term::setNetExpr(const char *v) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     if (!top_cell) {
         message->issueMsg(kError, "Cannot find top cell \n");
         return;
@@ -195,13 +195,13 @@ SymbolIndex Term::getSupplySensitivityIndex() const {
 }
 
 std::string const &Term::getSupplySensitivity() const {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     return top_cell->getSymbolTable()->getSymbolByIndex(
         supply_sensitivity_index_);
 }
 
 void Term::setSupplySensitivity(const char *v) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     if (!top_cell) {
         message->issueMsg(kError, "Cannot find top cell \n");
         return;
@@ -215,13 +215,13 @@ SymbolIndex Term::getGroundSensitivityIndex() const {
 }
 
 std::string const &Term::getGroundSensitivity() const {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     return top_cell->getSymbolTable()->getSymbolByIndex(
         ground_sensitivity_index_);
 }
 
 void Term::setGroundSensitivity(const char *v) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     if (!top_cell) {
         message->issueMsg(kError, "Cannot find top cell \n");
         return;
@@ -231,12 +231,12 @@ void Term::setGroundSensitivity(const char *v) {
 }
 
 std::string const &Term::getMustjoin() const {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     return top_cell->getSymbolTable()->getSymbolByIndex(mustjoin_index_);
 }
 
 void Term::setMustjoin(const char *v) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     if (!top_cell) {
         message->issueMsg(kError, "Cannot find top cell \n");
         return;
@@ -246,12 +246,12 @@ void Term::setMustjoin(const char *v) {
 }
 
 std::string const &Term::getShape() const {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     return top_cell->getSymbolTable()->getSymbolByIndex(shape_index_);
 }
 
 void Term::setShape(const char *v) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     if (!top_cell) {
         message->issueMsg(kError, "Cannot find top cell \n");
         return;
@@ -266,7 +266,7 @@ void Term::addAntennaModelTerm(int index, AntennaModelTerm *am) {
 }
 
 void AntennaArea::setLayerName(const char *v) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     if (!top_cell) {
         message->issueMsg(kError,
                           "Cannot find top cell when set layer name %s \n", v);
@@ -277,14 +277,14 @@ void AntennaArea::setLayerName(const char *v) {
 }
 
 std::string &AntennaArea::getLayerName() const {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     return top_cell->getSymbolTable()->getSymbolByIndex(layer_name_index_);
 }
 
 void AntennaModelTerm::addAntennaGateArea(ObjectId aa) {
     VectorObject32 *vct = nullptr;
     if (antenna_gate_areas_ == 0) {
-        Cell *top_cell = getTopCell();
+        Cell *top_cell = getOwnerCell();
         if (!top_cell) {
             message->issueMsg(
                 kError, "Cannot find top cell when create vectorobject32.\n");
@@ -330,7 +330,7 @@ int AntennaModelTerm::getAntennaGateAreaNum() const {
 void AntennaModelTerm::addAntennaMaxAreaCar(ObjectId aa) {
     VectorObject32 *vct = nullptr;
     if (antenna_max_area_cars_ == 0) {
-        Cell *top_cell = getTopCell();
+        Cell *top_cell = getOwnerCell();
         if (!top_cell) {
             message->issueMsg(
                 kError, "Cannot find top cell when create vectorobject32.\n");
@@ -376,7 +376,7 @@ int AntennaModelTerm::getAntennaMaxAreaCarNum() const {
 void AntennaModelTerm::addAntennaMaxSideAreaCar(ObjectId aa) {
     VectorObject32 *vct = nullptr;
     if (antenna_max_side_area_cars_ == 0) {
-        Cell *top_cell = getTopCell();
+        Cell *top_cell = getOwnerCell();
         if (!top_cell) {
             message->issueMsg(
                 kError, "Cannot find top cell when create vectorobject32.\n");
@@ -425,7 +425,7 @@ int AntennaModelTerm::getAntennaMaxSideAreaCarNum() const {
 void AntennaModelTerm::addAntennaMaxCutCar(ObjectId aa) {
     VectorObject32 *vct = nullptr;
     if (antenna_max_cut_cars_ == 0) {
-        Cell *top_cell = getTopCell();
+        Cell *top_cell = getOwnerCell();
         if (!top_cell) {
             message->issueMsg(
                 kError, "Cannot find top cell when create vectorobject32.\n");
@@ -471,7 +471,7 @@ int AntennaModelTerm::getAntennaMaxCutCarNum() const {
 void Term::addAntennaPartialMetalArea(ObjectId aa) {
     VectorObject32 *vct = nullptr;
     if (antenna_partial_metal_areas_ == 0) {
-        Cell *top_cell = getTopCell();
+        Cell *top_cell = getOwnerCell();
         if (!top_cell) {
             message->issueMsg(
                 kError, "Cannot find top cell when create vectorobject32.\n");
@@ -520,7 +520,7 @@ int Term::getAntennaPartialMetalAreaNum() const {
 void Term::addAntennaPartialMetalSideArea(ObjectId aa) {
     VectorObject32 *vct = nullptr;
     if (antenna_partial_metal_side_areas_ == 0) {
-        Cell *top_cell = getTopCell();
+        Cell *top_cell = getOwnerCell();
         if (!top_cell) {
             message->issueMsg(
                 kError, "Cannot find top cell when create vectorobject32.\n");
@@ -569,7 +569,7 @@ int Term::getAntennaPartialMetalSideAreaNum() const {
 void Term::addAntennaPartialCutArea(ObjectId aa) {
     VectorObject32 *vct = nullptr;
     if (antenna_partial_cut_areas_ == 0) {
-        Cell *top_cell = getTopCell();
+        Cell *top_cell = getOwnerCell();
         if (!top_cell) {
             message->issueMsg(
                 kError, "Cannot find top cell when create vectorobject32.\n");
@@ -615,7 +615,7 @@ int Term::getAntennaPartialCutAreaNum() const {
 void Term::addAntennaDiffArea(ObjectId aa) {
     VectorObject32 *vct = nullptr;
     if (antenna_diff_areas_ == 0) {
-        Cell *top_cell = getTopCell();
+        Cell *top_cell = getOwnerCell();
         if (!top_cell) {
             message->issueMsg(
                 kError, "Cannot find top cell when create vectorobject32.\n");
@@ -661,7 +661,7 @@ int Term::getAntennaDiffAreaNum() const {
 void Term::addPort(ObjectId p) {
     VectorObject32 *vct = nullptr;
     if (ports_ == 0) {
-        Cell *top_cell = getTopCell();
+        Cell *top_cell = getOwnerCell();
         if (!top_cell) {
             message->issueMsg(
                 kError, "Cannot find top cell when create vectorobject32.\n");
@@ -711,7 +711,7 @@ AntennaModelTerm::AntennaModelTerm() {
 }
 
 void Term::print() const {
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getOwnerCell()->getTechLib();
     message->info("   PIN %s ;\n", getName().c_str());
     if (taper_rule_index_ != 0)
         message->info("      TAPERRULE %s ;\n", getTaperRule().c_str());
@@ -805,7 +805,7 @@ void Term::print() const {
 }
 
 void AntennaModelTerm::print() const {
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getOwnerCell()->getTechLib();
     if (getAntennaGateAreaNum() > 0) {
         for (int i = 0; i < getAntennaGateAreaNum(); i++) {
             AntennaArea *a = getAntennaGateArea(i);
@@ -879,7 +879,7 @@ Orient Port::getOrient() const { return orient_; }
 void Port::setOrient(Orient o) { orient_ = o; }
 
 void Port::setClass(const char *v) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     if (!top_cell) {
         message->issueMsg(kError,
                           "Cannot find top cell when set term name %s \n", v);
@@ -890,14 +890,14 @@ void Port::setClass(const char *v) {
 }
 
 std::string &Port::getClass() const {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     return top_cell->getSymbolTable()->getSymbolByIndex(class_index_);
 }
 
 void Port::addLayerGeometry(ObjectId v) {
     VectorObject32 *vct = nullptr;
     if (layer_geometries_ == 0) {
-        Cell *top_cell = getTopCell();
+        Cell *top_cell = getOwnerCell();
         if (!top_cell) {
             message->issueMsg(
                 kError, "Cannot find top cell when create vectorobject32.\n");
@@ -941,7 +941,7 @@ int Port::getLayerGeometryNum() const {
 }
 
 void Term::printLEF(std::ofstream &ofs) const {
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getOwnerCell()->getTechLib();
     ofs << "   PIN " << getName().c_str() << "\n";
     if (taper_rule_index_ != 0)
         ofs << "      TAPERRULE " << getTaperRule().c_str() << " ;\n";
@@ -1040,7 +1040,7 @@ void Term::printLEF(std::ofstream &ofs) const {
 }
 
 void AntennaModelTerm::printLEF(std::ofstream &ofs) const {
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getOwnerCell()->getTechLib();
     if (getAntennaGateAreaNum() > 0) {
         for (int i = 0; i < getAntennaGateAreaNum(); i++) {
             AntennaArea *a = getAntennaGateArea(i);

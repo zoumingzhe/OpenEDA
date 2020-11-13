@@ -646,8 +646,13 @@ ObjectId Tech::getViaRuleVectorId() const { return via_rules_; }
  * @return ArrayObject<ObjectId>*
  */
 ArrayObject<ObjectId> *Tech::getNonDefaultRuleArray() const {
-    ArrayObject<ObjectId> *ndr_array = addr<ArrayObject<ObjectId>>(ndr_rules_);
-    return ndr_array;
+    if (ndr_rules_ != 0) {
+        ArrayObject<ObjectId> *ndr_array =
+            addr<ArrayObject<ObjectId>>(ndr_rules_);
+        return ndr_array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -656,8 +661,13 @@ ArrayObject<ObjectId> *Tech::getNonDefaultRuleArray() const {
  * @return ArrayObject<ObjectId>*
  */
 ArrayObject<ObjectId> *Tech::getViaMasterArray() const {
-    ArrayObject<ObjectId> *via_master_array = addr<ArrayObject<ObjectId>>(via_masters_);
-    return via_master_array;
+    if (via_masters_ != 0) {
+        ArrayObject<ObjectId> *via_master_array =
+            addr<ArrayObject<ObjectId>>(via_masters_);
+        return via_master_array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -666,9 +676,14 @@ ArrayObject<ObjectId> *Tech::getViaMasterArray() const {
  * @return ArrayObject<ObjectId>*
  */
 ArrayObject<ObjectId> *Tech::getViaRuleArray() const {
-    ArrayObject<ObjectId> *via_rule_array = addr<ArrayObject<ObjectId>>(via_rules_);
-    return via_rule_array;
-}
+    if (via_rules_ != 0) {
+        ArrayObject<ObjectId> *via_rule_array =
+            addr<ArrayObject<ObjectId>>(via_rules_);
+        return via_rule_array;
+    } else {
+        return nullptr;
+    }
+}  // namespace db
 
 /**
  * @brief get site array
@@ -679,9 +694,6 @@ ArrayObject<ObjectId> *Tech::getSiteArray() const {
     ArrayObject<ObjectId> *site_array = addr<ArrayObject<ObjectId>>(sites_);
     return site_array;
 }
-
-
-
 
 /**
  * @brief getNonDefaultRuleIdByName

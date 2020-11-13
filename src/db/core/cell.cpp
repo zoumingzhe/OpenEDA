@@ -30,12 +30,12 @@ void SitePattern::setStepPattern(StepPattern *v) {
 }
 
 std::string Foreign::getName() const {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     return top_cell->getSymbolTable()->getSymbolByIndex(name_index_);
 }
 
 void Foreign::setName(const char *v) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     if (!top_cell) {
         message->issueMsg(kError, "Cannot find top cell \n");
         return;
@@ -45,12 +45,12 @@ void Foreign::setName(const char *v) {
 }
 
 std::string Density::getName() const {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     return top_cell->getSymbolTable()->getSymbolByIndex(name_index_);
 }
 
 void Density::setName(const char *v) {
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
     if (!top_cell) {
         message->issueMsg(kError, "Cannot find top cell \n");
         return;
@@ -61,7 +61,7 @@ void Density::setName(const char *v) {
 
 void Density::addDensityLayer(ObjectId id) {
     ArrayObject<ObjectId> *vct = nullptr;
-    Cell *top_cell = getTopCell();
+    Cell *top_cell = getOwnerCell();
 
     if (density_layers_ == 0) {
         vct = top_cell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
@@ -197,23 +197,19 @@ void HierData::setFills(ObjectId v) { fills_ = v; }
 void HierData::setScanChains(ObjectId v) { scan_chains_ = v; }
 
 void HierData::setRegions(ObjectId v) { regions_ = v; }
-
 // End of HierData
+
 void Cell::__init() {
     name_index_ = -1;
     cell_type_ = CellType::kUnknown;
     hier_data_id_ = 0;
-
     originX_ = 0;
     originY_ = 0;
     sizeX_ = 0;
     sizeY_ = 0;
-
     terms_ = 0;
-
     class_index_ = -1;
     eeq_index_ = -1;
-
     site_ = 0;
     site_patterns_ = 0;
     foreigns_ = 0;
@@ -236,9 +232,8 @@ void Cell::__init() {
     analysis_views_ = 0;
     active_setup_views_ = 0;
     active_hold_views_ = 0;
-
-    // setObjectType(kObjectTypeTCell);
 }
+
 /// @brief Cell default constructor
 Cell::Cell() : Cell::BaseType() { __init(); }
 
@@ -290,80 +285,81 @@ void Cell::setCellType(CellType const &v) {
 
 /// @brief setPool set memory pool to a cell
 void Cell::setPool(MemPagePool *pool) {
-    HierData *hier_data = __getHierData();
-    if (!hier_data) {
-        // TODO error message:
-
-    } else {
+    HierData * hier_data = __getHierData();
+    if (hier_data) {
         hier_data->setPool(pool);
     }
 }
 
 /// @brief getPool get memory pool of a cell
 MemPagePool *Cell::getPool() {
-    // when a cell is a leaf cell, it doesn't have HierData
-    // fetch the data from its owner cell
-    if (__getConstHierData() == nullptr) {
-        Cell *owner_cell = addr<Cell>(getOwnerId());
-        if (owner_cell) {
-            return owner_cell->getPool();
-        } else {
-            return nullptr;
-        }
-    }
-    return __getHierData()->getPool();
+  // when a cell is a leaf cell, it doesn't have HierData
+  // fetch the data from its owner cell
+  if (__getConstHierData() == nullptr) {
+      Cell *owner_cell = addr<Cell>(getOwnerId());
+      if (owner_cell) {
+          return owner_cell->getPool();
+      } else {
+          return nullptr;
+      }
+  }
+  return __getHierData()->getPool();
 }
 
 /// @brief setPolygonTable set polygon table to a cell
 void Cell::setPolygonTable(PolygonTable *pt) {
-    HierData *hier_data = __getHierData();
-    if (!hier_data) {
-        // TODO error message:
-
-    } else {
+    HierData * hier_data = __getHierData();
+    if (hier_data) {
         hier_data->setPolygonTable(pt);
     }
 }
 
 /// @brief getPolygonTable get polygon table of a cell
 PolygonTable *Cell::getPolygonTable() {
-    // when a cell is a leaf cell, it doesn't have HierData
-    // fetch the data from its owner cell
-    if (__getConstHierData() == nullptr) {
-        Cell *owner_cell = addr<Cell>(getOwnerId());
-        if (owner_cell) {
-            return owner_cell->getPolygonTable();
-        } else {
-            return nullptr;
-        }
+  // when a cell is a leaf cell, it doesn't have HierData
+  // fetch the data from its owner cell
+  if (__getConstHierData() == nullptr) {
+      Cell *owner_cell = addr<Cell>(getOwnerId());
+      if (owner_cell) {
+          return owner_cell->getPolygonTable();
+      } else {
+          return nullptr;
+      }
+  }
+  return __getHierData()->getPolygonTable();
+}
+
+/// @brief getParentOrTopSymbolTable
+SymbolTable *Cell::getParentOrTopSymbolTable() {
+    Cell *owner_cell = addr<Cell>(getOwnerId());
+    if (owner_cell) {
+        return owner_cell->getSymbolTable();
+    } else {  // this is a top cell:
+        return getSymbolTable();
     }
-    return __getHierData()->getPolygonTable();
 }
 
 /// @brief setSymbolTable
 void Cell::setSymbolTable(SymbolTable *stb) {
-    HierData *hier_data = __getHierData();
-    if (!hier_data) {
-        // TODO error message:
-
-    } else {
+    HierData * hier_data = __getHierData();
+    if (hier_data) {
         hier_data->setSymbolTable(stb);
     }
 }
 
 /// @brief getSymbolTable
 SymbolTable *Cell::getSymbolTable() {
-    // when a cell is a leaf cell, it doesn't have HierData
-    // fetch the data from its owner cell
-    if (__getConstHierData() == nullptr) {
-        Cell *owner_cell = addr<Cell>(getOwnerId());
-        if (owner_cell) {
-            return owner_cell->getSymbolTable();
-        } else {
-            return nullptr;
-        }
-    }
-    return __getHierData()->getSymbolTable();
+  // when a cell is a leaf cell, it doesn't have HierData
+  // fetch the data from its owner cell
+  if (__getConstHierData() == nullptr) {
+      Cell *owner_cell = addr<Cell>(getOwnerId());
+      if (owner_cell) {
+          return owner_cell->getSymbolTable();
+      } else {
+          return nullptr;
+      }
+  }
+  return __getHierData()->getSymbolTable();
 }
 
 /// @brief getOrCreateSymbol
@@ -412,17 +408,19 @@ SymbolIndex Cell::getNameIndex() { return name_index_; }
 ///
 /// @return
 std::string const &Cell::getName() {
-    return getSymbolTable()->getSymbolByIndex(name_index_);
+    return getParentOrTopSymbolTable()->getSymbolByIndex(name_index_);
 }
 
 /// @brief setName
 ///
 /// @param v
 void Cell::setName(std::string &v) {
-    int64_t idx = getOrCreateSymbol(v);
-    if (idx != -1) {
-        name_index_ = idx;
-        addSymbolReference(name_index_, this->getId());
+    // We need to use the parent Cell's symboltable for Cell's name.
+    SymbolTable *sym_table = getParentOrTopSymbolTable();
+    ediAssert(sym_table != nullptr);
+    name_index_ = sym_table->getOrCreateSymbol(v.c_str());
+    if (name_index_ != -1) {
+        sym_table->addReference(name_index_, this->getId());
     }
 }
 
@@ -430,11 +428,9 @@ void Cell::setName(std::string &v) {
 ///
 /// @param t
 void Cell::setTechLib(Tech *t) {
-    if (!isHierCell()) {
-        // TODO error message
-        return;
+    if (isHierCell()) {
+        __getHierData()->setTechLibId(t->getId());
     }
-    __getHierData()->setTechLibId(t->getId());
 }
 
 /// @brief getTechLib
@@ -456,8 +452,7 @@ Tech *Cell::getTechLib() {
 }
 
 Layer *Cell::getLayerByLayerId(Int32 id) {
-    Cell *top_cell = getTopCell();
-    Tech *tech_lib = top_cell->getTechLib();
+    Tech *tech_lib = getTechLib();
     if (!tech_lib) {
         message->issueMsg(kError, "Cannot find Tech LEF .\n");
         return nullptr;
@@ -470,11 +465,9 @@ Layer *Cell::getLayerByLayerId(Int32 id) {
 ///
 /// @param fp
 void Cell::setFloorplan(Floorplan *fp) {
-    if (!isHierCell()) {
-        // TODO error message
-        return;
+    if (isHierCell()) {
+        __getHierData()->setFloorplanId(fp->getId());
     }
-    __getHierData()->setFloorplanId(fp->getId());
 }
 
 /// @brief getFloorplan
@@ -501,7 +494,6 @@ Floorplan *Cell::createFloorplan() {
         message->issueMsg(kError, "create floorplan failed.\n");
         return nullptr;
     }
-    floorplan->setOwner(this);
     setFloorplan(floorplan);
     return floorplan;
 }
@@ -530,11 +522,17 @@ void Cell::addCell(ObjectId id) {
 /// @brief createCell create a sub-cell in a cell
 /// @return the cell created
 Cell *Cell::createCell(std::string &name, bool isHier) {
+    if (getCell(name) != nullptr) {
+        message->issueMsg(kError,
+            "create cell %s failed due to name conflicts.\n", name.c_str());
+        return nullptr;
+    }
     Cell *cell = createObject<Cell>(kObjectTypeCell);
     if (!cell) {
         message->issueMsg(kError, "create cell %s failed.\n", name.c_str());
         return nullptr;
     }
+
     if (isHier) {
         cell->setCellType(CellType::kHierCell);
         MemPagePool *page_pool = MemPool::newPagePool(cell->getId());
@@ -542,10 +540,8 @@ Cell *Cell::createCell(std::string &name, bool isHier) {
         PolygonTable *pt = new PolygonTable();
         if (page_pool == nullptr || st == nullptr || pt == nullptr) {
             message->issueMsg(kError,
-                              "Fail in creating hierarchical cell %s due to "
-                              "the initialization of memory pool / symbol "
-                              "table / polygon table.\n",
-                              name.c_str());
+            "Fail in creating hier-cell %s due to table initialization.\n",
+            name.c_str());
             return nullptr;
         }
         cell->setPool(page_pool);
@@ -553,19 +549,17 @@ Cell *Cell::createCell(std::string &name, bool isHier) {
         cell->setPolygonTable(pt);
         MemPool::insertPagePool(cell->getId(), page_pool);
     } else {
-        // TODO: check enum CellType
+        // TODO(ly): consolidate enum CellType with macro-class
         cell->setCellType(CellType::kCell);
-        cell->setPool(MemPool::getPagePool(getTopCell()->getId()));
     }
     cell->setName(name);
-    cell->setOwner(this);
 
     addCell(cell->getId());
     return cell;
 }
 
 void Cell::deleteCell(Cell *cell) {
-// TODO
+// TODO(ly): No implementation yet.
 #if 0
     for ( Term *term : terms_) {
         deleteObject<Term>(term);
@@ -606,13 +600,17 @@ void Cell::addTerm(ObjectId id) {
 /// @brief createTerm create a term in a cell
 /// @return the term created
 Term *Cell::createTerm(std::string &name) {
+    if (getTerm(name) != nullptr) {
+        message->issueMsg(kError,
+            "create term %s failed due to name conflicts.\n", name.c_str());
+        return nullptr;
+    }
     Term *term = createObject<Term>(kObjectTypeTerm);
     if (!term) {
         message->issueMsg(kError, "create term %s failed.\n", name.c_str());
         return nullptr;
     }
     term->setName(name);
-    term->setOwner(this);
     addTerm(term->getId());
     return term;
 }
@@ -640,13 +638,17 @@ void Cell::addBus(ObjectId id) {
 /// @brief createBus create a bus in a cell
 /// @return the bus created
 Bus *Cell::createBus(std::string &name) {
+    if (getBus(name) != nullptr) {
+        message->issueMsg(kError,
+            "create bus %s failed due to name conflicts.\n", name.c_str());
+        return nullptr;
+    }
     Bus *bus = createObject<Bus>(kObjectTypeBus);
     if (!bus) {
         message->issueMsg(kError, "create bus %s failed.\n", name.c_str());
         return nullptr;
     }
     bus->setName(name);
-    bus->setOwner(this);
     addBus(bus->getId());
     return bus;
 }
@@ -672,6 +674,11 @@ void Cell::addNet(ObjectId id) {
 }
 
 Net *Cell::createNet(std::string &name) {
+    if (getNet(name) != nullptr) {
+        message->issueMsg(kError,
+            "create net %s failed due to name conflicts.\n", name.c_str());
+        return nullptr;
+    }
     Net *net = createObject<Net>(kObjectTypeNet);
     if (!net) {
         message->issueMsg(kError, "create net %s failed.\n", name.c_str());
@@ -679,7 +686,6 @@ Net *Cell::createNet(std::string &name) {
     }
     net->setCell(getId());
     net->setName(name);
-    net->setOwner(this);
     addNet(net->getId());
     return net;
 }
@@ -711,7 +717,6 @@ SpecialNet *Cell::createSpecialNet(std::string &name) {
         return nullptr;
     }
     net->setName(name);
-    net->setOwner(this);
     addSpecialNet(net->getId());
     return net;
 }
@@ -737,13 +742,17 @@ void Cell::addInstance(ObjectId id) {
 }
 
 Inst *Cell::createInstance(std::string &name) {
+    if (getInstance(name) != nullptr) {
+        message->issueMsg(kError,
+            "create instance %s failed due to name conflicts.\n", name.c_str());
+        return nullptr;
+    }
     Inst *inst = createObject<Inst>(kObjectTypeInst);
     if (!inst) {
         message->issueMsg(kError, "create instance %s failed.\n", name.c_str());
         return nullptr;
     }
     inst->setName(name);
-    inst->setOwner(this);
     addInstance(inst->getId());
     return inst;
 }
@@ -769,9 +778,9 @@ void Cell::addIOPin(ObjectId id) {
 }
 
 Pin *Cell::createIOPin(std::string &name) {
+    // TODO(ly): naming conflicts check.
     Pin *pin = createObject<Pin>(kObjectTypePin);
     pin->setName(name);
-    pin->setOwner(this);
     addIOPin(pin->getId());
     return pin;
 }
@@ -1014,41 +1023,73 @@ Cell *Cell::getCell(std::string name) {
 }
 
 ArrayObject<ObjectId> *Cell::getCellArray() const {
-    ArrayObject<ObjectId> *cell_array = addr<ArrayObject<ObjectId>>(getCells());
-    return cell_array;
+    ObjectId id = getCells();
+    if (id != 0) {
+        ArrayObject<ObjectId> *cell_array = addr<ArrayObject<ObjectId>>(id);
+        return cell_array;
+    } else {
+        return nullptr;
+    }
 }
 
 ArrayObject<ObjectId> *Cell::getInstanceArray() const {
-    ArrayObject<ObjectId> *instance_array =
-        addr<ArrayObject<ObjectId>>(getInstances());
-    return instance_array;
+    ObjectId id = getInstances();
+    if (id != 0) {
+        ArrayObject<ObjectId> *instance_array = addr<ArrayObject<ObjectId>>(id);
+        return instance_array;
+    } else {
+        return nullptr;
+    }
 }
 
 ArrayObject<ObjectId> *Cell::getTermArray() const {
-    ArrayObject<ObjectId> *term_array = addr<ArrayObject<ObjectId>>(terms_);
-    return term_array;
+    if (terms_ != 0) {
+        ArrayObject<ObjectId> *term_array = addr<ArrayObject<ObjectId>>(terms_);
+        return term_array;
+    } else {
+        return nullptr;
+    }
 }
 
 ArrayObject<ObjectId> *Cell::getBusArray() const {
-    ArrayObject<ObjectId> *bus_array = addr<ArrayObject<ObjectId>>(getBuses());
-    return bus_array;
+    ObjectId id = getBuses();
+    if (id != 0) {
+        ArrayObject<ObjectId> *bus_array = addr<ArrayObject<ObjectId>>(id);
+        return bus_array;
+    } else {
+        return nullptr;
+    }
 }
 
 ArrayObject<ObjectId> *Cell::getNetArray() const {
-    ArrayObject<ObjectId> *net_array = addr<ArrayObject<ObjectId>>(getNets());
-    return net_array;
+    ObjectId id = getNets();
+    if (id != 0) {
+        ArrayObject<ObjectId> *net_array = addr<ArrayObject<ObjectId>>(id);
+        return net_array;
+    } else {
+        return nullptr;
+    }
 }
 
 ArrayObject<ObjectId> *Cell::getSpecialNetArray() const {
-    ArrayObject<ObjectId> *special_net_array =
-        addr<ArrayObject<ObjectId>>(getSpecialNets());
-    return special_net_array;
-}
+    ObjectId id = getSpecialNets();
+    if (id != 0) {
+        ArrayObject<ObjectId> *special_net_array =
+            addr<ArrayObject<ObjectId>>(id);
+        return special_net_array;
+    } else {
+        return nullptr;
+    }
+}  // namespace db
 
 ArrayObject<ObjectId> *Cell::getGroupArray() const {
-    ArrayObject<ObjectId> *group_array =
-        addr<ArrayObject<ObjectId>>(getGroups());
-    return group_array;
+    ObjectId id = getGroups();
+    if (id != 0) {
+        ArrayObject<ObjectId> *group_array = addr<ArrayObject<ObjectId>>(id);
+        return group_array;
+    } else {
+        return nullptr;
+    }
 }
 
 Term *Cell::getTerm(std::string name) {
@@ -1199,7 +1240,8 @@ Cell *Cell::getCell(int i) const {
 
 Term *Cell::getTerm(size_t idx) const {
     if (getTerms() == 0) return nullptr;
-    ArrayObject<ObjectId> *obj_vector = addr<ArrayObject<ObjectId>>(getTerms());
+    ArrayObject<ObjectId> *obj_vector =
+      addr< ArrayObject<ObjectId> >(getTerms());
     if (obj_vector == nullptr) return nullptr;
     ObjectId object_id = (*obj_vector)[idx];
     return (addr<Term>(object_id));
@@ -1233,7 +1275,6 @@ Group *Cell::createGroup(std::string &name) {
     }
     group->setCell(getId());
     group->setName(name);
-    group->setOwner(this);
     addGroup(group->getId());
     return group;
 }
@@ -1287,7 +1328,6 @@ void Cell::addFill(ObjectId id) {
 
 Fill *Cell::createFill() {
     Fill *fill = createObject<Fill>(kObjectTypeFill);
-    fill->setOwner(this);
     addFill(fill->getId());
     return fill;
 }
@@ -1320,7 +1360,6 @@ void Cell::addScanChain(ObjectId id) {
 
 ScanChain *Cell::createScanChain(std::string &name) {
     ScanChain *scan_chain = createObject<ScanChain>(kObjectTypeScanChain);
-    scan_chain->setOwner(this);
     scan_chain->setChainName(name.c_str());
     addScanChain(scan_chain->getId());
     return scan_chain;
@@ -1392,7 +1431,6 @@ AnalysisView *Cell::createAnalysisView(std::string &name) {
 void Cell::resetTerms(const std::vector<Term *> &terms) {
     if (terms.empty() && terms_ == UNINIT_OBJECT_ID) return;
     ArrayObject<ObjectId> *p = nullptr;
-
     if (terms_ == UNINIT_OBJECT_ID) {
         p = createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
         if (p) {
@@ -1672,13 +1710,7 @@ void Cell::addDensity(ObjectId id) {
     ArrayObject<ObjectId> *vct = nullptr;
 
     if (densities_ == 0) {
-        Cell *top_cell = getTopCell();
-        if (!top_cell) {
-            message->issueMsg(
-                kError, "Cannot find top cell when create vectorobject32.\n");
-            return;  // risk , need opt
-        }
-        vct = createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        vct = createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
         if (vct == nullptr) return;
         densities_ = vct->getId();
         vct->setPool(getPool());
@@ -1708,7 +1740,7 @@ Density *Cell::getDensity(int index) {
 
 #if 0
 void Cell::print() {
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getOwnerCell()->getTechLib();
     message->info("MACRO %s \n", getName().c_str());
     message->info("CLASS %s ;\n", getClass().c_str());
     if (getIsFixedMask()) {
@@ -1825,7 +1857,7 @@ void Cell::print() {
 #endif
 
 void Cell::printLEF(std::ofstream &ofs) {
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getTechLib();
     ofs << "MACRO"
         << " " << getName().c_str() << " \n";
     if (getClass().size() > 0) {
