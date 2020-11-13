@@ -19,6 +19,7 @@
 #include <string>
 
 #include "db/core/db.h"
+#include "db/core/object.h"
 #include "db/util/geometrys.h"
 #include "db/util/property_definition.h"
 #include "util/polygon_table.h"
@@ -695,7 +696,7 @@ int manufacturingCB(lefrCallbackType_e c, double num, lefiUserData) {
 int maxStackViaCB(lefrCallbackType_e c, lefiMaxStackVia *maxStack,
                   lefiUserData) {
     checkType(c);
-    MaxViaStack *mvs = new MaxViaStack();
+    MaxViaStack *mvs = getTopCell()->createObject<MaxViaStack>(kObjectTypeMaxViaStack);
     mvs->setNumStackedVia(maxStack->lefiMaxStackVia::maxStackVia());
     if (maxStack->lefiMaxStackVia::hasMaxStackViaRange()) {
         int top_id = getTopCell()->getTechLib()->getLayerLEFIndexByName(
@@ -708,7 +709,7 @@ int maxStackViaCB(lefrCallbackType_e c, lefiMaxStackVia *maxStack,
             mvs->setIsRange(true);
         }
     }
-    getTopCell()->getTechLib()->setMaxViaStack(mvs);
+    getTopCell()->getTechLib()->setMaxViaStack(mvs->getId());
     return 0;
 }
 

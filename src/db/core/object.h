@@ -107,6 +107,7 @@ typedef enum ObjectType {
     kObjectTypeSitePatternPair,
     kObjectTypeArray,
     kObjectTypeArraySegment,
+    kObjectTypeMaxViaStack,
     kObjectTypeInternalVectorStarts = 4096,
     kObjectTypeMax
 } ObjectType;

@@ -11,6 +11,7 @@
 #include "db/tech/tech.h"
 
 #include "db/core/db.h"
+#include "db/core/cell.h"
 #include "db/util/array.h"
 #include "db/util/property_definition.h"
 #include "db/util/vector_object_var.h"
@@ -29,6 +30,7 @@ Tech::Tech() {
     divider_name_index_ = -1;
     extensions_name_index_ = -1;
     layer_ids_ = 0;
+    max_via_stack_ = 0;
 }
 
 Tech::~Tech() {}
@@ -439,21 +441,27 @@ UInt32 Tech::getNumLayers() const {
  */
 void Tech::addPropertyDefinition(ObjectId pobj_id) {
     PropertyDefinition *pobj = addr<PropertyDefinition>(pobj_id);
+    Cell *cell = addr<Cell>(getOwnerId());
     ediAssert(pobj != nullptr);
+    ediAssert(cell != nullptr);
+
     PropType type = pobj->getPropType();
     uint32_t index = toInteger<PropType>(type);
-    ObjectId vobj_id = property_definitions_array_[index];
+    ObjectId array_id = property_definitions_array_[index];
+    ArrayObject<ObjectId> *array_ptr = nullptr;
 
-    if (vobj_id == 0) {
-        VectorObject32 *vobj =
-            VectorObject32::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        vobj_id = vobj->getId();
-        property_definitions_array_[index] = vobj_id;
+    if (array_id == 0) {
+        array_ptr = 
+            cell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        array_ptr->setPool(cell->getPool());
+        array_ptr->reserve(16);
+        ediAssert(array_ptr != nullptr);
+        property_definitions_array_[index] = array_ptr->getId();
+    } else {
+        array_ptr = addr<ArrayObject<ObjectId>>(array_id);
+        ediAssert(array_ptr != nullptr);
     }
-    VectorObject32 *vobj = addr<VectorObject32>(vobj_id);
-    ediAssert(vobj != nullptr);
-    vobj->push_back(pobj_id);
+    array_ptr->pushBack(pobj_id);
 }
 
 /**
@@ -477,14 +485,14 @@ ObjectId Tech::getPropertyDefinitionVectorId(PropType type) {
  * @return object id of property definition if found. otherwise return 0.
  */
 ObjectId Tech::getPropertyDefinitionId(PropType type, const char *prop_name) {
-    ObjectId vobj_id = getPropertyDefinitionVectorId(type);
-    VectorObject32 *vobj = addr<VectorObject32>(vobj_id);
-    ediAssert(vobj != nullptr && prop_name != nullptr);
+    ObjectId arr_id = getPropertyDefinitionVectorId(type);
+    ArrayObject<ObjectId> *arr = addr<ArrayObject<ObjectId>>(arr_id);
+    ediAssert(arr != nullptr && prop_name != nullptr);
 
-    UInt32 size = vobj->totalSize();
+    UInt32 size = arr->getSize();
 
     for (int i = 0; i < size; ++i) {
-        ObjectId prop_id = (*vobj)[i];
+        ObjectId prop_id = (*arr)[i];
         if (prop_id == 0) continue;
         PropertyDefinition *prop_data = addr<PropertyDefinition>(prop_id);
         if (prop_data == nullptr) continue;
@@ -501,7 +509,12 @@ ObjectId Tech::getPropertyDefinitionId(PropType type, const char *prop_name) {
  *
  * @return
  */
-MaxViaStack *Tech::getMaxViaStack() const { return max_via_stack_; }
+MaxViaStack *Tech::getMaxViaStack() const {
+    if (max_via_stack_) {
+        return addr<MaxViaStack>(max_via_stack_);
+    }
+    return nullptr;
+}
 
 /**
  * @brief setMaxViaStack
@@ -509,7 +522,7 @@ MaxViaStack *Tech::getMaxViaStack() const { return max_via_stack_; }
  *
  * @param mvs
  */
-void Tech::setMaxViaStack(MaxViaStack *mvs) { max_via_stack_ = mvs; }
+void Tech::setMaxViaStack(ObjectId mvs_id) { max_via_stack_ = mvs_id; }
 
 /**
  * @brief getViaRule
@@ -600,15 +613,19 @@ double Tech::areaDBUToMicrons(Long data) {
  * @param ndr_rule_id
  */
 void Tech::addNonDefaultRule(ObjectId ndr_rule_id) {
+    ArrayObject<ObjectId> *arr_ptr = nullptr;
+    Cell *cell = addr<Cell>(getOwnerId());
+
     if (!ndr_rules_) {
-        VectorObject16 *vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        ndr_rules_ = vobj->getId();
+        arr_ptr = cell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        arr_ptr->setPool(cell->getPool());
+        arr_ptr->reserve(8);
+    } else {
+        arr_ptr = addr<ArrayObject<ObjectId>>(ndr_rules_);
     }
-    VectorObject16 *ndr_rule_vector = addr<VectorObject16>(ndr_rules_);
-    ediAssert(ndr_rule_vector != nullptr);
-    ndr_rule_vector->push_back(ndr_rule_id);
+    ediAssert(arr_ptr != nullptr);
+    arr_ptr->pushBack(ndr_rule_id);
+    if (!ndr_rules_) ndr_rules_ = arr_ptr->getId();
 }
 
 /**
@@ -702,12 +719,12 @@ ArrayObject<ObjectId> *Tech::getSiteArray() const {
  * @param name
  */
 ObjectId Tech::getNonDefaultRuleIdByName(const char *name) const {
-    VectorObject16 *ndr_rule_vector = addr<VectorObject16>(ndr_rules_);
-    if (ndr_rule_vector == nullptr) {
+    ArrayObject<ObjectId> *ndr_rule_array = addr<ArrayObject<ObjectId>>(ndr_rules_);
+    if (ndr_rule_array == nullptr) {
         return 0;
     }
-    for (UInt32 i = 0; i < ndr_rule_vector->totalSize(); i++) {
-        ObjectId obj_id = (*ndr_rule_vector)[i];
+    for (UInt32 i = 0; i < ndr_rule_array->getSize(); i++) {
+        ObjectId obj_id = (*ndr_rule_array)[i];
         NonDefaultRule *ndr_rule = addr<NonDefaultRule>(obj_id);
         if (strcmp(ndr_rule->getName(), name) == 0) {
             return obj_id;
@@ -723,12 +740,12 @@ ObjectId Tech::getNonDefaultRuleIdByName(const char *name) const {
  * @param name
  */
 NonDefaultRule *Tech::getNonDefaultRule(const char *name) const {
-    VectorObject16 *ndr_rule_vector = addr<VectorObject16>(ndr_rules_);
-    if (ndr_rule_vector == nullptr) {
+    ArrayObject<ObjectId> *ndr_rule_array = addr<ArrayObject<ObjectId>>(ndr_rules_);
+    if (ndr_rule_array == nullptr) {
         return 0;
     }
-    for (UInt32 i = 0; i < ndr_rule_vector->totalSize(); i++) {
-        ObjectId obj_id = (*ndr_rule_vector)[i];
+    for (UInt32 i = 0; i < ndr_rule_array->getSize(); i++) {
+        ObjectId obj_id = (*ndr_rule_array)[i];
         NonDefaultRule *ndr_rule = addr<NonDefaultRule>(obj_id);
         if (ndr_rule && strcmp(ndr_rule->getName(), name) == 0) {
             return ndr_rule;
@@ -744,43 +761,60 @@ NonDefaultRule *Tech::getNonDefaultRule(const char *name) const {
  * @return ViaMaster*
  */
 ViaMaster *Tech::createAndAddViaMaster(std::string &name) {
+    ArrayObject<ObjectId> *array_ptr = nullptr;
+    Cell *cell = addr<Cell>(getOwnerId());
+
     ViaMaster *via_master =
-        getTopCell()->createObject<ViaMaster>(kObjectTypeViaMaster);
-    via_master->setName(name);
-    via_master->setOwner(this);
-    if (via_masters_ == 0) {
-        via_masters_ =
-            getTopCell()->createVectorObject<VectorObject64>()->getId();
+        cell->createObject<ViaMaster>(kObjectTypeViaMaster);
+    if (via_master) {
+        via_master->setName(name);
+    } else {
+        // error out
     }
-    VectorObject64 *via_master_vector = addr<VectorObject64>(via_masters_);
-    via_master_vector->push_back(via_master->getId());
+    if (via_masters_ == 0) {
+        array_ptr = 
+            cell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        array_ptr->setPool(cell->getPool());
+        array_ptr->reserve(32);
+        via_masters_ = array_ptr->getId();
+    } else {
+        array_ptr = addr<ArrayObject<ObjectId>>(via_masters_);
+    }
+    array_ptr->pushBack(via_master->getId());
     return via_master;
 }
 
 ViaRule *Tech::createViaRule(std::string &name) {
     ViaRule *via_rule = getTopCell()->createObject<ViaRule>(kObjectTypeViaRule);
     via_rule->setName(name);
-    via_rule->setOwner(this);
 
     return via_rule;
 }
 
 void Tech::addViaRule(ViaRule *via_rule) {
+    ArrayObject<ObjectId> *array_ptr = nullptr;
+    Cell *cell = addr<Cell>(getOwnerId());
+
     if (via_rules_ == 0) {
-        via_rules_ =
-            getTopCell()->createVectorObject<VectorObject64>()->getId();
+        array_ptr =
+            cell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        array_ptr->setPool(cell->getPool());
+        array_ptr->reserve(16);
+    } else {
+        array_ptr = addr<ArrayObject<ObjectId>>(via_rules_);
     }
-    VectorObject64 *via_rule_vector = addr<VectorObject64>(via_rules_);
-    via_rule_vector->push_back(via_rule->getId());
+    ediAssert(array_ptr != nullptr);
+    array_ptr->pushBack(via_rule->getId());
+    if (via_rules_ == 0) via_rules_ = array_ptr->getId();
 }
 
 ViaRule *Tech::getViaRule(const std::string &name) const {
     if (via_rules_ == 0) return nullptr;
-    VectorObject64 *obj_vector = addr<VectorObject64>(via_rules_);
-    if (obj_vector == nullptr) return nullptr;
-    for (int i = 0; i < obj_vector->totalSize(); i++) {
+    ArrayObject<ObjectId> *arr_ptr = addr<ArrayObject<ObjectId>>(via_rules_);
+    if (arr_ptr == nullptr) return nullptr;
+    for (int i = 0; i < arr_ptr->getSize(); i++) {
         ViaRule *obj_data = nullptr;
-        ObjectId obj_id = (*obj_vector)[i];
+        ObjectId obj_id = (*arr_ptr)[i];
         if (obj_id) obj_data = addr<ViaRule>(obj_id);
         if (obj_data && obj_data->getName() == name) {
             return obj_data;
@@ -797,10 +831,10 @@ ViaRule *Tech::getViaRule(const std::string &name) const {
  */
 ViaMaster *Tech::getViaMaster(const std::string &name) const {
     if (via_masters_ == 0) return nullptr;
-    VectorObject64 *obj_vector = addr<VectorObject64>(via_masters_);
-    if (obj_vector == nullptr) return nullptr;
-    for (int i = 0; i < obj_vector->totalSize(); i++) {
-        ObjectId obj_id = (*obj_vector)[i];
+    ArrayObject<ObjectId> *arr_ptr = addr<ArrayObject<ObjectId>>(via_masters_);
+    if (arr_ptr == nullptr) return nullptr;
+    for (int i = 0; i < arr_ptr->getSize(); i++) {
+        ObjectId obj_id = (*arr_ptr)[i];
         ViaMaster *obj_data = addr<ViaMaster>(obj_id);
         if (obj_data && obj_data->getName() == name) {
             return obj_data;
@@ -816,11 +850,18 @@ ViaMaster *Tech::getViaMaster(const std::string &name) const {
  * @param site
  */
 void Tech::addSite(Site *site) {
+    ArrayObject<ObjectId> *arr_ptr = nullptr;
+    Cell *cell = addr<Cell>(getOwnerId());
+
     if (sites_ == 0) {
-        sites_ = getTopCell()->createVectorObject<VectorObject64>()->getId();
+        arr_ptr = cell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        arr_ptr->setPool(cell->getPool());
+        arr_ptr->reserve(16);
+    } else {
+        arr_ptr = addr<ArrayObject<ObjectId>>(sites_);
     }
-    VectorObject64 *vector_obj = addr<VectorObject64>(sites_);
-    vector_obj->push_back(site->getId());
+    arr_ptr->pushBack(site->getId());
+    if (sites_ == 0) sites_ = arr_ptr->getId();
 }
 
 /**
@@ -831,11 +872,11 @@ void Tech::addSite(Site *site) {
  */
 Site *Tech::getSiteByName(const char *site_name) const {
     if (sites_ == 0) return nullptr;
-    VectorObject64 *obj_vector = addr<VectorObject64>(sites_);
-    if (obj_vector == nullptr) return nullptr;
-    for (int i = 0; i < obj_vector->totalSize(); i++) {
+    ArrayObject<ObjectId> *arr_ptr = addr<ArrayObject<ObjectId>>(sites_);
+    if (arr_ptr == nullptr) return nullptr;
+    for (int i = 0; i < arr_ptr->getSize(); i++) {
         Site *obj_data = nullptr;
-        ObjectId obj_id = (*obj_vector)[i];
+        ObjectId obj_id = (*arr_ptr)[i];
         if (obj_id) obj_data = addr<Site>(obj_id);
         if (obj_data && !strcmp(obj_data->getName(), site_name)) {
             return obj_data;
