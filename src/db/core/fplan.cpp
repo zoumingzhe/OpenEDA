@@ -68,7 +68,7 @@ void Row::setName(SymbolIndex &row_name_index) {
 ///
 /// @return
 bool Row::setName(std::string &name) {
-    SymbolIndex index = getFloorplan()->getCell()->getOrCreateSymbol(name);
+    SymbolIndex index = getFloorplan()->getOwnerCell()->getOrCreateSymbol(name);
     if (index == kInvalidSymbolIndex) return false;
 
     row_name_index_ = index;
@@ -83,7 +83,7 @@ bool Row::setName(std::string &name) {
 ///
 /// @return
 bool Row::setName(const char *name) {
-    SymbolIndex index = getFloorplan()->getCell()->getOrCreateSymbol(name);
+    SymbolIndex index = getFloorplan()->getOwnerCell()->getOrCreateSymbol(name);
     if (index == kInvalidSymbolIndex) return false;
 
     row_name_index_ = index;
@@ -884,7 +884,7 @@ void Constraint::setName(SymbolIndex &name) {
 }
 
 bool Constraint::setName(std::string &name) {
-    SymbolIndex index = getFloorplan()->getCell()->getOrCreateSymbol(name);
+    SymbolIndex index = getFloorplan()->getOwnerCell()->getOrCreateSymbol(name);
     if (index == kInvalidSymbolIndex) return false;
 
     name_ = index;
@@ -893,7 +893,7 @@ bool Constraint::setName(std::string &name) {
 }
 
 bool Constraint::setName(const char *name) {
-    SymbolIndex index = getFloorplan()->getCell()->getOrCreateSymbol(name);
+    SymbolIndex index = getFloorplan()->getOwnerCell()->getOrCreateSymbol(name);
     if (index == kInvalidSymbolIndex) return false;
 
     name_ = index;
