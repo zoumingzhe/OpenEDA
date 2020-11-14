@@ -15,6 +15,13 @@
 
 DREAMPLACE_BEGIN_NAMESPACE
 
+//CPU sequential
+template <typename T>
+void independentSetMatchingCPULauncherNew(DetailedPlaceDB<T> db, 
+        int set_size, int max_iters);
+//GPU cuda
+template <typename T>
+int independentSetMatchingCUDALauncherNew(DetailedPlaceDB<T> db, int batch_size, int set_size, int max_iters, int num_threads);
 /// @brief a wrapper class of required data for edi db
 class IndependentSetMatching
 {
@@ -31,6 +38,7 @@ class IndependentSetMatching
     IndependentSetMatching(const IndependentSetMatching&) = delete;            // no copy
     IndependentSetMatching &operator=(const IndependentSetMatching&) = delete; // no copy
 
+    bool           isCommonDBReady()          const { return db_ && db_->isCommonDBReady();   }
     // interface 
     void run();
 

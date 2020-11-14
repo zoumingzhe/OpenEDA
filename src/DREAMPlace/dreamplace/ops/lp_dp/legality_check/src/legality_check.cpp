@@ -14,8 +14,10 @@ DREAMPLACE_BEGIN_NAMESPACE
 
 void LegalityCheck::run()
 {
+  dreamplacePrint(kINFO, "Starting Legality Check\n");
   // exit if no DB
-  if (!db_ || !db_->isCommonDBReady()) {
+  if (!isCommonDBReady()) {
+    dreamplacePrint(kINFO, "Error out\n");
     return;
   }
 }

@@ -13,8 +13,9 @@ DREAMPLACE_BEGIN_NAMESPACE
 
 void GreedyLegal::run()
 {
+  dreamplacePrint(kINFO, "Starting Greed Legalization\n");
   // exit if no DB
-  if (!db_ || !db_->isCommonDBReady()) {
+  if (!isCommonDBReady()) {
     return;
   }
 }
