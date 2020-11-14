@@ -250,8 +250,8 @@ static bool writeModule(std::ostream *out_stream, Cell *cell) {
             ArrayObject<ObjectId> *pins_vector =
                     cell->addr<ArrayObject<ObjectId>>(pins);
             first = true;
-            for (int i = 0; i < pins_vector->getSize(); i++) {
-                ObjectId pin_id = (*pins_vector)[i];
+            for (int j = 0; j < pins_vector->getSize(); j++) {
+                ObjectId pin_id = (*pins_vector)[j];
                 Pin *pin = cell->addr<Pin>(pin_id);
                 if (!pin) {
                     message->issueMsg(kError,

@@ -29,14 +29,14 @@ void Units::__init() {
     frequency_factor_ = 0;
     length_factor_ = 0;
 
-    capacitance_unit_ = -1;
-    current_unit_ = -1;
-    power_unit_ = -1;
-    resistance_unit_ = -1;
-    voltage_unit_ = -1;
-    time_unit_ = -1;
-    frequency_unit_ = -1;
-    length_unit_ = -1;
+    capacitance_unit_ = kInvalidSymbolIndex;
+    current_unit_ = kInvalidSymbolIndex;
+    power_unit_ = kInvalidSymbolIndex;
+    resistance_unit_ = kInvalidSymbolIndex;
+    voltage_unit_ = kInvalidSymbolIndex;
+    time_unit_ = kInvalidSymbolIndex;
+    frequency_unit_ = kInvalidSymbolIndex;
+    length_unit_ = kInvalidSymbolIndex;
 }
 
 Units::Units(Units const &rhs) { copy(rhs); }
@@ -123,112 +123,112 @@ void Units::move(Units &&rhs) {
 }
 
 const char *Units::getCapacitanceUnits() const {
-    if (capacitance_unit_ < 0) return nullptr;
+    if (capacitance_unit_ == kInvalidSymbolIndex) return nullptr;
 
     return getTopCell()->getSymbolByIndex(capacitance_unit_).c_str();
 }
 
 const char *Units::getCurrentUnits() const {
-    if (current_unit_ < 0) return nullptr;
+    if (current_unit_ == kInvalidSymbolIndex) return nullptr;
 
     return getTopCell()->getSymbolByIndex(current_unit_).c_str();
 }
 
 const char *Units::getPowerUnits() const {
-    if (power_unit_ < 0) return nullptr;
+    if (power_unit_ == kInvalidSymbolIndex) return nullptr;
 
     return getTopCell()->getSymbolByIndex(power_unit_).c_str();
 }
 
 const char *Units::getResistanceUnits() const {
-    if (resistance_unit_ < 0) return nullptr;
+    if (resistance_unit_ == kInvalidSymbolIndex) return nullptr;
 
     return getTopCell()->getSymbolByIndex(resistance_unit_).c_str();
 }
 
 const char *Units::getVoltageUnits() const {
-    if (voltage_unit_ < 0) return nullptr;
+    if (voltage_unit_ == kInvalidSymbolIndex) return nullptr;
 
     return getTopCell()->getSymbolByIndex(voltage_unit_).c_str();
 }
 
 const char *Units::getTimeUnits() const {
-    if (time_unit_ < 0) return nullptr;
+    if (time_unit_ == kInvalidSymbolIndex) return nullptr;
 
     return getTopCell()->getSymbolByIndex(time_unit_).c_str();
 }
 
 const char *Units::getFrequencyUnits() const {
-    if (frequency_unit_ < 0) return nullptr;
+    if (frequency_unit_ == kInvalidSymbolIndex) return nullptr;
 
     return getTopCell()->getSymbolByIndex(frequency_unit_).c_str();
 }
 
 const char *Units::getLengthUnits() const {
-    if (length_unit_ < 0) return nullptr;
+    if (length_unit_ == kInvalidSymbolIndex) return nullptr;
 
     return getTopCell()->getSymbolByIndex(length_unit_).c_str();
 }
 
 void Units::setCapacitanceUnits(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     capacitance_unit_ = index;
     getTopCell()->addSymbolReference(capacitance_unit_, this->getId());
 }
 
 void Units::setCurrentUnits(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     current_unit_ = index;
     getTopCell()->addSymbolReference(current_unit_, this->getId());
 }
 
 void Units::setPowerUnits(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     power_unit_ = index;
     getTopCell()->addSymbolReference(power_unit_, this->getId());
 }
 
 void Units::setResistanceUnits(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     resistance_unit_ = index;
     getTopCell()->addSymbolReference(resistance_unit_, this->getId());
 }
 
 void Units::setVoltageUnits(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     voltage_unit_ = index;
     getTopCell()->addSymbolReference(voltage_unit_, this->getId());
 }
 
 void Units::setTimeUnits(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     time_unit_ = index;
     getTopCell()->addSymbolReference(time_unit_, this->getId());
 }
 
 void Units::setFrequencyUnits(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     frequency_unit_ = index;
     getTopCell()->addSymbolReference(frequency_unit_, this->getId());
 }
 
 void Units::setLengthUnits(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     length_unit_ = index;
     getTopCell()->addSymbolReference(length_unit_, this->getId());
@@ -236,26 +236,26 @@ void Units::setLengthUnits(const char *v) {
 
 void Units::printLEF(std::ofstream &ofs) const {
     ofs << "UNITS\n";
-    if (time_unit_ >= 0)
+    if (time_unit_ != kInvalidSymbolIndex)
         ofs << "   TIME " << getTimeUnits() << " " << time_factor_ << " ;\n";
-    if (capacitance_unit_ >= 0)
+    if (capacitance_unit_ != kInvalidSymbolIndex)
         ofs << "   CAPACITANCE " << getCapacitanceUnits() << " "
             << capacitance_factor_ << " ;\n";
-    if (resistance_unit_ >= 0)
+    if (resistance_unit_ != kInvalidSymbolIndex)
         ofs << "   RESISTANCE " << getResistanceUnits() << " "
             << resistance_factor_ << " ;\n";
-    if (power_unit_ >= 0)
+    if (power_unit_ != kInvalidSymbolIndex)
         ofs << "   POWER " << getPowerUnits() << " " << power_factor_ << " ;\n";
-    if (current_unit_ >= 0)
+    if (current_unit_ != kInvalidSymbolIndex)
         ofs << "   CURRENT " << getCurrentUnits() << " " << current_factor_
             << " ;\n";
-    if (voltage_unit_ >= 0)
+    if (voltage_unit_ != kInvalidSymbolIndex)
         ofs << "   VOLTAGE " << getVoltageUnits() << " " << voltage_factor_
             << " ;\n";
-    if (length_unit_ >= 0)
+    if (length_unit_ != kInvalidSymbolIndex)
         ofs << "   DATABASE " << getLengthUnits() << " " << length_factor_
             << " ;\n";
-    if (frequency_unit_ >= 0)
+    if (frequency_unit_ != kInvalidSymbolIndex)
         ofs << "   FREQUENCY " << getFrequencyUnits() << " "
             << frequency_factor_ << " ;\n";
     ofs << "END UNITS\n\n";

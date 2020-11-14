@@ -41,7 +41,7 @@ Orient SitePatternPair::getOrientation() const { return orientation_; }
 // Set
 void SitePatternPair::setName(const char *v) {
     int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    if (index == kInvalidSymbolIndex) return;
 
     name_index_ = index;
     getTopCell()->addSymbolReference(name_index_, this->getId());
@@ -63,7 +63,7 @@ OStreamBase &operator<<(OStreamBase &os, SitePatternPair const &rhs) {
 
 // Class Site:
 Site::Site()
-    : name_index_(-1),
+    : name_index_(kInvalidSymbolIndex),
       class_(SiteClass::kUnknown),
       symmetry_(Symmetry::kUnknown),
       orientation_(Orient::kUnknown),
@@ -164,7 +164,7 @@ ObjectId Site::getSitePatternsId() const { return site_patterns_; }
 // Set:
 void Site::setName(const char *v) {
     int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    if (index == kInvalidSymbolIndex) return;
 
     name_index_ = index;
     getTopCell()->addSymbolReference(name_index_, this->getId());

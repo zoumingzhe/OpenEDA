@@ -779,7 +779,7 @@ static bool writePins(FILE *fp) {
                 AntennaArea *a = term->getAntennaPartialMetalArea(i);
                 fprintf(fp, "      + ANTENNAPINPARTIALMETALAREA %f",
                         a->getArea());
-                if (a->getLayerNameID() >= 0) {
+                if (a->getLayerNameID() != kInvalidSymbolIndex) {
                     fprintf(fp, " LAYER %s\n", a->getLayerName().c_str());
                 } else {
                     fprintf(fp, "\n");
@@ -792,7 +792,7 @@ static bool writePins(FILE *fp) {
                 AntennaArea *a = term->getAntennaPartialMetalSideArea(i);
                 fprintf(fp, "      + ANTENNAPINPARTIALMETALSIDEAREA %f",
                         a->getArea());
-                if (a->getLayerNameID() >= 0) {
+                if (a->getLayerNameID() != kInvalidSymbolIndex) {
                     fprintf(fp, " LAYER %s\n", a->getLayerName().c_str());
                 } else {
                     fprintf(fp, "\n");
@@ -804,7 +804,7 @@ static bool writePins(FILE *fp) {
                 AntennaArea *a = term->getAntennaPartialCutArea(i);
                 fprintf(fp, "      + ANTENNAPINPARTIALCUTAREA %f",
                         a->getArea());
-                if (a->getLayerNameID() >= 0) {
+                if (a->getLayerNameID() != kInvalidSymbolIndex) {
                     fprintf(fp, " LAYER %s\n", a->getLayerName().c_str());
                 } else {
                     fprintf(fp, "\n");
@@ -815,7 +815,7 @@ static bool writePins(FILE *fp) {
             for (int i = 0; i < term->getAntennaDiffAreaNum(); i++) {
                 AntennaArea *a = term->getAntennaDiffArea(i);
                 fprintf(fp, "      + ANTENNAPINDIFFAREA %f", a->getArea());
-                if (a->getLayerNameID() >= 0) {
+                if (a->getLayerNameID() != kInvalidSymbolIndex) {
                     fprintf(fp, " LAYER %s\n", a->getLayerName().c_str());
                 } else {
                     fprintf(fp, "\n");
@@ -831,7 +831,7 @@ static bool writePins(FILE *fp) {
                         AntennaArea *a = am->getAntennaGateArea(i);
                         fprintf(fp, "          + ANTENNAPINGATEAREA %f",
                                 a->getArea());
-                        if (a->getLayerNameID() >= 0) {
+                        if (a->getLayerNameID() != kInvalidSymbolIndex) {
                             fprintf(fp, " LAYER %s\n",
                                     a->getLayerName().c_str());
                         } else {
@@ -844,7 +844,7 @@ static bool writePins(FILE *fp) {
                         AntennaArea *a = am->getAntennaMaxAreaCar(i);
                         fprintf(fp, "          + ANTENNAPINMAXAREACAR %f",
                                 a->getArea());
-                        if (a->getLayerNameID() >= 0) {
+                        if (a->getLayerNameID() != kInvalidSymbolIndex) {
                             fprintf(fp, " LAYER %s\n",
                                     a->getLayerName().c_str());
                         } else {
@@ -858,7 +858,7 @@ static bool writePins(FILE *fp) {
                         AntennaArea *a = am->getAntennaMaxSideAreaCar(i);
                         fprintf(fp, "          + ANTENNAPINMAXSIDEAREACAR %f",
                                 a->getArea());
-                        if (a->getLayerNameID() >= 0) {
+                        if (a->getLayerNameID() != kInvalidSymbolIndex) {
                             fprintf(fp, " LAYER %s\n",
                                     a->getLayerName().c_str());
                         } else {
@@ -871,7 +871,7 @@ static bool writePins(FILE *fp) {
                         AntennaArea *a = am->getAntennaMaxCutCar(i);
                         fprintf(fp, "          + ANTENNAPINMAXCUTCAR %f",
                                 a->getArea());
-                        if (a->getLayerNameID() >= 0) {
+                        if (a->getLayerNameID() != kInvalidSymbolIndex) {
                             fprintf(fp, " LAYER %s\n",
                                     a->getLayerName().c_str());
                         } else {

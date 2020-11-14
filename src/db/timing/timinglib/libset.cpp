@@ -85,8 +85,8 @@ LibSet::IndexType LibSet::memory() const {
 void LibSet::set_name(const std::string& name) {
     Cell* topCell = getTopCell();
     if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             name_ = idx;
             topCell->addSymbolReference(name_, this->getId());
         }
@@ -177,8 +177,8 @@ OStreamBase& operator<<(OStreamBase& os, LibSet const& rhs) {
 TLib* LibSet::__addTLibImpl(const std::string& filename) {
     Cell* topCell = getTopCell();
     if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(filename.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(filename.c_str());
+        if (idx != kInvalidSymbolIndex) {
             topCell->addSymbolReference(idx, this->getId());
             auto lib = topCell->createObject<TLib>(kObjectTypeTLib);
             if (lib) {

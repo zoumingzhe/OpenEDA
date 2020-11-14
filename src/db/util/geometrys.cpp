@@ -36,7 +36,7 @@ SymbolTable *GeometryVia::getSymbolTable() {
     return top_cell->getSymbolTable();
 }
 
-int64_t GeometryVia::getOrCreateSymbol(const char *name) {
+SymbolIndex GeometryVia::getOrCreateSymbol(const char *name) {
     return getSymbolTable()->getOrCreateSymbol(name);
 }
 
@@ -65,7 +65,7 @@ SymbolTable *LayerGeometry::getSymbolTable() {
     return top_cell->getSymbolTable();
 }
 
-int64_t LayerGeometry::getOrCreateSymbol(const char *name) {
+SymbolIndex LayerGeometry::getOrCreateSymbol(const char *name) {
     return getSymbolTable()->getOrCreateSymbol(name);
 }
 

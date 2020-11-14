@@ -297,7 +297,7 @@ void WireNode::addOutEdgeList(Wire* out) { out_edges_.push_back(out); }
  */
 int WireNode::setViaName(std::string const& via_name) {
     int64_t index = getTopCell()->getOrCreateSymbol(via_name.c_str());
-    if (index == -1) return false;
+    if (index == kInvalidSymbolIndex) return false;
 
     via_index_ = index;
     getTopCell()->addSymbolReference(via_index_, this->getId());
@@ -409,7 +409,7 @@ const char* WireNode::getTaperRule() {
  */
 bool WireNode::setTaperRule(std::string const& taper_rule) {
     int64_t index = getTopCell()->getOrCreateSymbol(taper_rule.c_str());
-    if (index == -1) return false;
+    if (index == kInvalidSymbolIndex) return false;
 
     taper_rule_index_ = index;
     getTopCell()->addSymbolReference(taper_rule_index_, this->getId());

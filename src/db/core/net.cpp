@@ -52,8 +52,8 @@ std::string const& VPin::getName() {
  * @param name
  */
 bool VPin::setName(std::string const& name) {
-    int64_t index = getOwnerCell()->getOrCreateSymbol(name.c_str());
-    if (index == -1) return false;
+    SymbolIndex index = getOwnerCell()->getOrCreateSymbol(name.c_str());
+    if (index == kInvalidSymbolIndex) return false;
 
     name_index_ = index;
     getOwnerCell()->addSymbolReference(name_index_, this->getId());
@@ -395,8 +395,8 @@ std::string const& Net::getName() {
  * @param name
  */
 bool Net::setName(std::string const& name) {
-    int64_t index = getOwnerCell()->getOrCreateSymbol(name.c_str());
-    if (index == -1) return false;
+    SymbolIndex index = getOwnerCell()->getOrCreateSymbol(name.c_str());
+    if (index == kInvalidSymbolIndex) return false;
 
     name_index_ = index;
     getOwnerCell()->addSymbolReference(name_index_, this->getId());
