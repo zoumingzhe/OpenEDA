@@ -161,7 +161,7 @@ bool SymbolTable::addReference(SymbolIndex index, ObjectId owner)
 /// @return 
 bool SymbolTable::removeReference(SymbolIndex symbol_index, ObjectId owner)
 {
-    if ((symbol_index < 0) || (symbol_index > symbol_count_))
+    if ((symbol_index == kInvalidSymbolIndex) || (symbol_index > symbol_count_))
     {
         return false;
     }
