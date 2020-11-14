@@ -65,7 +65,7 @@ SymbolIndex SymbolTable::isSymbolInTable(std::string name)
 SymbolIndex SymbolTable::getOrCreateSymbol(const char *name, bool check)
 {
     int32_t array_index = 0;
-    int64_t symbol_index = kInvalidSymbolIndex;
+    SymbolIndex symbol_index = kInvalidSymbolIndex;
 
     if (check) {
         symbol_index = isSymbolInTable(name);
