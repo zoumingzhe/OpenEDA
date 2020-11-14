@@ -683,7 +683,7 @@ void Term::print() const {
             AntennaArea *a = getAntennaPartialMetalArea(i);
             message->info("      ANTENNAPARTIALMETALAREA %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -693,7 +693,7 @@ void Term::print() const {
             AntennaArea *a = getAntennaPartialMetalSideArea(i);
             message->info("      ANTENNAPARTIALMETALSIDEAREA %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -703,7 +703,7 @@ void Term::print() const {
             AntennaArea *a = getAntennaPartialCutArea(i);
             message->info("      ANTENNAPARTIALCUTAREA %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -713,7 +713,7 @@ void Term::print() const {
             AntennaArea *a = getAntennaDiffArea(i);
             message->info("      ANTENNADIFFAREA %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -737,7 +737,7 @@ void AntennaModelTerm::print() const {
             AntennaArea *a = getAntennaGateArea(i);
             message->info("      ANTENNAGATEAREA %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -748,7 +748,7 @@ void AntennaModelTerm::print() const {
             AntennaArea *a = getAntennaMaxAreaCar(i);
             message->info("      ANTENNAMAXAREACAR %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -759,7 +759,7 @@ void AntennaModelTerm::print() const {
             AntennaArea *a = getAntennaMaxSideAreaCar(i);
             message->info("      ANTENNAMAXSIDEAREACAR %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -770,7 +770,7 @@ void AntennaModelTerm::print() const {
             AntennaArea *a = getAntennaMaxCutCar(i);
             message->info("      ANTENNAMAXCUTCAR %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -910,7 +910,7 @@ void Term::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaPartialMetalArea(i);
             ofs << "      ANTENNAPARTIALMETALAREA "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }
@@ -920,7 +920,7 @@ void Term::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaPartialMetalSideArea(i);
             ofs << "      ANTENNAPARTIALMETALSIDEAREA "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }
@@ -930,7 +930,7 @@ void Term::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaPartialCutArea(i);
             ofs << "      ANTENNAPARTIALCUTAREA "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }
@@ -940,7 +940,7 @@ void Term::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaDiffArea(i);
             ofs << "      ANTENNADIFFAREA "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }
@@ -964,7 +964,7 @@ void AntennaModelTerm::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaGateArea(i);
             ofs << "      ANTENNAGATEAREA "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }
@@ -975,7 +975,7 @@ void AntennaModelTerm::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaMaxAreaCar(i);
             ofs << "      ANTENNAMAXAREACAR "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }
@@ -986,7 +986,7 @@ void AntennaModelTerm::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaMaxSideAreaCar(i);
             ofs << "      ANTENNAMAXSIDEAREACAR "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }
@@ -997,7 +997,7 @@ void AntennaModelTerm::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaMaxCutCar(i);
             ofs << "      ANTENNAMAXCUTCAR "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }

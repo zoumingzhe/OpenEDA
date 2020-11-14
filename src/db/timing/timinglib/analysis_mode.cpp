@@ -80,8 +80,8 @@ AnalysisMode::IndexType AnalysisMode::memory() const {
 void AnalysisMode::set_name(const std::string& name) {
     Cell* topCell = getTopCell();
     if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             name_ = idx;
             topCell->addSymbolReference(name_, this->getId());
         }
@@ -104,8 +104,8 @@ void AnalysisMode::add_constraint_file(const std::string& file) {
                 constraint_files_);
         }
         if (p != nullptr) {
-            int64_t idx = topCell->getOrCreateSymbol(file.c_str());
-            if (idx != -1) {
+            SymbolIndex idx = topCell->getOrCreateSymbol(file.c_str());
+            if (idx != kInvalidSymbolIndex) {
                 p->pushBack(idx);
                 topCell->addSymbolReference(idx, this->getId());
             }

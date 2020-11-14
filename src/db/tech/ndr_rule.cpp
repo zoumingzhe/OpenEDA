@@ -128,8 +128,8 @@ bool NonDefaultRuleLayer::hasEdgeCapacitance() const {
 
 // Set:
 void NonDefaultRuleLayer::setName(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     name_index_ = index;
     getTopCell()->addSymbolReference(name_index_, this->getId());
@@ -335,8 +335,8 @@ uint32_t NonDefaultRuleMinCuts::getNumCuts() const { return num_cuts_; }
 
 // Set:
 void NonDefaultRuleMinCuts::setName(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     name_index_ = index;
     getTopCell()->addSymbolReference(name_index_, this->getId());
@@ -522,8 +522,8 @@ ObjectId NonDefaultRule::getPropertiesId() const { return properties_; }
 
 // Set:
 void NonDefaultRule::setName(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     name_index_ = index;
     getTopCell()->addSymbolReference(name_index_, this->getId());

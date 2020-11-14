@@ -70,8 +70,8 @@ TLibAttr &TLibAttr::operator=(TLibAttr &&rhs) noexcept {
 void TLibAttr::set_name(const std::string &name) {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(name.c_str());
-        if (index != -1) {
+        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
             name_ = index;
             // topCell->addSymbolReference(name_, this->getId());
         }
@@ -145,8 +145,8 @@ void TLibAttr::set_default_cell_leakage_power(float f) {
 void TLibAttr::add_supply_voltage(const std::string &name, float f) {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(name.c_str());
-        if (index != -1) {
+        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
             name_ = index;
             supply_voltage_map_[name_] = f;
             // topCell->addSymbolReference(name_, this->getId());
@@ -228,8 +228,8 @@ float TLibAttr::get_default_cell_leakage_power(void) {
 float TLibAttr::get_supply_voltage(const std::string &name) {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(name.c_str());
-        if (index != -1) {
+        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
             auto it = supply_voltage_map_.find(index);
             if (it != supply_voltage_map_.end()) return it->second;
         }

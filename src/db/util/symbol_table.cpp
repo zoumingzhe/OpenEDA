@@ -26,6 +26,9 @@ SymbolTable::SymbolTable(/* args */)
     symbol_pages_.push_back(new(SymbolPage));
     page_count_ = 1;
 
+    // Because the symbol index 0 cannot be used by any applications,
+    // so a dummy symbol is created to occupy index 0.
+    getOrCreateSymbol("NiicEDA: It is a new Symbol Table.", false);
 }
 
 /// @brief ~SymbolTable 
@@ -45,12 +48,12 @@ SymbolTable::~SymbolTable()
 ///
 /// @param name
 ///
-/// @return symbol index upon success, otherwise -1.
-int64_t SymbolTable::isSymbolInTable(std::string name)
+/// @return symbol index upon success, otherwise 0.
+SymbolIndex SymbolTable::isSymbolInTable(std::string name)
 {
     std::unordered_map<std::string, SymbolIndex>::const_iterator
         got = hash_.find(name);
-    return ((got != hash_.end()) ? got->second : -1);
+    return ((got != hash_.end()) ? got->second : 0);
 }
 
 /// @brief getOrCreateSymbol 
@@ -58,15 +61,15 @@ int64_t SymbolTable::isSymbolInTable(std::string name)
 /// @param name
 /// @param no_check
 ///
-/// @return SymbolIndex, -1 upon failure.
+/// @return SymbolIndex, 0 upon failure.
 SymbolIndex SymbolTable::getOrCreateSymbol(const char *name, bool check)
 {
     int32_t array_index = 0;
-    int64_t symbol_index = -1;
+    int64_t symbol_index = 0;
 
     if (check) {
         symbol_index = isSymbolInTable(name);
-        if (symbol_index != -1) {
+        if (symbol_index != 0) {
             return symbol_index;
         }
     }
@@ -128,8 +131,8 @@ uint64_t SymbolTable::getSymbolCount()
 /// @return 
 bool SymbolTable::insertReference(const char *name, ObjectId owner)
 {
-    int64_t index = getOrCreateSymbol(name);
-    if (index == -1) return false;
+    SymbolIndex index = getOrCreateSymbol(name);
+    if (index == kInvalidSymbolIndex) return false;
 
     int page_num = index/SYMTBL_ARRAY_SIZE;
     int array_num = index%SYMTBL_ARRAY_SIZE;
@@ -140,7 +143,7 @@ bool SymbolTable::insertReference(const char *name, ObjectId owner)
 
 bool SymbolTable::addReference(SymbolIndex index, ObjectId owner)
 {
-    if (index == -1) return false;
+    if (index == kInvalidSymbolIndex) return false;
 
     int page_num = index/SYMTBL_ARRAY_SIZE;
     int array_num = index%SYMTBL_ARRAY_SIZE;
@@ -196,7 +199,7 @@ bool SymbolTable::eliminateReferences()
 
 std::vector<ObjectId> &SymbolTable::getReferences(SymbolIndex index)
 {
-    ediAssert(index != -1); 
+    ediAssert(index != kInvalidSymbolIndex); 
     int page_num = index/SYMTBL_ARRAY_SIZE;
     int array_num = index%SYMTBL_ARRAY_SIZE;
     return symbol_pages_[page_num]->getReferences(array_num);

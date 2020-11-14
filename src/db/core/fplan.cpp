@@ -68,8 +68,8 @@ void Row::setName(SymbolIndex &row_name_index) {
 ///
 /// @return
 bool Row::setName(std::string &name) {
-    int64_t index = getFloorplan()->getOwnerCell()->getOrCreateSymbol(name);
-    if (index == -1) return false;
+    SymbolIndex index = getFloorplan()->getCell()->getOrCreateSymbol(name);
+    if (index == kInvalidSymbolIndex) return false;
 
     row_name_index_ = index;
     getFloorplan()->getOwnerCell()->addSymbolReference(row_name_index_,
@@ -83,8 +83,8 @@ bool Row::setName(std::string &name) {
 ///
 /// @return
 bool Row::setName(const char *name) {
-    int64_t index = getFloorplan()->getOwnerCell()->getOrCreateSymbol(name);
-    if (index == -1) return false;
+    SymbolIndex index = getFloorplan()->getCell()->getOrCreateSymbol(name);
+    if (index == kInvalidSymbolIndex) return false;
 
     row_name_index_ = index;
     getFloorplan()->getOwnerCell()->addSymbolReference(row_name_index_,
@@ -790,17 +790,15 @@ Constraint *Floorplan::getRegion(std::string &name) const {
     if (regions_ == 0) return nullptr;
     Cell *top_cell = getOwnerCell();
     SymbolIndex symbol_index = top_cell->getOrCreateSymbol(name.c_str());
-    if (symbol_index == -1) return nullptr;
+    if (symbol_index == kInvalidSymbolIndex) return nullptr;
 
-    if (symbol_index) {
-        std::vector<ObjectId> object_vector =
-            top_cell->getSymbolTable()->getReferences(symbol_index);
-        for (auto iter = object_vector.begin(); iter != object_vector.end();
-             iter++) {
-            Constraint *region = addr<Constraint>(*iter);
-            if (region && (region->getObjectType() == kObjectTypeRegion))
-                return region;
-        }
+    std::vector<ObjectId> object_vector =
+        top_cell->getSymbolTable()->getReferences(symbol_index);
+    for (auto iter = object_vector.begin(); iter != object_vector.end();
+         iter++) {
+        Constraint *region = addr<Constraint>(*iter);
+        if (region && (region->getObjectType() == kObjectTypeRegion))
+            return region;
     }
 
     return nullptr;
@@ -886,8 +884,8 @@ void Constraint::setName(SymbolIndex &name) {
 }
 
 bool Constraint::setName(std::string &name) {
-    int64_t index = getFloorplan()->getOwnerCell()->getOrCreateSymbol(name);
-    if (index == -1) return false;
+    SymbolIndex index = getFloorplan()->getCell()->getOrCreateSymbol(name);
+    if (index == kInvalidSymbolIndex) return false;
 
     name_ = index;
     getFloorplan()->getOwnerCell()->addSymbolReference(name_, this->getId());
@@ -895,8 +893,8 @@ bool Constraint::setName(std::string &name) {
 }
 
 bool Constraint::setName(const char *name) {
-    int64_t index = getFloorplan()->getOwnerCell()->getOrCreateSymbol(name);
-    if (index == -1) return false;
+    SymbolIndex index = getFloorplan()->getCell()->getOrCreateSymbol(name);
+    if (index == kInvalidSymbolIndex) return false;
 
     name_ = index;
     getFloorplan()->getOwnerCell()->addSymbolReference(name_, this->getId());

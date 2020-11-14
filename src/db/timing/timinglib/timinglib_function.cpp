@@ -97,8 +97,8 @@ TFunction::IndexType TFunction::memory() const {
 void TFunction::set_func_str(const std::string& str) {
     Cell* topCell = getTopCell();
     if (topCell != nullptr) {
-        int64_t idx = topCell->getOrCreateSymbol(str.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(str.c_str());
+        if (idx != kInvalidSymbolIndex) {
             func_str_ = idx;
             topCell->addSymbolReference(func_str_, this->getId());
         }
