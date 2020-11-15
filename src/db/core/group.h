@@ -19,13 +19,11 @@ namespace db {
 
 class Cell;
 class Constraint;
+
 class Group : public Object {
   public:
     Group();
     ~Group();
-
-    void setCell(ObjectId cell);
-    Cell* getCell() const;
 
     void setName(std::string& name);
     std::string getName() const;
@@ -34,17 +32,13 @@ class Group : public Object {
     SymbolIndex getNameIndex() const;
 
     void addPattern(const char* pattern_name);
-    std::vector<SymbolIndex>& getPatternIndexes();
+    ObjectId getPatternNames() const;
 
-    void setHasRegion(bool has_region);
-    bool getHasRegion() const;
-
-    void addRegion(const char* region_name);
-    SymbolIndex getRegionIndex() const;
+    void setRegion(ObjectId v);
     Constraint* getRegion() const;
 
-    void addInstanceId(ObjectId instance_id);
-    std::vector<ObjectId>& getInstanceIds();
+    void addInstance(ObjectId instance_id);
+    ObjectId getInstances() const;
 
     void setPropertySize(uint64_t v);
     uint64_t getNumProperties() const;
@@ -55,16 +49,13 @@ class Group : public Object {
     void print(FILE* fp);
 
   private:
-    ObjectId cell_;
-    // definition in DEF
+    // definition in DEF : GROUP
     SymbolIndex name_index_;
-    std::vector<SymbolIndex> pattern_index_vector_;
-    bool has_region_;
-    SymbolIndex region_index_;
+    ObjectId region_;
+    // TODO (ly) : wildcard matching
+    ObjectId pattern_names_; 
+    ObjectId instances_;
     ObjectId properties_id_;
-
-    // relation to other objects
-    std::vector<ObjectId> instance_id_vector_;
 };
 }  // namespace db
 }  // namespace open_edi

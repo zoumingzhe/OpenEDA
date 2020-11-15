@@ -22,12 +22,10 @@
 namespace open_edi {
 namespace db {
 
-//removed PortType, since it's redundant with enum SignalDirection...
-
 class AntennaArea : public Object {
   public:
-    AntennaArea() { layer_name_index_ = -1; }
-    AntennaArea(double a) : area_(a), layer_name_index_(-1) {}
+    AntennaArea() { layer_name_index_ = kInvalidSymbolIndex; }
+    AntennaArea(double a) : area_(a), layer_name_index_(kInvalidSymbolIndex) {}
     //  AntennaArea(int a, const char * layer):area_(a),layer_name_(layer){}
     ~AntennaArea() {}
     void setArea(double a) { area_ = a; }

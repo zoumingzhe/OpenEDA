@@ -10,9 +10,13 @@
  */
 
 #include "db/core/object.h"
+#include "db/core/cell.h"
+#include "db/core/db.h"
+#include "db/util/array.h"
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 /// @brief Object 
 Object::Object() {
@@ -136,6 +140,39 @@ void Object::setIsMarked(int v) {is_marked_ = v;}
 ///
 /// @return 
 int Object::getIsMarked() {return is_marked_;}
+
+Cell *Object::getOwnerCell() const {
+    if (owner_ != 0) {
+        Cell *owner_cell = addr<Cell>(owner_);
+        Object *owner_object = (Object *)owner_cell;
+        if (owner_object->getObjectType() == kObjectTypeCell) {
+            return owner_cell;
+        }
+    }
+    // otherwise, always returns current top cell:
+    return getTopCell();
+}
+
+ObjectId Object::__createObjectIdArray(int64_t size) {
+    if (size <= 0) return 0;
+    if (!owner_) return 0;
+    Cell *owner_cell = addr<Cell>(owner_);
+    ediAssert(owner_cell != nullptr);
+    IdArray *id_array_ptr =
+      owner_cell->createObject<IdArray>(kObjectTypeArray);
+    ediAssert(id_array_ptr != nullptr);
+    id_array_ptr->setPool(owner_cell->getPool());
+    id_array_ptr->reserve(size);
+    return (id_array_ptr->getId());
+}
+
+void Object::__deleteObjectIdArray(ObjectId array_id) {
+    if (!owner_ || !array_id) return;
+    Cell *owner_cell = addr<Cell>(owner_);
+    IdArray *id_array_ptr = addr<IdArray>(array_id);
+    ediAssert(owner_cell != nullptr && id_array_ptr != nullptr);
+    owner_cell->deleteObject(id_array_ptr);
+}
 
 /// @brief operator<< 
 ///

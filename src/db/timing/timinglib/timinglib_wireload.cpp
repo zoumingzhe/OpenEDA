@@ -97,8 +97,8 @@ WireLoadTable::IndexType WireLoadTable::memory() const {
 void WireLoadTable::set_name(const std::string& name) {
     Cell* topCell = getTopCell();
     if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(name.c_str());
-        if (index != -1) {
+        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
             name_ = index;
             topCell->addSymbolReference(name_, this->getId());
         }
@@ -263,8 +263,8 @@ WireLoad::IndexType WireLoad::memory() const {
 void WireLoad::set_name(const std::string& name) {
     Cell* topCell = getTopCell();
     if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(name.c_str());
-        if (index != -1) {
+        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
             name_ = index;
             topCell->addSymbolReference(name_, this->getId());
         }
@@ -521,8 +521,8 @@ WireLoadSelection::IndexType WireLoadSelection::memory() const {
 void WireLoadSelection::set_name(const std::string& name) {
     Cell* topCell = getTopCell();
     if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(name.c_str());
-        if (index != -1) {
+        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
             name_ = index;
             topCell->addSymbolReference(name_, this->getId());
         }

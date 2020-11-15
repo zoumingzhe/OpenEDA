@@ -258,7 +258,6 @@ Pin *Inst::createInstancePin(std::string &pin_name) {
     }
     Pin *pin = getOwnerCell()->createObject<Pin>(kObjectTypePin);
     pin->setName(pin_name);
-    pin->setOwner(getOwnerCell());
     pin->setInst(this);
     pin->setTerm(term);
     ArrayObject <ObjectId> *pin_vector = nullptr;
@@ -279,7 +278,6 @@ Pin *Inst::createInstancePin(std::string &pin_name) {
 Pin *Inst::createInstancePinWithoutMaster(std::string &pin_name) {
     Pin *pin = getOwnerCell()->createObject<Pin>(kObjectTypePin);
     pin->setName(pin_name);
-    pin->setOwner(getOwnerCell());
     pin->setInst(this);
     ArrayObject<ObjectId> *pin_vector = nullptr;
     if (pins_ == 0) {

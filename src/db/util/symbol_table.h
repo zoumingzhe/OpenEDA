@@ -30,12 +30,14 @@ namespace db {
 using SymbolIndex = open_edi::util::SymbolIndex;
 using MemPool = open_edi::util::MemPool;
 
+const uint64_t kInvalidSymbolIndex = 0;
+
 class SymbolTable {
   public:
     template <class T>
     T *getObjectByTypeAndName(ObjectType type, std::string &name);
-    int64_t isSymbolInTable(std::string name);
-    int64_t getOrCreateSymbol(const char *name, bool check = true);
+    SymbolIndex isSymbolInTable(std::string name);
+    SymbolIndex getOrCreateSymbol(const char *name, bool check = true);
 
     std::string &getSymbolByIndex(SymbolIndex index);
     uint64_t getSymbolCount();

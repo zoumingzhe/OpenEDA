@@ -212,8 +212,8 @@ const char *Tech::getBusBitsName() const {
  * @param s
  */
 void Tech::setBusBitsName(const char *s) {
-    int64_t index = getTopCell()->getOrCreateSymbol(s);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(s);
+    if (index == kInvalidSymbolIndex) return;
 
     bus_bits_index_ = index;
     getTopCell()->addSymbolReference(index, this->getId());
@@ -236,8 +236,8 @@ const char *Tech::getDividerName() const {
  * @param s
  */
 void Tech::setDividerName(const char *s) {
-    int64_t index = getTopCell()->getOrCreateSymbol(s);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(s);
+    if (index == kInvalidSymbolIndex) return;
 
     divider_name_index_ = index;
     getTopCell()->addSymbolReference(index, this->getId());
@@ -260,8 +260,8 @@ const char *Tech::getExtensionsName() const {
  * @param s
  */
 void Tech::setExtensionsName(const char *s) {
-    int64_t index = getTopCell()->getOrCreateSymbol(s);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(s);
+    if (index == kInvalidSymbolIndex) return;
 
     extensions_name_index_ = index;
     getTopCell()->addSymbolReference(index, this->getId());
