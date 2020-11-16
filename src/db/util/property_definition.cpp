@@ -163,7 +163,7 @@ void PropertyDefinition::setPropType(PropType v) {
 }
 
 void PropertyDefinition::setPropName(const std::string & v) { 
-  if (name_index_ > 0) {
+  if (name_index_ != kInvalidSymbolIndex) {
     SymbolTable *symbol_table = getTopCell()->getSymbolTable();
     symbol_table->removeReference(name_index_, this->getId());
   }
