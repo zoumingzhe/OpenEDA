@@ -14,6 +14,8 @@
  */
 #include "db/timing/timinglib/timinglib_tcl_command.h"
 
+#include <unistd.h>
+
 #include <fstream>
 #include <iostream>
 #include <list>
@@ -318,10 +320,20 @@ int readTimingLibCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 files.emplace_back(argv[i]);
             }
         }
-        if (files.empty()) {
+        size_t lib_file_count = files.size();
+        if (lib_file_count == 0) {
             open_edi::util::message->issueMsg(
                 kError, "Please specify the liberty file.");
             return TCL_ERROR;
+        }
+        for (int i = 0; i < lib_file_count; ++i) {
+            if (access(files[i].c_str(), F_OK) == -1) {
+                open_edi::util::message->issueMsg(
+                    open_edi::util::kError,
+                    "The file %s specified does not exist.\n",
+                    files[i].c_str());
+                return TCL_ERROR;
+            }
         }
         Cell *topCell = getTopCell();
         if (topCell == nullptr) {
@@ -378,7 +390,6 @@ int readTimingLibCommand(ClientData cld, Tcl_Interp *itp, int argc,
             corner->set_libset(libset->getId());
         }
 
-        size_t lib_file_count = files.size();
         if (lib_file_count != 0)
             open_edi::util::message->info("\nReading Timing Library\n");
         bool clearFileContent = true;
@@ -436,15 +447,33 @@ int createAnalysisViewCommand(ClientData cld, Tcl_Interp *itp, int argc,
     if (argc == 7) {
         for (int i = 1; i < argc; ++i) {
             if (!strcmp(argv[i], "-name")) {
-                ++i;
-                args.name = argv[i];
+                if ((i + 1) < argc) {
+                    args.name = argv[++i];
+                } else {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
 
             } else if (!strcmp(argv[i], "-mode")) {
-                ++i;
-                args.mode = argv[i];
+                if ((i + 1) < argc) {
+                    args.mode = argv[++i];
+                } else {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
             } else if (!strcmp(argv[i], "-corner")) {
-                ++i;
-                args.corner = argv[i];
+                if ((i + 1) < argc) {
+                    args.corner = argv[++i];
+                } else {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
             } else {
                 printAnalysisViewCommandHelp();
                 return TCL_ERROR;
@@ -549,15 +578,34 @@ int createAnalysisModeCommand(ClientData cld, Tcl_Interp *itp, int argc,
         AnalysisModeArgs args;
         for (int i = 1; i < argc; ++i) {
             if (!strcmp(argv[i], "-name")) {
-                ++i;
-                args.name = argv[i];
+                if ((i + 1) < argc) {
+                    args.name = argv[++i];
+                } else {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
             } else if (!strcmp(argv[i], "-constraint_file")) {
-                ++i;
-                args.constraint_file = argv[i];
+                if ((i + 1) < argc) {
+                    args.constraint_file = argv[++i];
+                } else {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
             } else {
                 printAnalysisModeCommandHelp();
                 return TCL_ERROR;
             }
+        }
+        if (access(args.constraint_file.c_str(), F_OK) == -1) {
+            open_edi::util::message->issueMsg(
+                open_edi::util::kError,
+                "The file %s specified does not exist.\n",
+                args.constraint_file.c_str());
+            return TCL_ERROR;
         }
         Cell *topCell = getTopCell();
         if (topCell == nullptr) {
@@ -621,24 +669,77 @@ int createAnalysisCornerCommand(ClientData cld, Tcl_Interp *itp, int argc,
         std::string dump_log_file = "";
         for (int i = 1; i < argc; ++i) {
             if (!strcmp(argv[i], "-name")) {
-                ++i;
-                args.name = argv[i];
+                if ((i + 1) < argc) {
+                    args.name = argv[++i];
+                } else {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
             } else if (!strcmp(argv[i], "-rc_tech")) {
-                ++i;
-                args.rc_tech = argv[i];
+                if ((i + 1) < argc) {
+                    args.rc_tech = argv[++i];
+                } else {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
             } else if (!strcmp(argv[i], "-lib_set")) {
-                ++i;
-                args.lib_set = argv[i];
+                if ((i + 1) < argc) {
+                    args.lib_set = argv[++i];
+                } else {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
             } else if (!strcmp(argv[i], "-dump_lib")) {
-                if ((i + 1) < argc) dump_lib_file = argv[++i];
+                if ((i + 1) < argc) {
+                    dump_lib_file = argv[++i];
+                } else {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
             } else if (!strcmp(argv[i], "-dump_db")) {
-                if ((i + 1) < argc) dump_db_file = argv[++i];
+                if ((i + 1) < argc) {
+                    dump_db_file = argv[++i];
+                } else {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
             } else if (!strcmp(argv[i], "-dump_log")) {
-                if ((i + 1) < argc) dump_log_file = argv[++i];
+                if ((i + 1) < argc) {
+                    dump_log_file = argv[++i];
+                } else {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
             } else {
                 printAnalysisCornerCommandHelp();
                 return TCL_ERROR;
             }
+        }
+        if (access(args.rc_tech.c_str(), F_OK) == -1) {
+            open_edi::util::message->issueMsg(
+                open_edi::util::kError,
+                "The file %s specified does not exist.\n",
+                args.rc_tech.c_str());
+            return TCL_ERROR;
+        }
+        if (access(args.lib_set.c_str(), F_OK) == -1) {
+            open_edi::util::message->issueMsg(
+                open_edi::util::kError,
+                "The file %s specified does not exist.\n",
+                args.lib_set.c_str());
+            return TCL_ERROR;
         }
         Cell *topCell = getTopCell();
         if (topCell == nullptr) {
@@ -765,46 +866,112 @@ int setAnalysisViewStatusCommand(ClientData cld, Tcl_Interp *itp, int argc,
         SetAnalysisViewStatusArgs args;
         for (int i = 1; i < argc; ++i) {
             if (!strcmp(argv[i], "-active")) {
+                if ((i + 1) >= argc) {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
                 if (!getBool(argv[i], argv[i + 1], &(args.active)))
                     return TCL_ERROR;
                 ++i;
             } else if (!strcmp(argv[i], "-setup")) {
+                if ((i + 1) >= argc) {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
                 if (!getBool(argv[i], argv[i + 1], &(args.setup)))
                     return TCL_ERROR;
                 ++i;
             } else if (!strcmp(argv[i], "-hold")) {
+                if ((i + 1) >= argc) {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
                 if (!getBool(argv[i], argv[i + 1], &(args.hold)))
                     return TCL_ERROR;
                 ++i;
             } else if (!strcmp(argv[i], "-max_tran")) {
+                if ((i + 1) >= argc) {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
                 if (!getBool(argv[i], argv[i + 1], &(args.max_tran)))
                     return TCL_ERROR;
                 ++i;
             } else if (!strcmp(argv[i], "-max_cap")) {
+                if ((i + 1) >= argc) {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
                 if (!getBool(argv[i], argv[i + 1], &(args.max_cap)))
                     return TCL_ERROR;
                 ++i;
             } else if (!strcmp(argv[i], "-min_cap")) {
+                if ((i + 1) >= argc) {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
                 if (!getBool(argv[i], argv[i + 1], &(args.min_cap)))
                     return TCL_ERROR;
                 ++i;
             } else if (!strcmp(argv[i], "-leakage_power")) {
+                if ((i + 1) >= argc) {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
                 if (!getBool(argv[i], argv[i + 1], &(args.leakage_power)))
                     return TCL_ERROR;
                 ++i;
             } else if (!strcmp(argv[i], "-dynamic_power")) {
+                if ((i + 1) >= argc) {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
                 if (!getBool(argv[i], argv[i + 1], &(args.dynamic_power)))
                     return TCL_ERROR;
                 ++i;
             } else if (!strcmp(argv[i], "-cell_em")) {
+                if ((i + 1) >= argc) {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
                 if (!getBool(argv[i], argv[i + 1], &(args.cell_em)))
                     return TCL_ERROR;
                 ++i;
             } else if (!strcmp(argv[i], "-signal_em")) {
+                if ((i + 1) >= argc) {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
                 if (!getBool(argv[i], argv[i + 1], &(args.signal_em)))
                     return TCL_ERROR;
                 ++i;
             } else if (!strcmp(argv[i], "-view")) {
+                if ((i + 1) >= argc) {
+                    open_edi::util::message->issueMsg(
+                        kError, "No value specified for \"%s\" option.\n",
+                        argv[i]);
+                    return TCL_ERROR;
+                }
                 ++i;
                 args.view_name = argv[i];
             } else {
