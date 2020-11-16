@@ -915,6 +915,7 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
             }
         }
         prtGeometry(geometry, p);
+        p->setTermId(term->getId());
         term->addPort(p->getId());
     }
     if (currentCell)
