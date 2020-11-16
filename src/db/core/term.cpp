@@ -42,6 +42,10 @@ Term::Term(Term const &rhs) { copy(rhs); }
 
 Term::Term(Term &&rhs) noexcept { move(std::move(rhs)); }
 
+Cell *Term::getCell() {
+    return getOwnerCell();
+}
+
 void Term::setName(std::string name) {
     Cell *owner_cell = getOwnerCell();
     if (!owner_cell) {
@@ -126,6 +130,22 @@ bool Term::hasDirection() const {
         return true;
     }
     return false;
+}
+
+bool Term::isInput() {
+    return (direction_ == SignalDirection::kInput);
+}
+
+bool Term::isOutput() {
+    return (direction_ == SignalDirection::kOutput);
+}
+
+bool Term::isInOut() {
+    return (direction_ == SignalDirection::kInout);
+}
+
+bool Term::isFeedthru() {
+    return (direction_ == SignalDirection::kFeedThrough);
 }
 
 void Term::setDirection(const char *v) {
@@ -787,6 +807,14 @@ Port::Port() {
 }
 
 Port::~Port() {}
+
+void Port::setTermId(ObjectId term_id) {
+    term_id_ = term_id;
+}
+
+Term *Port::getTerm() {
+    return addr<Term>(term_id_);
+}
 
 bool Port::getHasPlacement() const { return has_placement_; }
 

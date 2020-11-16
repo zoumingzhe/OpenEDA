@@ -3019,6 +3019,7 @@ int readPin(defiPin* def_pin) {
                 p->setOrient(convertDefIntToOrient(def_pin->orient()));
             }
         }
+        p->setTermId(term->getId());
         term->addPort(p->getId());
     }
     if (def_pin->hasPort()) {
@@ -3117,6 +3118,7 @@ int readPin(defiPin* def_pin) {
                     p->setOrient(convertDefIntToOrient(port->orient()));
                 }
             }
+            p->setTermId(term->getId());
             term->addPort(p->getId());
         }
     }
