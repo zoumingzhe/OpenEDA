@@ -579,6 +579,20 @@ int Net::addVPin(VPin* v_pin) {
 }
 
 /**
+ * @brief Get the Pin Array object
+ *
+ * @return ArrayObject<ObjectId>*
+ */
+ArrayObject<ObjectId>* Net::getPinArray() const {
+    if (pins_ != 0) {
+        ArrayObject<ObjectId>* pin_array = addr<ArrayObject<ObjectId>>(pins_);
+        return pin_array;
+    } else {
+        return nullptr;
+    }
+}
+
+/**
  * @brief add sub net to net
  *
  * @param sub_net
