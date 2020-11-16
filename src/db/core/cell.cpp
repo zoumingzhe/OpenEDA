@@ -366,7 +366,7 @@ SymbolTable *Cell::getSymbolTable() {
 SymbolIndex Cell::getOrCreateSymbol(const char *name) {
     SymbolTable *sym_table = getSymbolTable();
     if (sym_table == nullptr) {
-        return -1;
+        return kInvalidSymbolIndex;
     }
     return sym_table->getOrCreateSymbol(name);
 }
@@ -419,7 +419,7 @@ void Cell::setName(std::string &v) {
     SymbolTable *sym_table = getParentOrTopSymbolTable();
     ediAssert(sym_table != nullptr);
     name_index_ = sym_table->getOrCreateSymbol(v.c_str());
-    if (name_index_ != -1) {
+    if (name_index_ != kInvalidSymbolIndex) {
         sym_table->addReference(name_index_, this->getId());
     }
 }
@@ -1007,17 +1007,15 @@ ObjectId Cell::getScanChains() const {
 Cell *Cell::getCell(std::string name) {
     if (getCells() == 0) return nullptr;
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
-    if (symbol_index == -1) return nullptr;
+    if (symbol_index == kInvalidSymbolIndex) return nullptr;
 
-    if (symbol_index) {
-        std::vector<ObjectId> object_vector =
-            this->getSymbolTable()->getReferences(symbol_index);
-        for (auto iter = object_vector.begin(); iter != object_vector.end();
-             iter++) {
-            Cell *target = addr<Cell>(*iter);
-            if (target && (target->getObjectType() == kObjectTypeCell))
-                return target;
-        }
+    std::vector<ObjectId> object_vector =
+        this->getSymbolTable()->getReferences(symbol_index);
+    for (auto iter = object_vector.begin(); iter != object_vector.end();
+         iter++) {
+        Cell *target = addr<Cell>(*iter);
+        if (target && (target->getObjectType() == kObjectTypeCell))
+            return target;
     }
     return nullptr;
 }
@@ -1095,17 +1093,15 @@ ArrayObject<ObjectId> *Cell::getGroupArray() const {
 Term *Cell::getTerm(std::string name) {
     if (getTerms() == 0) return nullptr;
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
-    if (symbol_index == -1) return nullptr;
+    if (symbol_index == kInvalidSymbolIndex) return nullptr;
 
-    if (symbol_index) {
-        std::vector<ObjectId> &object_vector =
-            this->getSymbolTable()->getReferences(symbol_index);
-        for (auto iter = object_vector.begin(); iter != object_vector.end();
-             iter++) {
-            Term *target = addr<Term>(*iter);
-            if (target && (target->getObjectType() == kObjectTypeTerm))
-                return target;
-        }
+    std::vector<ObjectId> &object_vector =
+        this->getSymbolTable()->getReferences(symbol_index);
+    for (auto iter = object_vector.begin(); iter != object_vector.end();
+         iter++) {
+        Term *target = addr<Term>(*iter);
+        if (target && (target->getObjectType() == kObjectTypeTerm))
+            return target;
     }
     return nullptr;
 }
@@ -1113,17 +1109,15 @@ Term *Cell::getTerm(std::string name) {
 Bus *Cell::getBus(std::string name) {
     if (getBuses() == 0) return nullptr;
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
-    if (symbol_index == -1) return nullptr;
+    if (symbol_index == kInvalidSymbolIndex) return nullptr;
 
-    if (symbol_index) {
-        std::vector<ObjectId> &object_vector =
-            this->getSymbolTable()->getReferences(symbol_index);
-        for (auto iter = object_vector.begin(); iter != object_vector.end();
-             iter++) {
-            Bus *target = Object::addr<Bus>(*iter);
-            if (target && (target->getObjectType() == kObjectTypeBus))
-                return target;
-        }
+    std::vector<ObjectId> &object_vector =
+        this->getSymbolTable()->getReferences(symbol_index);
+    for (auto iter = object_vector.begin(); iter != object_vector.end();
+         iter++) {
+        Bus *target = Object::addr<Bus>(*iter);
+        if (target && (target->getObjectType() == kObjectTypeBus))
+            return target;
     }
     return nullptr;
 }
@@ -1131,17 +1125,15 @@ Bus *Cell::getBus(std::string name) {
 Inst *Cell::getInstance(std::string name) {
     if (getInstances() == 0) return nullptr;
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
-    if (symbol_index == -1) return nullptr;
+    if (symbol_index == kInvalidSymbolIndex) return nullptr;
 
-    if (symbol_index) {
-        std::vector<ObjectId> object_vector =
-            this->getSymbolTable()->getReferences(symbol_index);
-        for (auto iter = object_vector.begin(); iter != object_vector.end();
-             iter++) {
-            Inst *target = addr<Inst>(*iter);
-            if (target && (target->getObjectType() == kObjectTypeInst))
-                return target;
-        }
+    std::vector<ObjectId> object_vector =
+        this->getSymbolTable()->getReferences(symbol_index);
+    for (auto iter = object_vector.begin(); iter != object_vector.end();
+         iter++) {
+        Inst *target = addr<Inst>(*iter);
+        if (target && (target->getObjectType() == kObjectTypeInst))
+            return target;
     }
 
     return nullptr;
@@ -1150,17 +1142,15 @@ Inst *Cell::getInstance(std::string name) {
 Pin *Cell::getIOPin(const std::string &name) {
     if (getIOPins() == 0) return nullptr;
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
-    if (symbol_index == -1) return nullptr;
+    if (symbol_index == kInvalidSymbolIndex) return nullptr;
 
-    if (symbol_index) {
-        std::vector<ObjectId> object_vector =
-            this->getSymbolTable()->getReferences(symbol_index);
-        for (auto iter = object_vector.begin(); iter != object_vector.end();
-             iter++) {
-            Pin *target = addr<Pin>(*iter);
-            if (target && (target->getObjectType() == kObjectTypePin))
-                return target;
-        }
+    std::vector<ObjectId> object_vector =
+        this->getSymbolTable()->getReferences(symbol_index);
+    for (auto iter = object_vector.begin(); iter != object_vector.end();
+         iter++) {
+        Pin *target = addr<Pin>(*iter);
+        if (target && (target->getObjectType() == kObjectTypePin))
+            return target;
     }
     return nullptr;
 }
@@ -1169,17 +1159,15 @@ Net *Cell::getNet(std::string name) {
     if (getNets() == 0) return nullptr;
 
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
-    if (symbol_index == -1) return nullptr;
+    if (symbol_index == kInvalidSymbolIndex) return nullptr;
 
-    if (symbol_index) {
-        std::vector<ObjectId> object_vector =
-            this->getSymbolTable()->getReferences(symbol_index);
-        for (auto iter = object_vector.begin(); iter != object_vector.end();
-             iter++) {
-            Net *target = addr<Net>(*iter);
-            if (target && (target->getObjectType() == kObjectTypeNet))
-                return target;
-        }
+    std::vector<ObjectId> object_vector =
+        this->getSymbolTable()->getReferences(symbol_index);
+    for (auto iter = object_vector.begin(); iter != object_vector.end();
+         iter++) {
+        Net *target = addr<Net>(*iter);
+        if (target && (target->getObjectType() == kObjectTypeNet))
+            return target;
     }
     return nullptr;
 }
@@ -1188,17 +1176,15 @@ SpecialNet *Cell::getSpecialNet(std::string name) {
     if (getSpecialNets() == 0) return nullptr;
 
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
-    if (symbol_index == -1) return nullptr;
+    if (symbol_index == kInvalidSymbolIndex) return nullptr;
 
-    if (symbol_index) {
-        std::vector<ObjectId> object_vector =
-            this->getSymbolTable()->getReferences(symbol_index);
-        for (auto iter = object_vector.begin(); iter != object_vector.end();
-             iter++) {
-            SpecialNet *target = addr<SpecialNet>(*iter);
-            if (target && (target->getObjectType() == kObjectTypeSpecialNet))
-                return target;
-        }
+    std::vector<ObjectId> object_vector =
+        this->getSymbolTable()->getReferences(symbol_index);
+    for (auto iter = object_vector.begin(); iter != object_vector.end();
+         iter++) {
+        SpecialNet *target = addr<SpecialNet>(*iter);
+        if (target && (target->getObjectType() == kObjectTypeSpecialNet))
+            return target;
     }
     return nullptr;
 }
@@ -1273,7 +1259,6 @@ Group *Cell::createGroup(std::string &name) {
         message->issueMsg(kError, "create group %s failed.\n", name.c_str());
         return nullptr;
     }
-    group->setCell(getId());
     group->setName(name);
     addGroup(group->getId());
     return group;
@@ -1291,17 +1276,15 @@ Group *Cell::getGroup(size_t idx) const {
 Group *Cell::getGroup(std::string &name) {
     if (getGroups() == 0) return nullptr;
     SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
-    if (symbol_index == -1) return nullptr;
+    if (symbol_index == kInvalidSymbolIndex) return nullptr;
 
-    if (symbol_index) {
-        std::vector<ObjectId> object_vector =
-            this->getSymbolTable()->getReferences(symbol_index);
-        for (auto iter = object_vector.begin(); iter != object_vector.end();
-             iter++) {
-            Group *target = addr<Group>(*iter);
-            if (target && (target->getObjectType() == kObjectTypeGroup))
-                return target;
-        }
+    std::vector<ObjectId> object_vector =
+        this->getSymbolTable()->getReferences(symbol_index);
+    for (auto iter = object_vector.begin(); iter != object_vector.end();
+         iter++) {
+        Group *target = addr<Group>(*iter);
+        if (target && (target->getObjectType() == kObjectTypeGroup))
+            return target;
     }
     return nullptr;
 }
@@ -1549,8 +1532,8 @@ std::string const &Cell::getClass() {
 }
 
 void Cell::setClass(const char *v) {
-    int64_t idx = getOrCreateSymbol(v);
-    if (idx != -1) {
+    SymbolIndex idx = getOrCreateSymbol(v);
+    if (idx != kInvalidSymbolIndex) {
         class_index_ = idx;
     }
 }
@@ -1560,8 +1543,8 @@ std::string const &Cell::getEEQ() {
 }
 
 void Cell::setEEQ(const char *v) {
-    int64_t idx = getOrCreateSymbol(v);
-    if (idx != -1) {
+    SymbolIndex idx = getOrCreateSymbol(v);
+    if (idx != kInvalidSymbolIndex) {
         eeq_index_ = idx;
     }
 }

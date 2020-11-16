@@ -16,17 +16,15 @@
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
+using SymIdxArray = ArrayObject<SymbolIndex>;
 
 Group::Group() { memset((void *)this, 0, sizeof(Group)); }
 
 Group::~Group() {}
 
-void Group::setCell(ObjectId cell) { cell_ = cell; }
-
-Cell *Group::getCell() const { return addr<Cell>(cell_); }
-
 void Group::setName(std::string &name) {
-    Cell *cell = getCell();
+    Cell *cell = getOwnerCell();
     if (!cell) {
         message->issueMsg(
             kError, "Cannot get top cell when adding Group name %s.\n", name);
@@ -39,7 +37,7 @@ void Group::setName(std::string &name) {
 
 std::string Group::getName() const {
     std::string group_name;
-    Cell *cell = getCell();
+    Cell *cell = getOwnerCell();
     if (!cell) {
         message->issueMsg(kError,
                           "Cannot get top cell when adding Group name %s.\n");
@@ -53,7 +51,7 @@ void Group::setNameIndex(SymbolIndex name_index) { name_index_ = name_index; }
 SymbolIndex Group::getNameIndex() const { return name_index_; }
 
 void Group::addPattern(const char *pattern_name) {
-    Cell *cell = getCell();
+    Cell *cell = getOwnerCell();
     if (!cell) {
         message->issueMsg(
             kError,
@@ -61,75 +59,83 @@ void Group::addPattern(const char *pattern_name) {
             pattern_name);
         return;
     }
-
+    SymIdxArray *sym_idx_array_ptr = nullptr;
     SymbolIndex symbol_index = cell->getOrCreateSymbol(pattern_name);
-    pattern_index_vector_.push_back(symbol_index);
-}
-std::vector<SymbolIndex> &Group::getPatternIndexes() {
-    return pattern_index_vector_;
-}
-
-void Group::setHasRegion(bool has_region) { has_region_ = has_region; }
-bool Group::getHasRegion() const { return has_region_; }
-
-void Group::addRegion(const char *region_name) {
-    Cell *cell = getCell();
-    if (!cell) {
-        message->issueMsg(kError,
-                          "Cannot get top cell when adding region name %s.\n",
-                          region_name);
-        return;
+    if (pattern_names_ == 0) {
+        sym_idx_array_ptr =
+          cell->createObject<SymIdxArray>(kObjectTypeArray);
+        ediAssert(sym_idx_array_ptr != nullptr);
+        sym_idx_array_ptr->setPool(cell->getPool());
+        sym_idx_array_ptr->reserve(8);
+        pattern_names_ = sym_idx_array_ptr->getId();
+    } else {
+        sym_idx_array_ptr = addr<SymIdxArray>(pattern_names_);
+        ediAssert(sym_idx_array_ptr != nullptr);
     }
-
-    SymbolIndex symbol_index = cell->getOrCreateSymbol(region_name);
-    region_index_ = symbol_index;
+    
+    sym_idx_array_ptr->pushBack(symbol_index);
 }
-SymbolIndex Group::getRegionIndex() const { return region_index_; }
+
+ObjectId Group::getPatternNames() const {
+    return pattern_names_;
+}
+
+void Group::setRegion(ObjectId v) {
+    region_ = v;
+}
+
 Constraint *Group::getRegion() const {
-    return addr<Constraint>(region_index_);
+    if (region_ != 0) {
+        return addr<Constraint>(region_);
+    }
+    return nullptr;
 }
 
-void Group::addInstanceId(ObjectId instance_id) {
-    instance_id_vector_.push_back(instance_id);
+void Group::addInstance(ObjectId instance_id) {
+    if (instances_ == 0) {
+        instances_ = __createObjectIdArray(8);
+    }
+    ediAssert(instances_ != 0);
+    IdArray *id_array_ptr = addr<IdArray>(instances_);
+    ediAssert(id_array_ptr != nullptr);
+    id_array_ptr->pushBack(instance_id);
 }
-std::vector<ObjectId> &Group::getInstanceIds() { return instance_id_vector_; }
+
+ObjectId Group::getInstances() const { 
+    return instances_;
+}
+
 void Group::setPropertySize(uint64_t v) {
     if (v == 0 && properties_id_) {
-        VectorObject16::deleteDBVectorObjectVar(properties_id_);
+        __deleteObjectIdArray(properties_id_);
         return;
     }
     if (!properties_id_) {
-        VectorObject16 *vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        properties_id_ = vobj->getId();
+        properties_id_ = __createObjectIdArray(16);
     }
 }
 
 uint64_t Group::getNumProperties() const {
     if (!properties_id_) return 0;
 
-    return addr<VectorObject16>(properties_id_)->totalSize();
+    return addr<IdArray>(properties_id_)->getSize();
 }
 
 void Group::addProperty(ObjectId obj_id) {
-    VectorObject16 *vobj = nullptr;
     if (obj_id == 0) return;
-
     if (properties_id_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        properties_id_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(properties_id_);
-    }
-    ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+        properties_id_ = __createObjectIdArray(16);
+    } 
+    ediAssert(properties_id_ != 0);
+
+    IdArray *id_array_ptr = addr<IdArray>(properties_id_);
+    ediAssert(id_array_ptr != nullptr);
+    id_array_ptr->pushBack(obj_id);
 }
 
 ObjectId Group::getPropertiesId() const { return properties_id_; }
 
+#if 0
 void Group::print() {
     Cell *top_cell = getTopCell();
     message->info("- %s", getName().c_str());
@@ -145,31 +151,33 @@ void Group::print() {
         message->info(" %s", instance->getName().c_str());
     }
     message->info("\n");
-    if (getHasRegion()) {
-        std::string region_name =
-            top_cell->getSymbolTable()->getSymbolByIndex(getRegionIndex());
-        message->info(" + REGION %s ;\n", region_name.c_str());
-    }
+    if (region_) {
+        Constraint *region = addr<Constraint>(region_);
+        ediAssert(region != nullptr);
+        message->info(" + REGION %s ;\n", region->getName().c_str());
+    }    
 }
+#endif
 
 void Group::print(FILE *fp) {
-    Cell *top_cell = getTopCell();
     fprintf(fp, "- %s", getName().c_str());
-    std::vector<ObjectId> instance_id_vector = getInstanceIds();
-    for (int i = 0; i < instance_id_vector.size(); ++i) {
-        Inst *instance = top_cell->getInstance(instance_id_vector[i]);
-        if (!instance) {
-            message->issueMsg(kError,
-                              "Cannot find instance with object id %d.\n",
-                              instance_id_vector[i]);
-            continue;
+    if (instances_) {
+        IdArray *inst_array = addr<IdArray>(instances_);
+        for (int i = 0; i < inst_array->getSize(); ++i) {
+            Inst *instance = addr<Inst>((*inst_array)[i]);
+            if (!instance) {
+                message->issueMsg(kError,
+                                  "Cannot find instance with object id %d.\n",
+                                  inst_array[i]);
+                continue;
+            }
+            fprintf(fp, " %s", instance->getName().c_str());
         }
-        fprintf(fp, " %s", instance->getName().c_str());
     }
-    if (getHasRegion()) {
-        std::string region_name =
-            top_cell->getSymbolTable()->getSymbolByIndex(getRegionIndex());
-        fprintf(fp, "\n  + REGION %s", region_name.c_str());
+    if (region_) {
+        Constraint *region = addr<Constraint>(region_);
+        ediAssert(region != nullptr);
+        fprintf(fp, "\n  + REGION %s", region->getName().c_str());
     }
 
     writeDEFProperty<Group>((void *)this, fp);

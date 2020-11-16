@@ -16,6 +16,7 @@
 #include "db/core/object.h"
 #include "db/tech/property.h"
 #include "db/tech/type_def.h"
+#include "db/util/symbol_table.h"
 #include "util/util.h"
 
 namespace open_edi {
@@ -145,7 +146,7 @@ class NonDefaultRuleLayer : public Object {
 class NonDefaultRuleMinCuts : public Object {
   public:
     /// @brief default constructor
-    NonDefaultRuleMinCuts() : name_index_(-1), num_cuts_(0) {}
+    NonDefaultRuleMinCuts() : name_index_(kInvalidSymbolIndex), num_cuts_(0) {}
 
     /// @brief copy constructor
     NonDefaultRuleMinCuts(NonDefaultRuleMinCuts const &rhs);

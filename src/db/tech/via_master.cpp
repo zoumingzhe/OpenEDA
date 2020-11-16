@@ -35,8 +35,8 @@ SymbolIndex ViaLayer::getNameIndex() const { return name_index_; }
  * @param name
  */
 bool ViaLayer::setName(std::string const& name) {
-    int64_t index = getTopCell()->getOrCreateSymbol(name.c_str());
-    if (index == -1) return false;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(name.c_str());
+    if (index == kInvalidSymbolIndex) return false;
 
     name_index_ = index;
     getTopCell()->addSymbolReference(name_index_, this->getId());
@@ -205,8 +205,8 @@ std::string const& ViaMaster::getName() {
  * @param name
  */
 bool ViaMaster::setName(std::string const& name) {
-    int64_t index = getTopCell()->getOrCreateSymbol(name.c_str());
-    if (index == -1) return false;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(name.c_str());
+    if (index == kInvalidSymbolIndex) return false;
 
     name_index_ = index;
     getTopCell()->addSymbolReference(name_index_, this->getId());
@@ -228,8 +228,8 @@ std::string const& ViaMaster::getPattern() {
  * @param name
  */
 bool ViaMaster::setPattern(std::string const& pattern) {
-    int64_t index = getTopCell()->getOrCreateSymbol(pattern.c_str());
-    if (index == -1) return false;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(pattern.c_str());
+    if (index == kInvalidSymbolIndex) return false;
 
     pattern_index_ = index;
     getTopCell()->addSymbolReference(pattern_index_, this->getId());
@@ -610,8 +610,8 @@ std::string const& ViaMaster::getCutPatten() {
  * @param name
  */
 bool ViaMaster::setCutPatten(std::string const& cut_pattern) {
-    int64_t index = getTopCell()->getOrCreateSymbol(cut_pattern.c_str());
-    if (index == -1) return false;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(cut_pattern.c_str());
+    if (index == kInvalidSymbolIndex) return false;
 
     cut_patten_index_ = index;
     getTopCell()->addSymbolReference(cut_patten_index_, this->getId());

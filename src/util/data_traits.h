@@ -35,7 +35,8 @@ using Bits32 = uint32_t;
 using Bits64 = uint64_t;
 
 using ObjectId = uint64_t;
-using SymbolIndex = int64_t; // Symbol (string) index, consistent with SymbolTable
+using SymbolIndex = uint64_t; // Symbol (string) index,
+                              // consistent with SymbolTable
 using ObjectIndex = uint32_t; // Polygon, layer, rule, bus etc.
 using LocType = int32_t;
 

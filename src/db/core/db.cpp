@@ -63,7 +63,6 @@ bool initTopCell() {
             kError, "Create floorplan failed when initializing top cell.\n");
         return false;
     }
-    floorplan->setCell(cell_id);
 
     SymbolTable *st = new SymbolTable;
     if (nullptr == st) {

@@ -19,7 +19,9 @@
 namespace open_edi {
 namespace db {
 
-Property::Property() : definition_id_(0) { value_u_.string_value_ = -1; }
+Property::Property() : definition_id_(0) {
+    value_u_.string_value_ = kInvalidSymbolIndex;
+}
 
 Property::Property(Object *owner, UInt32 id) : BaseType(owner, id) {
     Property();
@@ -27,7 +29,8 @@ Property::Property(Object *owner, UInt32 id) : BaseType(owner, id) {
 
 Property::~Property() {
     PropDataType data_type = getDataType();
-    if (data_type == PropDataType::kString && value_u_.string_value_) {
+    if (data_type == PropDataType::kString && 
+            (value_u_.string_value_ != kInvalidSymbolIndex)) {
         SymbolTable *symbol_table = getTopCell()->getSymbolTable();
         symbol_table->removeReference(value_u_.string_value_, this->getId());
     }
@@ -62,7 +65,8 @@ void Property::copy(Property const &rhs) {
     this->BaseType::copy(rhs);
     definition_id_ = rhs.definition_id_;
     PropDataType data_type = getDataType();
-    if (data_type == PropDataType::kString && rhs.value_u_.string_value_) {
+    if (data_type == PropDataType::kString && 
+            (rhs.value_u_.string_value_ != kInvalidSymbolIndex)) {
         value_u_ = rhs.value_u_;
         getTopCell()->addSymbolReference(value_u_.string_value_, this->getId());
     } else {
@@ -221,7 +225,7 @@ void Property::setRealValue(double v) {
 void Property::setStringValue(const std::string &v) {
     PropDataType data_type = getDataType();
     if (data_type == PropDataType::kString) {
-        if (value_u_.string_value_ >= 0) {
+        if (value_u_.string_value_ != kInvalidSymbolIndex) {
             SymbolTable *symbol_table = getTopCell()->getSymbolTable();
             symbol_table->removeReference(value_u_.string_value_,
                                           this->getId());

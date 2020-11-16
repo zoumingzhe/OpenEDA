@@ -89,8 +89,8 @@ TCell::IndexType TCell::numPgTerms() const {
 TTerm *TCell::get_or_create_term(const std::string &name) {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto t = term_map_.find(idx);
             if (t != term_map_.end()) {
                 return Object::addr<TTerm>(t->second);
@@ -111,8 +111,8 @@ TTerm *TCell::get_or_create_term(const std::string &name) {
 TTerm *TCell::get_term(const std::string &name) {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto t = term_map_.find(idx);
             if (t != term_map_.end()) {
                 return Object::addr<TTerm>(t->second);
@@ -185,8 +185,8 @@ void TCell::reset_terms(const std::vector<TTerm *> &terms) {
 TPgTerm *TCell::get_or_create_pgTerm(const std::string &name) {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto t = pg_term_map_.find(idx);
             if (t != pg_term_map_.end()) {
                 return Object::addr<TPgTerm>(t->second);
@@ -205,8 +205,8 @@ TPgTerm *TCell::get_or_create_pgTerm(const std::string &name) {
 TPgTerm *TCell::get_pgTerm(const std::string &name) {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto t = pg_term_map_.find(idx);
             if (t != pg_term_map_.end()) {
                 return Object::addr<TPgTerm>(t->second);

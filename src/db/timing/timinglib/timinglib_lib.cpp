@@ -127,8 +127,8 @@ TCell *TLib::add_timing_cell(const std::string &name) {
 
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(name.c_str());
-        if (index != -1) {
+        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
             timing_cells_map_[index] = cell->getId();
             topCell->addSymbolReference(index, cell->getId());
         }
@@ -143,8 +143,8 @@ OperatingConditions *TLib::add_operating_conditions(const std::string &name) {
 
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(name.c_str());
-        if (index != -1) {
+        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
             operating_conditions_map_[index] = oc->getId();
             topCell->addSymbolReference(index, oc->getId());
         }
@@ -350,8 +350,8 @@ OperatingConditions *TLib::get_operating_conditions(
     const std::string &name) const {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto it = operating_conditions_map_.find(idx);
             if (it != operating_conditions_map_.end())
                 return addr<OperatingConditions>(it->second);
@@ -362,8 +362,8 @@ OperatingConditions *TLib::get_operating_conditions(
 WireLoad *TLib::get_wire_load(const std::string &name) const {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto it = wire_loads_map_.find(idx);
             if (it != wire_loads_map_.end())
                 return addr<WireLoad>(it->second);
@@ -374,8 +374,8 @@ WireLoad *TLib::get_wire_load(const std::string &name) const {
 WireLoadTable *TLib::get_wire_load_table(const std::string &name) {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto it = wire_load_tables_map_.find(idx);
             if (it != wire_load_tables_map_.end())
                 return addr<WireLoadTable>(it->second);
@@ -387,8 +387,8 @@ WireLoadSelection *TLib::get_wire_load_selection(
     const std::string &name) const {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto it = wire_load_selections_map_.find(idx);
             if (it != wire_load_selections_map_.end())
                 return addr<WireLoadSelection>(it->second);
@@ -399,8 +399,8 @@ WireLoadSelection *TLib::get_wire_load_selection(
 TableTemplate *TLib::get_table_template(const std::string &name) {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto it = table_templates_map_.find(idx);
             if (it != table_templates_map_.end())
                 return addr<TableTemplate>(it->second);
@@ -411,8 +411,8 @@ TableTemplate *TLib::get_table_template(const std::string &name) {
 TCell *TLib::get_timing_cell(const std::string &name) {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto it = timing_cells_map_.find(idx);
             if (it != timing_cells_map_.end())
                 return addr<TCell>(it->second);
