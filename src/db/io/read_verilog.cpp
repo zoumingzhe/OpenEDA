@@ -250,12 +250,15 @@ static bool readVerilogWireToDB(Cell *hcell,
         net_names.push_back(wire_name);
     }
     for (std::string net_name : net_names) {
-        net = hcell->createNet(net_name);
+        net = hcell->getNet(net_name);
         if (!net) {
-                message->issueMsg(kError,
-                        "create net %s failed for module %s.\n",
-                        net_name.c_str(), hcell->getName().c_str());
-                return false;
+            net = hcell->createNet(net_name);
+            if (!net) {
+                    message->issueMsg(kError,
+                            "create net %s failed for module %s.\n",
+                            net_name.c_str(), hcell->getName().c_str());
+                    return false;
+            }
         }
         if (is_tri) {
             net->setType(NetType::kNetTypeTri);
