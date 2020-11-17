@@ -195,12 +195,78 @@ Bits Net::getPattern() const { return pattern_; }
  * @return Bits
  */
 Bits Net::getIsSubNet() const { return is_sub_net_; }
+
+/**
+ * @brief is analog net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isAnalog() {return getType()==kNetTypeAnalog;}
+
+/**
+ * @brief is clock net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isClock() {return getType()==kNetTypeClock;}
+
+/**
+ * @brief is ground net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isGround(){return getType()== kNetTypeGround;}
+
+/**
+ * @brief is power net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isPower(){return getType()==kNetTypePower;}
+
+/**
+ * @brief is reset net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isReset(){return getType()==kNetTypeReset;}
+
+/**
+ * @brief is scan net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isScan() {return getType()==kNetTypeScan;}
+
+/**
+ * @brief is signal net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isSignal(){return getType()==kNetTypeSignal;}
+
+/**
+ * @brief is tie off net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isTieOff(){return getType()==kNetTypeTieOff;}
+
 /**
  * @brief Get the assign type
  *
  * @return AssignType
  */
 AssignType Net::getAssignType() const { return assign_type_; }
+
 /**
  * @brief Get the assign Net object
  *
@@ -423,13 +489,15 @@ Cell* Net::getCell() { return addr<Cell>(cell_); }
  *
  * @return Bits
  */
-Bits Net::getType() const { return net_type_; }
+NetType Net::getType() const { return static_cast<NetType>(net_type_); }
+
 /**
  * @brief Set the Type object
  *
  * @param type
  */
-void Net::setType(Bits net_type) { net_type_ = net_type; }
+void Net::setType(NetType net_type) { net_type_ = net_type; }
+
 /**
  * @brief Get the Rule object
  *
@@ -901,34 +969,14 @@ void Net::printDEF(FILE* fp) {
     if (origin_net_.size())
         fprintf(fp, "\n  + ORIGINAL %s ", origin_net_.c_str());
     if (net_type_) {
-        switch (net_type_) {
-            case 1:
-                fprintf(fp, "\n  + USE ANALOG");
-                break;
-            case 2:
-                fprintf(fp, "\n  + USE CLOCK");
-                break;
-            case 3:
-                fprintf(fp, "\n  + USE GROUND");
-                break;
-            case 4:
-                fprintf(fp, "\n  + USE POWER");
-                break;
-            case 5:
-                fprintf(fp, "\n  + USE RESET");
-                break;
-            case 6:
-                fprintf(fp, "\n  + USE SCAN");
-                break;
-            case 7:
-                fprintf(fp, "\n  + USE SIGNAL");
-                break;
-            case 8:
-                fprintf(fp, "\n  + USE TIEOFF");
-                break;
-            default:
-                break;
-        }
+        if (isAnalog()) fprintf(fp, "\n  + USE ANALOG");
+        if (isClock()) fprintf(fp, "\n  + USE CLOCK");
+        if (isGround()) fprintf(fp, "\n  + USE GROUND");
+        if (isPower()) fprintf(fp, "\n  + USE POWER");
+        if (isReset()) fprintf(fp, "\n  + USE RESET");
+        if (isScan()) fprintf(fp, "\n  + USE SCAN");
+        if (isSignal()) fprintf(fp, "\n  + USE SIGNAL");
+        if (isTieOff()) fprintf(fp, "\n  + USE TIEOFF");
     }
 
     if (pattern_) {

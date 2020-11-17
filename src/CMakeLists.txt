@@ -19,6 +19,8 @@ add_subdirectory(parser)
 # gui
 add_subdirectory(gui)
 # place
-add_subdirectory(DREAMPlace)
+if (CMAKE_PLACE)
+  add_subdirectory(DREAMPlace)
+endif(CMAKE_PLACE)
 # app main
 add_subdirectory(app)

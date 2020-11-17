@@ -6,18 +6,31 @@ set(_SUBBINNAME "openeda")
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
 file(GLOB_RECURSE SRCS *.cpp)
-
-link_directories(
-    ${PROJECT_BINARY_DIR}/src/db
-    ${PROJECT_BINARY_DIR}/src/parser
-    ${PROJECT_BINARY_DIR}/src/util
-    ${PROJECT_BINARY_DIR}/src/gui
-    ${PROJECT_BINARY_DIR}/src/console
-    ${TCL_DIR}/lib
-    ${Boost_LIBRARY_DIRS}
-    ${PROFILER_DIR}/lib
-    ${PROJECT_BINARY_DIR}/src/DREAMPlace
-    )
+if (CMAKE_PLACE) 
+  add_definitions(-D_MAKE_PLACE)
+  link_directories(
+      ${PROJECT_BINARY_DIR}/src/db
+      ${PROJECT_BINARY_DIR}/src/parser
+      ${PROJECT_BINARY_DIR}/src/util
+      ${PROJECT_BINARY_DIR}/src/gui
+      ${PROJECT_BINARY_DIR}/src/console
+      ${TCL_DIR}/lib
+      ${Boost_LIBRARY_DIRS}
+      ${PROFILER_DIR}/lib
+      ${PROJECT_BINARY_DIR}/src/DREAMPlace
+      )
+else (CMAKE_PLACE)
+  link_directories(
+      ${PROJECT_BINARY_DIR}/src/db
+      ${PROJECT_BINARY_DIR}/src/parser
+      ${PROJECT_BINARY_DIR}/src/util
+      ${PROJECT_BINARY_DIR}/src/gui
+      ${PROJECT_BINARY_DIR}/src/console
+      ${TCL_DIR}/lib
+      ${Boost_LIBRARY_DIRS}
+      ${PROFILER_DIR}/lib
+      )
+endif(CMAKE_PLACE)
 
  
 # set RPATH
@@ -29,10 +42,32 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 #set(CMAKE_BUILD_WITH_INSTALL_RPATH  TRUE)
 
 add_executable(${_SUBBINNAME} app_main.cpp)
-target_link_libraries(${_SUBBINNAME} PUBLIC 
-    openedi_tcl openedi_db openedi_util z boost_system boost_filesystem openedi_parser
-    openedi_lefrw openedi_lef openedi_defrw openedi_def openedi_tcl openedi_verilog
-    tcl8.6 profiler tcmalloc pthread openedi_gui openedi_DREAMPlace)
+
+if (CMAKE_PLACE) 
+  target_link_libraries(${_SUBBINNAME} PUBLIC 
+      openedi_tcl openedi_db openedi_util z boost_system boost_filesystem openedi_parser
+      openedi_lefrw openedi_lef openedi_defrw openedi_def openedi_tcl openedi_verilog
+      tcl8.6 profiler tcmalloc pthread openedi_gui openedi_DREAMPlace)
+  
+  target_include_directories(${_SUBBINNAME} PUBLIC
+      ${CMAKE_CURRENT_SOURCE_DIR}/.
+      ${CMAKE_CURRENT_SOURCE_DIR}/../DREAMPlace/dreamplace/ops
+      ${PROFILER_DIR}/include
+      ${Boost_HEADERS}
+      ${TCL_DIR}/include)
+else (CMAKE_PLACE)
+  target_link_libraries(${_SUBBINNAME} PUBLIC 
+      openedi_tcl openedi_db openedi_util z boost_system boost_filesystem openedi_parser
+      openedi_lefrw openedi_lef openedi_defrw openedi_def openedi_tcl openedi_verilog
+      tcl8.6 profiler tcmalloc pthread openedi_gui)
+  
+  target_include_directories(${_SUBBINNAME} PUBLIC
+      ${CMAKE_CURRENT_SOURCE_DIR}/.
+      ${PROFILER_DIR}/include
+      ${Boost_HEADERS}
+      ${TCL_DIR}/include)
+endif(CMAKE_PLACE)
+
 
 #target_link_libraries(${_SUBBINNAME} PUBLIC 
 #    ${_SUBLIBNAME} openedi_db openedi_util boost_system boost_filesystem openedi_parser
@@ -45,13 +80,6 @@ target_link_libraries(${_SUBBINNAME} PUBLIC
 #    ${PROFILER_DIR}/include
 #    ${Boost_HEADERS}
 #    ${TCL_DIR}/include)
-
-target_include_directories(${_SUBBINNAME} PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/.
-    ${CMAKE_CURRENT_SOURCE_DIR}/../DREAMPlace/dreamplace/ops
-    ${PROFILER_DIR}/include
-    ${Boost_HEADERS}
-    ${TCL_DIR}/include)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-g)
