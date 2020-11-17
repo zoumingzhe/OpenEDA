@@ -88,8 +88,8 @@ void TTermAttr::set_min_pulse_width_low(float f) { min_pulse_width_low_ = f; }
 void TTermAttr::set_name(const std::string &name) {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(name.c_str());
-        if (index != -1) {
+        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
             name_ = index;
             // topCell->addSymbolReference(name_, this->getId());
         }

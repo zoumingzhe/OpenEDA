@@ -99,6 +99,84 @@ bool Inst::getHasProperty() const { return has_property_; }
 
 void Inst::setHasProperty(bool flag) { has_property_ = flag; }
 
+Box Inst::getBox() {
+    Cell *cell = getMaster();
+    int llx = 0, lly = 0, urx = 0, ury = 0;
+    int origin_x = 0, origin_y = 0, size_x = 0, size_y = 0;
+    if (cell && cell->hasOrigin()) {
+        origin_x = cell->getOriginX();
+        origin_y = cell->getOriginY();
+    }
+
+    if (cell && cell->hasSize()) {
+        size_x = cell->getSizeX();
+        size_y = cell->getSizeY();
+    }
+
+    size_x += origin_x;
+    size_y += origin_y;
+
+    if (getOrient() == Orient::kN) {
+        llx = getLocation().getX();
+        lly = getLocation().getY();
+        urx = llx + size_x;
+        ury = lly + size_y;
+    }
+
+    if (getOrient() == Orient::kS) {
+        llx = getLocation().getX() - size_x;
+        lly = getLocation().getY() - size_y;
+        urx = getLocation().getX();
+        ury = getLocation().getY();
+    }
+
+    if (getOrient() == Orient::kW) {
+        llx = getLocation().getX() - size_y;
+        lly = getLocation().getY();
+        urx = getLocation().getX();
+        ury = getLocation().getY() + size_x;
+    }
+
+    if (getOrient() == Orient::kE) {
+        llx = getLocation().getX();
+        lly = getLocation().getY() - size_x;
+        urx = getLocation().getX() + size_y;
+        ury = getLocation().getY();
+    }
+
+    if (getOrient() == Orient::kFN) {
+        llx = getLocation().getX() - size_x;
+        lly = getLocation().getY();
+        urx = getLocation().getX();
+        ury = getLocation().getY() + size_y;
+    }
+
+    if (getOrient() == Orient::kFS) {
+        llx = getLocation().getX();
+        lly = getLocation().getY() - size_y;
+        urx = getLocation().getX() + size_x;
+        ury = getLocation().getY();
+    }
+
+    if (getOrient() == Orient::kFW) {
+        llx = getLocation().getX();
+        lly = getLocation().getY();
+        urx = getLocation().getX() + size_y;
+        ury = getLocation().getY() + size_x;
+    }
+
+    if (getOrient() == Orient::kFS) {
+        llx = getLocation().getX() - size_y;
+        lly = getLocation().getY() - size_x;
+        urx = getLocation().getX();
+        ury = getLocation().getY();
+    }
+
+    Box bbox(llx, lly, urx, ury);
+
+    return bbox;
+}
+
 void Inst::setName(std::string name) {
     name_index_ = getOwnerCell()->getOrCreateSymbol(name);
     getOwnerCell()->addSymbolReference(name_index_, this->getId());
@@ -258,7 +336,6 @@ Pin *Inst::createInstancePin(std::string &pin_name) {
     }
     Pin *pin = getOwnerCell()->createObject<Pin>(kObjectTypePin);
     pin->setName(pin_name);
-    pin->setOwner(getOwnerCell());
     pin->setInst(this);
     pin->setTerm(term);
     ArrayObject <ObjectId> *pin_vector = nullptr;
@@ -279,7 +356,6 @@ Pin *Inst::createInstancePin(std::string &pin_name) {
 Pin *Inst::createInstancePinWithoutMaster(std::string &pin_name) {
     Pin *pin = getOwnerCell()->createObject<Pin>(kObjectTypePin);
     pin->setName(pin_name);
-    pin->setOwner(getOwnerCell());
     pin->setInst(this);
     ArrayObject<ObjectId> *pin_vector = nullptr;
     if (pins_ == 0) {

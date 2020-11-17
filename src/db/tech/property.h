@@ -15,7 +15,7 @@
 
 #include "db/core/object.h"
 #include "db/tech/type_def.h"
-#include "db/util/vector_object_var.h"
+#include "db/util/array.h"
 #include "util/util.h"
 
 namespace open_edi {
@@ -107,10 +107,10 @@ void writeDEFProperty(void *obj, FILE *fp) {
     object_type *object = (object_type *)obj;
 
     if (object->getNumProperties() > 0) {
-        VectorObject16 *vobj =
-            Object::addr<VectorObject16>(object->getPropertiesId());
+        ArrayObject<ObjectId> *id_array_ptr =
+            Object::addr<ArrayObject<ObjectId>>(object->getPropertiesId());
         for (int i = 0; i < object->getNumProperties(); i++) {
-            ObjectId obj_id = (*vobj)[i];
+            ObjectId obj_id = (*id_array_ptr)[i];
             if (!obj_id) continue;
             Property *property = Object::addr<Property>(obj_id);
             if (property == nullptr) continue;

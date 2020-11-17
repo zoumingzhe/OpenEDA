@@ -14,11 +14,12 @@
 #include "db/core/cell.h"
 #include "db/core/db.h"
 #include "db/util/symbol_table.h"
-#include "db/util/vector_object_var.h"
+#include "db/util/array.h"
 #include "util/util.h"
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 Term::Term() : Term::BaseType() {
     name_index_ = 0;
@@ -41,21 +42,25 @@ Term::Term(Term const &rhs) { copy(rhs); }
 
 Term::Term(Term &&rhs) noexcept { move(std::move(rhs)); }
 
+Cell *Term::getCell() {
+    return getOwnerCell();
+}
+
 void Term::setName(std::string name) {
-    Cell *top_cell = getOwnerCell();
-    if (!top_cell) {
+    Cell *owner_cell = getOwnerCell();
+    if (!owner_cell) {
         message->issueMsg(kError,
                           "Cannot find top cell when set term name %s \n",
                           name.c_str());
         return;
     }
-    name_index_ = top_cell->getOrCreateSymbol(name);
-    top_cell->addSymbolReference(name_index_, this->getId());
+    name_index_ = owner_cell->getOrCreateSymbol(name);
+    owner_cell->addSymbolReference(name_index_, this->getId());
 }
 
 std::string &Term::getName() const {
-    Cell *top_cell = getOwnerCell();
-    return top_cell->getSymbolTable()->getSymbolByIndex(name_index_);
+    Cell *owner_cell = getOwnerCell();
+    return owner_cell->getSymbolTable()->getSymbolByIndex(name_index_);
 }
 
 Term &Term::operator=(Term const &rhs) {
@@ -106,18 +111,18 @@ IStreamBase &operator>>(IStreamBase &is, Term &rhs) {
 }
 
 std::string const &Term::getTaperRule() const {
-    Cell *top_cell = getOwnerCell();
-    return top_cell->getSymbolTable()->getSymbolByIndex(taper_rule_index_);
+    Cell *owner_cell = getOwnerCell();
+    return owner_cell->getSymbolTable()->getSymbolByIndex(taper_rule_index_);
 }
 
 void Term::setTaperRule(const char *v) {
-    Cell *top_cell = getOwnerCell();
-    if (!top_cell) {
+    Cell *owner_cell = getOwnerCell();
+    if (!owner_cell) {
         message->issueMsg(kError, "Cannot find top cell \n");
         return;
     }
-    taper_rule_index_ = top_cell->getOrCreateSymbol(v);
-    top_cell->addSymbolReference(taper_rule_index_, this->getId());
+    taper_rule_index_ = owner_cell->getOrCreateSymbol(v);
+    owner_cell->addSymbolReference(taper_rule_index_, this->getId());
 }
 
 bool Term::hasDirection() const { 
@@ -125,6 +130,22 @@ bool Term::hasDirection() const {
         return true;
     }
     return false;
+}
+
+bool Term::isInput() {
+    return (direction_ == SignalDirection::kInput);
+}
+
+bool Term::isOutput() {
+    return (direction_ == SignalDirection::kOutput);
+}
+
+bool Term::isInOut() {
+    return (direction_ == SignalDirection::kInout);
+}
+
+bool Term::isFeedthru() {
+    return (direction_ == SignalDirection::kFeedThrough);
 }
 
 void Term::setDirection(const char *v) {
@@ -176,18 +197,18 @@ bool Term::isPGType() const {
 SymbolIndex Term::getNetExprIndex() const { return net_expr_index_; }
 
 std::string const &Term::getNetExpr() const {
-    Cell *top_cell = getOwnerCell();
-    return top_cell->getSymbolTable()->getSymbolByIndex(net_expr_index_);
+    Cell *owner_cell = getOwnerCell();
+    return owner_cell->getSymbolTable()->getSymbolByIndex(net_expr_index_);
 }
 
 void Term::setNetExpr(const char *v) {
-    Cell *top_cell = getOwnerCell();
-    if (!top_cell) {
+    Cell *owner_cell = getOwnerCell();
+    if (!owner_cell) {
         message->issueMsg(kError, "Cannot find top cell \n");
         return;
     }
-    net_expr_index_ = top_cell->getOrCreateSymbol(v);
-    top_cell->addSymbolReference(net_expr_index_, this->getId());
+    net_expr_index_ = owner_cell->getOrCreateSymbol(v);
+    owner_cell->addSymbolReference(net_expr_index_, this->getId());
 }
 
 SymbolIndex Term::getSupplySensitivityIndex() const {
@@ -195,19 +216,19 @@ SymbolIndex Term::getSupplySensitivityIndex() const {
 }
 
 std::string const &Term::getSupplySensitivity() const {
-    Cell *top_cell = getOwnerCell();
-    return top_cell->getSymbolTable()->getSymbolByIndex(
+    Cell *owner_cell = getOwnerCell();
+    return owner_cell->getSymbolTable()->getSymbolByIndex(
         supply_sensitivity_index_);
 }
 
 void Term::setSupplySensitivity(const char *v) {
-    Cell *top_cell = getOwnerCell();
-    if (!top_cell) {
+    Cell *owner_cell = getOwnerCell();
+    if (!owner_cell) {
         message->issueMsg(kError, "Cannot find top cell \n");
         return;
     }
-    supply_sensitivity_index_ = top_cell->getOrCreateSymbol(v);
-    top_cell->addSymbolReference(supply_sensitivity_index_, this->getId());
+    supply_sensitivity_index_ = owner_cell->getOrCreateSymbol(v);
+    owner_cell->addSymbolReference(supply_sensitivity_index_, this->getId());
 }
 
 SymbolIndex Term::getGroundSensitivityIndex() const {
@@ -215,49 +236,49 @@ SymbolIndex Term::getGroundSensitivityIndex() const {
 }
 
 std::string const &Term::getGroundSensitivity() const {
-    Cell *top_cell = getOwnerCell();
-    return top_cell->getSymbolTable()->getSymbolByIndex(
+    Cell *owner_cell = getOwnerCell();
+    return owner_cell->getSymbolTable()->getSymbolByIndex(
         ground_sensitivity_index_);
 }
 
 void Term::setGroundSensitivity(const char *v) {
-    Cell *top_cell = getOwnerCell();
-    if (!top_cell) {
+    Cell *owner_cell = getOwnerCell();
+    if (!owner_cell) {
         message->issueMsg(kError, "Cannot find top cell \n");
         return;
     }
-    ground_sensitivity_index_ = top_cell->getOrCreateSymbol(v);
-    top_cell->addSymbolReference(ground_sensitivity_index_, this->getId());
+    ground_sensitivity_index_ = owner_cell->getOrCreateSymbol(v);
+    owner_cell->addSymbolReference(ground_sensitivity_index_, this->getId());
 }
 
 std::string const &Term::getMustjoin() const {
-    Cell *top_cell = getOwnerCell();
-    return top_cell->getSymbolTable()->getSymbolByIndex(mustjoin_index_);
+    Cell *owner_cell = getOwnerCell();
+    return owner_cell->getSymbolTable()->getSymbolByIndex(mustjoin_index_);
 }
 
 void Term::setMustjoin(const char *v) {
-    Cell *top_cell = getOwnerCell();
-    if (!top_cell) {
+    Cell *owner_cell = getOwnerCell();
+    if (!owner_cell) {
         message->issueMsg(kError, "Cannot find top cell \n");
         return;
     }
-    mustjoin_index_ = top_cell->getOrCreateSymbol(v);
-    top_cell->addSymbolReference(mustjoin_index_, this->getId());
+    mustjoin_index_ = owner_cell->getOrCreateSymbol(v);
+    owner_cell->addSymbolReference(mustjoin_index_, this->getId());
 }
 
 std::string const &Term::getShape() const {
-    Cell *top_cell = getOwnerCell();
-    return top_cell->getSymbolTable()->getSymbolByIndex(shape_index_);
+    Cell *owner_cell = getOwnerCell();
+    return owner_cell->getSymbolTable()->getSymbolByIndex(shape_index_);
 }
 
 void Term::setShape(const char *v) {
-    Cell *top_cell = getOwnerCell();
-    if (!top_cell) {
+    Cell *owner_cell = getOwnerCell();
+    if (!owner_cell) {
         message->issueMsg(kError, "Cannot find top cell \n");
         return;
     }
-    shape_index_ = top_cell->getOrCreateSymbol(v);
-    top_cell->addSymbolReference(shape_index_, this->getId());
+    shape_index_ = owner_cell->getOrCreateSymbol(v);
+    owner_cell->addSymbolReference(shape_index_, this->getId());
 }
 
 void Term::addAntennaModelTerm(int index, AntennaModelTerm *am) {
@@ -266,48 +287,40 @@ void Term::addAntennaModelTerm(int index, AntennaModelTerm *am) {
 }
 
 void AntennaArea::setLayerName(const char *v) {
-    Cell *top_cell = getOwnerCell();
-    if (!top_cell) {
+    Cell *owner_cell = getOwnerCell();
+    if (!owner_cell) {
         message->issueMsg(kError,
                           "Cannot find top cell when set layer name %s \n", v);
         return;
     }
-    layer_name_index_ = top_cell->getOrCreateSymbol(v);
-    top_cell->addSymbolReference(layer_name_index_, this->getId());
+    layer_name_index_ = owner_cell->getOrCreateSymbol(v);
+    owner_cell->addSymbolReference(layer_name_index_, this->getId());
 }
 
 std::string &AntennaArea::getLayerName() const {
-    Cell *top_cell = getOwnerCell();
-    return top_cell->getSymbolTable()->getSymbolByIndex(layer_name_index_);
+    Cell *owner_cell = getOwnerCell();
+    return owner_cell->getSymbolTable()->getSymbolByIndex(layer_name_index_);
 }
 
 void AntennaModelTerm::addAntennaGateArea(ObjectId aa) {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_gate_areas_ == 0) {
-        Cell *top_cell = getOwnerCell();
-        if (!top_cell) {
-            message->issueMsg(
-                kError, "Cannot find top cell when create vectorobject32.\n");
-            return;
-        }
-        vct = top_cell->createVectorObject<VectorObject32>();
-        if (vct == nullptr) return;
-        antenna_gate_areas_ = vct->getId();
-    } else {
-        vct = Object::addr<VectorObject32>(antenna_gate_areas_);
+        antenna_gate_areas_ = __createObjectIdArray(32);
     }
-    if (vct) vct->push_back(aa);
+    if (antenna_gate_areas_ == 0) return;
+    id_array_ptr = Object::addr<IdArray>(antenna_gate_areas_);
+    if (id_array_ptr) id_array_ptr->pushBack(aa);
 }
 
 AntennaArea *AntennaModelTerm::getAntennaGateArea(int index) const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_gate_areas_ == 0)
         return nullptr;
     else
-        vct = Object::addr<VectorObject32>(antenna_gate_areas_);
-    if (vct) {
+        id_array_ptr = Object::addr<IdArray>(antenna_gate_areas_);
+    if (id_array_ptr) {
         AntennaArea *obj_data =
-            Object::addr<AntennaArea>((*vct)[index]);
+            Object::addr<AntennaArea>((*id_array_ptr)[index]);
         if (obj_data) {
             return obj_data;
         }
@@ -316,44 +329,36 @@ AntennaArea *AntennaModelTerm::getAntennaGateArea(int index) const {
 }
 
 int AntennaModelTerm::getAntennaGateAreaNum() const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_gate_areas_ == 0)
         return 0;
     else
-        vct = Object::addr<VectorObject32>(antenna_gate_areas_);
-    if (vct)
-        return vct->totalSize();
+        id_array_ptr = Object::addr<IdArray>(antenna_gate_areas_);
+    if (id_array_ptr)
+        return id_array_ptr->getSize();
     else
         return 0;
 }
 
 void AntennaModelTerm::addAntennaMaxAreaCar(ObjectId aa) {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_max_area_cars_ == 0) {
-        Cell *top_cell = getOwnerCell();
-        if (!top_cell) {
-            message->issueMsg(
-                kError, "Cannot find top cell when create vectorobject32.\n");
-            return;
-        }
-        vct = top_cell->createVectorObject<VectorObject32>();
-        if (vct == nullptr) return;
-        antenna_max_area_cars_ = vct->getId();
-    } else {
-        vct = Object::addr<VectorObject32>(antenna_max_area_cars_);
+        antenna_max_area_cars_ = __createObjectIdArray(32);
     }
-    if (vct) vct->push_back(aa);
+    if (antenna_max_area_cars_ == 0) return;
+    id_array_ptr = Object::addr<IdArray>(antenna_max_area_cars_);
+    if (id_array_ptr) id_array_ptr->pushBack(aa);
 }
 
 AntennaArea *AntennaModelTerm::getAntennaMaxAreaCar(int index) const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_max_area_cars_ == 0)
         return nullptr;
     else
-        vct = Object::addr<VectorObject32>(antenna_max_area_cars_);
-    if (vct) {
+        id_array_ptr = Object::addr<IdArray>(antenna_max_area_cars_);
+    if (id_array_ptr) {
         AntennaArea *obj_data =
-            Object::addr<AntennaArea>((*vct)[index]);
+            Object::addr<AntennaArea>((*id_array_ptr)[index]);
         if (obj_data) {
             return obj_data;
         }
@@ -362,46 +367,37 @@ AntennaArea *AntennaModelTerm::getAntennaMaxAreaCar(int index) const {
 }
 
 int AntennaModelTerm::getAntennaMaxAreaCarNum() const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_max_area_cars_ == 0)
         return 0;
     else
-        vct = Object::addr<VectorObject32>(antenna_max_area_cars_);
-    if (vct)
-        return vct->totalSize();
+        id_array_ptr = Object::addr<IdArray>(antenna_max_area_cars_);
+    if (id_array_ptr)
+        return id_array_ptr->getSize();
     else
         return 0;
 }
 
 void AntennaModelTerm::addAntennaMaxSideAreaCar(ObjectId aa) {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_max_side_area_cars_ == 0) {
-        Cell *top_cell = getOwnerCell();
-        if (!top_cell) {
-            message->issueMsg(
-                kError, "Cannot find top cell when create vectorobject32.\n");
-            return;
-        }
-        vct = top_cell->createVectorObject<VectorObject32>();
-        if (vct == nullptr) return;
-        antenna_max_side_area_cars_ = vct->getId();
-    } else {
-        vct =
-            Object::addr<VectorObject32>(antenna_max_side_area_cars_);
+        antenna_max_side_area_cars_ = __createObjectIdArray(32);
     }
-    if (vct) vct->push_back(aa);
+    if (antenna_max_side_area_cars_ == 0) return;
+    id_array_ptr = Object::addr<IdArray>(antenna_max_side_area_cars_);
+    if (id_array_ptr) id_array_ptr->pushBack(aa);
 }
 
 AntennaArea *AntennaModelTerm::getAntennaMaxSideAreaCar(int index) const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_max_side_area_cars_ == 0)
         return nullptr;
     else
-        vct =
-            Object::addr<VectorObject32>(antenna_max_side_area_cars_);
-    if (vct) {
+        id_array_ptr =
+            Object::addr<IdArray>(antenna_max_side_area_cars_);
+    if (id_array_ptr) {
         AntennaArea *obj_data =
-            Object::addr<AntennaArea>((*vct)[index]);
+            Object::addr<AntennaArea>((*id_array_ptr)[index]);
         if (obj_data) {
             return obj_data;
         }
@@ -410,45 +406,37 @@ AntennaArea *AntennaModelTerm::getAntennaMaxSideAreaCar(int index) const {
 }
 
 int AntennaModelTerm::getAntennaMaxSideAreaCarNum() const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_max_side_area_cars_ == 0)
         return 0;
     else
-        vct =
-           Object:: addr<VectorObject32>(antenna_max_side_area_cars_);
-    if (vct)
-        return vct->totalSize();
+        id_array_ptr =
+           Object:: addr<IdArray>(antenna_max_side_area_cars_);
+    if (id_array_ptr)
+        return id_array_ptr->getSize();
     else
         return 0;
 }
 
 void AntennaModelTerm::addAntennaMaxCutCar(ObjectId aa) {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_max_cut_cars_ == 0) {
-        Cell *top_cell = getOwnerCell();
-        if (!top_cell) {
-            message->issueMsg(
-                kError, "Cannot find top cell when create vectorobject32.\n");
-            return;
-        }
-        vct = top_cell->createVectorObject<VectorObject32>();
-        if (vct == nullptr) return;
-        antenna_max_cut_cars_ = vct->getId();
-    } else {
-        vct = Object::addr<VectorObject32>(antenna_max_cut_cars_);
+        antenna_max_cut_cars_ = __createObjectIdArray(32);
     }
-    if (vct) vct->push_back(aa);
+    if (antenna_max_cut_cars_ == 0) return;
+    id_array_ptr = Object::addr<IdArray>(antenna_max_cut_cars_);
+    if (id_array_ptr) id_array_ptr->pushBack(aa);
 }
 
 AntennaArea *AntennaModelTerm::getAntennaMaxCutCar(int index) const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_max_cut_cars_ == 0)
         return nullptr;
     else
-        vct = Object::addr<VectorObject32>(antenna_max_cut_cars_);
-    if (vct) {
+        id_array_ptr = Object::addr<IdArray>(antenna_max_cut_cars_);
+    if (id_array_ptr) {
         AntennaArea *obj_data =
-            Object::addr<AntennaArea>((*vct)[index]);
+            Object::addr<AntennaArea>((*id_array_ptr)[index]);
         if (obj_data) {
             return obj_data;
         }
@@ -457,46 +445,37 @@ AntennaArea *AntennaModelTerm::getAntennaMaxCutCar(int index) const {
 }
 
 int AntennaModelTerm::getAntennaMaxCutCarNum() const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_max_cut_cars_ == 0)
         return 0;
     else
-        vct = Object::addr<VectorObject32>(antenna_max_cut_cars_);
-    if (vct)
-        return vct->totalSize();
+        id_array_ptr = Object::addr<IdArray>(antenna_max_cut_cars_);
+    if (id_array_ptr)
+        return id_array_ptr->getSize();
     else
         return 0;
 }
 
 void Term::addAntennaPartialMetalArea(ObjectId aa) {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_partial_metal_areas_ == 0) {
-        Cell *top_cell = getOwnerCell();
-        if (!top_cell) {
-            message->issueMsg(
-                kError, "Cannot find top cell when create vectorobject32.\n");
-            return;
-        }
-        vct = top_cell->createVectorObject<VectorObject32>();
-        if (vct == nullptr) return;
-        antenna_partial_metal_areas_ = vct->getId();
-    } else {
-        vct =
-            addr<VectorObject32>(antenna_partial_metal_areas_);
+        antenna_partial_metal_areas_ = __createObjectIdArray(32);
     }
-    if (vct) vct->push_back(aa);
+    if (antenna_partial_metal_areas_ == 0) return;
+    id_array_ptr = Object::addr<IdArray>(antenna_partial_metal_areas_);
+    if (id_array_ptr) id_array_ptr->pushBack(aa);
 }
 
 AntennaArea *Term::getAntennaPartialMetalArea(int index) const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_partial_metal_areas_ == 0)
         return nullptr;
     else
-        vct =
-            addr<VectorObject32>(antenna_partial_metal_areas_);
-    if (vct) {
+        id_array_ptr =
+            addr<IdArray>(antenna_partial_metal_areas_);
+    if (id_array_ptr) {
         AntennaArea *obj_data =
-            addr<AntennaArea>((*vct)[index]);
+            addr<AntennaArea>((*id_array_ptr)[index]);
         if (obj_data) {
             return obj_data;
         }
@@ -505,47 +484,38 @@ AntennaArea *Term::getAntennaPartialMetalArea(int index) const {
 }
 
 int Term::getAntennaPartialMetalAreaNum() const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_partial_metal_areas_ == 0)
         return 0;
     else
-        vct =
-            addr<VectorObject32>(antenna_partial_metal_areas_);
-    if (vct)
-        return vct->totalSize();
+        id_array_ptr =
+            addr<IdArray>(antenna_partial_metal_areas_);
+    if (id_array_ptr)
+        return id_array_ptr->getSize();
     else
         return 0;
 }
 
 void Term::addAntennaPartialMetalSideArea(ObjectId aa) {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_partial_metal_side_areas_ == 0) {
-        Cell *top_cell = getOwnerCell();
-        if (!top_cell) {
-            message->issueMsg(
-                kError, "Cannot find top cell when create vectorobject32.\n");
-            return;
-        }
-        vct = top_cell->createVectorObject<VectorObject32>();
-        if (vct == nullptr) return;
-        antenna_partial_metal_side_areas_ = vct->getId();
-    } else {
-        vct = addr<VectorObject32>(
-            antenna_partial_metal_side_areas_);
+        antenna_partial_metal_side_areas_ = __createObjectIdArray(32);
     }
-    if (vct) vct->push_back(aa);
+    if (antenna_partial_metal_side_areas_ == 0) return;
+    id_array_ptr = Object::addr<IdArray>(antenna_partial_metal_side_areas_);
+    if (id_array_ptr) id_array_ptr->pushBack(aa);
 }
 
 AntennaArea *Term::getAntennaPartialMetalSideArea(int index) const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_partial_metal_side_areas_ == 0)
         return nullptr;
     else
-        vct = addr<VectorObject32>(
+        id_array_ptr = addr<IdArray>(
             antenna_partial_metal_side_areas_);
-    if (vct) {
+    if (id_array_ptr) {
         AntennaArea *obj_data =
-            addr<AntennaArea>((*vct)[index]);
+            addr<AntennaArea>((*id_array_ptr)[index]);
         if (obj_data) {
             return obj_data;
         }
@@ -554,45 +524,37 @@ AntennaArea *Term::getAntennaPartialMetalSideArea(int index) const {
 }
 
 int Term::getAntennaPartialMetalSideAreaNum() const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_partial_metal_side_areas_ == 0)
         return 0;
     else
-        vct = addr<VectorObject32>(
+        id_array_ptr = addr<IdArray>(
             antenna_partial_metal_side_areas_);
-    if (vct)
-        return vct->totalSize();
+    if (id_array_ptr)
+        return id_array_ptr->getSize();
     else
         return 0;
 }
 
 void Term::addAntennaPartialCutArea(ObjectId aa) {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_partial_cut_areas_ == 0) {
-        Cell *top_cell = getOwnerCell();
-        if (!top_cell) {
-            message->issueMsg(
-                kError, "Cannot find top cell when create vectorobject32.\n");
-            return;
-        }
-        vct = top_cell->createVectorObject<VectorObject32>();
-        if (vct == nullptr) return;
-        antenna_partial_cut_areas_ = vct->getId();
-    } else {
-        vct = addr<VectorObject32>(antenna_partial_cut_areas_);
+        antenna_partial_cut_areas_ = __createObjectIdArray(32);
     }
-    if (vct) vct->push_back(aa);
+    if (antenna_partial_cut_areas_ == 0) return;
+    id_array_ptr = Object::addr<IdArray>(antenna_partial_cut_areas_);
+    if (id_array_ptr) id_array_ptr->pushBack(aa);
 }
 
 AntennaArea *Term::getAntennaPartialCutArea(int index) const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_partial_cut_areas_ == 0)
         return nullptr;
     else
-        vct = addr<VectorObject32>(antenna_partial_cut_areas_);
-    if (vct) {
+        id_array_ptr = addr<IdArray>(antenna_partial_cut_areas_);
+    if (id_array_ptr) {
         AntennaArea *obj_data =
-            addr<AntennaArea>((*vct)[index]);
+            addr<AntennaArea>((*id_array_ptr)[index]);
         if (obj_data) {
             return obj_data;
         }
@@ -601,44 +563,36 @@ AntennaArea *Term::getAntennaPartialCutArea(int index) const {
 }
 
 int Term::getAntennaPartialCutAreaNum() const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_partial_cut_areas_ == 0)
         return 0;
     else
-        vct = addr<VectorObject32>(antenna_partial_cut_areas_);
-    if (vct)
-        return vct->totalSize();
+        id_array_ptr = addr<IdArray>(antenna_partial_cut_areas_);
+    if (id_array_ptr)
+        return id_array_ptr->getSize();
     else
         return 0;
 }
 
 void Term::addAntennaDiffArea(ObjectId aa) {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_diff_areas_ == 0) {
-        Cell *top_cell = getOwnerCell();
-        if (!top_cell) {
-            message->issueMsg(
-                kError, "Cannot find top cell when create vectorobject32.\n");
-            return;
-        }
-        vct = top_cell->createVectorObject<VectorObject32>();
-        if (vct == nullptr) return;
-        antenna_diff_areas_ = vct->getId();
-    } else {
-        vct = addr<VectorObject32>(antenna_diff_areas_);
+        antenna_diff_areas_ = __createObjectIdArray(32);
     }
-    if (vct) vct->push_back(aa);
+    if (antenna_diff_areas_ == 0) return;
+    id_array_ptr = Object::addr<IdArray>(antenna_diff_areas_);
+    if (id_array_ptr) id_array_ptr->pushBack(aa);
 }
 
 AntennaArea *Term::getAntennaDiffArea(int index) const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_diff_areas_ == 0)
         return nullptr;
     else
-        vct = addr<VectorObject32>(antenna_diff_areas_);
-    if (vct) {
+        id_array_ptr = addr<IdArray>(antenna_diff_areas_);
+    if (id_array_ptr) {
         AntennaArea *obj_data =
-            addr<AntennaArea>((*vct)[index]);
+            addr<AntennaArea>((*id_array_ptr)[index]);
         if (obj_data) {
             return obj_data;
         }
@@ -647,43 +601,35 @@ AntennaArea *Term::getAntennaDiffArea(int index) const {
 }
 
 int Term::getAntennaDiffAreaNum() const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (antenna_diff_areas_ == 0)
         return 0;
     else
-        vct = addr<VectorObject32>(antenna_diff_areas_);
-    if (vct)
-        return vct->totalSize();
+        id_array_ptr = addr<IdArray>(antenna_diff_areas_);
+    if (id_array_ptr)
+        return id_array_ptr->getSize();
     else
         return 0;
 }
 
 void Term::addPort(ObjectId p) {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (ports_ == 0) {
-        Cell *top_cell = getOwnerCell();
-        if (!top_cell) {
-            message->issueMsg(
-                kError, "Cannot find top cell when create vectorobject32.\n");
-            return;
-        }
-        vct = top_cell->createVectorObject<VectorObject32>();
-        if (vct == nullptr) return;
-        ports_ = vct->getId();
-    } else {
-        vct = addr<VectorObject32>(ports_);
+        ports_ = __createObjectIdArray(32);
     }
-    if (vct) vct->push_back(p);
+    if (ports_ == 0) return;
+    id_array_ptr = Object::addr<IdArray>(ports_);
+    if (id_array_ptr) id_array_ptr->pushBack(p);
 }
 
 Port *Term::getPort(int index) const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (ports_ == 0)
         return nullptr;
     else
-        vct = addr<VectorObject32>(ports_);
-    if (vct) {
-        Port *obj_data = addr<Port>((*vct)[index]);
+        id_array_ptr = addr<IdArray>(ports_);
+    if (id_array_ptr) {
+        Port *obj_data = addr<Port>((*id_array_ptr)[index]);
         if (obj_data) {
             return obj_data;
         }
@@ -692,13 +638,13 @@ Port *Term::getPort(int index) const {
 }
 
 int Term::getPortNum() const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (ports_ == 0)
         return 0;
     else
-        vct = addr<VectorObject32>(ports_);
-    if (vct)
-        return vct->totalSize();
+        id_array_ptr = addr<IdArray>(ports_);
+    if (id_array_ptr)
+        return id_array_ptr->getSize();
     else
         return 0;
 }
@@ -757,7 +703,7 @@ void Term::print() const {
             AntennaArea *a = getAntennaPartialMetalArea(i);
             message->info("      ANTENNAPARTIALMETALAREA %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -767,7 +713,7 @@ void Term::print() const {
             AntennaArea *a = getAntennaPartialMetalSideArea(i);
             message->info("      ANTENNAPARTIALMETALSIDEAREA %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -777,7 +723,7 @@ void Term::print() const {
             AntennaArea *a = getAntennaPartialCutArea(i);
             message->info("      ANTENNAPARTIALCUTAREA %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -787,7 +733,7 @@ void Term::print() const {
             AntennaArea *a = getAntennaDiffArea(i);
             message->info("      ANTENNADIFFAREA %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -811,7 +757,7 @@ void AntennaModelTerm::print() const {
             AntennaArea *a = getAntennaGateArea(i);
             message->info("      ANTENNAGATEAREA %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -822,7 +768,7 @@ void AntennaModelTerm::print() const {
             AntennaArea *a = getAntennaMaxAreaCar(i);
             message->info("      ANTENNAMAXAREACAR %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -833,7 +779,7 @@ void AntennaModelTerm::print() const {
             AntennaArea *a = getAntennaMaxSideAreaCar(i);
             message->info("      ANTENNAMAXSIDEAREACAR %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -844,7 +790,7 @@ void AntennaModelTerm::print() const {
             AntennaArea *a = getAntennaMaxCutCar(i);
             message->info("      ANTENNAMAXCUTCAR %g ",
                           lib->areaDBUToMicrons(a->getArea()));
-            if (a->getLayerNameID())
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 message->info("LAYER %s ", a->getLayerName().c_str());
             message->info(";\n");
         }
@@ -861,6 +807,14 @@ Port::Port() {
 }
 
 Port::~Port() {}
+
+void Port::setTermId(ObjectId term_id) {
+    term_id_ = term_id;
+}
+
+Term *Port::getTerm() {
+    return addr<Term>(term_id_);
+}
 
 bool Port::getHasPlacement() const { return has_placement_; }
 
@@ -879,48 +833,40 @@ Orient Port::getOrient() const { return orient_; }
 void Port::setOrient(Orient o) { orient_ = o; }
 
 void Port::setClass(const char *v) {
-    Cell *top_cell = getOwnerCell();
-    if (!top_cell) {
+    Cell *owner_cell = getOwnerCell();
+    if (!owner_cell) {
         message->issueMsg(kError,
                           "Cannot find top cell when set term name %s \n", v);
         return;
     }
-    class_index_ = top_cell->getOrCreateSymbol(v);
-    top_cell->addSymbolReference(class_index_, this->getId());
+    class_index_ = owner_cell->getOrCreateSymbol(v);
+    owner_cell->addSymbolReference(class_index_, this->getId());
 }
 
 std::string &Port::getClass() const {
-    Cell *top_cell = getOwnerCell();
-    return top_cell->getSymbolTable()->getSymbolByIndex(class_index_);
+    Cell *owner_cell = getOwnerCell();
+    return owner_cell->getSymbolTable()->getSymbolByIndex(class_index_);
 }
 
 void Port::addLayerGeometry(ObjectId v) {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (layer_geometries_ == 0) {
-        Cell *top_cell = getOwnerCell();
-        if (!top_cell) {
-            message->issueMsg(
-                kError, "Cannot find top cell when create vectorobject32.\n");
-            return;
-        }
-        vct = top_cell->createVectorObject<VectorObject32>();
-        if (vct == nullptr) return;
-        layer_geometries_ = vct->getId();
-    } else {
-        vct = addr<VectorObject32>(layer_geometries_);
+        layer_geometries_ = __createObjectIdArray(32);
     }
-    if (vct) vct->push_back(v);
+    if (layer_geometries_ == 0) return;
+    id_array_ptr = Object::addr<IdArray>(layer_geometries_);
+    if (id_array_ptr) id_array_ptr->pushBack(v);
 }
 
 LayerGeometry *Port::getLayerGeometry(int index) const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (layer_geometries_ == 0)
         return nullptr;
     else
-        vct = addr<VectorObject32>(layer_geometries_);
-    if (vct) {
+        id_array_ptr = addr<IdArray>(layer_geometries_);
+    if (id_array_ptr) {
         LayerGeometry *obj_data =
-            addr<LayerGeometry>((*vct)[index]);
+            addr<LayerGeometry>((*id_array_ptr)[index]);
         if (obj_data) {
             return obj_data;
         }
@@ -929,13 +875,13 @@ LayerGeometry *Port::getLayerGeometry(int index) const {
 }
 
 int Port::getLayerGeometryNum() const {
-    VectorObject32 *vct = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (layer_geometries_ == 0)
         return 0;
     else
-        vct = addr<VectorObject32>(layer_geometries_);
-    if (vct)
-        return vct->totalSize();
+        id_array_ptr = addr<IdArray>(layer_geometries_);
+    if (id_array_ptr)
+        return id_array_ptr->getSize();
     else
         return 0;
 }
@@ -992,7 +938,7 @@ void Term::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaPartialMetalArea(i);
             ofs << "      ANTENNAPARTIALMETALAREA "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }
@@ -1002,7 +948,7 @@ void Term::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaPartialMetalSideArea(i);
             ofs << "      ANTENNAPARTIALMETALSIDEAREA "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }
@@ -1012,7 +958,7 @@ void Term::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaPartialCutArea(i);
             ofs << "      ANTENNAPARTIALCUTAREA "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }
@@ -1022,7 +968,7 @@ void Term::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaDiffArea(i);
             ofs << "      ANTENNADIFFAREA "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }
@@ -1046,7 +992,7 @@ void AntennaModelTerm::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaGateArea(i);
             ofs << "      ANTENNAGATEAREA "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }
@@ -1057,7 +1003,7 @@ void AntennaModelTerm::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaMaxAreaCar(i);
             ofs << "      ANTENNAMAXAREACAR "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }
@@ -1068,7 +1014,7 @@ void AntennaModelTerm::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaMaxSideAreaCar(i);
             ofs << "      ANTENNAMAXSIDEAREACAR "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }
@@ -1079,7 +1025,7 @@ void AntennaModelTerm::printLEF(std::ofstream &ofs) const {
             AntennaArea *a = getAntennaMaxCutCar(i);
             ofs << "      ANTENNAMAXCUTCAR "
                 << lib->areaDBUToMicrons(a->getArea());
-            if (a->getLayerNameID() >= 0)
+            if (a->getLayerNameID() != kInvalidSymbolIndex)
                 ofs << " LAYER " << a->getLayerName().c_str();
             ofs << " ;\n";
         }

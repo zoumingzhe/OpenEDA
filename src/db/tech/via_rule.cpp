@@ -41,8 +41,8 @@ SymbolIndex ViaRule::getNameIndex() const { return name_index_; }
  * @param name
  */
 bool ViaRule::setName(std::string const &name) {
-    int64_t index = getTopCell()->getOrCreateSymbol(name.c_str());
-    if (index == -1) return false;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(name.c_str());
+    if (index == kInvalidSymbolIndex) return false;
 
     name_index_ = index;
     getTopCell()->addSymbolReference(name_index_, this->getId());

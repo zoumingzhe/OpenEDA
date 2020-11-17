@@ -75,7 +75,7 @@ class Tech : public Object {
     ObjectId getPropertyDefinitionVectorId(PropType type);
     ObjectId getPropertyDefinitionId(PropType type, const char *prop_name);
     MaxViaStack *getMaxViaStack() const;
-    void setMaxViaStack(MaxViaStack *mvs);
+    void setMaxViaStack(ObjectId mvs_id);
     ViaRule *getViaRule() const;
     ViaRule *getViaRule(const char *name) const;
     ObjectId getNonDefaultRuleVectorId() const;
@@ -131,7 +131,8 @@ class Tech : public Object {
     ObjectId layer_ids_;
     ObjectId sites_;
     ObjectId property_definitions_array_[static_cast<int>(PropType::kUnknown)];
-    MaxViaStack *max_via_stack_;
+    // MaxViaStack *max_via_stack_;
+    ObjectId max_via_stack_;
     ObjectId via_rules_;
     ObjectId ndr_rules_;
     ObjectId via_masters_;

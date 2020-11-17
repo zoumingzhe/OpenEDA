@@ -13,6 +13,7 @@
 
 #include <string>
 
+#include "db/core/object.h"
 #include "db/tech/layer.h"
 
 namespace open_edi {
@@ -23,7 +24,7 @@ namespace db {
  * @brief
  * implementation of MAXVIASTACK rules
  */
-class MaxViaStack {
+class MaxViaStack : public Object {
   public:
     MaxViaStack();
     ~MaxViaStack();
