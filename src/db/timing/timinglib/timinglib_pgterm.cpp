@@ -87,8 +87,8 @@ void TPgTerm::print(std::ostream& stream) {
 void TPgTerm::set_name(const std::string& name) {
     Cell* topCell = getTopCell();
     if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(name.c_str());
-        if (index != -1) {
+        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
             name_ = index;
             topCell->addSymbolReference(name_, this->getId());
         }
@@ -99,8 +99,8 @@ void TPgTerm::set_pg_type(PGType t) { pg_type_ = t; }
 void TPgTerm::set_voltage_name(const std::string& name) {
     Cell* topCell = getTopCell();
     if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(name.c_str());
-        if (index != -1) {
+        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
             voltage_name_ = index;
             topCell->addSymbolReference(voltage_name_, this->getId());
         }

@@ -22,12 +22,12 @@
 namespace open_edi {
 namespace db {
 
-//removed PortType, since it's redundant with enum SignalDirection...
+class Term;
 
 class AntennaArea : public Object {
   public:
-    AntennaArea() { layer_name_index_ = -1; }
-    AntennaArea(double a) : area_(a), layer_name_index_(-1) {}
+    AntennaArea() { layer_name_index_ = kInvalidSymbolIndex; }
+    AntennaArea(double a) : area_(a), layer_name_index_(kInvalidSymbolIndex) {}
     //  AntennaArea(int a, const char * layer):area_(a),layer_name_(layer){}
     ~AntennaArea() {}
     void setArea(double a) { area_ = a; }
@@ -76,6 +76,9 @@ class Port : public Object {
     Port();
     ~Port();
 
+    void setTermId(ObjectId term_id);
+    Term *getTerm();
+
     void setClass(const char* v);
     std::string& getClass() const;
     void addLayerGeometry(ObjectId v);
@@ -93,6 +96,7 @@ class Port : public Object {
     void setOrient(Orient o);
 
   private:
+    ObjectId term_id_;
     // lef information
     SymbolIndex class_index_;
     ObjectId layer_geometries_;
@@ -132,6 +136,8 @@ class Term : public Object {
     /// @brief move assignment
     Term& operator=(Term&& rhs) noexcept;
 
+    Cell* getCell(); // cell pointer, Macro or Module
+
     void setName(std::string name);
     std::string& getName() const;
 
@@ -154,6 +160,10 @@ class Term : public Object {
 
     //LEF: PIN DIRECTION
     bool hasDirection() const;
+    bool isInput(); // DIRECTION INPUT
+    bool isOutput(); // DIRECTION OUTPUT
+    bool isInOut(); // DIRECTION INOUT
+    bool isFeedthru(); // DIRECTION FEEDTHRU
     void setDirection(const char* v);
     void setDirection(SignalDirection v);
 

@@ -44,7 +44,10 @@ message(STATUS "TCL_DIR = ${TCL_DIR}")
 
 #endif (TCL_FOUND)
 
-set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
+# set install to default when it's not setted by user
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set (CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Prefix prepended to current source directories" FORCE )
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 # set gperf path
 set(PROFILER_DIR ${OPT_PATH}/gperftools-2.7.90)
@@ -111,6 +114,7 @@ add_subdirectory(thirdparty)
 # python version is determined by pybind11 in thirdparty 
 message(STATUS "PYTHON_EXECUTABLE: ${PYTHON_EXECUTABLE}")
 message(STATUS "PYTHON_VERSION: ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
+option(CMAKE_PLACE "Whether compile place" TRUE)
 
 add_subdirectory(src)
 add_subdirectory(unittest)

@@ -1,4 +1,4 @@
-project(flow)
+project(place_flow)
 
 if (CUDA_FOUND)
     file(GLOB CUDA_SOURCES

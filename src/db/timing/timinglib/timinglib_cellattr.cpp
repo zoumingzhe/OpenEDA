@@ -108,8 +108,8 @@ void TCellAttr::set_clock_gating_integrated_cell(ClockGateIntegratedType t) {
 void TCellAttr::set_name(const std::string &name) {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(name.c_str());
-        if (index != -1) {
+        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
             name_ = index;
             // topCell->addSymbolReference(name_, this->getId());
         }
@@ -118,8 +118,8 @@ void TCellAttr::set_name(const std::string &name) {
 void TCellAttr::set_cell_footprint(const std::string &cf) {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(cf.c_str());
-        if (index != -1) {
+        SymbolIndex index = topCell->getOrCreateSymbol(cf.c_str());
+        if (index != kInvalidSymbolIndex) {
             cell_footprint_ = index;
             // topCell->addSymbolReference(cell_footprint_, this->getId());
         }
@@ -128,8 +128,8 @@ void TCellAttr::set_cell_footprint(const std::string &cf) {
 void TCellAttr::set_retention_cell(const std::string &rc) {
     Cell *topCell = getTopCell();
     if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(rc.c_str());
-        if (index != -1) {
+        SymbolIndex index = topCell->getOrCreateSymbol(rc.c_str());
+        if (index != kInvalidSymbolIndex) {
             retention_cell_ = index;
             // topCell->addSymbolReference(retention_cell_, this->getId());
         }

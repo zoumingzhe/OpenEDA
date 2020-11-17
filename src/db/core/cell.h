@@ -440,10 +440,19 @@ class Cell : public Object {
     ObjectId foreigns_;
     ObjectId densities_;
     ObjectId obses_;
-    ObjectId
-        mask_shift_layers_[max_layer_num];  ///< Component mask shift in DEF
+    // timinglib
+    ObjectId analysis_modes_;
+    ObjectId analysis_corners_;
+    ObjectId analysis_views_;
+    ObjectId active_setup_views_;
+    ObjectId active_hold_views_;
+    // timinglib
+    
+    ///< Component mask shift in DEF
+    ObjectId mask_shift_layers_[max_layer_num];
     uint8_t num_mask_shift_layers_;
-
+    
+    // Bits:
     Bits has_origin_ : 1;
     Bits has_eeq_ : 1;
     Bits has_size_ : 1;
@@ -452,14 +461,6 @@ class Cell : public Object {
     Bits has_90_symmetry_ : 1;
     Bits has_site_name_ : 1;
     Bits is_fixed_mask_ : 1;
-
-    // timinglib
-    ObjectId analysis_modes_;
-    ObjectId analysis_corners_;
-    ObjectId analysis_views_;
-    ObjectId active_setup_views_;
-    ObjectId active_hold_views_;
-    // timinglib
 };
 
 /// @brief createObject create object within memory pool

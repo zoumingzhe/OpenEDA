@@ -128,8 +128,8 @@ bool NonDefaultRuleLayer::hasEdgeCapacitance() const {
 
 // Set:
 void NonDefaultRuleLayer::setName(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     name_index_ = index;
     getTopCell()->addSymbolReference(name_index_, this->getId());
@@ -271,6 +271,8 @@ OStreamBase &operator<<(OStreamBase &os, NonDefaultRuleLayer const &rhs) {
        << rhs.has_capacitance_per_square_ << DataDelimiter();
     os << DataFieldName("has_edge_capacitance_") << rhs.has_edge_capacitance_;
     os << DataEnd(")");
+
+    return os;
 }
 
 // Class NonDefaultRuleMinCuts
@@ -333,8 +335,8 @@ uint32_t NonDefaultRuleMinCuts::getNumCuts() const { return num_cuts_; }
 
 // Set:
 void NonDefaultRuleMinCuts::setName(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     name_index_ = index;
     getTopCell()->addSymbolReference(name_index_, this->getId());
@@ -355,6 +357,7 @@ OStreamBase &operator<<(OStreamBase &os, NonDefaultRuleMinCuts const &rhs) {
     os << DataFieldName("name_index_") << rhs.name_index_ << DataDelimiter();
     os << DataFieldName("num_cuts_") << rhs.num_cuts_;
     os << DataEnd(")");
+    return os;
 }
 
 // Class NonDefaultRule:
@@ -519,8 +522,8 @@ ObjectId NonDefaultRule::getPropertiesId() const { return properties_; }
 
 // Set:
 void NonDefaultRule::setName(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     name_index_ = index;
     getTopCell()->addSymbolReference(name_index_, this->getId());

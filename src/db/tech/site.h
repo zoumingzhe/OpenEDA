@@ -15,6 +15,7 @@
 #include "db/core/object.h"
 #include "db/tech/type_def.h"
 #include "util/util.h"
+#include "db/util/symbol_table.h"
 
 namespace open_edi {
 namespace db {
@@ -24,7 +25,8 @@ using Orient = open_edi::util::Orient;
 class SitePatternPair : public Object {
   public:
     /// @brief default constructor
-    SitePatternPair() : name_index_(-1), orientation_(Orient::kUnknown) {}
+    SitePatternPair() : 
+        name_index_(kInvalidSymbolIndex), orientation_(Orient::kUnknown) {}
     /// @brief copy constructor
     SitePatternPair(SitePatternPair const &rhs);
     SitePatternPair(const char *name, Orient orientation);

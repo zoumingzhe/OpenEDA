@@ -246,8 +246,8 @@ TimingTable* TimingArc::get_fall_constraint(void) {
 TTerm* TimingArc::get_related_pin(const std::string& name) {
     Cell* topCell = getTopCell();
     if (topCell) {
-        int64_t id = topCell->getOrCreateSymbol(name.c_str());
-        if (id != -1) {
+        SymbolIndex id = topCell->getOrCreateSymbol(name.c_str());
+        if (id != kInvalidSymbolIndex) {
             auto p = related_pins_map_.find(id);
             if (p != related_pins_map_.end()) return get_related_pin(p->second);
         }

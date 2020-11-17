@@ -71,9 +71,6 @@ class Inst : public Object {
 
     std::string getName() const;
     void setName(std::string name);
-    Cell *getCell() const;
-    void setCell(const std::string &name);
-    void setCell(const Cell *cell);
     Cell *getParent() const;
     void setParent(const std::string name);
     void setParent(const Cell *cell);
@@ -94,6 +91,8 @@ class Inst : public Object {
     Pin *createInstancePin(std::string &pin_name);
     Pin *createInstancePinWithoutMaster(std::string &pin_name);
     void addCell(Cell *model);
+
+    Box getBox();
 
     PlaceStatus getStatus() const;
     void setStatus(const PlaceStatus &s);
