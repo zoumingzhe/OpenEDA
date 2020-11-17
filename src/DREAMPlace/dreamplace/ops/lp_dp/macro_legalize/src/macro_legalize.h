@@ -28,7 +28,7 @@ class MacroLegal
     MacroLegal &operator=(const MacroLegal&) = delete;  // no copy
 
     // common DB interface : get
-    bool           isCommonDBReady()          const { return db_->isCommonDBReady();          }
+    bool           isCommonDBReady()          const { return db_ && db_->isCommonDBReady();   }
     Coord*         getInitX()                 const { return db_->getInitX();                 }
     Coord*         getInitY()                 const { return db_->getInitX();                 }
     Coord*         getNodeSizeX()             const { return db_->getNodeSizeX();             }
@@ -75,7 +75,7 @@ class MacroLegal
     // interface 
     void run();
   private:
-    CommonPlaceDB* db_;
+    CommonPlaceDB* db_ = nullptr;
 };
 
 DREAMPLACE_END_NAMESPACE

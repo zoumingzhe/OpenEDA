@@ -146,7 +146,7 @@ namespace eval tclreadline {
                     # } else {
                     #     set prompt_string "\[0;31m$base\[0m"
                     # }
-                    set prompt_string "%"
+                    set prompt_string "openEDA% "
 
                 }
 
@@ -220,12 +220,11 @@ namespace eval tclreadline {
                 set historyfile [lindex $args 0]
             }
         } else {
-#            if {[info exists env(HOME)]} {
-#                set historyfile .tclsh-history
-#            } else {
-#                set historyfile .tclsh-history
-#            }
-            set historyfile $tclreadline::installPath/src/gui/console/lib/.tclsh-history
+           if {[file exists $tclreadline::historyPath\share/etc/tcl]} {
+               set historyfile $tclreadline::historyPath\share/etc/tcl/.tclsh-history
+           } else {
+               set historyfile $tclreadline::historyPath\src/gui/console/lib/.tclsh-history
+           }            
         }
         set ::tclreadline::errorMsg [readline initialize $historyfile]
         if {$::tclreadline::errorMsg != ""} {

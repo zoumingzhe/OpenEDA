@@ -2122,8 +2122,7 @@ uint64_t Layer::getNameId() const {
 ///
 /// @return 
 const char* Layer::getName() {
-    std::string name = getCell_()->getSymbolByIndex(nameId_);
-    return name.c_str();
+    return getCell_()->getSymbolByIndex(nameId_).c_str();
 }
 
 /**
@@ -2142,7 +2141,7 @@ void Layer::setNameId(uint64_t id) {
 /// @return 
 bool Layer::setName(const char *name) {
     SymbolIndex sym_id = getCell_()->getOrCreateSymbol(name);
-    if (sym_id >= 0) {
+    if (sym_id != kInvalidSymbolIndex) {
         setNameId(sym_id);
         return true;
     }

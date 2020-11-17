@@ -1235,7 +1235,7 @@ int readSubNet(defiNet* io_net, Net* net) {
                     Inst* inst = top_cell->getInstance(inst_name.c_str());
                     if (inst) pin = inst->getPin(io_net->pin(i));
                 }
-                if (!pin) pin = top_cell->getVPin(io_net->pin(i));
+                if (!pin) pin = top_cell->getIOPin(io_net->pin(i));
 
                 // if (pin) sub_net->addPin(pin);
             }
@@ -2561,18 +2561,22 @@ int readGroup(defiGroup* io_group) {
 
     for (int i = 0; i < kGroupCompNamePatterns.size(); ++i) {
         group->addPattern(kGroupCompNamePatterns[i]);
+        // TODO (ly): wildcard matching.
         Inst* instance = top_cell->getInstance(kGroupCompNamePatterns[i]);
         if (!instance) {
             message->issueMsg(kError, "Cannot find instance %s \n",
                               kGroupCompNamePatterns[i]);
             continue;
         }
-        group->addInstanceId(instance->getId());
+        group->addInstance(instance->getId());
     }
 
     if (io_group->hasRegionName()) {
-        group->setHasRegion(true);
-        group->addRegion(io_group->regionName());
+        std::string name = io_group->regionName();
+        Constraint* region = top_cell->getFloorplan()->getRegion(name);
+        if (region != nullptr) {
+            group->setRegion(region->getId());
+        }
     }
 
     readProperties<defiGroup, Group>(PropType::kGroup,
@@ -3015,6 +3019,7 @@ int readPin(defiPin* def_pin) {
                 p->setOrient(convertDefIntToOrient(def_pin->orient()));
             }
         }
+        p->setTermId(term->getId());
         term->addPort(p->getId());
     }
     if (def_pin->hasPort()) {
@@ -3113,6 +3118,7 @@ int readPin(defiPin* def_pin) {
                     p->setOrient(convertDefIntToOrient(port->orient()));
                 }
             }
+            p->setTermId(term->getId());
             term->addPort(p->getId());
         }
     }

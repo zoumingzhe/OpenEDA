@@ -93,8 +93,8 @@ AnalysisCorner::IndexType AnalysisCorner::memory() const {
 void AnalysisCorner::set_name(const std::string& name) {
     Cell* topCell = getTopCell();
     if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             name_ = idx;
             topCell->addSymbolReference(name_, this->getId());
         }
@@ -103,8 +103,8 @@ void AnalysisCorner::set_name(const std::string& name) {
 void AnalysisCorner::set_rc_tech_file(const std::string& file) {
     Cell* topCell = getTopCell();
     if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(file.c_str());
-        if (idx != -1) {
+        SymbolIndex idx = topCell->getOrCreateSymbol(file.c_str());
+        if (idx != kInvalidSymbolIndex) {
             rc_tech_file_ = idx;
             topCell->addSymbolReference(rc_tech_file_, this->getId());
         }

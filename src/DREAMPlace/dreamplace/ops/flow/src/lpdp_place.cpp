@@ -73,6 +73,7 @@ LpdpPlace::run()
     KReorder kReorder;
     kReorder.run();
   }
+  dreamplacePrint(kINFO, "Finish LP_DP run \n");
 }
 
 DREAMPLACE_END_NAMESPACE

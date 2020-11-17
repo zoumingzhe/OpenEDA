@@ -1633,6 +1633,10 @@ namespace eval tclreadline {
         return ""
     }
 
+    proc complete(read_lef) {text start end line pos mod} {
+        return [CompleteFromList $text {-dump -verStr -ver -sessionless}]
+    }
+
     proc complete(clock) {text start end line pos mod} {
         set cmd [Lindex $line 1]
         switch -- $pos {

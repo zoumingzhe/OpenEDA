@@ -44,7 +44,10 @@ message(STATUS "TCL_DIR = ${TCL_DIR}")
 
 #endif (TCL_FOUND)
 
-set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR})
+# set install to default when it's not setted by user
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set (CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}" CACHE PATH "Prefix prepended to current source directories" FORCE )
+endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
 # set gperf path
 set(PROFILER_DIR ${OPT_PATH}/gperftools-2.7.90)
@@ -65,7 +68,7 @@ find_package(Doxygen)
 #  set(EDI_BIND_TCL OFF)
 #endif(TCL_FOUND)
 
-set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -Wreturn-type )
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wreturn-type  -Wno-attributes")
 
 message(STATUS "CMAKE_HOST_SYSTEM: ${CMAKE_HOST_SYSTEM}")
 message(STATUS "CMAKE_CXX_COMPILER_VERSION: ${CMAKE_CXX_COMPILER_VERSION}")
@@ -88,6 +91,14 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 # testing are defined in unittest directory 
 enable_testing()
 
+OPTION(ENABLE_GCOV "Enable gcov (debug, Linux builds only)" OFF)
+message(STATUS "GCOV: ${ENABLE_GCOV}")
+IF (ENABLE_GCOV)
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
+    SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage -lgcov")
+ENDIF()
+
 option(CMAKE_USE_PYTHON2 "Whether use python2 instead of python3" OFF)
 if(CMAKE_USE_PYTHON2)
   find_package(PythonInterp 2)
@@ -103,6 +114,7 @@ add_subdirectory(thirdparty)
 # python version is determined by pybind11 in thirdparty 
 message(STATUS "PYTHON_EXECUTABLE: ${PYTHON_EXECUTABLE}")
 message(STATUS "PYTHON_VERSION: ${PYTHON_VERSION_MAJOR}.${PYTHON_VERSION_MINOR}")
+option(CMAKE_PLACE "Whether compile place" TRUE)
 
 add_subdirectory(src)
 add_subdirectory(unittest)

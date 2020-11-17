@@ -25,12 +25,13 @@ using namespace open_edi::util;
 typedef enum ObjectType {
     kObjectTypeNone = 0,
     kObjectTypeCell,
+    kObjecTypeHierData,
     kObjectTypeFloorplan,
     kObjectTypeCellSitePattern,
     kObjectTypeForeign,
     kObjectTypeDensity,
     kObjectTypeDensityLayer,
-    kObjectTypeHierCell,
+    //kObjectTypeHierCell,
     kObjectTypeTerm,
     kObjectTypeBus,
     kObjectTypePort,
@@ -106,6 +107,8 @@ typedef enum ObjectType {
     kObjectTypeSitePatternPair,
     kObjectTypeArray,
     kObjectTypeArraySegment,
+    kObjectTypeMaxViaStack,
+    kObjectTypeAntennaModelTerm,
     kObjectTypeInternalVectorStarts = 4096,
     kObjectTypeMax
 } ObjectType;
@@ -122,6 +125,7 @@ class ArrayObject : public std::vector<T> {
 #endif
 
 #define UNINIT_OBJECT_ID 0
+class Cell;
 
 class Object {
   public:
@@ -158,12 +162,16 @@ class Object {
     ~Object();
 
     /// @brief get the owner of the object
-    /// @return the pointer of the owner
+    /// @return the owner id
     ObjectId const getOwnerId() const { return owner_; }
 
     /// @brief get the owner of the object
-    /// @return the pointer of the owner
+    /// @return the owner id
     ObjectId getOwnerId() { return owner_; }
+
+    /// @brief get the owner cell of the object
+    /// @return the owner Cell
+    Cell *getOwnerCell() const;
 
     /// @brief set the owner of the object
     void setOwner(Object *v) { owner_ = v->getId(); }
@@ -211,6 +219,9 @@ class Object {
 
     template <class T>
     static int __getInternalTypeForVectorObject();
+
+    ObjectId __createObjectIdArray(int64_t size);
+    void __deleteObjectIdArray(ObjectId array_id);
 
     IndexType is_valid_ : 1;
     IndexType is_selected_ : 1;

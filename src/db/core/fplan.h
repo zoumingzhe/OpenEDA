@@ -400,7 +400,6 @@ class Floorplan : public Object {
     void copy(Floorplan const &fp);
     void move(Floorplan &&rhs);
 
-    void setCell(ObjectId cell);
     Cell *getCell();
 
     Constraint *createPlaceBlockage();
@@ -445,7 +444,6 @@ class Floorplan : public Object {
     ObjectId place_blockages_;
     ObjectId route_blockages_;
     ObjectId regions_;
-    ObjectId cell_;
 };  // class Floorplan
 
 }  // namespace db

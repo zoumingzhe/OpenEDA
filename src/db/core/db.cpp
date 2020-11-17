@@ -45,6 +45,7 @@ bool initTopCell() {
     kTopCell->setId(cell_id);
     kTopCell->setOwner(cell_id);
     kTopCell->setObjectType(kObjectTypeCell);
+    kTopCell->setCellType(CellType::kHierCell);
     kTopCell->setPool(pool);
     MemPool::insertPagePool(cell_id, pool);
 
@@ -62,7 +63,6 @@ bool initTopCell() {
             kError, "Create floorplan failed when initializing top cell.\n");
         return false;
     }
-    floorplan->setCell(cell_id);
 
     SymbolTable *st = new SymbolTable;
     if (nullptr == st) {

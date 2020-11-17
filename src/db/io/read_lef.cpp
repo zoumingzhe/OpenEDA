@@ -19,6 +19,7 @@
 #include <string>
 
 #include "db/core/db.h"
+#include "db/core/object.h"
 #include "db/util/geometrys.h"
 #include "db/util/property_definition.h"
 #include "util/polygon_table.h"
@@ -606,7 +607,7 @@ int macroCB(lefrCallbackType_e c, lefiMacro *macro, lefiUserData) {
         
     // fprintf(fout, "  SITE %s ;\n", macro->lefiMacro::siteName());
     if (macro->lefiMacro::hasSitePattern()) {
-        cell->setNumSites(macro->lefiMacro::numSitePattern());
+        //cell->setNumSites(macro->lefiMacro::numSitePattern());
         for (i = 0; i < macro->lefiMacro::numSitePattern(); i++) {
             SitePattern *siteP = current_top_cell->createObject<SitePattern>(
                 kObjectTypeCellSitePattern);
@@ -640,7 +641,7 @@ int macroCB(lefrCallbackType_e c, lefiMacro *macro, lefiUserData) {
     }
 
     if (macro->lefiMacro::hasForeign()) {
-        cell->setNumForeigns(macro->lefiMacro::numForeigns());
+        //cell->setNumForeigns(macro->lefiMacro::numForeigns());
         for (i = 0; i < macro->lefiMacro::numForeigns(); i++) {
             Foreign *f =
                 current_top_cell->createObject<Foreign>(kObjectTypeForeign);
@@ -677,6 +678,17 @@ int macroEndCB(lefrCallbackType_e c, const char *macroName, lefiUserData) {
 int manufacturingCB(lefrCallbackType_e c, double num, lefiUserData) {
     checkType(c);
     Tech *lib = getTopCell()->getTechLib();
+    // Based on the recommended behavior,
+    // when manufacture-grid is smaller than db-micron,
+    // the db-micron should be changed.
+    Units *units = lib->getUnits();
+    if (units) {
+        UInt32 dbu = units->getLengthFactor();
+        double dbu_based_grid = (1.0 / num);
+        if ((UInt32)dbu_based_grid > dbu) {
+            units->setLengthFactor((UInt32)dbu_based_grid);
+        }
+    }
     lib->setManuGrids(lib->micronsToDBU(num));
     return 0;
 }
@@ -684,18 +696,20 @@ int manufacturingCB(lefrCallbackType_e c, double num, lefiUserData) {
 int maxStackViaCB(lefrCallbackType_e c, lefiMaxStackVia *maxStack,
                   lefiUserData) {
     checkType(c);
-    MaxViaStack *mvs = new MaxViaStack();
+    MaxViaStack *mvs = getTopCell()->createObject<MaxViaStack>(kObjectTypeMaxViaStack);
     mvs->setNumStackedVia(maxStack->lefiMaxStackVia::maxStackVia());
     if (maxStack->lefiMaxStackVia::hasMaxStackViaRange()) {
-        mvs->setIsRange(true);
         int top_id = getTopCell()->getTechLib()->getLayerLEFIndexByName(
             maxStack->lefiMaxStackVia::maxStackViaTopLayer());
         mvs->setTopLayerId(top_id);
         int bot_id = getTopCell()->getTechLib()->getLayerLEFIndexByName(
             maxStack->lefiMaxStackVia::maxStackViaBottomLayer());
         mvs->setBotLayerId(bot_id);
+        if (top_id != -1 && bot_id != -1) {
+            mvs->setIsRange(true);
+        }
     }
-    getTopCell()->getTechLib()->setMaxViaStack(mvs);
+    getTopCell()->getTechLib()->setMaxViaStack(mvs->getId());
     return 0;
 }
 
@@ -813,7 +827,8 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
 
     for (j = 0; j < pin->lefiPin::numAntennaModel(); j++) {
         aModel = pin->lefiPin::antennaModel(j);
-        AntennaModelTerm *am = new AntennaModelTerm();
+        AntennaModelTerm *am = current_top_cell->createObject<AntennaModelTerm>(
+                    kObjectTypeAntennaModelTerm);
         std::string oxide_string = aModel->lefiPinAntennaModel::antennaOxide();
         oxide_string = oxide_string.substr(5);
         int oxide = stoi(oxide_string);
@@ -900,6 +915,7 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
             }
         }
         prtGeometry(geometry, p);
+        p->setTermId(term->getId());
         term->addPort(p->getId());
     }
     if (currentCell)

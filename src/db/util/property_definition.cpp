@@ -17,11 +17,13 @@
 namespace open_edi {
 namespace db {
 
-PropertyDefinition::PropertyDefinition() : prop_type_ (PropType::kUnknown), name_index_(-1), 
-  data_type_(PropDataType::kUnknown), from_def_(false), has_range_(0), has_value_(0) {
+PropertyDefinition::PropertyDefinition() :
+    prop_type_ (PropType::kUnknown), name_index_(kInvalidSymbolIndex), 
+  data_type_(PropDataType::kUnknown), from_def_(false),
+    has_range_(0), has_value_(0) {
   range_u_.int_range_.min = INT_MIN;
   range_u_.int_range_.max = INT_MAX;
-  value_u_.string_value_ = -1;
+  value_u_.string_value_ = kInvalidSymbolIndex;
 }
 
 PropertyDefinition::PropertyDefinition(Object* owner, UInt32 id) : BaseType(owner, id) {
@@ -29,7 +31,8 @@ PropertyDefinition::PropertyDefinition(Object* owner, UInt32 id) : BaseType(owne
 }
 
 PropertyDefinition::~PropertyDefinition() {
-  if (data_type_ == PropDataType::kString && value_u_.string_value_) {
+  if (data_type_ == PropDataType::kString &&
+          (value_u_.string_value_ != kInvalidSymbolIndex)) {
       SymbolTable *symbol_table = getTopCell()->getSymbolTable();
       symbol_table->removeReference(value_u_.string_value_, this->getId());    
   }
@@ -80,7 +83,8 @@ void PropertyDefinition::copy(PropertyDefinition const &rhs) {
   has_range_ = rhs.has_range_;
   has_value_ = rhs.has_value_;
   range_u_ = rhs.range_u_;
-  if (rhs.data_type_ == PropDataType::kString && rhs.value_u_.string_value_) {
+  if (rhs.data_type_ == PropDataType::kString &&
+          (rhs.value_u_.string_value_ != kInvalidSymbolIndex)) {
     value_u_ = rhs.value_u_;
     getTopCell()->addSymbolReference(value_u_.string_value_, this->getId());    
   } else {
@@ -159,7 +163,7 @@ void PropertyDefinition::setPropType(PropType v) {
 }
 
 void PropertyDefinition::setPropName(const std::string & v) { 
-  if (name_index_ >= 0) {
+  if (name_index_ != kInvalidSymbolIndex) {
     SymbolTable *symbol_table = getTopCell()->getSymbolTable();
     symbol_table->removeReference(name_index_, this->getId());
   }
@@ -213,7 +217,7 @@ void PropertyDefinition::setRealValue(double v) {
 
 void PropertyDefinition::setStringValue(const std::string & v) { 
   if (data_type_ == PropDataType::kString) {
-    if (value_u_.string_value_ >= 0) {
+    if (value_u_.string_value_ != kInvalidSymbolIndex) {
       SymbolTable *symbol_table = getTopCell()->getSymbolTable();
       symbol_table->removeReference(value_u_.string_value_, this->getId());
     }

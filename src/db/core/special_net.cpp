@@ -164,7 +164,7 @@ void SpecialNet::setWeight(double weight) { weight_ = weight; }
  */
 bool SpecialNet::setName(std::string const& name) {
     int64_t index = getTopCell()->getOrCreateSymbol(name.c_str());
-    if (index == -1) return false;
+    if (index == kInvalidSymbolIndex) return false;
 
     name_index_ = index;
     getTopCell()->addSymbolReference(name_index_, this->getId());
