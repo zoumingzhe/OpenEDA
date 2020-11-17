@@ -163,6 +163,7 @@ Net::Net() {
     weight_ = 0;
     origin_net_ = "";
     assign_net_ = 0;
+    assign_type_ = kAssignTypeUnknown;
     v_pins_ = 0;
     properties_id_ = 0;
 }

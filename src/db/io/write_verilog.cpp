@@ -175,7 +175,9 @@ static bool writeModule(std::ostream *out_stream, Cell *cell) {
                 }
             }
             AssignType assign_type = net->getAssignType();
-            if (assign_type != kAssignTypeUnknown) {
+            if ((assign_type == kAssignTypeNet) ||
+                (assign_type == kAssignTypeInt) ||
+                (assign_type == kAssignTypeReal)) {
                 assign_nets.push_back(net);
             }
 
