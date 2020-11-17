@@ -53,7 +53,7 @@ SymbolIndex SymbolTable::isSymbolInTable(std::string name)
 {
     std::unordered_map<std::string, SymbolIndex>::const_iterator
         got = hash_.find(name);
-    return ((got != hash_.end()) ? got->second : 0);
+    return ((got != hash_.end()) ? got->second : kInvalidSymbolIndex);
 }
 
 /// @brief getOrCreateSymbol 
@@ -65,11 +65,11 @@ SymbolIndex SymbolTable::isSymbolInTable(std::string name)
 SymbolIndex SymbolTable::getOrCreateSymbol(const char *name, bool check)
 {
     int32_t array_index = 0;
-    int64_t symbol_index = 0;
+    SymbolIndex symbol_index = kInvalidSymbolIndex;
 
     if (check) {
         symbol_index = isSymbolInTable(name);
-        if (symbol_index != 0) {
+        if (symbol_index != kInvalidSymbolIndex) {
             return symbol_index;
         }
     }
@@ -161,7 +161,7 @@ bool SymbolTable::addReference(SymbolIndex index, ObjectId owner)
 /// @return 
 bool SymbolTable::removeReference(SymbolIndex symbol_index, ObjectId owner)
 {
-    if ((symbol_index < 0) || (symbol_index > symbol_count_))
+    if ((symbol_index == kInvalidSymbolIndex) || (symbol_index > symbol_count_))
     {
         return false;
     }
