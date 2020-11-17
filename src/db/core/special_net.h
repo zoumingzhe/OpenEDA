@@ -24,6 +24,18 @@ namespace db {
 
 class SpecialWire;
 
+enum SpecialNetType {
+    kSpecialNetTypeAnalog = 1,
+    kSpecialNetTypeClock = 2,
+    kSpecialNetTypeGround = 3,
+    kSpecialNetTypePower = 4,
+    kSpecialNetTypeReset = 5,
+    kSpecialNetTypeScan = 6,
+    kSpecialNetTypeSignal = 7,
+    kSpecialNetTypeTieOff = 8,
+    kSpecialNetTypeUnknown
+};
+
 class SpecialNet : public Object {
   public:
     SpecialNet();
@@ -34,7 +46,7 @@ class SpecialNet : public Object {
     bool setName(std::string const& name);
 
     Bits getFixBump() const;
-    Bits getType() const;
+    SpecialNetType getType() const;
     int getVoltage() const;
     Bits getPattern() const;
     const char* getRule() const;
@@ -48,10 +60,19 @@ class SpecialNet : public Object {
     uint64_t getNumProperties() const;
     ObjectId getPropertiesId() const;
 
+    bool isAnalog();
+    bool isClock();
+    bool isGround();
+    bool isPower();
+    bool isReset();
+    bool isScan();
+    bool isSignal();
+    bool isTieOff();
+
     void setFixBump(Bits fix_bump);
     void setPattern(Bits pattern);
     void setNonDefaultRule(ObjectId rule);
-    void setType(Bits net_type);
+    void setType(SpecialNetType net_type);
     void setSource(Bits source);
     void setVoltage(int voltage);
     void setFrequency(int frequency);

@@ -27,18 +27,15 @@ class Wire;
 class WireGraph;
 
 enum NetType {
-    kNetTypeSignal = 1,
+    kNetTypeAnalog = 1,
     kNetTypeClock = 2,
-    kNetTypeShielding = 3,
-    kNetTypeRdl = 4,
-    kNetTypeUserRoute = 5,
-    kNetTypeAnalog = 6,
-    kNetTypeTieHigh = 7,
-    kNetTypeTieLow = 8,
-    kNetTypePower = 9,
-    kNetTypeGround = 10,
-    kNetTypeScan = 11,
-    kNetTypeTri = 12, /**< veilog tri */
+    kNetTypeGround = 3,
+    kNetTypePower = 4,
+    kNetTypeReset = 5,
+    kNetTypeScan = 6,
+    kNetTypeSignal = 7,
+    kNetTypeTieOff = 8,
+    kNetTypeTri = 9, /**< veilog tri */
     kNetTypeUnknown
 };
 
@@ -90,9 +87,18 @@ class Net : public Object {
     std::string const& getName();
     bool setName(std::string const& name);
 
+    bool isAnalog();
+    bool isClock();
+    bool isGround();
+    bool isPower();
+    bool isReset();
+    bool isScan();
+    bool isSignal();
+    bool isTieOff();
+
     Bits getFixBump() const;
     Bits getMustJoin() const;
-    Bits getType() const;
+    NetType getType() const;
     Bits getPattern() const;
     Bits getIsSubNet() const;
     bool getIsBusNet() const;
@@ -115,7 +121,7 @@ class Net : public Object {
 
     void setFixBump(Bits fix_bump);
     void setMustJoin(Bits must_join);
-    void setType(Bits net_type);
+    void setType(NetType net_type);
     void setPattern(Bits pattern);
     void setNonDefaultRule(ObjectId rule);
     void setCell(ObjectId cell);
@@ -143,6 +149,7 @@ class Net : public Object {
     void setPropertySize(uint64_t v);
 
     ArrayObject<ObjectId>* getPinArray() const;
+    
     Net* createSubNet(std::string& name);
     VPin* createVpin(std::string& name);
     Via* createVia(ViaMaster* via_master);
