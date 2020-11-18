@@ -626,7 +626,7 @@ bool LibAnalysis::isLibertySyntaxValid() {
 
     return bOk;
 }
-void LibAnalysis::dumpLibFile(const char *const filename,
+bool LibAnalysis::dumpLibFile(const char *const filename,
                               bool clearFileContent /*=true*/) {
     si2drGroupsIdT groups;
     si2drGroupIdT group;
@@ -642,7 +642,7 @@ void LibAnalysis::dumpLibFile(const char *const filename,
             string_format("Could not open %s for writing.", filename);
         (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_NO_ERROR,
                             si2drStringT(str.c_str()), &err);
-        return;
+        return false;
     }
 
     std::string str = string_format("Write file: %s...", filename);
@@ -669,6 +669,8 @@ void LibAnalysis::dumpLibFile(const char *const filename,
     str = string_format("Write file: %s finished.", filename);
     (this->*si2ErrMsg_)(kSI2DR_SEVERITY_NOTE, kSI2DR_NO_ERROR,
                         si2drStringT(str.c_str()), &err);
+
+    return true;
 }
 void LibAnalysis::clean_file_name(char *dirty, char *clean) {
     /* clean (no quotes, no spaces) the name;
