@@ -18,7 +18,7 @@
 namespace open_edi {
 namespace db {
 /**
- * @brief Construct a new Special Net:: Special Net object
+ * @brief Construct a new Special Net object
  *
  */
 SpecialNet::SpecialNet() {
@@ -35,8 +35,7 @@ SpecialNet::SpecialNet() {
     origin_net_ = 0;
 }
 
-Cell *SpecialNet::getCell()
-{
+Cell* SpecialNet::getCell() {
     ObjectId cell_id = getOwnerId();
     if (cell_id) {
         return addr<Cell>(cell_id);
@@ -109,6 +108,70 @@ double SpecialNet::getCapacitance() const { return cap_; }
 double SpecialNet::getWeight() const { return weight_; }
 
 /**
+ * @brief is analog net
+ *
+ * @return true
+ * @return false
+ */
+bool SpecialNet::isAnalog() { return getType() == kSpecialNetTypeAnalog; }
+
+/**
+ * @brief is clock net
+ *
+ * @return true
+ * @return false
+ */
+bool SpecialNet::isClock() { return getType() == kSpecialNetTypeClock; }
+
+/**
+ * @brief is ground net
+ *
+ * @return true
+ * @return false
+ */
+bool SpecialNet::isGround() { return getType() == kSpecialNetTypeGround; }
+
+/**
+ * @brief is power net
+ *
+ * @return true
+ * @return false
+ */
+bool SpecialNet::isPower() { return getType() == kSpecialNetTypePower; }
+
+/**
+ * @brief is reset net
+ *
+ * @return true
+ * @return false
+ */
+bool SpecialNet::isReset() { return getType() == kSpecialNetTypeReset; }
+
+/**
+ * @brief is scan net
+ *
+ * @return true
+ * @return false
+ */
+bool SpecialNet::isScan() { return getType() == kSpecialNetTypeScan; }
+
+/**
+ * @brief is signal net
+ *
+ * @return true
+ * @return false
+ */
+bool SpecialNet::isSignal() { return getType() == kSpecialNetTypeSignal; }
+
+/**
+ * @brief is tie off net
+ *
+ * @return true
+ * @return false
+ */
+bool SpecialNet::isTieOff() { return getType() == kSpecialNetTypeTieOff; }
+
+/**
  * @brief Set the Fix Bump object
  *
  * @param fix_bump
@@ -176,13 +239,17 @@ bool SpecialNet::setName(std::string const& name) {
  *
  * @return Bits
  */
-Bits SpecialNet::getType() const { return net_type_; }
+SpecialNetType SpecialNet::getType() const {
+    return static_cast<SpecialNetType>(net_type_);
+}
+
 /**
  * @brief Set the Type object
  *
  * @param type
  */
-void SpecialNet::setType(Bits net_type) { net_type_ = net_type; }
+void SpecialNet::setType(SpecialNetType net_type) { net_type_ = net_type; }
+
 /**
  * @brief Get the Rule object
  *
@@ -243,8 +310,7 @@ int SpecialNet::addWireSection(SpecialWireSection* section) {
         wire_sections_ =
             getTopCell()->createVectorObject<VectorObject64>()->getId();
     }
-    if (wire_sections_)
-        section_vector = addr<VectorObject64>(wire_sections_);
+    if (wire_sections_) section_vector = addr<VectorObject64>(wire_sections_);
     if (section_vector) section_vector->push_back(section->getId());
 
     return 0;
@@ -292,8 +358,7 @@ void SpecialNet::print() {
 
     // pin
     if (pins_) {
-        VectorObject64* pin_vector =
-            addr<VectorObject64>(pins_);
+        VectorObject64* pin_vector = addr<VectorObject64>(pins_);
         for (VectorObject64::iterator iter = pin_vector->begin();
              iter != pin_vector->end(); ++iter) {
             Pin* pin = nullptr;
@@ -304,8 +369,7 @@ void SpecialNet::print() {
     }
     // wire section
     if (wire_sections_) {
-        VectorObject64* section_vector =
-            addr<VectorObject64>(wire_sections_);
+        VectorObject64* section_vector = addr<VectorObject64>(wire_sections_);
         for (VectorObject64::iterator iter = section_vector->begin();
              iter != section_vector->end(); ++iter) {
             SpecialWireSection* section = nullptr;
@@ -406,8 +470,7 @@ void SpecialNet::printDEF(FILE* fp) {
     fprintf(fp, " - %s ", getName().c_str());
     // pin
     if (pins_) {
-        VectorObject64* pin_vector =
-            addr<VectorObject64>(pins_);
+        VectorObject64* pin_vector = addr<VectorObject64>(pins_);
         for (VectorObject64::iterator iter = pin_vector->begin();
              iter != pin_vector->end(); ++iter) {
             Pin* pin = nullptr;
@@ -454,34 +517,14 @@ void SpecialNet::printDEF(FILE* fp) {
     if (frequency_) fprintf(fp, "\n + FREQUENCY %d", frequency_);
     if (origin_net_) fprintf(fp, "\n + ORIGINAL %s", getOriginNet());
     if (net_type_) {
-        switch (net_type_) {
-            case 1:
-                fprintf(fp, "\n + USE ANALOG");
-                break;
-            case 2:
-                fprintf(fp, "\n + USE CLOCK");
-                break;
-            case 3:
-                fprintf(fp, "\n + USE GROUND");
-                break;
-            case 4:
-                fprintf(fp, "\n + USE POWER");
-                break;
-            case 5:
-                fprintf(fp, "\n + USE RESET");
-                break;
-            case 6:
-                fprintf(fp, "\n + USE SCAN");
-                break;
-            case 7:
-                fprintf(fp, "\n + USE SIGNAL");
-                break;
-            case 8:
-                fprintf(fp, "\n + USE TIEOFF");
-                break;
-            default:
-                break;
-        }
+        if (isAnalog()) fprintf(fp, "\n + USE ANALOG");
+        if (isClock()) fprintf(fp, "\n + USE CLOCK");
+        if (isGround()) fprintf(fp, "\n + USE GROUND");
+        if (isPower()) fprintf(fp, "\n + USE POWER");
+        if (isReset()) fprintf(fp, "\n + USE RESET");
+        if (isScan()) fprintf(fp, "\n + USE SCAN");
+        if (isSignal()) fprintf(fp, "\n + USE SIGNAL");
+        if (isTieOff()) fprintf(fp, "\n + USE TIEOFF");
     }
 
     if (pattern_) {
@@ -508,8 +551,7 @@ void SpecialNet::printDEF(FILE* fp) {
 
     // wire section
     if (wire_sections_) {
-        VectorObject64* section_vector =
-            addr<VectorObject64>(wire_sections_);
+        VectorObject64* section_vector = addr<VectorObject64>(wire_sections_);
         for (VectorObject64::iterator iter = section_vector->begin();
              iter != section_vector->end(); ++iter) {
             SpecialWireSection* section = nullptr;
