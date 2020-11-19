@@ -269,17 +269,22 @@ void SpefReader::addPiModel(float c2, float r1, float c1) {
 }
 
 bool SpefReader::parseSpefFile() {
+
+    std::string errMsg = "Failed to open SPEF file: " + spefFileName_;
+
     FILE *fspef = fopen(spefFileName_.c_str(), "r");
     if (fspef == NULL) {
         open_edi::util::message->issueMsg(
-                        open_edi::util::kError, "Failed to open SPEF file.");
+                        open_edi::util::kError, errMsg.c_str());
         return false;
     }
 
     __spef_parse_begin(fspef);
     if (__spef_parse() != 0) {
 	open_edi::util::message->issueMsg(
-                        open_edi::util::kError, "Failed to parse SPEF file.");
+                        open_edi::util::kError, errMsg.c_str());
+
+        __spef_parse_end(fspef);
         fclose(fspef);
         return false;
     }

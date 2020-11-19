@@ -70,17 +70,13 @@ void yyerror(yyscan_t scanner, SpefReader::SpefReader *spefReader, const char *s
 %type <string> name_map_entries name_map_entry mapped_item
 %type <string> physical_inst port_name pport_name port_entry pport_entry
 %type <string> port_entries pport_entries pport direction
-%type <string> entity
-%type <string> cell_type
-%type <string> driver_cell pnet_ref
+%type <string> entity cell_type driver_cell pnet_ref
 %type <string> pexternal_connection internal_pdspf_node
 %type <string> parasitic_node internal_parasitic_node
 
 %type <ch> hchar suffix_bus_delim prefix_bus_delim
 
 %type <stringVec> qstrings
-
-%type<pi> pi_model
 
 %type<pin> pin_name driver_pair internal_connection external_connection
 
@@ -785,7 +781,7 @@ number:
           $$ = value; 
         }
 |	FLOAT
-	{ float value = $1;
+	{ float value = static_cast<float>($1);
           $$ = value; 
         }
 ;
@@ -793,8 +789,9 @@ number:
 pos_integer:
 	INTEGER
 	{ int value = $1;
-	  //if (value < 0)
-	  //  spefReader->warn("%d is not positive.\n", value);
+	  if (value < 0)
+	      open_edi::util::message->issueMsg(
+                              open_edi::util::kWarn, "Number is not positive.");
 	  $$ = value;
 	}
 ;
@@ -802,14 +799,16 @@ pos_integer:
 pos_number:
 	INTEGER
 	{ float value = static_cast<float>($1);
-	  //if (value < 0)
-	  //  spefReader->warn("%.4f is not positive.\n", value);
+	  if (value < 0)
+	      open_edi::util::message->issueMsg(
+                              open_edi::util::kWarn, "Number is not positive.");
 	  $$ = value;
 	}
 |	FLOAT
 	{ float value = static_cast<float>($1);
-	  //if (value < 0)
-	  //  spefReader->warn("%.4f is not positive.\n", value);
+	  if (value < 0)
+	      open_edi::util::message->issueMsg(
+                              open_edi::util::kWarn, "Number is not positive.");
 	  $$ = value;
 	}
 ;
@@ -818,5 +817,7 @@ pos_number:
 
 void yyerror(yyscan_t scanner, SpefReader::SpefReader *spefReader, const char *str)
 {
-
+    char errMsg[4096];
+    sprintf(errMsg, "Error found in line %lu in SPEF file %s", spefReader->getLineNo(), spefReader->getSpefFile().c_str()); 
+    open_edi::util::message->issueMsg(open_edi::util::kError, errMsg);
 }

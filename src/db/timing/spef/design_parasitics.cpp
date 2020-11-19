@@ -66,29 +66,16 @@ void DesignParasitics::copy(DesignParasitics const& rhs) {
 
     spef_map_ = rhs.spef_map_;
     parasitics_map_ = rhs.parasitics_map_;
+    spefField_ = rhs.spefField_;
 }
 
 void DesignParasitics::move(DesignParasitics&& rhs) {
     this->BaseType::move(std::move(rhs));
     spef_map_ = std::move(rhs.spef_map_);
     parasitics_map_ = std::move(rhs.parasitics_map_);
+    spefField_ = std::move(rhs.spefField_);
     rhs.spef_map_.clear();
     rhs.parasitics_map_.clear();
-}
-
-DesignParasitics::IndexType DesignParasitics::memory() const {
-    IndexType ret = this->BaseType::memory();
-
-    return ret;
-}
-
-OStreamBase& operator<<(OStreamBase& os, DesignParasitics const& rhs) {
-    os << DataTypeName(className(rhs)) << DataBegin("(");
-
-    DesignParasitics::BaseType const& base = rhs;
-    os << base << DataDelimiter();
-  
-    return os;
 }
 
 }  // namespace db

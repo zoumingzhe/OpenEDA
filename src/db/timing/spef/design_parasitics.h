@@ -53,9 +53,6 @@ class DesignParasitics : public Object {
     /// @brief move assignment
     DesignParasitics &operator=(DesignParasitics &&rhs) noexcept;
 
-    /// @brief summarize memory usage of the object in bytes
-    IndexType memory() const;
-
     /// @brief add NetsParasitics from a SPEF file
     void addSpefMap(ObjectId cellId, SymbolIndex spefFileIdx) { spef_map_[cellId] = spefFileIdx; }
     void addParasiticsMap(ObjectId cellId, ObjectId netsParasitcsId) { parasitics_map_[cellId] = netsParasitcsId; }
@@ -72,8 +69,6 @@ class DesignParasitics : public Object {
     void copy(DesignParasitics const &rhs);
     /// @brief move object
     void move(DesignParasitics &&rhs);
-    /// @brief overload output stream
-    friend OStreamBase &operator<<(OStreamBase &os, DesignParasitics const &rhs);
 
   private:
     /// SPEF Design Name ObjectId and file path map

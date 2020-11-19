@@ -19,12 +19,8 @@
 namespace open_edi {
 namespace db {
 
-//bool parseSpefFile(const std::string &file, AnalysisCorner *corner);
 int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]);
-//void printReadSpefCommandHelp();
 int writeSpefCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]);
-//void printWriteSpefCommandHelp();
-
 
 }  // namespace db
 }  // namespace open_edi

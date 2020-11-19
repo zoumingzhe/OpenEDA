@@ -35,10 +35,10 @@ void printReadSpefCommandHelp() {
 
 int parseSpefFile(const std::string &file, DesignParasitics *designParasitics) {
     
-    SpefReader::SpefReader *spefReader = new SpefReader::SpefReader(file, designParasitics);
-    if (!spefReader->parseSpefFile())
+    SpefReader::SpefReader spefReader(file, designParasitics);
+    if (!spefReader.parseSpefFile()) 
         return TCL_ERROR;
-    return TCL_ERROR;
+    return TCL_OK;
 }
 
 int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
@@ -65,7 +65,7 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
         }
         if (spefFiles.empty()) {
             open_edi::util::message->issueMsg(
-                kInfo, "Please specify one SPEF file.");
+                open_edi::util::kError, "Please specify at least one SPEF file.");
             return TCL_ERROR;
         }
         Cell *topCell = getTopCell();
@@ -83,19 +83,19 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 auto mode = topCell->createAnalysisMode(default_name);
                 if (mode == nullptr) {
                     open_edi::util::message->issueMsg(
-                        open_edi::util::kError, "Creating default mode failed.");
+                        open_edi::util::kError, "Create default mode failed.");
                     return TCL_ERROR;
                 }
                 corner = topCell->createAnalysisCorner(default_name);
                 if (corner == nullptr) {
                     open_edi::util::message->issueMsg(
-                        open_edi::util::kError, "Creating default corner failed.");
+                        open_edi::util::kError, "Create default corner failed.");
                     return TCL_ERROR;
                 }
                 view = topCell->createAnalysisView(default_name);
                 if (view == nullptr) {
                     open_edi::util::message->issueMsg(
-                        open_edi::util::kError, "Creating default view failed.");
+                        open_edi::util::kError, "Create default view failed.");
                     return TCL_ERROR;
                 }
 
@@ -112,7 +112,7 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
                     corner = topCell->createAnalysisCorner(default_name);
                     if (corner == nullptr) {
                         open_edi::util::message->issueMsg(
-                            open_edi::util::kError, "Creating default view failed.");
+                            open_edi::util::kError, "Create default view failed.");
                         return TCL_ERROR;
                     }
                 }
@@ -129,9 +129,10 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
         open_edi::util::message->info("\nReading SPEF file\n");
         for (auto spefFile : spefFiles) {
             if (!parseSpefFile(spefFile, corner->get_design_parasitics())) {
+                std::string errMsg = "Failed to parse SPEF file: " + spefFile;       
                 open_edi::util::message->issueMsg(
                     open_edi::util::kError,
-                    "Failed to parse SPEF file.");
+                    errMsg.c_str());
                 return TCL_ERROR;
             }
         }

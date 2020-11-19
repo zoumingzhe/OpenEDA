@@ -87,6 +87,7 @@ void NetsParasitics::copy(NetsParasitics const& rhs) {
     nameMap_ = rhs.nameMap_;
     designFlowVec_ = rhs.designFlowVec_;
     pgNetVec_ = rhs.pgNetVec_;
+    portsVec_ = rhs.portsVec_;
     divider_ = rhs.divider_;
     delimiter_ = rhs.delimiter_;
     preBusDel_ = rhs.preBusDel_;
@@ -104,6 +105,7 @@ void NetsParasitics::move(NetsParasitics&& rhs) {
     nameMap_ = std::move(rhs.nameMap_);
     designFlowVec_ = std::move(rhs.designFlowVec_);
     pgNetVec_ = std::move(rhs.pgNetVec_);
+    portsVec_ = std::move(rhs.portsVec_);
     divider_ = std::move(rhs.divider_);
     delimiter_ = std::move(rhs.delimiter_);
     preBusDel_ = std::move(rhs.preBusDel_);
@@ -116,19 +118,6 @@ void NetsParasitics::move(NetsParasitics&& rhs) {
     rhs.netParasiticsMap_.clear();
     rhs.nameMap_.clear();
 }
-
-NetsParasitics::IndexType NetsParasitics::memory() const {
-    IndexType ret = this->BaseType::memory();
-
-    return ret;
-}
-
-/*void NetsParasitics::syncName(std::string &name) {
-    for (size_t i=0; i<name.length(); i++) {
-	if (name[i] == delimiter_)
-            name[i] = '/';
-    }
-}*/
 
 bool NetsParasitics::isDigits(const char *str)
 {

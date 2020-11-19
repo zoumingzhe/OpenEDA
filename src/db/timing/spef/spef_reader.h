@@ -85,6 +85,7 @@ class SpefReader {
     uint8_t getSpefField() const { return spefField_; }
     void incrLineNo() { lineNo_++; }
     uint32_t getLineNo() const { return lineNo_; }
+    std::string getSpefFile() const { return spefFileName_; }
     bool parseSpefFile();
 
   private:

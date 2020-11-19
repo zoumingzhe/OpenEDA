@@ -184,7 +184,7 @@ namespace SpefReader
    void SpefReader::__spef_parse_begin(FILE *fp)
    {
       yylex_init(&scanner_);
-      yyrestart (fp, scanner_);
+      yyrestart(fp, scanner_);
    }
    int SpefReader::__spef_parse()
    {

@@ -58,9 +58,6 @@ class NetsParasitics : public Object {
     /// @brief move assignment
     NetsParasitics &operator=(NetsParasitics &&rhs) noexcept;
 
-    /// @brief summarize memory usage of the object in bytes
-    IndexType memory() const;
-
     void setDivider(char divider) { divider_ = divider; }
     char getDivider() const { return divider_; }
     void setDelimiter(char delimiter) { delimiter_ = delimiter; }
@@ -93,8 +90,6 @@ class NetsParasitics : public Object {
     void copy(NetsParasitics const &rhs);
     /// @brief move object
     void move(NetsParasitics &&rhs);
-    /// @brief overload output stream
-    friend OStreamBase &operator<<(OStreamBase &os, NetsParasitics const &rhs);
 
   private:
     /// Net ObjectId and NetParasitics ObjectId Map
