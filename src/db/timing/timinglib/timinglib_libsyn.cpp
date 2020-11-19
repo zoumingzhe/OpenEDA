@@ -93,10 +93,10 @@ bool LibSyn::isLibertySyntaxValid(void) {
     return true;
 }
 
-void LibSyn::dumpLibFile(const char *const filename,
+bool LibSyn::dumpLibFile(const char *const filename,
                          bool clearFileContent /*=true*/) {
-    if (analysis_ == nullptr) return;
-    analysis_->dumpLibFile(filename, clearFileContent);
+    if (analysis_ == nullptr) return false;
+    return analysis_->dumpLibFile(filename, clearFileContent);
 }
 
 LibAnalysis *LibSyn::getAnalysis(void) { return analysis_; }
