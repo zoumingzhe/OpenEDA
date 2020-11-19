@@ -27,10 +27,10 @@ ADD_FLEX_BISON_DEPENDENCY(timinglib_syntaxparser_lexer timinglib_syntaxparser_pa
 
 BISON_TARGET(spef_parser_parser
             ${TIMINGSPEF_HOME}/spef_parser.y
-            ${CMAKE_CURRENT_BINARY_DIR}/spef_parser.tab.cc)
+            ${CMAKE_CURRENT_BINARY_DIR}/spef_parser.yacc.cc)
 FLEX_TARGET(spef_parser_lexer
             ${TIMINGSPEF_HOME}/spef_parser.l
-            ${CMAKE_CURRENT_BINARY_DIR}/spef_parser.yy.cc)
+            ${CMAKE_CURRENT_BINARY_DIR}/spef_parser.lex.cc)
 ADD_FLEX_BISON_DEPENDENCY(spef_parser_lexer spef_parser_parser)
 
 file(GLOB_RECURSE SRCS *.cpp)

@@ -168,13 +168,11 @@ OStreamBase& operator<<(OStreamBase& os, AnalysisCorner const& rhs) {
         if (rhs.libset_ != UNINIT_OBJECT_ID)
             libset = Object::addr<LibSet>(rhs.libset_);
         if (libset) os << *libset;
-        DesignParasitics *design_parasitics = nullptr;
-        if (rhs.design_parasitics_ != UNINIT_OBJECT_ID) {
-	    design_parasitics = Object::addr<DesignParasitics>(rhs.design_parasitics_);
-	    os << *design_parasitics;
-        }
     }
     os << DataEnd("]");
+
+    os << DataFieldName("design_parasitics_") << rhs.design_parasitics_
+       << DataDelimiter();
 
     os << DataEnd(")");
     return os;
