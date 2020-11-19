@@ -24,7 +24,8 @@ AnalysisCorner::AnalysisCorner()
     : AnalysisCorner::BaseType(),
       name_(0),
       rc_tech_file_(0),
-      libset_(UNINIT_OBJECT_ID) {
+      libset_(UNINIT_OBJECT_ID),
+      design_parasitics_(UNINIT_OBJECT_ID) {
     setObjectType(ObjectType::kObjectTypeAnalysisCorner);
 }
 
@@ -41,7 +42,8 @@ AnalysisCorner::AnalysisCorner(Object* owner, AnalysisCorner::IndexType id)
     : AnalysisCorner::BaseType(owner, id),
       name_(0),
       rc_tech_file_(0),
-      libset_(UNINIT_OBJECT_ID) {
+      libset_(UNINIT_OBJECT_ID),
+      design_parasitics_(UNINIT_OBJECT_ID) {
     setObjectType(ObjectType::kObjectTypeAnalysisCorner);
 }
 
@@ -70,6 +72,7 @@ void AnalysisCorner::copy(AnalysisCorner const& rhs) {
     name_ = rhs.name_;
     rc_tech_file_ = rhs.rc_tech_file_;
     libset_ = rhs.libset_;
+    design_parasitics_ = rhs.design_parasitics_;
 }
 
 void AnalysisCorner::move(AnalysisCorner&& rhs) {
@@ -77,6 +80,7 @@ void AnalysisCorner::move(AnalysisCorner&& rhs) {
     name_ = std::move(rhs.name_);
     rc_tech_file_ = std::move(rhs.rc_tech_file_);
     libset_ = std::move(rhs.libset_);
+    design_parasitics_ = std::move(rhs.design_parasitics_);
 }
 
 AnalysisCorner::IndexType AnalysisCorner::memory() const {
@@ -85,6 +89,7 @@ AnalysisCorner::IndexType AnalysisCorner::memory() const {
     ret += sizeof(name_);
     ret += sizeof(rc_tech_file_);
     ret += sizeof(libset_);
+    ret += sizeof(design_parasitics_);
 
     return ret;
 }
@@ -111,6 +116,7 @@ void AnalysisCorner::set_rc_tech_file(const std::string& file) {
     }
 }
 void AnalysisCorner::set_libset(ObjectId id) { libset_ = id; }
+void AnalysisCorner::set_design_parasitics(ObjectId id) { design_parasitics_ = id; }
 
 /// get
 SymbolIndex AnalysisCorner::get_name_index(void) { return name_; }
@@ -137,6 +143,12 @@ LibSet* AnalysisCorner::get_libset(void) {
     else
         return nullptr;
 }
+DesignParasitics* AnalysisCorner::get_design_parasitics(void) {
+    if (design_parasitics_ != UNINIT_OBJECT_ID)
+	return Object::addr<DesignParasitics>(design_parasitics_);
+    else
+	return nullptr;
+}
 
 OStreamBase& operator<<(OStreamBase& os, AnalysisCorner const& rhs) {
     os << DataTypeName(className(rhs)) << DataBegin("(");
@@ -156,6 +168,11 @@ OStreamBase& operator<<(OStreamBase& os, AnalysisCorner const& rhs) {
         if (rhs.libset_ != UNINIT_OBJECT_ID)
             libset = Object::addr<LibSet>(rhs.libset_);
         if (libset) os << *libset;
+        DesignParasitics *design_parasitics = nullptr;
+        if (rhs.design_parasitics_ != UNINIT_OBJECT_ID) {
+	    design_parasitics = Object::addr<DesignParasitics>(rhs.design_parasitics_);
+	    os << *design_parasitics;
+        }
     }
     os << DataEnd("]");
 

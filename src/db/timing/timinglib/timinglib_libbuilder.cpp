@@ -932,7 +932,7 @@ void LibBuilder::__build_pulling_resistance_unit(BUILD_PARAM) {
             if (units != nullptr) {
                 int d = 0;
                 char suffix[10] = {'\0'};
-                sscanf(v->u.string_val, "%d%s", &d, suffix);
+                sscanf(v->u.string_val, "%f%s", &d, suffix);
                 tb_namespace::TUnit &unit =
                     units->get_pulling_resistance_unit();
                 unit.digits = d;
