@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include <tcl.h>
 
+namespace open_edi {
+namespace gui {
 
 extern int Tclreadline_Init(Tcl_Interp *interp);
 extern int Tclreadline_SafeInit(Tcl_Interp *interp);
@@ -41,7 +43,7 @@ TclreadlineAppInit(Tcl_Interp* interp, const char* installPath)
 
 
     strcpy(rcPath,installPath);
-    strcat(rcPath,"src/gui/console/lib/config.tclshrc");
+    strcat(rcPath,"src/gui/console/config.tclshrc");
     if(access(rcPath,F_OK) != 0) {
         memset(rcPath, 0, sizeof(rcPath));
         strcpy(rcPath,installPath);
@@ -53,7 +55,7 @@ TclreadlineAppInit(Tcl_Interp* interp, const char* installPath)
 
 
     strcpy(setupPath,installPath);
-    strcat(setupPath,"src/gui/console/lib/tclreadlineSetup.tcl");
+    strcat(setupPath,"src/gui/console/tclreadlineSetup.tcl");
     if(access(setupPath,F_OK) != 0) {
         memset(setupPath, 0, sizeof(setupPath));
         strcpy(setupPath,installPath);
@@ -66,7 +68,7 @@ TclreadlineAppInit(Tcl_Interp* interp, const char* installPath)
 
 
     strcpy(completerPath,installPath);
-    strcat(completerPath,"src/gui/console/lib/tclreadlineCompleter.tcl");
+    strcat(completerPath,"src/gui/console/tclreadlineCompleter.tcl");
     if(access(completerPath,F_OK) != 0) {
         memset(completerPath, 0, sizeof(completerPath));
         strcpy(completerPath,installPath);
@@ -81,5 +83,6 @@ TclreadlineAppInit(Tcl_Interp* interp, const char* installPath)
     return TCL_OK;
 }
 
-
+} // namespace gui
+} // namespace open_edi
 

@@ -146,7 +146,7 @@ namespace eval tclreadline {
                     # } else {
                     #     set prompt_string "\[0;31m$base\[0m"
                     # }
-                    set prompt_string "openEDA% "
+                    set prompt_string "OpenEDA% "
 
                 }
 
@@ -223,7 +223,7 @@ namespace eval tclreadline {
            if {[file exists $tclreadline::historyPath\share/etc/tcl]} {
                set historyfile $tclreadline::historyPath\share/etc/tcl/.tclsh-history
            } else {
-               set historyfile $tclreadline::historyPath\src/gui/console/lib/.tclsh-history
+               set historyfile $tclreadline::historyPath\src/gui/console/.tclsh-history
            }            
         }
         set ::tclreadline::errorMsg [readline initialize $historyfile]
@@ -272,14 +272,17 @@ namespace eval tclreadline {
                     if {"" != [info procs ::tclreadline::prompt1]} {
                         set prompt [::tclreadline::prompt1]
                     }
+                    set prompt2 "> "
                     set ::tclreadline::LINE [::tclreadline::readline read $prompt]
                     while {![::tclreadline::readline complete $::tclreadline::LINE]} {
-                        append ::tclreadline::LINE "\n"
-                        set prompt2 "> "
+                        # append ::tclreadline::LINE "\n"
+                        
                         if {"" != [info procs ::tclreadline::prompt2]} {
                             set prompt2 [::tclreadline::prompt2]
                         }
-                        append ::tclreadline::LINE [tclreadline::readline read $prompt2]
+                        set ::tclreadline::LINE [tclreadline::readline read $prompt2]
+                        # append ::tclreadline::LINE [tclreadline::readline read $prompt2]
+                        # puts $::tclreadline::LINE
                     }
                 } ::tclreadline::errorMsg]} {
                     puts stderr "tclreadline::Loop: error. $::tclreadline::errorMsg"

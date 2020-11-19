@@ -1,11 +1,10 @@
-
 set(_SUBDIRNAME console)
 set(_SUBLIBNAME ${PROJECT_NAME_LOWERCASE}_${_SUBDIRNAME})
 set(_SUBBINNAME "")
 
 
 
-file(GLOB SRC_FILES *.c)
+file(GLOB SRC_FILES *.cpp)
 file(GLOB HEAD_FILES *.h)
 
 
@@ -35,8 +34,7 @@ install(TARGETS ${_SUBLIBNAME}
 file(GLOB HEADERS *.h)
 install(FILES ${HEADERS} DESTINATION include/src/gui/${_SUBDIRNAME})
 # install scripts
-file(GLOB_RECURSE SCRIPTS ./lib/*.tcl ./lib/*.tclshrc)
-# install(FILES ${SCRIPTS} DESTINATION include/src/gui/${_SUBDIRNAME}/lib)
+file(GLOB SCRIPTS *.tcl *.tclshrc)
 install(FILES ${SCRIPTS} DESTINATION share/etc/tcl)
 
 

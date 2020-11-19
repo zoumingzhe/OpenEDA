@@ -26,6 +26,8 @@
 #endif
 
 #include "tclreadline.h"
+#include <map>
+#include <string>
 
 
 /*
@@ -33,6 +35,12 @@
  * in readline.h
  */
 void rl_extend_line_buffer(int len);
+extern int rl_display_fixed;
+extern int _rl_completion_prefix_display_length;
+
+namespace open_edi {
+namespace gui {
+
 
 #ifdef EXECUTING_MACRO_HACK
 /**
@@ -43,7 +51,7 @@ void rl_extend_line_buffer(int len);
 extern char* EXECUTING_MACRO_NAME;
 #endif
 
-#include "tclreadline.h"
+
 static const char* tclrl_library = (const char*)NULL;
 static const char* tclrl_version_str = TCLRL_VERSION_STR;
 static const char* tclrl_patchlevel_str = TCLRL_PATCHLEVEL_STR;
@@ -65,6 +73,19 @@ typedef struct cmds_t {
     char**         cmd;
     struct cmds_t* next;
 } cmds_t;
+
+
+// struct for muti-lines support
+typedef struct mutilines_status {
+    u_int32_t   rl_end;
+    u_int32_t   rl_point;
+    char        rl_line_buffer[0xff];
+    char        prompt[0xff];
+} mutilines_status;
+
+
+#define MOVE_CURSOR_UP(count)      printf("\033[%dA",count)
+#define MOVE_CURSOR_DOWN(count)    printf("\033[%dB",count)
 
 
 #define ISWHITE(c) ((' ' == c) || ('\t' == c) || ('\n' == c))
@@ -89,6 +110,24 @@ static char*  TclReadline0generator(char* text, int state);
 static char*  TclReadlineKnownCommands(char* text, int state, int mode);
 static int    TclReadlineParse(char** args, int maxargs, char* buf);
 
+/**
+ *  muti-line support  
+ */
+
+static void rebindKeyFunction(void);
+static void restoreKeyFunction(void);
+static void restoreLineStatus(void);
+static void restoreRawLineBuffer(void);
+static void saveStatusToMap(uint32_t index, mutilines_status& status);
+static void saveRawLineBuffer(void);
+static void saveLineStatus(int end, int point, char* buf);
+static void setLineStatus(mutilines_status& status);
+static int  get_y_or_n (int for_pager);
+static int  keyUp (int count, int key);
+static int  keyDown (int count, int key);
+static void mutilinesCompleteFunction (char ** matches, int len , int max);
+
+
 
 enum {
     LINE_PENDING  = -1,
@@ -105,9 +144,20 @@ static char* tclrl_custom_completer      = (char*) NULL;
 static char* tclrl_last_line             = (char*) NULL;
 static int   tclrl_use_builtin_completer = 1;
 static int   tclrl_history_length        = -1;
+
+
 Tcl_Interp*  tclrl_interp                = (Tcl_Interp*) NULL;
 
-static char* tclrl_license =
+/**
+ * muti-lines support variables
+ */
+static std::map<int,mutilines_status>       mutiline_map;
+static char*                                raw_readline_buf            = nullptr;
+static mutilines_status                     muti_lines_status;
+static int                                  muti_lines_size             = 0;
+static int                                  current_line_index          = 0;
+
+static const char* tclrl_license =
 "   Copyright (c) 1998 - 2000, Johannes Zellner <johannes@zellner.org>\n"
 "   All rights reserved.\n"
 "   \n"
@@ -138,8 +188,182 @@ static char* tclrl_license =
 
 
 
-static char*
-stripleft(char* in)
+static void saveStatusToMap(uint32_t index, mutilines_status& status)
+{
+    mutiline_map[index] = status;
+}
+
+static int keyUp (int count, int key)
+{
+    if(current_line_index < muti_lines_size)
+    {
+        //save the last line status 
+        if (mutiline_map.find(muti_lines_size) == mutiline_map.end()) {
+            memset(muti_lines_status.prompt,0,0xff);
+            strcpy(muti_lines_status.prompt,Tcl_GetVar(tclrl_interp,"prompt2",TCL_GLOBAL_ONLY));
+            saveStatusToMap(muti_lines_size,muti_lines_status);           
+        }   
+        MOVE_CURSOR_UP(1);
+        current_line_index++;
+        setLineStatus(mutiline_map[muti_lines_size - current_line_index]);
+    }
+    return 0;
+}
+
+static int keyDown (int count, int key)
+{
+    if(current_line_index > 0){   
+        MOVE_CURSOR_DOWN(1);
+        current_line_index--;
+        setLineStatus(mutiline_map[muti_lines_size - current_line_index]);
+    }
+    return 0;
+}
+
+static void saveRawLineBuffer(void)
+{
+    if(rl_line_buffer) raw_readline_buf = rl_line_buffer;
+}
+
+static void restoreRawLineBuffer(void)
+{
+    if(raw_readline_buf) {
+        memset(raw_readline_buf,0,0xff);
+        rl_line_buffer = raw_readline_buf;
+    }   
+}
+
+static void setLineStatus(mutilines_status& status)
+{
+    rl_set_prompt(status.prompt);
+    rl_line_buffer = status.rl_line_buffer ;
+    rl_end = strlen(status.rl_line_buffer);
+    rl_point = rl_end;
+    rl_refresh_line(rl_point,rl_end);
+}
+
+static void saveLineStatus(int end, int point, char* buf)
+{
+    muti_lines_status.rl_end = end;
+    muti_lines_status.rl_point = point;
+    memset(muti_lines_status.rl_line_buffer,0,0xff);
+    strcpy(muti_lines_status.rl_line_buffer,buf);
+}
+
+
+static void rebindKeyFunction(void)
+{
+#if defined (__MSDOS__)
+  rl_bind_keyseq_in_map ("\033[0A",keyUp,rl_get_keymap());
+  rl_bind_keyseq_in_map ("\033[0D",keyDown,rl_get_keymap());
+#elif defined (__MINGW32__)
+  rl_bind_keyseq_in_map ("\340H",keyUp,rl_get_keymap());
+  rl_bind_keyseq_in_map ("\340P",keyDown,rl_get_keymap());
+#else
+  rl_bind_keyseq_in_map("\033[A",keyUp,rl_get_keymap());
+  rl_bind_keyseq_in_map("\033[B",keyDown,rl_get_keymap());
+#endif
+}
+static void
+restoreKeyFunction(void)
+{
+#if defined (__MSDOS__)
+  rl_bind_keyseq_in_map ("\033[0A",rl_get_previous_history,rl_get_keymap());
+  rl_bind_keyseq_in_map ("\033[0D",rl_get_next_history,rl_get_keymap());
+#elif defined (__MINGW32__)
+  rl_bind_keyseq_in_map ("\340H",rl_get_previous_history,rl_get_keymap());
+  rl_bind_keyseq_in_map ("\340P",rl_get_next_history,rl_get_keymap());
+#else
+  rl_bind_keyseq_in_map("\033[A",rl_get_previous_history,rl_get_keymap());
+  rl_bind_keyseq_in_map("\033[B",rl_get_next_history,rl_get_keymap());
+#endif
+}
+
+static void restoreLineStatus(void)
+{
+    if(muti_lines_size)
+    {
+        rl_completion_display_matches_hook = nullptr;
+        //re-write the command line
+        for (int i = current_line_index; i > 0; i--) {
+            printf("%s%s\n",mutiline_map[muti_lines_size - i + 1].prompt, mutiline_map[muti_lines_size - i + 1].rl_line_buffer);
+        }
+        //reset status
+        current_line_index = 0;
+        restoreRawLineBuffer();
+        rl_end = 0;
+        rl_point = 0;
+        mutiline_map.clear();
+        restoreKeyFunction();
+        muti_lines_size = 0;
+    }
+}
+
+
+/* The user must press "y" or "n". Non-zero return means "y" pressed. */
+static int get_y_or_n (int for_pager)
+{
+  int c;
+
+  /* For now, disable pager in callback mode, until we later convert to state
+     driven functions.  Have to wait until next major version to add new
+     state definition, since it will change value of RL_STATE_DONE. */
+#if defined (READLINE_CALLBACKS)
+  if (RL_ISSTATE (RL_STATE_CALLBACK))
+    return 1;
+#endif
+
+  for (;;)
+    {
+      RL_SETSTATE(RL_STATE_MOREINPUT);
+      c = rl_read_key ();
+      RL_UNSETSTATE(RL_STATE_MOREINPUT);
+
+      if (c == 'y' || c == 'Y' || c == ' ')
+	return (1);
+      if (c == 'n' || c == 'N' || c == RUBOUT)
+	return (0);
+      if (for_pager && (c == NEWLINE || c == RETURN))
+	return (2);
+      if (for_pager && (c == 'q' || c == 'Q'))
+	return (0);
+      rl_ding ();
+    }    
+}
+
+static void mutilinesCompleteFunction (char ** matches, int len , int max)
+{
+  /* If there are many items, then ask the user if she really wants to
+     see them all. */
+    if (rl_completion_query_items > 0 && len >= rl_completion_query_items)
+    {
+        rl_crlf ();
+        fprintf (rl_outstream, "Display all %d possibilities? (y or n)", len);
+        fflush (rl_outstream);
+        if (get_y_or_n (0) == 0)
+        {
+        rl_crlf ();
+        rl_forced_update_display ();
+        rl_display_fixed = 1;
+        return;
+        }
+    }
+    rl_display_match_list (matches, len, max);
+    for(auto &t : mutiline_map){
+        if (mutiline_map.find(muti_lines_size) == mutiline_map.end()) {
+            printf("%s%s\n",t.second.prompt, t.second.rl_line_buffer);
+        }
+        else {
+            if (t.first != muti_lines_size) {
+                 printf("%s%s\n",t.second.prompt, t.second.rl_line_buffer);
+            }     
+        }              
+    }
+    rl_forced_update_display ();
+    rl_display_fixed = 1;
+}
+
+static char* stripleft(char* in)
 {
     char* ptr = in;
     while (*ptr && *ptr <= ' ')
@@ -149,8 +373,7 @@ stripleft(char* in)
     return in;
 }
 
-static char*
-stripright(char* in)
+static char* stripright(char* in)
 {
     char* ptr;
     for (ptr = strchr(in, '\0') - 1; ptr >= in && *ptr <= ' '; ptr--)
@@ -158,29 +381,25 @@ stripright(char* in)
     return in;
 }
 
-static char*
-stripwhite(char* in)
+static char* stripwhite(char* in)
 {
     stripleft(in);
     stripright(in);
     return in;
 }
 
-static int
-TclReadlineLineComplete(void)
+static int TclReadlineLineComplete(void)
 {
     return !(tclrl_state == LINE_PENDING);
 }
 
-static void
-TclReadlineTerminate(int state)
+static void TclReadlineTerminate(int state)
 {
     tclrl_state = state;
     rl_callback_handler_remove();
 }
 
-static char*
-TclReadlineQuote(char* text, char* quotechars)
+static char* TclReadlineQuote(char* text, const char* quotechars)
 {
     char* ptr;
     char* result_c;
@@ -201,22 +420,23 @@ TclReadlineQuote(char* text, char* quotechars)
     return result_c;
 }
 
-static int
-TclTestCmd(ClientData clientData, Tcl_Interp *interp, int objc,
+static int TclTestCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                Tcl_Obj *CONST objv[])
 {
     printf("test........");
+
+    return TCL_OK;
 }
 
 
-static int
-TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
+static int TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                Tcl_Obj *CONST objv[])
 {
     int obj_idx, status,cmdlen;
     char* cmd;
+    static bool first_time = true;
 
-    static char *subCmds[] = {
+    static const char *subCmds[] = {
         "read", "initialize", "write", "add", "complete",
         "customcompleter", "builtincompleter", "eofchar",
         "reset-terminal", "bell", "text", "update",
@@ -248,10 +468,14 @@ TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
             rl_callback_handler_install(
                        objc == 3 ? Tcl_GetStringFromObj(objv[2], 0)
                        : "% ", TclReadlineLineCompleteHandler);
-
+            if(first_time)
+            {
+                first_time = false;
+                saveRawLineBuffer();
+            }
             Tcl_CreateFileHandler(0, TCL_READABLE,
                 TclReadlineReadHandler, (ClientData) NULL);
-
+ 
             /**
              * Main Loop.
              * XXX each modification of the global variables
@@ -274,8 +498,9 @@ TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                 else
 #endif
                     Tcl_DoOneEvent(TCL_ALL_EVENTS);
-            }
 
+            }
+            
             Tcl_DeleteFileHandler(0);
 
             switch (tclrl_state) {
@@ -311,18 +536,18 @@ TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
             break;
 
         case TCLRL_WRITE:
-            if (3 != objc) {
-                Tcl_WrongNumArgs(interp, 2, objv, "historyfile");
-                return TCL_ERROR;
-            }  else if (write_history(Tcl_GetStringFromObj(objv[2], 0))) {
-                Tcl_AppendResult(interp, "unable to write history to `",
-                    Tcl_GetStringFromObj(objv[2], 0), "'\n", (char*) NULL);
-                return TCL_ERROR;
-            }
-            if (tclrl_history_length >= 0) {
-                history_truncate_file(Tcl_GetStringFromObj(objv[2], 0),
-                              tclrl_history_length);
-            }
+            // if (3 != objc) {
+            //     Tcl_WrongNumArgs(interp, 2, objv, "historyfile");
+            //     return TCL_ERROR;
+            // }  else if (write_history(Tcl_GetStringFromObj(objv[2], 0))) {
+            //     Tcl_AppendResult(interp, "unable to write history to `",
+            //         Tcl_GetStringFromObj(objv[2], 0), "'\n", (char*) NULL);
+            //     return TCL_ERROR;
+            // }
+            // if (tclrl_history_length >= 0) {
+            //     history_truncate_file(Tcl_GetStringFromObj(objv[2], 0),
+            //                   tclrl_history_length);
+            // }
             return TCL_OK;
             break;
 
@@ -338,15 +563,7 @@ TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
             }
             break;
 
-        case TCLRL_COMPLETE:
-            // if (3 != objc) {
-            //     Tcl_WrongNumArgs(interp, 2, objv, "line");
-            //     return TCL_ERROR;
-            // } else if (Tcl_CommandComplete(Tcl_GetStringFromObj(objv[2], 0))) {
-            //     Tcl_AppendResult(interp, "1", (char*) NULL);
-            // } else {
-            //     Tcl_AppendResult(interp, "0", (char*) NULL);
-            // }
+        case TCLRL_COMPLETE:                                  
             if (3 != objc) {
                 Tcl_WrongNumArgs(interp, 2, objv, "line");
                 return TCL_ERROR;
@@ -358,31 +575,51 @@ TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                     cmdlen = strlen(cmd);
                     if(cmdlen) {
                         if( 0x5c == cmd[cmdlen-1] ) {
+                            rl_completion_display_matches_hook = mutilinesCompleteFunction;
+                            memset(muti_lines_status.prompt,0,0xff);
+                            if(muti_lines_size == 0)
+                            {
+                                strcpy(muti_lines_status.prompt,Tcl_GetVar(tclrl_interp,"prompt",TCL_GLOBAL_ONLY)); 
+                                rebindKeyFunction();
+                            }
+                            else{
+                                strcpy(muti_lines_status.prompt,Tcl_GetVar(tclrl_interp,"prompt2",TCL_GLOBAL_ONLY));
+                            }
+                            saveStatusToMap(muti_lines_size,muti_lines_status);
+                            restoreRawLineBuffer();
+                            muti_lines_size++;                        
                             Tcl_AppendResult(interp, "0", (char*) NULL);
                         }
                         else {
+                            restoreLineStatus();
                             Tcl_AppendResult(interp, "1", (char*) NULL);
                         } 
                     }
                     else {
+                       restoreLineStatus();
                        Tcl_AppendResult(interp, "1", (char*) NULL);
                     }   
                 } 
                 else {
+                    if(muti_lines_size) {
+                        memset(muti_lines_status.prompt,0,0xff);
+                        strcpy(muti_lines_status.prompt,Tcl_GetVar(tclrl_interp,"prompt2",TCL_GLOBAL_ONLY));
+                        saveStatusToMap(muti_lines_size,muti_lines_status);
+                        restoreRawLineBuffer();
+                        muti_lines_size++;
+                    }
                     Tcl_AppendResult(interp, "0", (char*) NULL);
                 }
             }
             break;
 
         case TCLRL_CUSTOMCOMPLETER:
-            // printf("entering TCLRL_CUSTOMCOMPLETER");
             if (objc > 3) {
                 Tcl_WrongNumArgs(interp, 2, objv, "?scriptCompleter?");
                 return TCL_ERROR;
             } else if (3 == objc) {
                 if (tclrl_custom_completer)
                     FREE(tclrl_custom_completer);
-                    // printf("command objv %s\n", objv[2]);
                 if (!blank_line(Tcl_GetStringFromObj(objv[2], 0)))
                     tclrl_custom_completer =
                          stripwhite(strdup(Tcl_GetStringFromObj(objv[2], 0)));
@@ -395,16 +632,16 @@ TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                 Tcl_WrongNumArgs(interp, 2, objv, "?boolean?");
                 return TCL_ERROR;
             } else if (3 == objc) {
-                int bool = tclrl_use_builtin_completer;
+                int b_use = tclrl_use_builtin_completer;
                 if (TCL_OK != Tcl_GetBoolean(interp,
                                  Tcl_GetStringFromObj(objv[2], 0),
-                                 &bool)) {
+                                 &b_use)) {
                     Tcl_AppendResult(interp,
                         "wrong # args: should be a boolean value.",
                         (char*) NULL);
                     return TCL_ERROR;
                 } else {
-                    tclrl_use_builtin_completer = bool;
+                    tclrl_use_builtin_completer = b_use;
                 }
             }
             Tcl_AppendResult(interp, tclrl_use_builtin_completer ? "1" : "0",
@@ -503,14 +740,15 @@ BAD_COMMAND:
 
 }
 
-static void
-TclReadlineReadHandler(ClientData clientData, int mask)
+static void TclReadlineReadHandler(ClientData clientData, int mask)
 {
     if (mask & TCL_READABLE) {
 #ifdef EXECUTING_MACRO_NAME
         do {
 #endif
+            saveLineStatus(rl_end,rl_point,rl_line_buffer);
             rl_callback_read_char();
+            
 #ifdef EXECUTING_MACRO_NAME
         /**
          * check, if we're inside a macro and
@@ -522,8 +760,7 @@ TclReadlineReadHandler(ClientData clientData, int mask)
     }
 }
 
-static void
-TclReadlineLineCompleteHandler(char* ptr)
+static void TclReadlineLineCompleteHandler(char* ptr)
 {
 
     Tcl_ResetResult(tclrl_interp); /* clear result space */
@@ -559,7 +796,21 @@ TclReadlineLineCompleteHandler(char* ptr)
             FREE(expansion);
             return;
         } else {
-            Tcl_AppendResult(tclrl_interp, expansion, (char*) NULL);
+            if(muti_lines_size){
+                for(auto &t : mutiline_map){              
+                    Tcl_AppendResult(tclrl_interp, t.second.rl_line_buffer, (char*) NULL);
+                    if(t.first != muti_lines_size)
+                    Tcl_AppendResult(tclrl_interp, "\n", (char*) NULL);
+                }
+                auto it = mutiline_map.find(muti_lines_size);
+                if (it == mutiline_map.end()) {
+                    // Tcl_AppendResult(tclrl_interp, "\n", (char*) NULL);
+                    Tcl_AppendResult(tclrl_interp, expansion, (char*) NULL); 
+                }    
+            }
+            else{
+                Tcl_AppendResult(tclrl_interp, expansion, (char*) NULL);   
+            }    
         }
 
     #ifdef EXECUTING_MACRO_NAME
@@ -598,14 +849,12 @@ void TclsetHistoryPath(const char* historyPath)
      tclrl_historypath_str = historyPath;
      tclrl_library = historyPath;
 }
-int
-Tclreadline_SafeInit(Tcl_Interp *interp)
+int Tclreadline_SafeInit(Tcl_Interp *interp)
 {
     return Tclreadline_Init(interp);
 }
 
-int
-Tclreadline_Init(Tcl_Interp *interp)
+int Tclreadline_Init(Tcl_Interp *interp)
 {
     int status;
  #ifdef USE_TCL_STUBS
@@ -613,12 +862,18 @@ Tclreadline_Init(Tcl_Interp *interp)
 #endif
     Tcl_CreateObjCommand(interp, "::tclreadline::readline", TclReadlineCmd,
         (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
-    Tcl_CreateObjCommand(interp, "testtk", TclTestCmd,
+    Tcl_CreateObjCommand(interp, "test_tk", TclTestCmd,
     (ClientData) NULL, (Tcl_CmdDeleteProc *) NULL);
     tclrl_interp = interp;
     if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::historyLength",
             (char*) &tclrl_history_length, TCL_LINK_INT)))
         return status;
+    if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::mutilineIndex",
+            (char*) &muti_lines_size, TCL_LINK_INT)))
+        return status;
+    if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::currentLineIndex",
+        (char*) &current_line_index, TCL_LINK_INT)))
+    return status;
 
     if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::library",
             (char*) &tclrl_library, TCL_LINK_STRING | TCL_LINK_READ_ONLY)))
@@ -649,9 +904,10 @@ Tclreadline_Init(Tcl_Interp *interp)
     return Tcl_PkgProvide(interp, "tclreadline", (char*)tclrl_version_str);
 }
 
-static int
-TclReadlineInitialize(Tcl_Interp* interp, char* historyfile)
+static int TclReadlineInitialize(Tcl_Interp* interp, char* historyfile)
 {
+    
+
     rl_readline_name = "tclreadline";
     /*    rl_special_prefixes = "${\"["; */
     rl_special_prefixes = "$";
@@ -693,17 +949,17 @@ TclReadlineInitialize(Tcl_Interp* interp, char* historyfile)
      * is *not* an error.
      */
     rl_attempted_completion_function = (rl_completion_func_t *) TclReadlineCompletion;
-    if (read_history(historyfile)) {
-        if (write_history(historyfile)) {
-            Tcl_AppendResult (interp, "warning: `",
-                historyfile, "' is not writable.", (char*) NULL);
-        }
-    }
+    // if (read_history(historyfile)) {
+    //     if (write_history(historyfile)) {
+    //         Tcl_AppendResult (interp, "warning: `",
+    //             historyfile, "' is not writable.", (char*) NULL);
+    //     }
+    // }
+
     return TCL_OK;
 }
 
-static int
-blank_line(char* str)
+static int blank_line(char* str)
 {
     char* ptr;
     for (ptr = str; ptr && *ptr; ptr++) {
@@ -713,8 +969,7 @@ blank_line(char* str)
     return 1;
 }
 
-static char**
-TclReadlineCompletion(char* text, int start, int end)
+static char** TclReadlineCompletion(char* text, int start, int end)
 {
     char** matches = (char**) NULL;
     int status;
@@ -806,7 +1061,6 @@ TclReadlineCompletion(char* text, int start, int end)
     if (!matches && tclrl_use_builtin_completer) {
         matches = rl_completion_matches(text, (rl_compentry_func_t *)TclReadline0generator);
     }
-
     return matches;
 }
 
@@ -816,11 +1070,10 @@ TclReadline0generator(char* text, int state)
     return TclReadlineKnownCommands(text, state, _CMD_GET);
 }
 
-static char*
-TclReadlineKnownCommands(char* text, int state, int mode)
+static char* TclReadlineKnownCommands(char* text, int state, int mode)
 {
     static int len;
-    static cmds_t *cmds = (cmds_t *) NULL, *new;
+    static cmds_t *cmds = (cmds_t *) NULL, *cmds_new;
     char* tmp;
     char* args[256];
     int i, argc;
@@ -834,26 +1087,26 @@ TclReadlineKnownCommands(char* text, int state, int mode)
 
         case _CMD_SET:
 
-            new = (cmds_t *) MALLOC(sizeof(cmds_t));
-            new->next = (cmds_t *) NULL;
+            cmds_new = (cmds_t *) MALLOC(sizeof(cmds_t));
+            cmds_new->next = (cmds_t *) NULL;
 
             if (!cmds) {
-                cmds = new;
-                cmds->prev = new;
+                cmds = cmds_new;
+                cmds->prev = cmds_new;
             } else {
-                cmds->prev->next = new;
-                cmds->prev = new;
+                cmds->prev->next = cmds_new;
+                cmds->prev = cmds_new;
             }
 
             tmp = strdup(text);
             argc = TclReadlineParse(args, sizeof(args), tmp);
 
-            new->cmd = (char**) MALLOC(sizeof(char*) * (argc + 1));
+            cmds_new->cmd = (char**) MALLOC(sizeof(char*) * (argc + 1));
 
             for (i = 0; i < argc; i++)
-                new->cmd[i] = args[i];
+                cmds_new->cmd[i] = args[i];
 
-            new->cmd[argc] = (char*) NULL;
+            cmds_new->cmd[argc] = (char*) NULL;
 
             return (char*) NULL;
             /* NOTREACHED */
@@ -867,11 +1120,11 @@ TclReadlineKnownCommands(char* text, int state, int mode)
 
             if (0 == sub || (1 == sub && '\0' != text[0])) {
                 if (!state) {
-                    new = cmds;
+                    cmds_new = cmds;
                     len = strlen(text);
                 }
-                while (new && (name = new->cmd)) {
-                    new = new->next;
+                while (cmds_new && (name = cmds_new->cmd)) {
+                    cmds_new = cmds_new->next;
                     if (!strncmp(name[0], text, len))
                         return strdup(name[0]);
                 }
@@ -880,22 +1133,22 @@ TclReadlineKnownCommands(char* text, int state, int mode)
 
                 if (!state) {
 
-                    new = cmds;
+                    cmds_new = cmds;
                     len = strlen(text);
 
-                    while (new && (name = new->cmd)) {
+                    while (cmds_new && (name = cmds_new->cmd)) {
                         if (!strcmp(name[0], args[0]))
                             break;
-                        new = new->next;
+                        cmds_new = cmds_new->next;
                     }
 
-                    if (!new)
+                    if (!cmds_new)
                         return (char*) NULL;
 
-                    for (i = 0; new->cmd[i]; i++) /* EMPTY */;
+                    for (i = 0; cmds_new->cmd[i]; i++) /* EMPTY */;
 
-                    if (sub < i && !strncmp(new->cmd[sub], text, len))
-                        return strdup(new->cmd[sub]);
+                    if (sub < i && !strncmp(cmds_new->cmd[sub], text, len))
+                        return strdup(cmds_new->cmd[sub]);
                     else
                         return (char*) NULL;
 
@@ -916,8 +1169,7 @@ TclReadlineKnownCommands(char* text, int state, int mode)
     }
 }
 
-static int
-TclReadlineParse(char** args, int maxargs, char* buf)
+static int TclReadlineParse(char** args, int maxargs, char* buf)
 {
     int nr = 0;
 
@@ -943,4 +1195,7 @@ TclReadlineParse(char** args, int maxargs, char* buf)
     *args = NULL;
     return nr;
 }
+
+} // namespace gui
+} // namespace open_edi
 
