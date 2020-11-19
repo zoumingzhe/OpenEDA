@@ -160,7 +160,6 @@ if (CMAKE_PLACE)
         ${CMAKE_CURRENT_SOURCE_DIR}/..
         ${CMAKE_CURRENT_SOURCE_DIR}/dreamplace/ops
         ${LIMBO_SOURCE_DIR}
-        ${Boost_HEADERS} 
         ${PROFILER_DIR}/include
         ${TCL_DIR}/include
         ${CUDA_LINKED} PUBLIC

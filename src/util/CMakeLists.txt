@@ -18,7 +18,7 @@ target_include_directories(${_SUBLIBNAME} PUBLIC
     ${PROJECT_BINARY_DIR} 
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${TCL_DIR}/include
-    ${Boost_HEADERS})
+    ${Boost_INCLUDE_DIRS})
 add_compile_options(-Wno-pointer-arith -Wint-to-pointer-cast=no)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")

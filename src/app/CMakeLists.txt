@@ -53,7 +53,7 @@ if (CMAKE_PLACE)
       ${CMAKE_CURRENT_SOURCE_DIR}/.
       ${CMAKE_CURRENT_SOURCE_DIR}/../DREAMPlace/dreamplace/ops
       ${PROFILER_DIR}/include
-      ${Boost_HEADERS}
+      ${Boost_INCLUDE_DIRS}
       ${TCL_DIR}/include)
 else (CMAKE_PLACE)
   target_link_libraries(${_SUBBINNAME} PUBLIC 
@@ -64,7 +64,7 @@ else (CMAKE_PLACE)
   target_include_directories(${_SUBBINNAME} PUBLIC
       ${CMAKE_CURRENT_SOURCE_DIR}/.
       ${PROFILER_DIR}/include
-      ${Boost_HEADERS}
+      ${Boost_INCLUDE_DIRS}
       ${TCL_DIR}/include)
 endif(CMAKE_PLACE)
 
