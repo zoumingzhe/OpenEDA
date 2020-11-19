@@ -64,6 +64,7 @@ static int MessageInit() {
     std::string path;
     std::string util_msg_path;
     std::string timinglib_msg_path;
+    std::string infra_msg_path;
 
     path = getInstallPath();
 
@@ -77,10 +78,14 @@ static int MessageInit() {
         timinglib_msg_path = path + "/include/src/db/timing/timinglib/timinglib.msg";
     }
 
+    infra_msg_path = path + "src/infra/infra.msg";
+
     message->registerMsgFile(
         util_msg_path.c_str());  // register util message file
     message->registerMsgFile(
         timinglib_msg_path.c_str());  // register timinglib message file
+    message->registerMsgFile(
+        infra_msg_path.c_str());  // register timinglib message file 
     return 0;
 }
 
