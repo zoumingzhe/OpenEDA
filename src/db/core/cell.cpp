@@ -611,6 +611,7 @@ Term *Cell::createTerm(std::string &name) {
         return nullptr;
     }
     term->setName(name);
+    term->setCellId(this->getId());
     addTerm(term->getId());
     return term;
 }
@@ -1101,7 +1102,9 @@ Term *Cell::getTerm(std::string name) {
          iter++) {
         Term *target = addr<Term>(*iter);
         if (target && (target->getObjectType() == kObjectTypeTerm))
-            return target;
+            if (target->getCellId() == this->getId()) {
+                return target;
+            }
     }
     return nullptr;
 }
