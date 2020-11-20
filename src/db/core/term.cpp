@@ -24,6 +24,7 @@ using IdArray = ArrayObject<ObjectId>;
 Term::Term() : Term::BaseType() {
     name_index_ = 0;
     ports_ = 0;
+    cell_id_ = 0;
     has_range_ = false;
     antenna_partial_metal_areas_ = 0;
     antenna_partial_metal_side_areas_ = 0;
@@ -38,13 +39,12 @@ Term::Term(Object *owner, Term::IndexType id) : Term::BaseType(owner, id) {
     setPinType(SignalType::kUnknown);
 }
 
-Term::Term(Term const &rhs) { copy(rhs); }
+Term::Term(Term const &rhs) { 
+    copy(rhs);
+    cell_id_ = rhs.cell_id_;
+}
 
 Term::Term(Term &&rhs) noexcept { move(std::move(rhs)); }
-
-Cell *Term::getCell() {
-    return getOwnerCell();
-}
 
 void Term::setName(std::string name) {
     Cell *owner_cell = getOwnerCell();
@@ -66,6 +66,7 @@ std::string &Term::getName() const {
 Term &Term::operator=(Term const &rhs) {
     if (this != &rhs) {
         copy(rhs);
+        cell_id_ = rhs.cell_id_;
     }
     return *this;
 }
@@ -77,7 +78,10 @@ Term &Term::operator=(Term &&rhs) noexcept {
     return *this;
 }
 
-void Term::copy(Term const &rhs) { this->BaseType::copy(rhs); }
+void Term::copy(Term const &rhs) {
+    this->BaseType::copy(rhs);
+    cell_id_ = rhs.cell_id_;
+}
 
 void Term::move(Term &&rhs) { this->BaseType::move(std::move(rhs)); }
 
@@ -647,6 +651,21 @@ int Term::getPortNum() const {
         return id_array_ptr->getSize();
     else
         return 0;
+}
+
+void Term::setCellId(ObjectId cell_id) {
+    cell_id_ = cell_id;
+}
+
+ObjectId Term::getCellId() {
+    return cell_id_;
+}
+
+Cell* Term::getCell() {
+    if (cell_id_ != 0) {
+        return addr<Cell>(cell_id_);
+    }
+    return nullptr;
 }
 
 AntennaModelTerm::AntennaModelTerm() {
