@@ -17,7 +17,7 @@ add_library(${_SUBLIBNAME} STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../.. 
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${PROFILER_DIR}/include
-    ${Boost_HEADERS} 
+    ${Boost_INCLUDE_DIRS} 
     ${TCL_DIR}/include
 )
 
