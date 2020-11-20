@@ -34,8 +34,14 @@ install(TARGETS ${_SUBLIBNAME}
 file(GLOB HEADERS *.h)
 install(FILES ${HEADERS} DESTINATION include/src/gui/${_SUBDIRNAME})
 # install scripts
-file(GLOB SCRIPTS *.tcl *.tclshrc)
+file(GLOB SCRIPTS *.tcl)
 install(FILES ${SCRIPTS} DESTINATION share/etc/tcl)
+
+add_custom_command(TARGET ${_SUBLIBNAME}
+  PRE_BUILD 
+  COMMAND mkdir -p "${PROJECT_SOURCE_DIR}/share/etc/tcl"
+  COMMAND ${CMAKE_COMMAND} -E copy ${SCRIPTS} "${PROJECT_SOURCE_DIR}/share/etc/tcl"
+ )
 
 
 
