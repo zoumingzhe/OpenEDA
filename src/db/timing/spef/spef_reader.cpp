@@ -87,7 +87,7 @@ void SpefReader::addDesignNetsParasitics() {
     }
 }
 
-void SpefReader::setTimeUnit(float digits, const char* unit) {
+void SpefReader::setTimeScale(float digits, const char* unit) {
     float scale = 1.0;
     if (strcmp(unit, "NS") == 0)
         scale = digits*1.0e-9;
@@ -97,11 +97,11 @@ void SpefReader::setTimeUnit(float digits, const char* unit) {
         open_edi::util::message->issueMsg(open_edi::util::kError,
                                               "Incorrect time unit defined in SPEF.\n");
     }
-    netsParasitics_->setTimeUnit(scale);
+    netsParasitics_->setTimeScale(scale);
     stringDelete(unit);
 }
 
-void SpefReader::setCapUnit(float digits, const char* unit) {
+void SpefReader::setCapScale(float digits, const char* unit) {
     float scale = 1.0;
     if (strcmp(unit, "PF") == 0)
         scale = digits*1.0e-12;
@@ -111,11 +111,11 @@ void SpefReader::setCapUnit(float digits, const char* unit) {
         open_edi::util::message->issueMsg(open_edi::util::kError,
                                               "Incorrect capacitance unit defined in SPEF.\n");
     }
-    netsParasitics_->setCapUnit(scale);
+    netsParasitics_->setCapScale(scale);
     stringDelete(unit);
 }
 
-void SpefReader::setResUnit(float digits, const char* unit) {
+void SpefReader::setResScale(float digits, const char* unit) {
     float scale = 1.0;
     if (strcmp(unit, "OHM") == 0)
         scale = digits*1.0;
@@ -125,11 +125,11 @@ void SpefReader::setResUnit(float digits, const char* unit) {
         open_edi::util::message->issueMsg(open_edi::util::kError,
                                               "Incorrect resistance unit defined in SPEF.\n");
     }
-    netsParasitics_->setResUnit(scale);
+    netsParasitics_->setResScale(scale);
     stringDelete(unit);
 }
     
-void SpefReader::setInductUnit(float digits, const char* unit) {
+void SpefReader::setInductScale(float digits, const char* unit) {
     float scale = 1.0;
     if (strcmp(unit, "HENRY") == 0)
         scale = digits*1.0e-12;
@@ -141,7 +141,7 @@ void SpefReader::setInductUnit(float digits, const char* unit) {
         open_edi::util::message->issueMsg(open_edi::util::kError,
                                               "Incorrect inductance unit defined in SPEF.\n");
     }
-    netsParasitics_->setInductUnit(scale);
+    netsParasitics_->setInductScale(scale);
     stringDelete(unit);
 }
 
@@ -155,15 +155,15 @@ void SpefReader::addNameMap(char* index, char* name) {
     stringDelete(index); 
 }
 
-void SpefReader::addPGNet(char* name) {
+/*void SpefReader::addPowerNet(char* name) {
     Cell* topCell = getTopCell();
     if (topCell) {
 	SpecialNet* snet = topCell->getSpecialNet(name);
 	if (snet) 
-            netsParasitics_->addPGNet(snet->getId());
+            netsParasitics_->addPowerNet(snet->getId());
     }
     stringDelete(name);
-}
+}*/
 
 float SpefReader::addParValue(float value1, float value2, float value3) {
     if (spefField_ == 1) 
@@ -258,6 +258,11 @@ void SpefReader::addResistor(char *nodeName1, char *nodeName2) {
 void SpefReader::addRNetBegin(Net *net) {
     if (netsParasitics_)
         rnetParasitics_ = netsParasitics_->addRNetParasitics(net_->getId(), parValue_);
+}
+
+void SpefReader::addRNetDrvr(Pin *pin) {
+    if (rnetParasitics_) 
+	rnetParasitics_->setDriverPinId(pin->getId());
 }
 
 void SpefReader::addPiModel(float c2, float r1, float c1) {

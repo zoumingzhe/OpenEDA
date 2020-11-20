@@ -20,6 +20,10 @@
 #include "db/timing/timinglib/analysis_view.h"
 #include "db/timing/spef/spef_reader.h"
 
+#include <utility>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include "util/stream.h"
 #include "util/util.h"
 
@@ -155,9 +159,72 @@ void printWriteSpefCommandHelp() {
     open_edi::util::message->info("         -help\n");
 }
 
-int writeSPEFCommand(ClientData cld, Tcl_Interp *itp, int argc,
+int writeSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
                          const char *argv[]) {
+
+    if (argc == 2 && !strcasecmp(argv[1], "-help")) {
+        printWriteSpefCommandHelp();
+        return TCL_OK;
+    }
+
     if (argc > 1) {
+	std::vector<std::string> outFiles;
+        std::string cornerName = "";
+        for (int i = 1; i < argc; ++i) {
+            if (!strcmp(argv[i], "-corner")) {
+                if ((i + 1) < argc) {
+                    cornerName = argv[++i];
+                }
+            } else if (!strcmp(argv[i], "-help")) {
+                continue;
+            } else {
+                outFiles.emplace_back(argv[i]);
+            }
+        }
+        if (outFiles.empty()) {
+            open_edi::util::message->issueMsg(
+                open_edi::util::kError, "Please specify output SPEF file.");
+            return TCL_ERROR;
+        } else if (outFiles.size() > 1) {
+	    open_edi::util::message->issueMsg(
+                open_edi::util::kError, "Only one file is allowed.");
+	    return TCL_ERROR;
+        }
+        Cell *topCell = getTopCell();
+        if (topCell == nullptr) {
+            open_edi::util::message->issueMsg(
+                open_edi::util::kError,
+                "Cannot find top cell when writing SPEF file.");
+            return TCL_ERROR;
+        }
+        AnalysisCorner *corner = nullptr;
+        if (cornerName == "") {
+            std::string default_name = "default";
+            corner = topCell->getAnalysisCorner(default_name);
+	    if (corner == nullptr) {
+                open_edi::util::message->issueMsg(
+                        open_edi::util::kError, "Create default corner failed.");
+                return TCL_ERROR;
+            }
+	} else {
+            corner = topCell->getAnalysisCorner(cornerName);
+	    if (corner == nullptr) {
+                open_edi::util::message->issueMsg(
+                        open_edi::util::kError, "Can't find specified corner in design.");
+                return TCL_ERROR;
+	    }
+	}
+        DesignParasitics *dsgPara = corner->get_design_parasitics();
+        if (dsgPara) {
+	    open_edi::util::message->info("Write spef file %s...\n", outFiles[0].c_str()); 
+            
+	    std::ios_base::openmode mode = std::ios::out | std::ios::trunc;
+            OStream<std::ofstream> os(outFiles[0].c_str(), mode);
+            os << *dsgPara;
+            os.close();
+
+	    open_edi::util::message->info("Write spef file %s finished\n", outFiles[0].c_str());
+        }
     }
 
     return TCL_OK;

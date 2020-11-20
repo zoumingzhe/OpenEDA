@@ -59,13 +59,12 @@ class SpefReader {
     void setPreBusDel(char prebusdel) { if (netsParasitics_) netsParasitics_->setPreBusDel(prebusdel); }
     void setSufBusDel(char sufbusdel) { if (netsParasitics_) netsParasitics_->setSufBusDel(sufbusdel); }
     void setCellId() { if (netsParasitics_ && cell_) netsParasitics_->setCellId(cell_->getId()); }
-    void setDesignFlow(StringVec *flow) { for (size_t i=0; i < flow->size(); i++) netsParasitics_->addDesignFlow(std::string(flow->at(i))); }
-    void setTimeUnit(float digits, const char* unit);
-    void setCapUnit(float digits, const char* unit);
-    void setResUnit(float digits, const char* unit);
-    void setInductUnit(float digits, const char* unit);
+    void setDesignFlow(StringVec *dsgFlow) { for (auto str : *dsgFlow) netsParasitics_->addDesignFlow(std::string(str)); }
+    void setTimeScale(float digits, const char* unit);
+    void setCapScale(float digits, const char* unit);
+    void setResScale(float digits, const char* unit);
+    void setInductScale(float digits, const char* unit);
     void addNameMap(char* index, char* name);
-    void addPGNet(char *name);
     float addParValue(float value1) { parValue_ = value1; return parValue_; }
     float addParValue(float value1, float value2, float value3);
     Net* findNet(char *name);
@@ -78,9 +77,9 @@ class SpefReader {
     void addCouplingCap(char *nodeName1, char *nodeName2);
     void addResistor(char *nodeName1, char *nodeName2);
     void addRNetBegin(Net *net);
+    void addRNetDrvr(Pin *pin);
     void addPiModel(float c2, float r1, float c1); 
     void addRNetEnd() { net_ = nullptr; rnetParasitics_ = nullptr; netNodeMap_.clear(); }
-    void addRNetDrvr(Pin *pin);
     void setSpefField(uint8_t spefFiled) { spefField_ = spefFiled; }
     uint8_t getSpefField() const { return spefField_; }
     void incrLineNo() { lineNo_++; }

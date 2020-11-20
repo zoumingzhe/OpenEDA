@@ -64,11 +64,15 @@ class DesignParasitics : public Object {
     void setSpefField(unsigned spefField) { spefField_ = spefField; }
     uint8_t getSpefField() const { return spefField_; }
 
+    std::unordered_map<ObjectId, ObjectId> getParasiticsMap() const { return parasitics_map_; }
+
   protected:
     /// @brief copy object
     void copy(DesignParasitics const &rhs);
     /// @brief move object
     void move(DesignParasitics &&rhs);
+    /// @brief overload output stream
+    friend OStreamBase &operator<<(OStreamBase &os, DesignParasitics const &rhs);
 
   private:
     /// SPEF Design Name ObjectId and file path map

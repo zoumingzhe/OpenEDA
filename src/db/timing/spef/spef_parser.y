@@ -24,10 +24,10 @@ typedef void* yyscan_t;
 
 %code provides {
 #undef  YY_DECL
-#define YY_DECL int yylex(YYSTYPE *yylval_param, yyscan_t yyscanner, SpefReader::SpefReader *spefReader)
+#define YY_DECL int spef_lex(SPEF_STYPE *yylval_param, yyscan_t yyscanner, SpefReader::SpefReader *spefReader)
 YY_DECL;
 
-void yyerror(yyscan_t scanner, SpefReader::SpefReader *spefReader, const char *str);
+void spef_error(yyscan_t scanner, SpefReader::SpefReader *spefReader, const char *str);
 }
 
 %union {
@@ -42,6 +42,7 @@ void yyerror(yyscan_t scanner, SpefReader::SpefReader *spefReader, const char *s
 }
 
 %define api.pure full
+%define api.prefix {spef_}
 %parse-param {yyscan_t yyscanner}
 %parse-param { SpefReader::SpefReader* spefReader }
 %lex-param   {yyscan_t yyscanner }
@@ -218,22 +219,22 @@ bus_delim_def:
 
 time_scale:
 	T_UNIT pos_number IDENTIFIER
-	{ spefReader->setTimeUnit($2, $3); }
+	{ spefReader->setTimeScale($2, $3); }
 ;
 
 cap_scale:
 	C_UNIT pos_number IDENTIFIER
-	{ spefReader->setCapUnit($2, $3); }
+	{ spefReader->setCapScale($2, $3); }
 ;
 
 res_scale:
 	R_UNIT pos_number IDENTIFIER
-	{ spefReader->setResUnit($2, $3); }
+	{ spefReader->setResScale($2, $3); }
 ;
 
 induc_scale:
 	L_UNIT pos_number IDENTIFIER
-	{ spefReader->setInductUnit($2, $3); }
+	{ spefReader->setInductScale($2, $3); }
 ;
 
 /****************************************************************/
@@ -283,7 +284,7 @@ net_names:
 
 net_name:
 	name_or_index
-	{ spefReader->addPGNet($1); }
+        { spefReader->stringDelete($1); }
 ;
 
 /****************************************************************/
@@ -815,7 +816,7 @@ pos_number:
 
 %%
 
-void yyerror(yyscan_t scanner, SpefReader::SpefReader *spefReader, const char *str)
+void spef_error(yyscan_t scanner, SpefReader::SpefReader *spefReader, const char *str)
 {
     char errMsg[4096];
     sprintf(errMsg, "Error found in line %lu in SPEF file %s", spefReader->getLineNo(), spefReader->getSpefFile().c_str()); 

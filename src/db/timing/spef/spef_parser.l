@@ -20,10 +20,12 @@
 #include "spef_parser.yacc.hh"
 
 #undef  YY_DECL
-#define YY_DECL int my_yylex(YYSTYPE *yylval_param, yyscan_t yyscanner, SpefReader::SpefReader *spefReader)
+#define YY_DECL int spef_lex(SPEF_STYPE *yylval_param, yyscan_t yyscanner, SpefReader::SpefReader *spefReader)
+#define YYSTYPE SPEF_STYPE
 
 %}
 
+%option prefix="spef_"
 %option reentrant
 %option noyywrap
 %option bison-bridge
@@ -174,26 +176,21 @@ yylval = yylval_param;
 
 %%
 
-int yylex(YYSTYPE *yylval_param, yyscan_t yyscanner, SpefReader::SpefReader* spefReader)
-{
-    return my_yylex(yylval_param, yyscanner, spefReader);
-}
-
 namespace SpefReader
 {
    void SpefReader::__spef_parse_begin(FILE *fp)
    {
-      yylex_init(&scanner_);
-      yyrestart(fp, scanner_);
+      spef_lex_init(&scanner_);
+      spef_restart(fp, scanner_);
    }
    int SpefReader::__spef_parse()
    {
-      return  yyparse(scanner_, this);
+      return  spef_parse(scanner_, this);
    }
    void SpefReader::__spef_parse_end(FILE *fp)
    {
       if (scanner_ != nullptr)
-         yylex_destroy(scanner_);
+         spef_lex_destroy(scanner_);
       scanner_ = nullptr;
    }
 }

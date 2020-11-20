@@ -14,6 +14,8 @@
 
 #include "db/timing/spef/nets_parasitics.h"
 
+#include <stdio.h>
+#include <time.h>
 #include "stdlib.h"
 #include "db/core/db.h"
 #include "util/stream.h"
@@ -26,7 +28,6 @@ NetsParasitics::NetsParasitics()
       netParasiticsMap_(),
       nameMap_(),
       designFlowVec_(10,""),
-      pgNetVec_(10,UNINIT_OBJECT_ID),
       portsVec_(100,UNINIT_OBJECT_ID),
       divider_('\0'),
       delimiter_('\0'),
@@ -48,7 +49,6 @@ NetsParasitics::NetsParasitics(Object* owner, NetsParasitics::IndexType id)
       netParasiticsMap_(),
       nameMap_(),
       designFlowVec_(10,""),
-      pgNetVec_(10,UNINIT_OBJECT_ID),
       portsVec_(100,UNINIT_OBJECT_ID),
       divider_('\0'),
       delimiter_('\0'),
@@ -86,7 +86,6 @@ void NetsParasitics::copy(NetsParasitics const& rhs) {
     netParasiticsMap_ = rhs.netParasiticsMap_;
     nameMap_ = rhs.nameMap_;
     designFlowVec_ = rhs.designFlowVec_;
-    pgNetVec_ = rhs.pgNetVec_;
     portsVec_ = rhs.portsVec_;
     divider_ = rhs.divider_;
     delimiter_ = rhs.delimiter_;
@@ -104,7 +103,6 @@ void NetsParasitics::move(NetsParasitics&& rhs) {
     netParasiticsMap_ = std::move(rhs.netParasiticsMap_);
     nameMap_ = std::move(rhs.nameMap_);
     designFlowVec_ = std::move(rhs.designFlowVec_);
-    pgNetVec_ = std::move(rhs.pgNetVec_);
     portsVec_ = std::move(rhs.portsVec_);
     divider_ = std::move(rhs.divider_);
     delimiter_ = std::move(rhs.delimiter_);
@@ -248,11 +246,74 @@ RNetParasitics* NetsParasitics::addRNetParasitics(ObjectId netId, float totCap) 
 }
 
 OStreamBase& operator<<(OStreamBase& os, NetsParasitics const& rhs) {
-    os << DataTypeName(className(rhs)) << DataBegin("(");
+    os << DataFieldName("*SPEF \"IEEE 1481-2009\"\n");
 
-    NetsParasitics::BaseType const& base = rhs;
-    os << base << DataDelimiter();
-  
+    Cell *cell = Object::addr<Cell>(rhs.getCellId());
+    std::string cellName = cell->getName();
+    os << DataFieldName("*DESIGN \"") << DataFieldName(cellName.c_str()) << DataFieldName("\"\n");
+
+    time_t rawtime;
+    struct tm *timeinfo;
+    char timeStr[100]; 
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    strftime(timeStr, 100, "%a %h %d %T %Y", timeinfo);   
+    os << DataFieldName("*DATE \"") << DataFieldName(timeStr) << DataFieldName("\"\n"); 
+    os << DataFieldName("*VENDOR \"NIIC EDA\"\n");
+    os << DataFieldName("*PROGRAM \"openEDA\"\n");
+    os << DataFieldName("*VERSION \"1.0\"\n");
+    os << DataFieldName("*DESIGN_FLOW ");
+    for (auto &str : rhs.designFlowVec_) {
+        os << DataFieldName("\"") << DataFieldName(str.c_str()) << DataFieldName("\"");	
+    }
+    os << DataFieldName("\n");
+    os << DataFieldName("*DIVIDER ") << DataFieldName(std::to_string(rhs.getDivider())) << DataFieldName("\n");
+    os << DataFieldName("*DELIMITER ") << DataFieldName(std::to_string(rhs.getDelimiter())) << DataFieldName("\n");
+    os << DataFieldName("*BUS_DELIMITER ") << DataFieldName(std::to_string(rhs.getPreBusDel()));
+    if (rhs.getSufBusDel() != '\0')
+        os << DataFieldName(std::to_string(rhs.getSufBusDel()));
+    os << DataFieldName("\n");
+    os << DataFieldName("*T_UNIT ") << DataFieldName(std::to_string(rhs.getTimeScale()*1e-12)) << DataFieldName(" PS\n");
+    os << DataFieldName("*C_UNIT ") << DataFieldName(std::to_string(rhs.getCapScale()*1e-12)) << DataFieldName(" PF\n");
+    os << DataFieldName("*R_UNIT ") << DataFieldName(std::to_string(rhs.getResScale())) << DataFieldName(" OHM\n");   
+    os << DataFieldName("*L_UNIT ") << DataFieldName(std::to_string(rhs.getInductScale())) << DataFieldName(" HENRY\n\n");
+ 
+    std::unordered_map<std::string, uint32_t> revertNameMap;  //Used to get mapping ID from name for SPEF dumpping 
+    if (!rhs.nameMap_.empty()) {
+        os << DataFieldName("*NAME_MAP\n\n");
+        for (auto obj : rhs.nameMap_) {
+	    std::string name = cell->getSymbolByIndex(obj.second);
+	    os << DataFieldName("*") << DataFieldName(std::to_string(obj.first));
+            os << DataFieldName(" ") << DataFieldName(name) << DataFieldName("\n");
+	    revertNameMap[name] = obj.first;
+        }
+    }
+
+    if (!rhs.portsVec_.empty()) {
+	os << DataFieldName("*PORTS\n\n");
+        for (auto obj : rhs.portsVec_) {
+	    Pin *pin = Object::addr<Pin>(obj);
+	    std::string pinName = pin->getName();
+	    if (revertNameMap.find(pinName) != revertNameMap.end())  //To use index instead of port name directly
+	        pinName = std::to_string(revertNameMap[pinName]); 
+		
+	    os << DataFieldName("*") << DataFieldName(pinName);
+	    os << DataFieldName(" ") << DataFieldName(pin->getTerm()->getDirectionStr());
+	}
+    }
+
+    for (auto obj : rhs.netParasiticsMap_) {
+	Net *net = Object::addr<Net>(obj.first);
+	Object *unObj = Object::addr<Object>(obj.second);
+	if (unObj->getObjectType() == kObjectTypeDNetParasitics) {
+	    DNetParasitics *dNetPara = Object::addr<DNetParasitics>(obj.second);
+
+	} else if (unObj->getObjectType() == kObjectTypeRNetParasitics) {
+	    RNetParasitics *rNetPara = Object::addr<RNetParasitics>(obj.second);
+
+	}
+    }
+
     return os;
 }
 
