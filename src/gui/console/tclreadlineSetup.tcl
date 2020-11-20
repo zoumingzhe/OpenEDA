@@ -213,19 +213,20 @@ namespace eval tclreadline {
         global env
         variable historyfile
 
-        if {[string trim [llength $args]]} {
-            set historyfile ""
-            catch {set historyfile [file nativename [lindex $args 0]]}
-            if {"" == [string trim $historyfile]} {
-                set historyfile [lindex $args 0]
-            }
-        } else {
-           if {[file exists $tclreadline::historyPath\share/etc/tcl]} {
-               set historyfile $tclreadline::historyPath\share/etc/tcl/.tclsh-history
-           } else {
-               set historyfile $tclreadline::historyPath\src/gui/console/.tclsh-history
-           }            
-        }
+        # if {[string trim [llength $args]]} {
+        #     set historyfile ""
+        #     catch {set historyfile [file nativename [lindex $args 0]]}
+        #     if {"" == [string trim $historyfile]} {
+        #         set historyfile [lindex $args 0]
+        #     }
+        # } else {
+        #    if {[file exists $tclreadline::historyPath]} {
+        #        set historyfile $tclreadline::historyPath
+        #    } else {
+        #        set historyfile $tclreadline::historyPath
+        #    }
+           set historyfile ""            
+        # }
         set ::tclreadline::errorMsg [readline initialize $historyfile]
         if {$::tclreadline::errorMsg != ""} {
             puts stderr $::tclreadline::errorMsg

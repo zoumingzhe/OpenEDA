@@ -118,14 +118,17 @@ static void rebindKeyFunction(void);
 static void restoreKeyFunction(void);
 static void restoreLineStatus(void);
 static void restoreRawLineBuffer(void);
+static void redisplayCommands(void);
 static void saveStatusToMap(uint32_t index, mutilines_status& status);
 static void saveRawLineBuffer(void);
 static void saveLineStatus(int end, int point, char* buf);
 static void setLineStatus(mutilines_status& status);
 static int  get_y_or_n (int for_pager);
+static int  getCurrentLineIndex(void);
 static int  keyUp (int count, int key);
 static int  keyDown (int count, int key);
 static void mutilinesCompleteFunction (char ** matches, int len , int max);
+
 
 
 
@@ -155,7 +158,7 @@ static std::map<int,mutilines_status>       mutiline_map;
 static char*                                raw_readline_buf            = nullptr;
 static mutilines_status                     muti_lines_status;
 static int                                  muti_lines_size             = 0;
-static int                                  current_line_index          = 0;
+static int                                  cursor_index                = 0;
 
 static const char* tclrl_license =
 "   Copyright (c) 1998 - 2000, Johannes Zellner <johannes@zellner.org>\n"
@@ -186,7 +189,10 @@ static const char* tclrl_license =
 "   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS\n"
 "   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.";
 
-
+static int  getCurrentLineIndex(void)
+{
+    return muti_lines_size - cursor_index;
+}
 
 static void saveStatusToMap(uint32_t index, mutilines_status& status)
 {
@@ -195,7 +201,7 @@ static void saveStatusToMap(uint32_t index, mutilines_status& status)
 
 static int keyUp (int count, int key)
 {
-    if(current_line_index < muti_lines_size)
+    if(cursor_index < muti_lines_size)
     {
         //save the last line status 
         if (mutiline_map.find(muti_lines_size) == mutiline_map.end()) {
@@ -204,18 +210,18 @@ static int keyUp (int count, int key)
             saveStatusToMap(muti_lines_size,muti_lines_status);           
         }   
         MOVE_CURSOR_UP(1);
-        current_line_index++;
-        setLineStatus(mutiline_map[muti_lines_size - current_line_index]);
+        cursor_index++;
+        setLineStatus(mutiline_map[muti_lines_size - cursor_index]);
     }
     return 0;
 }
 
 static int keyDown (int count, int key)
 {
-    if(current_line_index > 0){   
+    if(cursor_index > 0){   
         MOVE_CURSOR_DOWN(1);
-        current_line_index--;
-        setLineStatus(mutiline_map[muti_lines_size - current_line_index]);
+        cursor_index--;
+        setLineStatus(mutiline_map[muti_lines_size - cursor_index]);
     }
     return 0;
 }
@@ -285,11 +291,11 @@ static void restoreLineStatus(void)
     {
         rl_completion_display_matches_hook = nullptr;
         //re-write the command line
-        for (int i = current_line_index; i > 0; i--) {
+        for (int i = cursor_index; i > 0; i--) {
             printf("%s%s\n",mutiline_map[muti_lines_size - i + 1].prompt, mutiline_map[muti_lines_size - i + 1].rl_line_buffer);
         }
         //reset status
-        current_line_index = 0;
+        cursor_index = 0;
         restoreRawLineBuffer();
         rl_end = 0;
         rl_point = 0;
@@ -349,6 +355,7 @@ static void mutilinesCompleteFunction (char ** matches, int len , int max)
         }
     }
     rl_display_match_list (matches, len, max);
+
     for(auto &t : mutiline_map){
         if (mutiline_map.find(muti_lines_size) == mutiline_map.end()) {
             printf("%s%s\n",t.second.prompt, t.second.rl_line_buffer);
@@ -356,11 +363,71 @@ static void mutilinesCompleteFunction (char ** matches, int len , int max)
         else {
             if (t.first != muti_lines_size) {
                  printf("%s%s\n",t.second.prompt, t.second.rl_line_buffer);
-            }     
+            }
         }              
     }
     rl_forced_update_display ();
     rl_display_fixed = 1;
+
+
+    //reset cursor position
+    auto current_line = getCurrentLineIndex();
+    if (current_line != muti_lines_size)
+    {
+        cursor_index = muti_lines_size - current_line;
+        auto move = cursor_index;
+        // redraw lastline
+        rl_line_buffer = mutiline_map[muti_lines_size].rl_line_buffer;
+        rl_refresh_line(0,0);
+        // move cursor back
+        MOVE_CURSOR_UP(move);
+        rl_line_buffer = mutiline_map[current_line].rl_line_buffer;
+        rl_end = strlen(rl_line_buffer);
+        rl_point = rl_end;
+    }
+}
+
+static void  redisplayCommands(void)
+{
+    auto current_line = getCurrentLineIndex();
+
+    saveStatusToMap(current_line,muti_lines_status);
+
+    if(mutiline_map.find(muti_lines_size) != mutiline_map.end()) {
+        for (int i = muti_lines_size; i > getCurrentLineIndex(); i--) {
+            mutiline_map[i + 1] =  mutiline_map[i];
+        }
+    }
+    auto prompt = Tcl_GetVar(tclrl_interp,"prompt2",TCL_GLOBAL_ONLY);
+    
+
+    //insert new  line to map
+    mutilines_status tmp;
+    memset(&tmp,0,sizeof(tmp));
+    strcpy(tmp.prompt,prompt);
+    current_line = getCurrentLineIndex()+1;
+    saveStatusToMap(current_line,tmp);
+
+    //overwrite commands
+    rl_set_prompt(prompt);
+    for(auto &t : mutiline_map) {
+        if (t.first >= current_line) {
+            rl_line_buffer = t.second.rl_line_buffer;
+            rl_end = strlen(rl_line_buffer);
+            rl_point = rl_end;
+            rl_refresh_line(0,0);
+            printf("\n");
+        }
+    }
+
+    //reset cursor position
+    cursor_index = muti_lines_size - current_line + 1;
+    auto move = cursor_index+1;
+    MOVE_CURSOR_UP(move);
+    rl_line_buffer = mutiline_map[current_line].rl_line_buffer ;
+    rl_end = strlen(rl_line_buffer);
+    rl_point = rl_end;
+
 }
 
 static char* stripleft(char* in)
@@ -585,8 +652,13 @@ static int TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                             else{
                                 strcpy(muti_lines_status.prompt,Tcl_GetVar(tclrl_interp,"prompt2",TCL_GLOBAL_ONLY));
                             }
-                            saveStatusToMap(muti_lines_size,muti_lines_status);
-                            restoreRawLineBuffer();
+                            if (getCurrentLineIndex() != muti_lines_size) {
+                                redisplayCommands();
+                            }
+                            else{
+                                saveStatusToMap(muti_lines_size,muti_lines_status);
+                                restoreRawLineBuffer(); 
+                            }
                             muti_lines_size++;                        
                             Tcl_AppendResult(interp, "0", (char*) NULL);
                         }
@@ -604,8 +676,13 @@ static int TclReadlineCmd(ClientData clientData, Tcl_Interp *interp, int objc,
                     if(muti_lines_size) {
                         memset(muti_lines_status.prompt,0,0xff);
                         strcpy(muti_lines_status.prompt,Tcl_GetVar(tclrl_interp,"prompt2",TCL_GLOBAL_ONLY));
-                        saveStatusToMap(muti_lines_size,muti_lines_status);
-                        restoreRawLineBuffer();
+                        if (getCurrentLineIndex() != muti_lines_size) {
+                            redisplayCommands();
+                        }
+                        else {
+                            saveStatusToMap(muti_lines_size,muti_lines_status);
+                            restoreRawLineBuffer(); 
+                        }
                         muti_lines_size++;
                     }
                     Tcl_AppendResult(interp, "0", (char*) NULL);
@@ -872,7 +949,7 @@ int Tclreadline_Init(Tcl_Interp *interp)
             (char*) &muti_lines_size, TCL_LINK_INT)))
         return status;
     if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::currentLineIndex",
-        (char*) &current_line_index, TCL_LINK_INT)))
+        (char*) &cursor_index, TCL_LINK_INT)))
     return status;
 
     if (TCL_OK != (status = Tcl_LinkVar(interp, "::tclreadline::library",
