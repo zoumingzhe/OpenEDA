@@ -26,6 +26,7 @@
 
 namespace open_edi {
 namespace db {
+class StorageUtil;
 
 class Tech : public Object {
   public:
@@ -109,6 +110,30 @@ class Tech : public Object {
     double dbuToMicrons(Int32 dbu);
     double areaDBUToMicrons(Long dbu);
 
+    ObjectId getCells() const;
+    ArrayObject<ObjectId> *getCellArray() const;
+    uint64_t getNumOfCells() const;
+    Cell *getCell(int i) const;
+    void addCell(ObjectId id);
+    Cell *createCell(std::string &name);
+
+    MemPagePool *getPool() const;
+    void setPool(MemPagePool *p);
+    
+    SymbolTable *getSymbolTable();
+    void setSymbolTable(SymbolTable *stb);
+
+    PolygonTable *getPolygonTable();
+    void setPolygonTable(PolygonTable *pt);
+
+    StorageUtil* getStorageUtil() const;
+    void setStorageUtil(StorageUtil *v);
+
+    std::string &getSymbolByIndex(SymbolIndex index);
+    SymbolIndex getOrCreateSymbol(const char *name);
+    SymbolIndex getOrCreateSymbol(std::string &name);
+    bool addSymbolReference(SymbolIndex index, ObjectId owner);
+
   private:
     // first 32 bits
     Bits has_clearance_measure_ : 1;
@@ -136,7 +161,8 @@ class Tech : public Object {
     ObjectId via_rules_;
     ObjectId ndr_rules_;
     ObjectId via_masters_;
-    ObjectId cell_;  // top cell
+    ObjectId cells_;  // cell array
+    StorageUtil *storage_util_;
 };
 
 }  // namespace db

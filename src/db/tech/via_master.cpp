@@ -15,6 +15,7 @@
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 /**
  * @brief Construct a new Via Layer:: Via Layer object
@@ -35,11 +36,11 @@ SymbolIndex ViaLayer::getNameIndex() const { return name_index_; }
  * @param name
  */
 bool ViaLayer::setName(std::string const& name) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(name.c_str());
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(name.c_str());
     if (index == kInvalidSymbolIndex) return false;
 
     name_index_ = index;
-    getTopCell()->addSymbolReference(name_index_, this->getId());
+    getTechLib()->addSymbolReference(name_index_, this->getId());
     return true;
 }
 /**
@@ -48,7 +49,7 @@ bool ViaLayer::setName(std::string const& name) {
  * @return const char*
  */
 std::string const& ViaLayer::getName() {
-    return getTopCell()->getSymbolByIndex(name_index_);
+    return getTechLib()->getSymbolByIndex(name_index_);
 }
 
 /**
@@ -117,7 +118,7 @@ void ViaLayer::print(int is_def) {
 }
 
 void ViaLayer::printLEF(std::ofstream& ofs, uint32_t num_spaces) {
-    Tech* lib = getTopCell()->getTechLib();
+    Tech* lib = getTechLib();
     std::string space_str = getSpaceStr(num_spaces);
 
     ofs << space_str << "   LAYER " << getName().c_str() << " ;\n";
@@ -196,7 +197,7 @@ SymbolIndex ViaMaster::getNameIndex() const { return name_index_; }
  * @return std::string const&
  */
 std::string const& ViaMaster::getName() {
-    return getTopCell()->getSymbolByIndex(name_index_);
+    return getTechLib()->getSymbolByIndex(name_index_);
 }
 
 /**
@@ -205,11 +206,11 @@ std::string const& ViaMaster::getName() {
  * @param name
  */
 bool ViaMaster::setName(std::string const& name) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(name.c_str());
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(name.c_str());
     if (index == kInvalidSymbolIndex) return false;
 
     name_index_ = index;
-    getTopCell()->addSymbolReference(name_index_, this->getId());
+    getTechLib()->addSymbolReference(name_index_, this->getId());
     return true;
 }
 
@@ -219,7 +220,7 @@ bool ViaMaster::setName(std::string const& name) {
  * @return std::string const&
  */
 std::string const& ViaMaster::getPattern() {
-    return getTopCell()->getSymbolByIndex(pattern_index_);
+    return getTechLib()->getSymbolByIndex(pattern_index_);
 }
 
 /**
@@ -228,11 +229,11 @@ std::string const& ViaMaster::getPattern() {
  * @param name
  */
 bool ViaMaster::setPattern(std::string const& pattern) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(pattern.c_str());
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(pattern.c_str());
     if (index == kInvalidSymbolIndex) return false;
 
     pattern_index_ = index;
-    getTopCell()->addSymbolReference(pattern_index_, this->getId());
+    getTechLib()->addSymbolReference(pattern_index_, this->getId());
     return true;
 }
 /**
@@ -601,7 +602,7 @@ void ViaMaster::setHasCutPatten(Bits has_cut_pattern) {
  * @return std::string const&
  */
 std::string const& ViaMaster::getCutPatten() {
-    return getTopCell()->getSymbolByIndex(cut_patten_index_);
+    return getTechLib()->getSymbolByIndex(cut_patten_index_);
 }
 
 /**
@@ -610,11 +611,11 @@ std::string const& ViaMaster::getCutPatten() {
  * @param name
  */
 bool ViaMaster::setCutPatten(std::string const& cut_pattern) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(cut_pattern.c_str());
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(cut_pattern.c_str());
     if (index == kInvalidSymbolIndex) return false;
 
     cut_patten_index_ = index;
-    getTopCell()->addSymbolReference(cut_patten_index_, this->getId());
+    getTechLib()->addSymbolReference(cut_patten_index_, this->getId());
     return true;
 }
 #ifdef USE_SYMBOL_TABLE_
@@ -764,20 +765,19 @@ bool ViaMaster::isDefault() const { return is_default_; }
  * @return ViaLayer*
  */
 ViaLayer* ViaMaster::creatViaLayer(std::string& name) {
-    ViaLayer* via_layer =
-        getTopCell()->createObject<ViaLayer>(kObjectTypeViaMaster);
+    ViaLayer* via_layer = Object::createObject<ViaLayer>(
+        kObjectTypeViaMaster, getTechLib()->getId());
     via_layer->setName(name);
     return via_layer;
 }
 
 int ViaMaster::addViaLayer(ViaLayer* via_layer) {
     if (via_layers_ == 0) {
-        via_layers_ =
-            getTopCell()->createVectorObject<VectorObject64>()->getId();
+        via_layers_ = __createObjectIdArray(64);
     }
-    VectorObject64* via_layer_vector =
-        addr<VectorObject64>(via_layers_);
-    via_layer_vector->push_back(via_layer->getId());
+    IdArray* via_layer_vector =
+        addr<IdArray>(via_layers_);
+    via_layer_vector->pushBack(via_layer->getId());
     return 0;
 }
 
@@ -874,9 +874,9 @@ void ViaMaster::print() {
         }
 
         if (via_layers_) {
-            VectorObject64* via_layer_vector =
-                addr<VectorObject64>(via_layers_);
-            for (VectorObject64::iterator iter = via_layer_vector->begin();
+            IdArray* via_layer_vector =
+                addr<IdArray>(via_layers_);
+            for (IdArray::iterator iter = via_layer_vector->begin();
                  iter != via_layer_vector->end(); ++iter) {
                 ObjectId id = (*iter);
                 ViaLayer* via_layer = addr<ViaLayer>(id);
@@ -932,9 +932,9 @@ void ViaMaster::print() {
         if (getResistance())
             message->info("  RESISTANCE %f ;\n", getResistance());
         if (via_layers_) {
-            VectorObject64* via_layer_vector =
-                addr<VectorObject64>(via_layers_);
-            for (VectorObject64::iterator iter = via_layer_vector->begin();
+            IdArray* via_layer_vector =
+                addr<IdArray>(via_layers_);
+            for (IdArray::iterator iter = via_layer_vector->begin();
                  iter != via_layer_vector->end(); ++iter) {
                 ObjectId id = (*iter);
                 ViaLayer* via_layer = addr<ViaLayer>(id);
@@ -985,11 +985,11 @@ void ViaMaster::printDEF(FILE* fp) {
 
     if (getResistance()) fprintf(fp, "\n  RESISTANCE %f", getResistance());
     if (via_layers_) {
-        VectorObject64* via_layer_vector =
-            addr<VectorObject64>(via_layers_);
+        IdArray* via_layer_vector =
+            addr<IdArray>(via_layers_);
         int i = 0;
-        int size = via_layer_vector->totalSize();
-        for (VectorObject64::iterator iter = via_layer_vector->begin();
+        int size = via_layer_vector->getSize();
+        for (IdArray::iterator iter = via_layer_vector->begin();
              iter != via_layer_vector->end(); ++iter) {
             ObjectId id = (*iter);
             ViaLayer* via_layer = addr<ViaLayer>(id);
@@ -1053,9 +1053,9 @@ void ViaMaster::printLEF(std::ofstream& ofs, uint32_t num_spaces) {
         ofs << space_str << "   RESISTANCE " << getResistance() << " ;\n";
 
     if (via_layers_) {
-        VectorObject64* via_layer_vector =
-            addr<VectorObject64>(via_layers_);
-        for (VectorObject64::iterator iter = via_layer_vector->begin();
+        IdArray* via_layer_vector =
+            addr<IdArray>(via_layers_);
+        for (IdArray::iterator iter = via_layer_vector->begin();
              iter != via_layer_vector->end(); ++iter) {
             ObjectId id = (*iter);
             ViaLayer* via_layer = addr<ViaLayer>(id);

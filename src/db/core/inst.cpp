@@ -332,6 +332,15 @@ Pin *Inst::createInstancePin(std::string &pin_name) {
     }
     Term *term = master->getTerm(pin_name);
     if (!term) {
+        for (int i = 0; i < master->getNumOfTerms(); i++) {
+            term = master->getTerm(i);
+            if (pin_name.compare(term->getName())) {
+                break;
+            }
+        }
+    }
+
+    if (!term) {
         return nullptr;
     }
     Pin *pin = getOwnerCell()->createObject<Pin>(kObjectTypePin);

@@ -24,7 +24,7 @@
 namespace open_edi {
 namespace db {
 
-class Cell;
+class Tech;
 
 /** @brief layer type */
 enum LayerType {
@@ -753,15 +753,14 @@ class Layer : public Object {
   private:
     bool isGeneralRoutingLayer_() const;
     bool isGeneralCutLayer_() const;
-    void initializeCell_();
-    Cell *getCell_();
+    Tech *getTech_();
 
   public:
     // iterator
     typedef VectorObjectIter<MinArea, MinAreaVectorBucket>  minAreaIter;
 
   private:
-    Cell *cell_;
+    Tech     *tech_;
     uint64_t nameId_;
 
     Bits     z_              : 10;

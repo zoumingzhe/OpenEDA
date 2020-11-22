@@ -14,6 +14,7 @@
 
 #include <string>
 #include <vector>
+#include "db/core/root.h"
 
 #include "db/core/bus.h"
 #include "db/core/fill.h"
@@ -39,6 +40,7 @@ class SpecialNet;
 class AnalysisView;
 class AnalysisMode;
 class AnalysisCorner;
+class StorageUtil;
 
 class Foreign : public Object {
   public:
@@ -160,9 +162,11 @@ class HierData : public Object {
     bool addSymbolReference(SymbolIndex index, ObjectId owner);
     void setPool(MemPagePool *p);
     MemPagePool *getPool();
+    void setStorageUtil(StorageUtil *v);
+    StorageUtil* getStorageUtil() const;
 
-    void setTechLibId(ObjectId v);
-    ObjectId getTechLibId() const;
+    // void setTechLibId(ObjectId v);
+    // ObjectId getTechLibId() const;
     void setFloorplanId(ObjectId v);
     ObjectId getFloorplanId() const;
 
@@ -193,11 +197,9 @@ class HierData : public Object {
   private:
     void __init();
 
-    MemPagePool *pool_;  ///< use the memory pool to allocate object
-    SymbolTable *symtbl_;
-    PolygonTable *polytbl_;
+    StorageUtil *storage_util_; // runtime object.
     ObjectId floor_plan_;
-    ObjectId tech_lib_;  ///< tech LEF information
+    // ObjectId tech_lib_;  ///< tech LEF information
     ObjectId cells_;  ///< Macro in LEF, module in Verilog,full implemented sub
                       ///< blocks. Only used by hierarchical cell
     ObjectId instances_;  ///< Instantiation of a cell
@@ -248,6 +250,10 @@ class Cell : public Object {
     bool addSymbolReference(SymbolIndex index, ObjectId owner);
     void setPool(MemPagePool *p);
     MemPagePool *getPool();
+    StorageUtil *getStorageUtil();
+    void setStorageUtil(StorageUtil *v);
+    void initHierData(StorageUtil *v);
+    void initHierData();
 
     // Get object vector size:
     uint64_t getNumOfCells() const;
@@ -266,7 +272,11 @@ class Cell : public Object {
 
     // Get object by name:
     Cell *getCell(std::string name);
+    Cell *getCellFromTechLib(std::string name);
+
     Term *getTerm(std::string name);
+    Term *getTermFromTechLib(std::string name);
+
     Bus *getBus(std::string name);
     Net *getNet(std::string name);
     Inst *getInstance(std::string name);
@@ -360,7 +370,7 @@ class Cell : public Object {
     // timinglib
 
     // Container: tech, floorplan, etc.
-    void setTechLib(Tech *t);
+    // void setTechLib(Tech *t);
     Tech *getTechLib();
     Layer *getLayerByLayerId(Int32 id);
     void setFloorplan(Floorplan *fp);
@@ -419,7 +429,7 @@ class Cell : public Object {
     void __init();
     const HierData *__getConstHierData() const;
     HierData *__getHierData();
-    void __initHierData();
+    //void __initHierData();
 
     SymbolIndex name_index_;  ///< cell name
     CellType cell_type_;      ///< cell type

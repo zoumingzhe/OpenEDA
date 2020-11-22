@@ -36,7 +36,7 @@ ExportTechLef::ExportTechLef(const char* tech_name) {
         }
         rename(tech_name, old_tech_name.c_str());
     }
-    tech_lib_ = getTopCell()->getTechLib();
+    tech_lib_ = getTechLib();
     ofs_.open(tech_name, std::ios::out | std::ios::app);
 
     default_precision_ = cur_precision_ = ofs_.precision();
@@ -1331,10 +1331,10 @@ void ExportTechLef::exportNDR() {
 }
 
 void ExportTechLef::exportCells() {
-    Cell* top_cell = getTopCell();
-    if (!top_cell) return;
-    for (uint64_t i = 0; i < top_cell->getNumOfCells(); i++) {
-        Cell* cell = top_cell->getCell(i);
+    Tech* tech_lib = getTechLib();
+    if (!tech_lib) return;
+    for (uint64_t i = 0; i < tech_lib->getNumOfCells(); i++) {
+        Cell* cell = tech_lib->getCell(i);
         if (cell) {
             // message->info("print out %dth macro to topcell\n", test_counttt);
             cell->printLEF(ofs_);

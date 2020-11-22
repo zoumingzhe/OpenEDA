@@ -2053,17 +2053,10 @@ void MinArea::setOverlap(UInt32 ol) {
     layer_overlap_ = (ol & 0x3); // layer_overlap_ occupies 2 Bits
 }
 
-/// @brief initializeCell_ 
-void Layer::initializeCell_()
-{
-    setObjectType(kObjectTypeLayer);
-    cell_ = nullptr;
-}
-
 /// @brief Layer 
 Layer::Layer()
 {
-    initializeCell_();
+    
 }
 
 /**
@@ -2101,14 +2094,14 @@ Layer::~Layer() {
     }
 }
 
-/// @brief getCell_ 
+/// @brief getTech_ 
 ///
 /// @return 
-Cell *Layer::getCell_()
+Tech *Layer::getTech_()
 {
-    if (nullptr != cell_) return cell_;
-    cell_ = addr<Cell>(getOwnerId());
-    return cell_;
+    if (nullptr != tech_) return tech_;
+    tech_ = addr<Tech>(getOwnerId());
+    return tech_;
 }
 
 /// @brief getNameId 
@@ -2122,7 +2115,7 @@ uint64_t Layer::getNameId() const {
 ///
 /// @return 
 const char* Layer::getName() {
-    return getCell_()->getSymbolByIndex(nameId_).c_str();
+    return getTech_()->getSymbolByIndex(nameId_).c_str();
 }
 
 /**
@@ -2140,7 +2133,7 @@ void Layer::setNameId(uint64_t id) {
 ///
 /// @return 
 bool Layer::setName(const char *name) {
-    SymbolIndex sym_id = getCell_()->getOrCreateSymbol(name);
+    SymbolIndex sym_id = getTech_()->getOrCreateSymbol(name);
     if (sym_id != kInvalidSymbolIndex) {
         setNameId(sym_id);
         return true;
@@ -2603,7 +2596,8 @@ void Layer::setWidth(UInt32 w) {
  * @return MinArea
  */
 MinArea* Layer::createMinArea() {
-    MinArea* ma = getTopCell()->createObject<MinArea>(kObjectTypeLayerMinArea);
+    MinArea* ma = Object::createObject<MinArea>(
+          kObjectTypeLayerMinArea, getTechLib()->getId());
     if (!ma)
       return nullptr;
     MinAreaVectorBucket *ma_vector = nullptr;
