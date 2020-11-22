@@ -1,6 +1,4 @@
 #!/bin/sh
-# FILE: config.tclshrc
-# $Id: e600455cb7ea5e340aa895491ec04818a05290b7 $
 # ---
 # tclreadline -- gnu readline for tcl
 # https://github.com/flightaware/tclreadline/
