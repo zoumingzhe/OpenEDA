@@ -1179,23 +1179,6 @@ ArrayObject<ObjectId> *Cell::getGroupArray() const {
     }
 }
 
-Term *Cell::getTermFromTechLib(std::string name) {
-    SymbolIndex symbol_index = getTechLib()->getOrCreateSymbol(name.c_str());
-    if (symbol_index == kInvalidSymbolIndex) return nullptr;
-
-    std::vector<ObjectId> object_vector =
-          getTechLib()->getSymbolTable()->getReferences(symbol_index);
-    for (auto iter = object_vector.begin(); iter != object_vector.end();
-        iter++) {
-        Term *target = addr<Term>(*iter);
-        if (target && (target->getObjectType() == kObjectTypeTerm))
-            if (target->getCellId() == this->getId()) {
-                return target;
-            }
-    }
-    return nullptr;
-}
-
 Term *Cell::getTerm(std::string name) {
     if (getTerms() != 0) {
         SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
@@ -1206,13 +1189,14 @@ Term *Cell::getTerm(std::string name) {
         for (auto iter = object_vector.begin(); iter != object_vector.end();
              iter++) {
             Term *target = addr<Term>(*iter);
-            if (target && (target->getObjectType() == kObjectTypeTerm))
+            if (target && (target->getObjectType() == kObjectTypeTerm)) {
                 if (target->getCellId() == this->getId()) {
                     return target;
                 }
+            }
         }
     }
-    return getTermFromTechLib(name);
+    return nullptr;
 }
 
 Bus *Cell::getBus(std::string name) {

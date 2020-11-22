@@ -275,7 +275,6 @@ class Cell : public Object {
     Cell *getCellFromTechLib(std::string name);
 
     Term *getTerm(std::string name);
-    Term *getTermFromTechLib(std::string name);
 
     Bus *getBus(std::string name);
     Net *getNet(std::string name);

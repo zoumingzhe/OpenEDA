@@ -763,7 +763,7 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
     }
 
     Term *term = Object::createObject<Term>(
-            kObjectTypeTerm, lib->getId());
+            kObjectTypeTerm, currentCell->getId());
     checkType(c);
     term->setName(pin->lefiPin::name());
     if (pin->lefiPin::hasDirection())
