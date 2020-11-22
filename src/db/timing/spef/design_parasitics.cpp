@@ -85,6 +85,7 @@ OStreamBase &operator<<(OStreamBase &os, DesignParasitics const &rhs) {
        os << *netsParasitics;
        break;         ///Currently only support dump out first spef file	
    }
+   return os;
 }
 
 }  // namespace db

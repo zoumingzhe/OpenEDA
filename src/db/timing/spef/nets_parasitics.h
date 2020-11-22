@@ -91,7 +91,22 @@ class NetsParasitics : public Object {
     void addCouplingCap(ObjectId netId, char *nodeName1, char *nodeName2, float xCapValue);
     void addResistor(ObjectId netId, char *nodeName1, char *nodeName2, float resValue);
     RNetParasitics* addRNetParasitics(ObjectId netId, float totCap);
-    //std::unordered_map<ObjectId, ObjectId> getNetParasiticsMap() { return netParasiticsMap_;}
+    ///functions for spef dumpping
+    std::string getNetDumpName(Net *net);
+    std::string getCellDumpName(Cell *cell);
+    std::string getIntNodeDumpName(Net *net, ParasiticIntNode *intNode);
+    std::string getPinDumpName(Pin *pin);
+    std::string getExtNodeDumpName(ParasiticExtNode *extNode);
+    std::string getNodeDumpName(Net *net, ObjectId objId);
+    void dumpSpefHeader(OStreamBase& os);
+    void dumpNameMap(OStreamBase& os);
+    void dumpPorts(OStreamBase& os);
+    void dumpDNetConn(OStreamBase& os, DNetParasitics *dNetPara);
+    void dumpDNetCap(OStreamBase& os, DNetParasitics *dNetPara);
+    void dumpDNetRes(OStreamBase& os, DNetParasitics *dNetPara);
+    void dumpDNet(OStreamBase& os, DNetParasitics *dNetPara);
+    void dumpRNet(OStreamBase& os, RNetParasitics *rNetPara);
+    void dumpNets(OStreamBase& os);
 
   protected:
     /// @brief copy object
@@ -99,7 +114,7 @@ class NetsParasitics : public Object {
     /// @brief move object
     void move(NetsParasitics &&rhs);
     /// @brief overload output stream
-    friend OStreamBase &operator<<(OStreamBase &os, NetsParasitics const &rhs);
+    friend OStreamBase &operator<<(OStreamBase &os, NetsParasitics &rhs);
 
   private:
     /// Net ObjectId and NetParasitics ObjectId Map
@@ -112,6 +127,10 @@ class NetsParasitics : public Object {
     //std::vector<ObjectId> pwrNetVec_;
     /// The vector to save Ground nets dont to save it for now
     //std::vector<ObjectId> gndNetVec_;
+    //  Name map used for spef dumpping, keep it empty after spef dumpping done
+    std::unordered_map<std::string, uint32_t> revertNameMap_;
+    //  Ports name map used for spef dumpping, keep it empty after spef dumpping done
+    std::unordered_map<std::string, uint32_t> revertPortsMap_;
     /// The vector to save ports
     std::vector<ObjectId> portsVec_;
     char divider_;
