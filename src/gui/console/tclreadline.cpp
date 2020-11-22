@@ -127,6 +127,7 @@ static int  get_y_or_n (int for_pager);
 static int  getCurrentLineIndex(void);
 static int  keyUp (int count, int key);
 static int  keyDown (int count, int key);
+static int  KeyRubout (int, int);
 static void mutilinesCompleteFunction (char ** matches, int len , int max);
 
 
@@ -226,6 +227,51 @@ static int keyDown (int count, int key)
     return 0;
 }
 
+static int  KeyRubout (int count, int key)
+{
+    auto cur_index = getCurrentLineIndex();
+    if (rl_end == 0 && 
+        rl_point == rl_end && 
+        (cur_index != muti_lines_size) &&
+        (cur_index)
+        ) {
+        for(int i = cur_index; i < muti_lines_size; i++) {
+            mutiline_map[i] = mutiline_map[i + 1];
+            rl_line_buffer = mutiline_map[i].rl_line_buffer ;
+            rl_end = strlen(rl_line_buffer);
+            rl_point = rl_end;
+            rl_refresh_line(rl_point,rl_end);
+            MOVE_CURSOR_DOWN(1);
+        }
+
+        //clear the lastest line
+        auto it =mutiline_map.find(muti_lines_size);
+        if(it != mutiline_map.end()) {
+            memset(mutiline_map[muti_lines_size].rl_line_buffer,0,0xff);
+            rl_line_buffer = mutiline_map[muti_lines_size].rl_line_buffer;
+            rl_set_prompt("");
+            rl_refresh_line(rl_point,rl_end);            
+            mutiline_map.erase(it);
+        }
+
+        //move back and redisplay
+        muti_lines_size -= 1;
+        cur_index = getCurrentLineIndex();
+        cursor_index = muti_lines_size - cur_index;
+        auto step =  cursor_index + 1;
+        MOVE_CURSOR_UP(step);
+        auto status = mutiline_map[cur_index];
+        rl_set_prompt(status.prompt);
+        rl_line_buffer = status.rl_line_buffer;
+        rl_point = status.rl_point;
+        rl_end = status.rl_end;
+        rl_refresh_line(rl_point,rl_end);  
+    }
+    else
+        return (rl_rubout (count, key));
+    return 0;
+}
+
 static void saveRawLineBuffer(void)
 {
     if(rl_line_buffer) raw_readline_buf = rl_line_buffer;
@@ -269,6 +315,8 @@ static void rebindKeyFunction(void)
   rl_bind_keyseq_in_map("\033[A",keyUp,rl_get_keymap());
   rl_bind_keyseq_in_map("\033[B",keyDown,rl_get_keymap());
 #endif
+  rl_bind_key_in_map(CTRL('H'),KeyRubout,rl_get_keymap());
+  rl_bind_key_in_map(RUBOUT,KeyRubout,rl_get_keymap());
 }
 static void
 restoreKeyFunction(void)
@@ -283,6 +331,8 @@ restoreKeyFunction(void)
   rl_bind_keyseq_in_map("\033[A",rl_get_previous_history,rl_get_keymap());
   rl_bind_keyseq_in_map("\033[B",rl_get_next_history,rl_get_keymap());
 #endif
+  rl_bind_key_in_map(CTRL('H'),rl_rubout,rl_get_keymap());
+  rl_bind_key_in_map(RUBOUT,rl_rubout,rl_get_keymap());
 }
 
 static void restoreLineStatus(void)
