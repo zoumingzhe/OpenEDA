@@ -220,12 +220,15 @@ static bool readVerilogWireToDB(Cell *hcell,
     std::vector<std::string> bus_net_names;
     if (range_left != INT_MAX || range_right != INT_MIN) {
         std::string net_name = wire_name;
-        net = hcell->createNet(net_name);
+        net = hcell->getNet(net_name);
         if (!net) {
-                message->issueMsg(kError,
-                        "create net %s failed for module %s.\n",
-                        net_name.c_str(), hcell->getName().c_str());
-                return false;
+            net = hcell->createNet(net_name);
+            if (!net) {
+                    message->issueMsg(kError,
+                            "create net %s failed for module %s.\n",
+                            net_name.c_str(), hcell->getName().c_str());
+                    return false;
+            }
         }
         net->setIsBusNet(true);
         if (is_term) {
@@ -279,12 +282,15 @@ static bool readVerilogWireToDB(Cell *hcell,
         }
     }
     for (std::string net_name : bus_net_names) {
-        net = hcell->createNet(net_name);
+        net = hcell->getNet(net_name);
         if (!net) {
+            net = hcell->createNet(net_name);
+            if (!net) {
                 message->issueMsg(kError,
                         "create net %s failed for module %s.\n",
                         net_name.c_str(), hcell->getName().c_str());
                 return false;
+            }
         }
         net->setIsOfBus(true);
         if (is_term) {
