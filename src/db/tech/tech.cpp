@@ -9,7 +9,7 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 #include "db/tech/tech.h"
-
+#include "db/core/root.h"
 #include "db/core/db.h"
 #include "db/core/cell.h"
 #include "db/util/array.h"
@@ -202,7 +202,7 @@ SymbolIndex Tech::getExtensionsId() const { return extensions_name_index_; }
  * @return
  */
 const char *Tech::getBusBitsName() const {
-    return getTopCell()->getSymbolByIndex(bus_bits_index_).c_str();
+    return getTechLib()->getSymbolByIndex(bus_bits_index_).c_str();
 }
 
 /**
@@ -212,11 +212,11 @@ const char *Tech::getBusBitsName() const {
  * @param s
  */
 void Tech::setBusBitsName(const char *s) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(s);
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(s);
     if (index == kInvalidSymbolIndex) return;
 
     bus_bits_index_ = index;
-    getTopCell()->addSymbolReference(index, this->getId());
+    getTechLib()->addSymbolReference(index, this->getId());
 }
 
 /**
@@ -226,7 +226,7 @@ void Tech::setBusBitsName(const char *s) {
  * @return
  */
 const char *Tech::getDividerName() const {
-    return getTopCell()->getSymbolByIndex(divider_name_index_).c_str();
+    return getTechLib()->getSymbolByIndex(divider_name_index_).c_str();
 }
 
 /**
@@ -236,11 +236,11 @@ const char *Tech::getDividerName() const {
  * @param s
  */
 void Tech::setDividerName(const char *s) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(s);
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(s);
     if (index == kInvalidSymbolIndex) return;
 
     divider_name_index_ = index;
-    getTopCell()->addSymbolReference(index, this->getId());
+    getTechLib()->addSymbolReference(index, this->getId());
 }
 
 /**
@@ -250,7 +250,7 @@ void Tech::setDividerName(const char *s) {
  * @return
  */
 const char *Tech::getExtensionsName() const {
-    return getTopCell()->getSymbolByIndex(extensions_name_index_).c_str();
+    return getTechLib()->getSymbolByIndex(extensions_name_index_).c_str();
 }
 
 /**
@@ -260,11 +260,11 @@ const char *Tech::getExtensionsName() const {
  * @param s
  */
 void Tech::setExtensionsName(const char *s) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(s);
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(s);
     if (index == kInvalidSymbolIndex) return;
 
     extensions_name_index_ = index;
-    getTopCell()->addSymbolReference(index, this->getId());
+    getTechLib()->addSymbolReference(index, this->getId());
 }
 
 /**
@@ -334,11 +334,11 @@ void Tech::setUnits(Units *const vobj) {
  */
 bool Tech::addLayer(Layer *layer) {
     ArrayObject<ObjectId> *array_obj = nullptr;
-    Cell *cell = addr<Cell>(getOwnerId());
-    if (cell && layer_ids_ == 0) {
-        array_obj = cell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+    
+    if (layer_ids_ == 0) {
+        array_obj = createObject<ArrayObject<ObjectId>>(kObjectTypeArray, this->getId());
         if (nullptr == array_obj) return false;
-        array_obj->setPool(cell->getPool());
+        array_obj->setPool(this->getPool());
         array_obj->reserve(32);
         layer_ids_ = array_obj->getId();
     } else if (layer_ids_ != 0) {
@@ -359,11 +359,9 @@ bool Tech::addLayer(Layer *layer) {
  */
 Int32 Tech::getLayerLEFIndexByName(const char *name) {
     Layer *layer_obj = nullptr;
-    Cell *cell = addr<Cell>(getOwnerId());
-    if (nullptr == cell) return -1;
-
+    
     std::string layer_name(name);
-    layer_obj = cell->getSymbolTable()->getObjectByTypeAndName<Layer>(
+    layer_obj = this->getSymbolTable()->getObjectByTypeAndName<Layer>(
         kObjectTypeLayer, layer_name);
 
     if (layer_obj) return layer_obj->getIndexInLef();
@@ -441,9 +439,8 @@ UInt32 Tech::getNumLayers() const {
  */
 void Tech::addPropertyDefinition(ObjectId pobj_id) {
     PropertyDefinition *pobj = addr<PropertyDefinition>(pobj_id);
-    Cell *cell = addr<Cell>(getOwnerId());
+    
     ediAssert(pobj != nullptr);
-    ediAssert(cell != nullptr);
 
     PropType type = pobj->getPropType();
     uint32_t index = toInteger<PropType>(type);
@@ -452,8 +449,8 @@ void Tech::addPropertyDefinition(ObjectId pobj_id) {
 
     if (array_id == 0) {
         array_ptr = 
-            cell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-        array_ptr->setPool(cell->getPool());
+            createObject<ArrayObject<ObjectId>>(kObjectTypeArray, this->getId());
+        array_ptr->setPool(this->getPool());
         array_ptr->reserve(16);
         ediAssert(array_ptr != nullptr);
         property_definitions_array_[index] = array_ptr->getId();
@@ -530,7 +527,7 @@ void Tech::setMaxViaStack(ObjectId mvs_id) { max_via_stack_ = mvs_id; }
  *
  * @return
  */
-// TODO: change via_rule_ to VectorObject; temporarily use this list.
+// TODO: change via_rule_ to ArrayObject; temporarily use this list.
 ViaRule *Tech::getViaRule(const char *name) const {
     std::string via_rule_name = name;
     ViaRule *via_rule = getViaRule(via_rule_name);
@@ -614,11 +611,10 @@ double Tech::areaDBUToMicrons(Long data) {
  */
 void Tech::addNonDefaultRule(ObjectId ndr_rule_id) {
     ArrayObject<ObjectId> *arr_ptr = nullptr;
-    Cell *cell = addr<Cell>(getOwnerId());
 
     if (!ndr_rules_) {
-        arr_ptr = cell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-        arr_ptr->setPool(cell->getPool());
+        arr_ptr = createObject<ArrayObject<ObjectId>>(kObjectTypeArray, this->getId());
+        arr_ptr->setPool(this->getPool());
         arr_ptr->reserve(8);
     } else {
         arr_ptr = addr<ArrayObject<ObjectId>>(ndr_rules_);
@@ -762,10 +758,9 @@ NonDefaultRule *Tech::getNonDefaultRule(const char *name) const {
  */
 ViaMaster *Tech::createAndAddViaMaster(std::string &name) {
     ArrayObject<ObjectId> *array_ptr = nullptr;
-    Cell *cell = addr<Cell>(getOwnerId());
 
     ViaMaster *via_master =
-        cell->createObject<ViaMaster>(kObjectTypeViaMaster);
+        createObject<ViaMaster>(kObjectTypeViaMaster, this->getId());
     if (via_master) {
         via_master->setName(name);
     } else {
@@ -773,8 +768,8 @@ ViaMaster *Tech::createAndAddViaMaster(std::string &name) {
     }
     if (via_masters_ == 0) {
         array_ptr = 
-            cell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-        array_ptr->setPool(cell->getPool());
+            createObject<ArrayObject<ObjectId>>(kObjectTypeArray, this->getId());
+        array_ptr->setPool(this->getPool());
         array_ptr->reserve(32);
         via_masters_ = array_ptr->getId();
     } else {
@@ -785,7 +780,7 @@ ViaMaster *Tech::createAndAddViaMaster(std::string &name) {
 }
 
 ViaRule *Tech::createViaRule(std::string &name) {
-    ViaRule *via_rule = getTopCell()->createObject<ViaRule>(kObjectTypeViaRule);
+    ViaRule *via_rule = createObject<ViaRule>(kObjectTypeViaRule, this->getId());
     via_rule->setName(name);
 
     return via_rule;
@@ -793,12 +788,11 @@ ViaRule *Tech::createViaRule(std::string &name) {
 
 void Tech::addViaRule(ViaRule *via_rule) {
     ArrayObject<ObjectId> *array_ptr = nullptr;
-    Cell *cell = addr<Cell>(getOwnerId());
 
     if (via_rules_ == 0) {
         array_ptr =
-            cell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-        array_ptr->setPool(cell->getPool());
+            createObject<ArrayObject<ObjectId>>(kObjectTypeArray, this->getId());
+        array_ptr->setPool(this->getPool());
         array_ptr->reserve(16);
     } else {
         array_ptr = addr<ArrayObject<ObjectId>>(via_rules_);
@@ -851,11 +845,10 @@ ViaMaster *Tech::getViaMaster(const std::string &name) const {
  */
 void Tech::addSite(Site *site) {
     ArrayObject<ObjectId> *arr_ptr = nullptr;
-    Cell *cell = addr<Cell>(getOwnerId());
 
     if (sites_ == 0) {
-        arr_ptr = cell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-        arr_ptr->setPool(cell->getPool());
+        arr_ptr = createObject<ArrayObject<ObjectId>>(kObjectTypeArray, this->getId());
+        arr_ptr->setPool(this->getPool());
         arr_ptr->reserve(16);
     } else {
         arr_ptr = addr<ArrayObject<ObjectId>>(sites_);
@@ -893,6 +886,135 @@ Site *Tech::getSiteByName(const char *site_name) const {
  * @return object id of vector object
  */
 ObjectId Tech::getSiteVectorId() const { return sites_; }
+
+
+// Functions for accessing cells_
+ObjectId Tech::getCells() const {
+    return cells_;
+}
+
+ArrayObject<ObjectId> *Tech::getCellArray() const {
+    ObjectId id = getCells();
+    if (id != 0) {
+        ArrayObject<ObjectId> *cell_array = addr<ArrayObject<ObjectId>>(id);
+        return cell_array;
+    } else {
+        return nullptr;
+    }
+}
+
+Cell *Tech::getCell(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    ObjectId cell_array = getCells();
+    if (cell_array == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(cell_array);
+    }
+    if (vct) {
+        Cell *obj_data = addr<Cell>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
+
+uint64_t Tech::getNumOfCells() const {
+    ObjectId id = getCells();
+    if (id == 0) {
+        return 0;
+    }
+    ArrayObject<ObjectId> *obj_vector = addr<ArrayObject<ObjectId>>(id);
+    if (obj_vector == nullptr) return 0;
+    return obj_vector->getSize();
+}
+
+/// @brief added a cell into array cells_
+/// @return none
+void Tech::addCell(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    ObjectId cell_array = getCells();
+    if (cell_array == 0) {
+        vct = Object::createObject<ArrayObject<ObjectId>>(kObjectTypeArray, this->getId());
+        if (vct == nullptr) return;
+        vct->setPool(getPool());
+        vct->reserve(256);
+        cells_ = vct->getId();
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(cell_array);
+    }
+
+    if (vct) vct->pushBack(id);
+}
+
+/// @brief createCell create a sub-cell in a cell
+/// @return the cell created
+Cell *Tech::createCell(std::string &name) {
+    if (getTopCell()->getCell(name) != nullptr) {
+        message->issueMsg(kError,
+            "create cell %s failed due to name conflicts.\n", name.c_str());
+        return nullptr;
+    }
+    Cell *cell = Object::createObject<Cell>(kObjectTypeCell, this->getId());
+    if (!cell) {
+        message->issueMsg(kError, "create cell %s failed.\n", name.c_str());
+        return nullptr;
+    }
+
+    cell->setCellType(CellType::kCell);
+    cell->setName(name);
+    addCell(cell->getId());
+    return cell;
+}
+
+// Functions for accessing runtime StorageUtil.
+MemPagePool *Tech::getPool() const { return storage_util_->getPool(); }
+void Tech::setPool(MemPagePool *p) { storage_util_->setPool(p); }
+
+SymbolTable *Tech::getSymbolTable() { return storage_util_->getSymbolTable(); }
+void Tech::setSymbolTable(SymbolTable *stb) { storage_util_->setSymbolTable(stb); }
+
+PolygonTable *Tech::getPolygonTable() { return storage_util_->getPolygonTable(); }
+void Tech::setPolygonTable(PolygonTable *pt) { storage_util_->setPolygonTable(pt); }
+
+StorageUtil* Tech::getStorageUtil() const { return storage_util_; }
+void Tech::setStorageUtil(StorageUtil *v) { storage_util_ = v; }
+
+/// @brief getSymbolByIndex
+///
+/// @param index
+///
+/// @return
+std::string &Tech::getSymbolByIndex(SymbolIndex index) {
+    return getSymbolTable()->getSymbolByIndex(index);
+}
+
+/// @brief getOrCreateSymbol
+SymbolIndex Tech::getOrCreateSymbol(const char *name) {
+    SymbolTable *sym_table = getSymbolTable();
+    if (sym_table == nullptr) {
+        return kInvalidSymbolIndex;
+    }
+    return sym_table->getOrCreateSymbol(name);
+}
+
+/// @brief getOrCreateSymbol
+/// @param name
+/// @return
+SymbolIndex Tech::getOrCreateSymbol(std::string &name) {
+    return getOrCreateSymbol(name.c_str());
+}
+
+/// @brief addSymbolReference
+///
+/// @param index
+/// @param owner
+///
+/// @return
+bool Tech::addSymbolReference(SymbolIndex index, ObjectId owner) {
+    return getSymbolTable()->addReference(index, owner);
+}
 
 }  // namespace db
 }  // namespace open_edi
