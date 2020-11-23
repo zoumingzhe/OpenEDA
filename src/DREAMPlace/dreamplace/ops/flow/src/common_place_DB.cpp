@@ -15,18 +15,184 @@ DREAMPLACE_BEGIN_NAMESPACE
 // init class static object
 CommonPlaceDB* CommonPlaceDB::place_db_instance_ = nullptr;
 
-// class commonDB member functions
+// class commosnDB member functions
+bool
+CommonDB::__isDBLoaded() 
+{
+  /* Function: heck if DB is loaded correctly */
+  if (nullptr == getPlTopCell()) {
+    dreamplacePrint(kINFO, "Load DB failed w/o top cell\n");
+    return false;
+  } 
+  if (nullptr == getFloorplan()) {
+    dreamplacePrint(kINFO, "Load DB failed w/o floor plan\n");
+    return false;
+  } 
+  if (nullptr == getTechLib()) {
+    dreamplacePrint(kINFO, "Load DB failed w/o Tech library\n");
+    return false;
+  } 
+  if (0 == getNumOfCells()) { 
+    dreamplacePrint(kINFO, "Load DB failed w/o cells\n");
+    return false;
+  }
+  if (0 == getNumOfInsts()) { 
+    dreamplacePrint(kINFO, "Load DB failed w/o instances\n");
+    return false;
+  }
+  return true;
+}
+
 void
 CommonDB::__init()
 {
   // from edi db
+  if (!__isDBLoaded()) {
+    dreamplacePrint(kINFO, "DB is not load\n");
+    return;
+  }
+
+  num_nodes_ = getNumOfInsts();
+  num_nets_ =  getNumOfNets();
+  num_pins_ = getNumOfPins();
+  num_regions_ = 0;  
+  num_fences_  = 0;
+
+  PlInt num_nodes_ = getNumOfInsts();
+  init_x_ = new PlInt[num_nodes_];
+  init_y_ = new PlInt[num_nodes_];
+  node_size_x_ = new PlInt[num_nodes_];
+  node_size_y_ = new PlInt[num_nodes_];
+  //flat_region_boxes_ = new int[];
+  //flat_region_boxes_start = new int[];
+  //node2region_map_ = new int[];
+  //flat_fence_boxes_ = new int[];
+  //flat_fence_boxes_start = new int[];
+  //node2fence_map_ = new int[];
+  // net to pin
+  pin2net_map_ = new PlInt[num_pins_];
+  flat_net2pin_map_ = new PlInt[num_pins_];
+  flat_net2pin_start_map_ = new PlInt[num_nets_];
+  // inst(node) to pin
+  pin2node_map_ = new PlInt[num_pins_];
+  flat_node2pin_map_ = new PlInt[num_pins_];
+  flat_node2pin_start_map_ = new PlInt[num_nodes_];
+
+  pin_offset_x_ = new PlInt[num_pins_];
+  pin_offset_y_ = new PlInt[num_pins_];
+
+  net_mask_ = new unsigned char[num_nets_];
+  idx_to_instId_.resize(num_nodes_);
+
+  int idx = 0;
+  int pinIdx = 0;
+  // moveable insts at the beginning
+  forEachInst() {
+    if (isInstMoveable(inst)) {
+      PlBox box = getInstBox(inst);
+      init_x_[idx] = getBoxLLX(box);
+      init_y_[idx] = getBoxLLY(box);
+      node_size_x_[idx] = getBoxWidth(box);
+      node_size_y_[idx] = getBoxHeight(box);
+      idx_to_instId_.push_back(instId);
+      // collect moveable inst pins
+      if (0 == getInstNumPins(inst)) { 
+        flat_node2pin_start_map_[idx] = pinIdx;
+        forEachInstPin(inst) {
+          flat_node2pin_map_[pinIdx] = pinId;
+          pin2node_map_[pinId] = idx;
+          pin_offset_x_[pinId] = getPinLocX(pin);
+          pin_offset_y_[pinId] = getPinLocY(pin);
+          pinIdx++;
+        } endForEachInstPin
+      }
+      idx++;
+    }
+  } endForEachInst
+  num_movable_nodes_ = idx;
+
+  // fixed insts after moveable instances
+  forEachInst() {
+    if (!isInstMoveable(inst)) {
+      PlBox box = getInstBox(inst);
+      init_x_[idx] = getBoxLLX(box);
+      init_y_[idx] = getBoxLLY(box);
+      node_size_x_[idx] = getBoxWidth(box);
+      node_size_y_[idx] = getBoxHeight(box);
+      idx_to_instId_.push_back(instId);
+      // collect fixed inst pins
+      if (0 == getInstNumPins(inst)) { 
+        flat_node2pin_start_map_[idx] = pinIdx;
+        forEachInstPin(inst) {
+          flat_node2pin_map_[pinIdx] = pinId;
+          pin2node_map_[pinId] = idx;
+          pin_offset_x_[pinId] = getPinLocX(pin);
+          pin_offset_y_[pinId] = getPinLocY(pin);
+          pinIdx++;
+        } endForEachInstPin
+      }
+      idx++;
+    }
+  } endForEachInst
+
+  pinIdx = 0;
+  int netIdx = 0;
+  dreamplacePrint(kINFO, "Total %d instances, %d moveable instance%c, %d cell%c, %d net%c, %d pin%c \n", 
+  num_nodes_, num_movable_nodes_, num_movable_nodes_ > 1 ? 's' : ' ',
+  getNumOfCells(), getNumOfCells() > 1 ? 's' : ' ',
+  getNumOfNets(), getNumOfNets() > 1 ? 's' : ' ',
+  getNumOfPins(), getNumOfPins() > 1 ? 's' : ' ');
+  // sort pins of same net to be abutted
+  forEachNet() {
+    net_mask_[netIdx] = (isNetClock(net) ? false : true);
+    flat_net2pin_start_map_[netIdx] = pinIdx;
+    if (getNetPinArray(net) == nullptr) {
+      continue;
+    }
+    net->print();
+    forEachNetPin(net) {
+      flat_net2pin_map_[pinIdx] = pinId;
+      pin2net_map_[pinId] = netIdx;
+      pinIdx++; 
+    } endForEachNetPin
+    netIdx++;
+  } endForEachNet
+
   isCommonDBReady_ = true;
+  dreamplacePrint(kINFO, "DB inilization is completed\n");
   return;
 }
+
 void
 CommonDB::__free()
 {
   // free edi db
+  delete [] init_x_;
+  init_x_ = nullptr;
+  delete [] init_y_;
+  init_y_ = nullptr;
+  delete [] node_size_x_;
+  node_size_x_ = nullptr;
+  delete [] node_size_y_;
+  node_size_y_ = nullptr;
+  delete [] flat_net2pin_map_;
+  flat_net2pin_map_ = nullptr;
+  delete [] flat_net2pin_start_map_;
+  flat_net2pin_start_map_ = nullptr;
+  delete [] pin2net_map_;
+  pin2net_map_ = nullptr;
+  delete [] flat_node2pin_map_;
+  flat_node2pin_map_ = nullptr;
+  delete [] flat_node2pin_start_map_;
+  flat_node2pin_start_map_ = nullptr;
+  delete [] pin2node_map_;
+  pin2node_map_ = nullptr;
+  delete [] pin_offset_x_;
+  pin_offset_x_ = nullptr;
+  delete [] pin_offset_y_;
+  pin_offset_y_ = nullptr;
+  delete [] net_mask_;
+  net_mask_ = nullptr;
   return;
 }
 

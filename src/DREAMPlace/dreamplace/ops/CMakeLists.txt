@@ -32,6 +32,8 @@ add_subdirectory(flow)
 if (CMAKE_PLACE)
     add_subdirectory(tcl_command)
 endif(CMAKE_PLACE)
+# report wire length
+add_subdirectory(wire_length)
 
 file(GLOB INSTALL_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.py")
 install(
