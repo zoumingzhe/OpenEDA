@@ -136,8 +136,6 @@ class Term : public Object {
     /// @brief move assignment
     Term& operator=(Term&& rhs) noexcept;
 
-    Cell* getCell(); // cell pointer, Macro or Module
-
     void setName(std::string name);
     std::string& getName() const;
 
@@ -212,6 +210,11 @@ class Term : public Object {
     void addPort(ObjectId p);
     Port* getPort(int index) const;
     int getPortNum() const;
+
+    void setCellId(ObjectId cell_id);
+    ObjectId getCellId();
+    Cell* getCell();
+
     void print() const;
     void printLEF(std::ofstream& ofs) const;
 
@@ -248,6 +251,7 @@ class Term : public Object {
     ObjectId antenna_diff_areas_;
     AntennaModelTerm antenna_models_[6];
     ObjectId ports_;
+    ObjectId cell_id_; // the macro or module which has the term.
 };
 
 }  // namespace db

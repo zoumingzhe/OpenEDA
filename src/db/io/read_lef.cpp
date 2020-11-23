@@ -918,12 +918,14 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
         p->setTermId(term->getId());
         term->addPort(p->getId());
     }
-    if (currentCell)
+    if (currentCell) {
+        term->setCellId(currentCell->getId());
         currentCell->addTerm(term->getId());
-    else
+    } else {
         message->info(
             "----------------pin %s do not find macro ---------------------\n",
             term->getName().c_str());
+    }
 
     return 0;
 }
