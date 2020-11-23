@@ -1,11 +1,10 @@
-
 set(_SUBDIRNAME console)
 set(_SUBLIBNAME ${PROJECT_NAME_LOWERCASE}_${_SUBDIRNAME})
 set(_SUBBINNAME "")
 
 
 
-file(GLOB SRC_FILES *.c)
+file(GLOB SRC_FILES *.cpp)
 file(GLOB HEAD_FILES *.h)
 
 
@@ -18,7 +17,7 @@ target_include_directories(${_SUBLIBNAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../.. 
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${PROFILER_DIR}/include
-    ${Boost_HEADERS} 
+    ${Boost_INCLUDE_DIRS} 
     ${TCL_DIR}/include
 )
 
@@ -35,9 +34,14 @@ install(TARGETS ${_SUBLIBNAME}
 file(GLOB HEADERS *.h)
 install(FILES ${HEADERS} DESTINATION include/src/gui/${_SUBDIRNAME})
 # install scripts
-file(GLOB_RECURSE SCRIPTS ./lib/*.tcl ./lib/*.tclshrc)
-# install(FILES ${SCRIPTS} DESTINATION include/src/gui/${_SUBDIRNAME}/lib)
+file(GLOB SCRIPTS *.tcl)
 install(FILES ${SCRIPTS} DESTINATION share/etc/tcl)
+
+add_custom_command(TARGET ${_SUBLIBNAME}
+  PRE_BUILD 
+  COMMAND mkdir -p "${PROJECT_SOURCE_DIR}/share/etc/tcl"
+  COMMAND ${CMAKE_COMMAND} -E copy ${SCRIPTS} "${PROJECT_SOURCE_DIR}/share/etc/tcl"
+ )
 
 
 
