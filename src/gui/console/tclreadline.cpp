@@ -55,7 +55,7 @@ static const char* tclrl_patchlevel_str  = TCLRL_PATCHLEVEL_STR;
 static const char* tclrl_historypath_str = (const char*)NULL;
 
 #define MALLOC(size) malloc(size)
-#define FREE(ptr) (free(ptr), ptr = NULL)
+#define FREE(ptr)    (free(ptr), ptr = NULL)
 
 enum {
     _CMD_SET = (1 << 0),
@@ -76,7 +76,7 @@ typedef struct mutilines_status {
     char      prompt[0xff];
 } mutilines_status;
 
-#define MOVE_CURSOR_UP(count) printf("\033[%dA", (count))
+#define MOVE_CURSOR_UP(count)   printf("\033[%dA", (count))
 #define MOVE_CURSOR_DOWN(count) printf("\033[%dB", (count))
 
 #define ISWHITE(c) ((' ' == c) || ('\t' == c) || ('\n' == c))
@@ -493,11 +493,10 @@ static int TclReadlineCmd(ClientData clientData, Tcl_Interp* interp, int objc,
     static bool first_time = true;
 
     static const char* subCmds[] = {
-        "read", "initialize", "write", "add", "complete",
-        "customcompleter", "builtincompleter", "eofchar",
-        "reset-terminal", "bell", "text", "update",
-        (char*)NULL
-    };
+      "read", "initialize", "write", "add", "complete",
+      "customcompleter", "builtincompleter", "eofchar",
+      "reset-terminal", "bell", "text", "update",
+      (char*)NULL};
     enum SubCmdIdx {
         TCLRL_READ,
         TCLRL_INITIALIZE,
