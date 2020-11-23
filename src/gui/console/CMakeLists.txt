@@ -37,13 +37,17 @@ install(FILES ${HEADERS} DESTINATION include/src/gui/${_SUBDIRNAME})
 file(GLOB SCRIPTS *.tcl)
 install(FILES ${SCRIPTS} DESTINATION share/etc/tcl)
 
-add_custom_command(TARGET ${_SUBLIBNAME}
-  PRE_BUILD 
-  COMMAND mkdir -p "${PROJECT_SOURCE_DIR}/share/etc/tcl"
-  COMMAND ${CMAKE_COMMAND} -E copy ${SCRIPTS} "${PROJECT_SOURCE_DIR}/share/etc/tcl"
- )
+# add_custom_command(TARGET ${_SUBLIBNAME}
+#   PRE_BUILD 
+#   COMMAND mkdir -p "${PROJECT_SOURCE_DIR}/share/etc/tcl"
+#   COMMAND ${CMAKE_COMMAND} -E copy ${SCRIPTS} "${PROJECT_SOURCE_DIR}/share/etc/tcl"
+#  )
 
-
+add_custom_target(CopyRuntimeFiles  ALL 
+  VERBATIM 
+  COMMAND ${CMAKE_COMMAND} -E make_directory   "${PROJECT_SOURCE_DIR}/share/etc/tcl"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${SCRIPTS} "${PROJECT_SOURCE_DIR}/share/etc/tcl"  
+)  
 
 unset(_SUBDIRNAME)
 unset(_SUBLIBNAME)
