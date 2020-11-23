@@ -76,8 +76,8 @@ typedef struct mutilines_status {
     char      prompt[0xff];
 } mutilines_status;
 
-#define MOVE_CURSOR_UP(count) printf("\033[%dA", count)
-#define MOVE_CURSOR_DOWN(count) printf("\033[%dB", count)
+#define MOVE_CURSOR_UP(count) printf("\033[%dA", (count))
+#define MOVE_CURSOR_DOWN(count) printf("\033[%dB", (count))
 
 #define ISWHITE(c) ((' ' == c) || ('\t' == c) || ('\n' == c))
 
@@ -235,8 +235,7 @@ static int KeyRubout(int count, int key) {
         muti_lines_size -= 1;
         cur_index    = getCurrentLineIndex();
         cursor_index = muti_lines_size - cur_index;
-        auto step    = cursor_index + 1;
-        MOVE_CURSOR_UP(step);
+        MOVE_CURSOR_UP(cursor_index + 1);
         setLineStatus(mutiline_map[cur_index]);
     } else
         return (rl_rubout(count, key));
