@@ -38,6 +38,7 @@ if (CUDA_FOUND)
         PROPERTIES CUDA_SEPARABLE_COMPILATION ON
         )
 endif(CUDA_FOUND)
+configure_file(src/global_place.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/global_place.cpp)
 
 file(GLOB SOURCES 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
@@ -47,6 +48,22 @@ file(GLOB SOURCES
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/..")
 include_directories("${LIMBO_SOURCE_DIR}")
 include_directories("${Boost_INCLUDE_DIRS}")
+include_directories("${Python_INCLUDE_DIRS}")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
+#add_executable(test_p ${SOURCES})
+#target_link_libraries(test_p ${UTILITY_LIBRARY_DIRS}/libutility.a)
+#target_link_libraries(test_p ${Python_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${Python_LIBRARIES})
+
+link_directories(${Python_LIBRARY_DIRS})
+link_directories(${Python_SITELIB})
+link_directories(${UTILITY_LIBRARY_DIRS})
+
+#if (CUDA_FOUND)
+#    target_link_libraries(test_p ${CUDA_LINKED})
+#endif(CUDA_FOUND)
+#install ( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/test_p DESTINATION dreamplace )
+
+

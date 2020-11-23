@@ -27,6 +27,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 11)
 
 find_program(PYTHON "python" REQUIRED)
+find_package(Python 3.5 REQUIRED COMPONENTS Interpreter Development)
+
 find_package(ZLIB REQUIRED)
 set(Boost_NO_BOOST_CMAKE TRUE)
 find_package(Boost 1.55.0 REQUIRED)
