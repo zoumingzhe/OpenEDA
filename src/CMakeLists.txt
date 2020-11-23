@@ -18,6 +18,8 @@ endif(EDI_BIND_PYTHON)
 add_subdirectory(parser)
 # gui
 add_subdirectory(gui)
+# add infra
+add_subdirectory(infra)
 # place
 if (CMAKE_PLACE)
   add_subdirectory(DREAMPlace)

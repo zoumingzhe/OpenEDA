@@ -4,11 +4,11 @@
     > Mail:
     > Created Time: Fri 25 Sep 2020 03:20:14 PM CDT
  ************************************************************************/
-#include "flow/src/main_place.h"
-#include "utility/src/Msg.h"
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include "flow/src/main_place.h"
+#include "utility/src/Msg.h"
 
 DREAMPLACE_BEGIN_NAMESPACE
 
@@ -24,6 +24,11 @@ MainPlace::run()
   }
 
   /// global place
+  GlobalPlace gplace;
+  if (!gplace.run())
+  {
+      return;
+  }
 
   /// lpdp place 
   LpdpPlace lpdp;
