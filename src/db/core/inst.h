@@ -15,6 +15,7 @@
 #include "db/core/attr_object.h"
 #include "db/core/inst_attr.h"
 #include "db/tech/type_def.h"
+#include "db/util/array.h"
 #include "db/util/box.h"
 #include "util/enums.h"
 #include "util/point.h"
@@ -125,6 +126,9 @@ class Inst : public Object {
     uint64_t getNumProperties() const;
     void addProperty(ObjectId prop_id);
     ObjectId getPropertiesId() const;
+
+    ArrayObject<ObjectId>* getPinArray() const;
+    ArrayObject<ObjectId>* getPGPinArray() const;
 
     void clear();
 
