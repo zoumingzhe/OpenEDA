@@ -527,7 +527,7 @@ void Tech::setMaxViaStack(ObjectId mvs_id) { max_via_stack_ = mvs_id; }
  *
  * @return
  */
-// TODO: change via_rule_ to VectorObject; temporarily use this list.
+// TODO: change via_rule_ to ArrayObject; temporarily use this list.
 ViaRule *Tech::getViaRule(const char *name) const {
     std::string via_rule_name = name;
     ViaRule *via_rule = getViaRule(via_rule_name);

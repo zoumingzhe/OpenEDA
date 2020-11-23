@@ -19,10 +19,11 @@
 #include "db/tech/routing_layer_rule.h"
 #include "db/tech/cut_layer_rule.h"
 #include "db/tech/implant_rule.h"
-#include "db/util/vector_object_var.h"
+#include "db/util/array.h"
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 class Tech;
 
@@ -613,10 +614,10 @@ class CurrentDenContainer {
     CurrentDen *current_dens_;
 };
 
-template <typename ObjectClassName, typename VectorObjectBucket> class VectorObjectIter {
+template <typename ObjectClassName> class ArrayObjectIter {
   public:
-        VectorObjectIter(ObjectId obj_id) {
-            obj_vector_ = Object::addr<VectorObjectBucket>(obj_id);
+        ArrayObjectIter(ObjectId obj_id) {
+            obj_vector_ = Object::addr<IdArray>(obj_id);
             if (obj_vector_) iter_ = obj_vector_->begin();
         }
         ObjectClassName*  getNext() {
@@ -632,11 +633,9 @@ template <typename ObjectClassName, typename VectorObjectBucket> class VectorObj
         }
 
   private:
-        VectorObjectBucket* obj_vector_;
-        typename VectorObjectBucket::iterator iter_;
+        IdArray* obj_vector_;
+        typename IdArray::iterator iter_;
 };
-
-using MinAreaVectorBucket = VectorObjectMin;
 
 /**
  * @class Layer
@@ -757,7 +756,7 @@ class Layer : public Object {
 
   public:
     // iterator
-    typedef VectorObjectIter<MinArea, MinAreaVectorBucket>  minAreaIter;
+    typedef ArrayObjectIter<MinArea>  minAreaIter;
 
   private:
     Tech     *tech_;

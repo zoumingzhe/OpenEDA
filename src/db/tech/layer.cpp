@@ -2591,7 +2591,7 @@ void Layer::setWidth(UInt32 w) {
 
 /**
  * @brief 
- * create and reserve minarea to VectorObject, and return the created minarea
+ * create and reserve minarea to array object, and return the created minarea
  *
  * @return MinArea
  */
@@ -2600,14 +2600,13 @@ MinArea* Layer::createMinArea() {
           kObjectTypeLayerMinArea, getTechLib()->getId());
     if (!ma)
       return nullptr;
-    MinAreaVectorBucket *ma_vector = nullptr;
+    IdArray *ma_vector = nullptr;
     if (min_area_id_ == 0) {
-      ma_vector = createVectorObject<MinAreaVectorBucket>();
-      min_area_id_ = ma_vector->getId();
-    } else {
-      ma_vector = addr<MinAreaVectorBucket>(min_area_id_);
+      min_area_id_ = __createObjectIdArray(8);
     }
-    ma_vector->push_back(ma->getId());
+    ma_vector = addr<IdArray>(min_area_id_);
+    ediAssert(ma_vector != nullptr);
+    ma_vector->pushBack(ma->getId());
     return ma;
 }
 
@@ -2905,15 +2904,14 @@ void Layer::setDirection(UInt32 v) {
 
 void Layer::addProp(ObjectId obj_id) {
     if (obj_id == 0) return;
-    VectorObject16 *vobj = nullptr;
+    IdArray *vobj = nullptr;
 
     if (properties_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true/*is_header*/);
-        properties_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(properties_);
+        properties_ = __createObjectIdArray(16);
     }
-    vobj->push_back(obj_id);
+    vobj = addr<IdArray>(properties_);
+    ediAssert(vobj != nullptr);
+    vobj->pushBack(obj_id);
 }
 
 ObjectId Layer::getPropId() const {

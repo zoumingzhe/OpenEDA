@@ -1221,10 +1221,10 @@ void ExportTechLef::exportOverlapLayer(Layer* layer) {
 
 void ExportTechLef::exportLayerProperty(const Layer* layer) {
     if (layer->getPropId()) {
-        VectorObject16* vobj =
-            Object::addr<VectorObject16>(layer->getPropId());
-        if (vobj && vobj->totalSize()) {
-            for (int ii = 0; ii < vobj->totalSize(); ++ii) {
+        IdArray* vobj =
+            Object::addr<IdArray>(layer->getPropId());
+        if (vobj && vobj->getSize()) {
+            for (int ii = 0; ii < vobj->getSize(); ++ii) {
                 Property* prop = Object::addr<Property>((*vobj)[ii]);
                 std::ostringstream oss;
                 std::string header = "    PROPERTY ";

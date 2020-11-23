@@ -784,38 +784,32 @@ int ViaMaster::addViaLayer(ViaLayer* via_layer) {
 uint64_t ViaMaster::numProperties() const {
     if (!properties_) return 0;
 
-    return addr<VectorObject16>(properties_)->totalSize();
+    return addr<IdArray>(properties_)->getSize();
 }
 
 void ViaMaster::setPropertySize(uint64_t v) {
     if (v == 0) {
         if (properties_) {
-            VectorObject16::deleteDBVectorObjectVar(properties_);
+            __deleteObjectIdArray(properties_);
         }
         return;
     }
     if (!properties_) {
-        VectorObject16* vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        properties_ = vobj->getId();
+        properties_ = __createObjectIdArray(16);
     }
 }
 
 void ViaMaster::addProperty(ObjectId obj_id) {
-    VectorObject16* vobj = nullptr;
+    IdArray* vobj = nullptr;
     if (obj_id == 0) return;
 
     if (properties_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        properties_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(properties_);
+        properties_ = __createObjectIdArray(16);
     }
+    vobj = addr<IdArray>(properties_);
+
     ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+    vobj->pushBack(obj_id);
 }
 
 ObjectId ViaMaster::getPropertiesId() const { return properties_; }
@@ -1065,8 +1059,8 @@ void ViaMaster::printLEF(std::ofstream& ofs, uint32_t num_spaces) {
 
     if (numProperties() > 0) {
         ofs << space_str << "   PROPERTY";
-        VectorObject16* vobj =
-            addr<VectorObject16>(properties_);
+        IdArray* vobj =
+            addr<IdArray>(properties_);
         for (int i = 0; i < numProperties(); i++) {
             ObjectId obj_id = (*vobj)[i];
             Property* obj_data = addr<Property>(obj_id);
