@@ -48,40 +48,47 @@ CommonDB::__init()
 {
   // from edi db
   if (!__isDBLoaded()) {
-    dreamplacePrint(kINFO, "DB is not load\n");
+    dreamplacePrint(kINFO, "Deisgn is not loaded\n");
     return;
   }
 
   num_nodes_ = getNumOfInsts();
-  num_nets_ =  getNumOfNets();
-  num_pins_ = getNumOfPins();
-  num_regions_ = 0;  
-  num_fences_  = 0;
-
-  PlInt num_nodes_ = getNumOfInsts();
   init_x_ = new PlInt[num_nodes_];
   init_y_ = new PlInt[num_nodes_];
   node_size_x_ = new PlInt[num_nodes_];
   node_size_y_ = new PlInt[num_nodes_];
-  //flat_region_boxes_ = new int[];
-  //flat_region_boxes_start = new int[];
-  //node2region_map_ = new int[];
-  //flat_fence_boxes_ = new int[];
-  //flat_fence_boxes_start = new int[];
-  //node2fence_map_ = new int[];
-  // net to pin
-  pin2net_map_ = new PlInt[num_pins_];
-  flat_net2pin_map_ = new PlInt[num_pins_];
-  flat_net2pin_start_map_ = new PlInt[num_nets_];
-  // inst(node) to pin
-  pin2node_map_ = new PlInt[num_pins_];
-  flat_node2pin_map_ = new PlInt[num_pins_];
-  flat_node2pin_start_map_ = new PlInt[num_nodes_];
 
-  pin_offset_x_ = new PlInt[num_pins_];
-  pin_offset_y_ = new PlInt[num_pins_];
+  /* TODO
+  flat_region_boxes_ = new int[];
+  flat_region_boxes_start = new int[];
+  node2region_map_ = new int[];
+  */
 
-  net_mask_ = new unsigned char[num_nets_];
+  // collect pin num for new memory
+  num_nets_ =  getNumOfNets();
+  if (num_nets_ > 0) { 
+    forEachNet() {
+      forEachNetPin(net) {
+        num_pins_++;
+      } endForEachNetPin
+    } endForEachNet
+  }
+
+  if (num_pins_ > 0) {
+    // init net to pin
+    pin2net_map_ = new PlInt[num_pins_];
+    flat_net2pin_map_ = new PlInt[num_pins_];
+    flat_net2pin_start_map_ = new PlInt[num_nets_];
+    // init inst(node) to pin
+    pin2node_map_ = new PlInt[num_pins_];
+    flat_node2pin_map_ = new PlInt[num_pins_];
+    flat_node2pin_start_map_ = new PlInt[num_nodes_];
+    // init pin offset
+    pin_offset_x_ = new PlInt[num_pins_];
+    pin_offset_y_ = new PlInt[num_pins_];
+    net_mask_ = new unsigned char[num_nets_];
+  }
+
   idx_to_instId_.resize(num_nodes_);
 
   int idx = 0;
@@ -96,7 +103,7 @@ CommonDB::__init()
       node_size_y_[idx] = getBoxHeight(box);
       idx_to_instId_.push_back(instId);
       // collect moveable inst pins
-      if (0 == getInstNumPins(inst)) { 
+      if (getInstNumPins(inst) > 0) { 
         flat_node2pin_start_map_[idx] = pinIdx;
         forEachInstPin(inst) {
           flat_node2pin_map_[pinIdx] = pinId;
@@ -121,7 +128,7 @@ CommonDB::__init()
       node_size_y_[idx] = getBoxHeight(box);
       idx_to_instId_.push_back(instId);
       // collect fixed inst pins
-      if (0 == getInstNumPins(inst)) { 
+      if (getInstNumPins(inst) > 0) { 
         flat_node2pin_start_map_[idx] = pinIdx;
         forEachInstPin(inst) {
           flat_node2pin_map_[pinIdx] = pinId;
@@ -135,28 +142,80 @@ CommonDB::__init()
     }
   } endForEachInst
 
-  pinIdx = 0;
-  int netIdx = 0;
-  dreamplacePrint(kINFO, "Total %d instances, %d moveable instance%c, %d cell%c, %d net%c, %d pin%c \n", 
-  num_nodes_, num_movable_nodes_, num_movable_nodes_ > 1 ? 's' : ' ',
-  getNumOfCells(), getNumOfCells() > 1 ? 's' : ' ',
-  getNumOfNets(), getNumOfNets() > 1 ? 's' : ' ',
-  getNumOfPins(), getNumOfPins() > 1 ? 's' : ' ');
-  // sort pins of same net to be abutted
-  forEachNet() {
-    net_mask_[netIdx] = (isNetClock(net) ? false : true);
-    flat_net2pin_start_map_[netIdx] = pinIdx;
-    if (getNetPinArray(net) == nullptr) {
-      continue;
+  // pins of same net to be abutted
+  if (num_pins_ > 0) {
+    pinIdx = 0;
+    int netIdx = 0;
+    forEachNet() {
+      net_mask_[netIdx] = (isNetClock(net) ? false : true);
+      flat_net2pin_start_map_[netIdx] = pinIdx;
+      if (getNetPinArray(net) == nullptr) continue;
+      forEachNetPin(net) {
+        flat_net2pin_map_[pinIdx] = pinId;
+        pin2net_map_[pinId] = netIdx;
+        pinIdx++; 
+      } endForEachNetPin
+      netIdx++;
+    } endForEachNet
+  }
+
+  // collect fence num and fence box num for new memory
+  int numBox = 0;
+  forEachGruop() {
+    PlConstraint* con = getRegion(group);
+    if (con && isRegionFence(con)) {
+      num_fences_++;
+      forEachRegionBox(con) {
+        numBox += 4;
+      } endForEachRegionBox
     }
-    net->print();
-    forEachNetPin(net) {
-      flat_net2pin_map_[pinIdx] = pinId;
-      pin2net_map_[pinId] = netIdx;
-      pinIdx++; 
-    } endForEachNetPin
-    netIdx++;
-  } endForEachNet
+  } endForEachGroup
+
+  // inst(node) to fence
+  if (num_fences_ > 0) {
+    // init fence
+    flat_fence_boxes_ = new int[numBox];
+    flat_fence_boxes_start_ = new int[num_fences_];
+    node2fence_map_ = new int[num_movable_nodes_];
+
+    std::unordered_map<PlConstraint*, int> regionId;
+    idx = 0;
+    int bIdx = 0;
+    forEachGruop() {
+      PlConstraint* con = getRegion(group);
+      if (con && isRegionFence(con)) {
+        flat_fence_boxes_start_[idx] = bIdx;
+        regionId.insert(std::make_pair(con, idx));
+        forEachRegionBox(con) {
+          flat_fence_boxes_[bIdx++] = getBoxLLX(*box); 
+          flat_fence_boxes_[bIdx++] = getBoxLLY(*box); 
+          flat_fence_boxes_[bIdx++] = getBoxURX(*box); 
+          flat_fence_boxes_[bIdx++] = getBoxURY(*box); 
+        } endForEachRegionBox
+        idx++;
+      }
+    } endForEachGroup
+    idx = 0;
+    forEachInst() {
+      if (isInstMoveable(inst)) {
+        PlConstraint* con = getInstRegion(inst);
+        const auto& iter = regionId.find(con);
+        if (iter != regionId.end()) {
+          node2fence_map_[idx] = regionId[con];
+        }
+        idx++; 
+      }
+    } endForEachInst
+  }
+
+  dreamplacePrint(kINFO, "Total %d instance%c, %d moveable instance%c, %d cell%c, %d net%c, %d  pin%c, %d io pin%c \n", 
+    num_nodes_, num_nodes_ > 1 ? 's' : ' ',
+    num_movable_nodes_, num_movable_nodes_ > 1 ? 's' : ' ',
+    getNumOfCells(), getNumOfCells() > 1 ? 's' : ' ',
+    num_nets_, num_nets_ > 1 ? 's' : ' ',
+    num_pins_, num_pins_ > 1 ? 's' : ' ',
+    getNumOfIOPins(), getNumOfIOPins() > 1 ? 's' : ' '
+  );
 
   isCommonDBReady_ = true;
   dreamplacePrint(kINFO, "DB inilization is completed\n");
@@ -167,32 +226,58 @@ void
 CommonDB::__free()
 {
   // free edi db
-  delete [] init_x_;
-  init_x_ = nullptr;
-  delete [] init_y_;
-  init_y_ = nullptr;
-  delete [] node_size_x_;
-  node_size_x_ = nullptr;
-  delete [] node_size_y_;
-  node_size_y_ = nullptr;
-  delete [] flat_net2pin_map_;
-  flat_net2pin_map_ = nullptr;
-  delete [] flat_net2pin_start_map_;
-  flat_net2pin_start_map_ = nullptr;
-  delete [] pin2net_map_;
-  pin2net_map_ = nullptr;
-  delete [] flat_node2pin_map_;
-  flat_node2pin_map_ = nullptr;
-  delete [] flat_node2pin_start_map_;
-  flat_node2pin_start_map_ = nullptr;
-  delete [] pin2node_map_;
-  pin2node_map_ = nullptr;
-  delete [] pin_offset_x_;
-  pin_offset_x_ = nullptr;
-  delete [] pin_offset_y_;
-  pin_offset_y_ = nullptr;
-  delete [] net_mask_;
-  net_mask_ = nullptr;
+  if (init_x_) {
+    delete [] init_x_;
+    init_x_ = nullptr;
+  }
+  if (init_y_) {
+    delete [] init_y_;
+    init_y_ = nullptr;
+  }
+  if (node_size_x_) {
+    delete [] node_size_x_;
+    node_size_x_ = nullptr;
+  }
+  if (node_size_y_) {
+    delete [] node_size_y_;
+    node_size_y_ = nullptr;
+  }
+  if (flat_net2pin_map_) {
+    delete [] flat_net2pin_map_;
+    flat_net2pin_map_ = nullptr;
+  }
+  if (flat_net2pin_start_map_) {
+    delete [] flat_net2pin_start_map_;
+    flat_net2pin_start_map_ = nullptr;
+  }
+  if (pin2net_map_) {
+    delete [] pin2net_map_;
+    pin2net_map_ = nullptr;
+  }
+  if (flat_node2pin_map_) {
+    delete [] flat_node2pin_map_;
+    flat_node2pin_map_ = nullptr;
+  }
+  if (flat_node2pin_start_map_) {
+    delete [] flat_node2pin_start_map_;
+    flat_node2pin_start_map_ = nullptr;
+  }
+  if (pin2node_map_) {
+    delete [] pin2node_map_;
+    pin2node_map_ = nullptr;
+  }
+  if (pin_offset_x_) {
+    delete [] pin_offset_x_;
+    pin_offset_x_ = nullptr;
+  }
+  if (pin_offset_y_) {
+    delete [] pin_offset_y_;
+    pin_offset_y_ = nullptr;
+  }
+  if (net_mask_) {
+    delete [] net_mask_;
+    net_mask_ = nullptr;
+  }
   return;
 }
 

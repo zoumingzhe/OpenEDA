@@ -54,7 +54,7 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../.."
     "${LEMON_INCLUDE_DIRS}"
     "${CUB_DIR}"
     "${LIMBO_SOURCE_DIR}"
-    "${Boost_HEADERS}"
+    "${Boost_INCLUDE_DIRS}"
     )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)

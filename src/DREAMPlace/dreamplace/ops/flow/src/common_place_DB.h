@@ -180,7 +180,7 @@ class CommonDB
     int            num_regions_             = 0;        // number of regions for region_boxes and region_boxes_start
     int            num_fences_              = 0;        // number of fences for fence_boxes and fence_boxes_start
     int            num_movable_nodes_       = 0;        // num of movebale nodes 
-    std::vector<PlObjId> idx_to_instId_;
+    std::vector<PlObjId> idx_to_instId_;                // get db inst id by place id
 
 };
 
