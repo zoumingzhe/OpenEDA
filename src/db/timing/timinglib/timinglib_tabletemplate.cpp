@@ -78,14 +78,15 @@ TableAxis::IndexType TableAxis::memory() const {
 /// set
 void TableAxis::set_variable(TableAxisVariable tv) { variable_ = tv; }
 void TableAxis::add_value(float f) {
-    Cell* topCell = getTopCell();
-    if (topCell != nullptr) {
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib != nullptr) {
         ArrayObject<float>* object_array = nullptr;
         if (values_ == UNINIT_OBJECT_ID) {
             object_array =
-                topCell->createObject<ArrayObject<float>>(kObjectTypeArray);
+                Object::createObject<ArrayObject<float>>(
+                    kObjectTypeArray, timing_lib->getId());
             if (object_array != nullptr) {
-                object_array->setPool(topCell->getPool());
+                object_array->setPool(timing_lib->getPool());
                 object_array->reserve(32);
                 values_ = object_array->getId();
             }
@@ -152,19 +153,19 @@ TableTemplate::TableTemplate()
 
 TableTemplate::~TableTemplate() {
 #if 0
-    Cell* topCell = getTopCell();
-    if (topCell != nullptr) {
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib != nullptr) {
         if (axis1_ != UNINIT_OBJECT_ID) {
             TableAxis* t = Object::addr<TableAxis>(axis1_);
-            if (t != nullptr) topCell->deleteObject<TableAxis>(t);
+            if (t != nullptr) timing_lib->deleteObject<TableAxis>(t);
         }
         if (axis2_ != UNINIT_OBJECT_ID) {
             TableAxis* t = Object::addr<TableAxis>(axis2_);
-            if (t != nullptr) topCell->deleteObject<TableAxis>(t);
+            if (t != nullptr) timing_lib->deleteObject<TableAxis>(t);
         }
         if (axis3_ != UNINIT_OBJECT_ID) {
             TableAxis* t = Object::addr<TableAxis>(axis3_);
-            if (t != nullptr) topCell->deleteObject<TableAxis>(t);
+            if (t != nullptr) timing_lib->deleteObject<TableAxis>(t);
         }
     }
 #endif
@@ -234,19 +235,20 @@ TableTemplate::IndexType TableTemplate::memory() const {
 
 /// set
 void TableTemplate::set_name(const std::string& name) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
         if (index != kInvalidSymbolIndex) {
             name_ = index;
-            topCell->addSymbolReference(name_, this->getId());
+            timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
 TableAxis* TableTemplate::create_axis1() {
-    Cell* topCell = getTopCell();
-    if (topCell != nullptr) {
-        TableAxis* t = topCell->createObject<TableAxis>(kObjectTypeTableAxis);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib != nullptr) {
+        TableAxis* t = Object::createObject<TableAxis>(
+            kObjectTypeTableAxis, timing_lib->getId());
         if (t != nullptr) {
             t->setOwner(this);
             axis1_ = t->getId();
@@ -256,9 +258,10 @@ TableAxis* TableTemplate::create_axis1() {
     return nullptr;
 }
 TableAxis* TableTemplate::create_axis2() {
-    Cell* topCell = getTopCell();
-    if (topCell != nullptr) {
-        TableAxis* t = topCell->createObject<TableAxis>(kObjectTypeTableAxis);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib != nullptr) {
+        TableAxis* t = Object::createObject<TableAxis>(
+            kObjectTypeTableAxis, timing_lib->getId());
         if (t != nullptr) {
             t->setOwner(this);
             axis2_ = t->getId();
@@ -268,9 +271,10 @@ TableAxis* TableTemplate::create_axis2() {
     return nullptr;
 }
 TableAxis* TableTemplate::create_axis3() {
-    Cell* topCell = getTopCell();
-    if (topCell != nullptr) {
-        TableAxis* t = topCell->createObject<TableAxis>(kObjectTypeTableAxis);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib != nullptr) {
+        TableAxis* t = Object::createObject<TableAxis>(
+            kObjectTypeTableAxis, timing_lib->getId());
         if (t != nullptr) {
             t->setOwner(this);
             axis3_ = t->getId();
@@ -282,9 +286,9 @@ TableAxis* TableTemplate::create_axis3() {
 
 /// get
 std::string TableTemplate::get_name(void) const {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(name_);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }

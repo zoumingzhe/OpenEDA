@@ -9,12 +9,12 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 #include "db/core/cell.h"
-#include "db/util/vector_object_var.h"
 #include "db/tech/layer.h"
 #include "db/core/db.h"
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 /**
  * @brief

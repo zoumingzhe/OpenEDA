@@ -83,12 +83,12 @@ LibSet::IndexType LibSet::memory() const {
 
 /// set
 void LibSet::set_name(const std::string& name) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
         if (idx != kInvalidSymbolIndex) {
             name_ = idx;
-            topCell->addSymbolReference(name_, this->getId());
+            timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
@@ -108,9 +108,9 @@ TLib* LibSet::addTLib(const std::string& filename, const std::string& name) {
 /// get
 SymbolIndex LibSet::get_name_index(void) { return name_; }
 std::string LibSet::get_name(void) const {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(name_);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
@@ -149,10 +149,10 @@ OStreamBase& operator<<(OStreamBase& os, LibSet const& rhs) {
     // write timing_libs_
     os << DataFieldName("timing_libs_");
     {
-        Cell* topCell = getTopCell();
+        Timing* timing_lib = getTimingLib();
         std::map<std::string, TLib*> sorted_map;
         for (auto& v : rhs.timing_libs_map_) {
-            std::string str = topCell->getSymbolByIndex(v.first);
+            std::string str = timing_lib->getSymbolByIndex(v.first);
             auto p = Object::addr<TLib>(v.second);
             if (str != "" && p != nullptr) sorted_map[str] = p;
         }
@@ -175,21 +175,22 @@ OStreamBase& operator<<(OStreamBase& os, LibSet const& rhs) {
 }
 
 TLib* LibSet::__addTLibImpl(const std::string& filename) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex idx = topCell->getOrCreateSymbol(filename.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(filename.c_str());
         if (idx != kInvalidSymbolIndex) {
-            topCell->addSymbolReference(idx, this->getId());
-            auto lib = topCell->createObject<TLib>(kObjectTypeTLib);
+            timing_lib->addSymbolReference(idx, this->getId());
+            auto lib = Object::createObject<TLib>(
+                      kObjectTypeTLib, timing_lib->getId());
             if (lib) {
                 lib->setOwner(this);
                 ArrayObject<ObjectId>* p = nullptr;
                 if (timing_libs_ == UNINIT_OBJECT_ID) {
-                    p = topCell->createObject<ArrayObject<ObjectId>>(
-                        kObjectTypeArray);
+                    p = Object::createObject<ArrayObject<ObjectId>>(
+                        kObjectTypeArray, timing_lib->getId());
                     if (p != nullptr) {
                         timing_libs_ = p->getId();
-                        p->setPool(topCell->getPool());
+                        p->setPool(timing_lib->getPool());
                         p->reserve(32);
                     }
                 } else {

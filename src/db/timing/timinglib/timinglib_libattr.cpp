@@ -68,12 +68,12 @@ TLibAttr &TLibAttr::operator=(TLibAttr &&rhs) noexcept {
 
 /// set
 void TLibAttr::set_name(const std::string &name) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
         if (index != kInvalidSymbolIndex) {
             name_ = index;
-            // topCell->addSymbolReference(name_, this->getId());
+            // timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
@@ -143,22 +143,22 @@ void TLibAttr::set_default_cell_leakage_power(float f) {
     default_cell_leakage_power_ = f;
 }
 void TLibAttr::add_supply_voltage(const std::string &name, float f) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
         if (index != kInvalidSymbolIndex) {
             name_ = index;
             supply_voltage_map_[name_] = f;
-            // topCell->addSymbolReference(name_, this->getId());
+            // timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
 
 /// get
 std::string TLibAttr::get_name(void) const {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(name_);
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
@@ -226,9 +226,9 @@ float TLibAttr::get_default_cell_leakage_power(void) {
     return default_cell_leakage_power_;
 }
 float TLibAttr::get_supply_voltage(const std::string &name) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
         if (index != kInvalidSymbolIndex) {
             auto it = supply_voltage_map_.find(index);
             if (it != supply_voltage_map_.end()) return it->second;
@@ -395,11 +395,11 @@ OStreamBase &operator<<(OStreamBase &os, TLibAttr const &rhs) {
     os << DataFieldName("supply_voltages_");
 
     std::map<std::string, float> sorted_map;
-    Cell *topCell = getTopCell();
+    Timing *timing_lib = getTimingLib();
     for (auto it = rhs.supply_voltage_map_.begin();
          it != rhs.supply_voltage_map_.end(); it++) {
-        if (topCell) {
-            std::string &str = topCell->getSymbolByIndex(it->first);
+        if (timing_lib) {
+            std::string &str = timing_lib->getSymbolByIndex(it->first);
             if (str != "") sorted_map[str] = it->second;
         }
     }

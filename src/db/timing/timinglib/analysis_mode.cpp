@@ -78,25 +78,25 @@ AnalysisMode::IndexType AnalysisMode::memory() const {
 
 /// set
 void AnalysisMode::set_name(const std::string& name) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
         if (idx != kInvalidSymbolIndex) {
             name_ = idx;
-            topCell->addSymbolReference(name_, this->getId());
+            timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
 void AnalysisMode::add_constraint_file(const std::string& file) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
         ArrayObject<SymbolIndex>* p = nullptr;
         if (constraint_files_ == UNINIT_OBJECT_ID) {
-            p = topCell->createObject<ArrayObject<SymbolIndex>>(
-                kObjectTypeArray);
+            p = Object::createObject<ArrayObject<SymbolIndex>>(
+                kObjectTypeArray, timing_lib->getId());
             if (p != nullptr) {
                 constraint_files_ = p->getId();
-                p->setPool(topCell->getPool());
+                p->setPool(timing_lib->getPool());
                 p->reserve(32);
             }
         } else {
@@ -104,10 +104,10 @@ void AnalysisMode::add_constraint_file(const std::string& file) {
                 constraint_files_);
         }
         if (p != nullptr) {
-            SymbolIndex idx = topCell->getOrCreateSymbol(file.c_str());
+            SymbolIndex idx = timing_lib->getOrCreateSymbol(file.c_str());
             if (idx != kInvalidSymbolIndex) {
                 p->pushBack(idx);
-                topCell->addSymbolReference(idx, this->getId());
+                timing_lib->addSymbolReference(idx, this->getId());
             }
         }
     }
@@ -116,22 +116,22 @@ void AnalysisMode::add_constraint_file(const std::string& file) {
 /// get
 SymbolIndex AnalysisMode::get_name_index(void) { return name_; }
 std::string AnalysisMode::get_name(void) const {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(name_);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
 std::vector<std::string> AnalysisMode::get_constraint_files(void) {
     std::vector<std::string> strVec;
-    Cell* topCell = getTopCell();
-    if (topCell) {
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
         if (constraint_files_ != UNINIT_OBJECT_ID) {
             auto p = Object::addr<ArrayObject<SymbolIndex>>(
                 constraint_files_);
             if (p != nullptr) {
                 for (int64_t i = 0; i < p->getSize(); ++i) {
-                    std::string str = topCell->getSymbolByIndex((*p)[i]);
+                    std::string str = timing_lib->getSymbolByIndex((*p)[i]);
                     if (str != "") strVec.emplace_back(str);
                 }
             }
@@ -140,9 +140,9 @@ std::vector<std::string> AnalysisMode::get_constraint_files(void) {
     return strVec;
 }
 std::string AnalysisMode::get_constraint_file(SymbolIndex index) const {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(index);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(index);
     }
     return "";
 }

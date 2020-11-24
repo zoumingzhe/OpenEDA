@@ -164,11 +164,12 @@ void buildTermMapping() {
 
     getCells(topCell, &cell_map, &cell_names);
     if (cell_map.empty()) return;
-
+    
+    Timing *timing_lib = getTimingLib();
     std::unordered_multimap<std::string, TCell *> tcell_map;
-    uint64_t size = topCell->getNumOfAnalysisViews();
+    uint64_t size = timing_lib->getNumOfAnalysisViews();
     for (auto index = 0; index < size; ++index) {
-        AnalysisView *view = topCell->getAnalysisView(index);
+        AnalysisView *view = timing_lib->getAnalysisView(index);
         if (view == nullptr) continue;
         auto corner = view->get_analysis_corner();
         if (corner == nullptr) continue;
@@ -335,32 +336,32 @@ int readTimingLibCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 return TCL_ERROR;
             }
         }
-        Cell *topCell = getTopCell();
-        if (topCell == nullptr) {
+        Timing *timing_lib = getTimingLib();
+        if (timing_lib == nullptr) {
             open_edi::util::message->issueMsg(
                 open_edi::util::kError,
-                "Cannot find top cell when reading timing library.\n");
+                "Cannot find top container when reading timing library.\n");
             return TCL_ERROR;
         }
 
         std::string default_name = "default";
-        auto view = topCell->getAnalysisView(default_name);
+        auto view = timing_lib->getAnalysisView(default_name);
         AnalysisCorner *corner = nullptr;
         if (view == nullptr) {
-            auto mode = topCell->createAnalysisMode(default_name);
+            auto mode = timing_lib->createAnalysisMode(default_name);
             if (mode == nullptr) {
                 open_edi::util::message->issueMsg(
                     open_edi::util::kError, "Creating default mode failed.\n");
                 return TCL_ERROR;
             }
-            corner = topCell->createAnalysisCorner(default_name);
+            corner = timing_lib->createAnalysisCorner(default_name);
             if (corner == nullptr) {
                 open_edi::util::message->issueMsg(
                     open_edi::util::kError,
                     "Creating default corner failed.\n");
                 return TCL_ERROR;
             }
-            view = topCell->createAnalysisView(default_name);
+            view = timing_lib->createAnalysisView(default_name);
             if (view == nullptr) {
                 open_edi::util::message->issueMsg(
                     open_edi::util::kError, "Creating default view failed.\n");
@@ -372,14 +373,15 @@ int readTimingLibCommand(ClientData cld, Tcl_Interp *itp, int argc,
             view->set_active(true);
             view->set_setup(true);
             view->set_hold(true);
-            topCell->addActiveSetupView(view->getId());
-            topCell->addActiveHoldView(view->getId());
+            timing_lib->addActiveSetupView(view->getId());
+            timing_lib->addActiveHoldView(view->getId());
         } else {
             corner = view->get_analysis_corner();
         }
         LibSet *libset = corner->get_libset();
         if (libset == nullptr) {
-            libset = topCell->createObject<LibSet>(kObjectTypeLibSet);
+            libset = Object::createObject<LibSet>(
+                  kObjectTypeLibSet, timing_lib->getId());
             if (libset == nullptr) {
                 open_edi::util::message->issueMsg(
                     open_edi::util::kError,
@@ -480,11 +482,11 @@ int createAnalysisViewCommand(ClientData cld, Tcl_Interp *itp, int argc,
             }
         }
 
-        Cell *topCell = getTopCell();
-        if (topCell == nullptr) {
+        Timing *timing_lib = getTimingLib();
+        if (timing_lib == nullptr) {
             open_edi::util::message->issueMsg(
                 open_edi::util::kError,
-                "Cannot find top cell when creating analysis view.\n");
+                "Cannot find top container when creating analysis view.\n");
             return TCL_ERROR;
         }
 
@@ -497,7 +499,7 @@ int createAnalysisViewCommand(ClientData cld, Tcl_Interp *itp, int argc,
         }
 
         // find AnalysisMode by mode
-        AnalysisMode *analysis_mode = topCell->getAnalysisMode(args.mode);
+        AnalysisMode *analysis_mode = timing_lib->getAnalysisMode(args.mode);
         if (analysis_mode == nullptr) {
             open_edi::util::message->issueMsg(open_edi::util::kError,
                                               "Cannot find the mode %s.\n",
@@ -505,7 +507,8 @@ int createAnalysisViewCommand(ClientData cld, Tcl_Interp *itp, int argc,
             return TCL_ERROR;
         }
         auto mode =
-            topCell->createObject<AnalysisMode>(kObjectTypeAnalysisMode);
+            Object::createObject<AnalysisMode>(
+                kObjectTypeAnalysisMode, timing_lib->getId());
         if (mode == nullptr) {
             open_edi::util::message->issueMsg(open_edi::util::kError,
                                               "Creating the mode failed.\n");
@@ -515,7 +518,7 @@ int createAnalysisViewCommand(ClientData cld, Tcl_Interp *itp, int argc,
 
         // find AnalysisCorner by corner
         AnalysisCorner *analysis_corner =
-            topCell->getAnalysisCorner(args.corner);
+            timing_lib->getAnalysisCorner(args.corner);
         if (analysis_corner == nullptr) {
             open_edi::util::message->issueMsg(open_edi::util::kError,
                                               "Cannot find the corner %s.\n",
@@ -523,7 +526,8 @@ int createAnalysisViewCommand(ClientData cld, Tcl_Interp *itp, int argc,
             return TCL_ERROR;
         }
         auto corner =
-            topCell->createObject<AnalysisCorner>(kObjectTypeAnalysisCorner);
+            Object::createObject<AnalysisCorner>(
+                  kObjectTypeAnalysisCorner, timing_lib->getId());
         if (corner == nullptr) {
             open_edi::util::message->issueMsg(open_edi::util::kError,
                                               "Creating the corner failed.\n");
@@ -531,7 +535,7 @@ int createAnalysisViewCommand(ClientData cld, Tcl_Interp *itp, int argc,
         }
         *corner = *analysis_corner;
 
-        AnalysisView *analysis_view = topCell->createAnalysisView(args.name);
+        AnalysisView *analysis_view = timing_lib->createAnalysisView(args.name);
         if (analysis_view == nullptr) {
             open_edi::util::message->issueMsg(
                 open_edi::util::kError, "Creating analysis view %s failed.\n",
@@ -607,11 +611,11 @@ int createAnalysisModeCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 args.constraint_file.c_str());
             return TCL_ERROR;
         }
-        Cell *topCell = getTopCell();
-        if (topCell == nullptr) {
+        Timing *timing_lib = getTimingLib();
+        if (timing_lib == nullptr) {
             open_edi::util::message->issueMsg(
                 open_edi::util::kError,
-                "Cannot find top cell when creating analysis mode.\n");
+                "Cannot find top container when creating analysis mode.\n");
             return TCL_ERROR;
         }
 
@@ -623,7 +627,7 @@ int createAnalysisModeCommand(ClientData cld, Tcl_Interp *itp, int argc,
             return TCL_ERROR;
         }
 
-        AnalysisMode *mode = topCell->createAnalysisMode(args.name);
+        AnalysisMode *mode = timing_lib->createAnalysisMode(args.name);
         if (mode == nullptr) {
             open_edi::util::message->issueMsg(open_edi::util::kError,
                                               "Creating the mode %s failed.\n",
@@ -741,8 +745,8 @@ int createAnalysisCornerCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 args.lib_set.c_str());
             return TCL_ERROR;
         }
-        Cell *topCell = getTopCell();
-        if (topCell == nullptr) {
+        Timing *timing_lib = getTimingLib();
+        if (timing_lib == nullptr) {
             open_edi::util::message->issueMsg(
                 open_edi::util::kError,
                 "Cannot find top cell when creating anlysis corner.\n");
@@ -757,7 +761,8 @@ int createAnalysisCornerCommand(ClientData cld, Tcl_Interp *itp, int argc,
             return TCL_ERROR;
         }
 
-        LibSet *libset = topCell->createObject<LibSet>(kObjectTypeLibSet);
+        LibSet *libset = Object::createObject<LibSet>(
+              kObjectTypeLibSet, timing_lib->getId());
         if (libset == nullptr) {
             open_edi::util::message->issueMsg(
                 open_edi::util::kError, "Creating the libset %s failed.\n",
@@ -778,7 +783,7 @@ int createAnalysisCornerCommand(ClientData cld, Tcl_Interp *itp, int argc,
         }
         open_edi::util::message->info("\nRead Timing Library successfully.\n");
 
-        AnalysisCorner *corner = topCell->createAnalysisCorner(args.name);
+        AnalysisCorner *corner = timing_lib->createAnalysisCorner(args.name);
         if (corner == nullptr) {
             open_edi::util::message->issueMsg(
                 open_edi::util::kError, "Creating the corner %s failed.\n",
@@ -979,8 +984,8 @@ int setAnalysisViewStatusCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 return TCL_ERROR;
             }
         }
-        Cell *topCell = getTopCell();
-        if (topCell == nullptr) {
+        Timing *timing_lib = getTimingLib();
+        if (timing_lib == nullptr) {
             open_edi::util::message->issueMsg(
                 open_edi::util::kError,
                 "Cannot find top cell when set anlysis view status.\n");
@@ -988,7 +993,7 @@ int setAnalysisViewStatusCommand(ClientData cld, Tcl_Interp *itp, int argc,
         }
 
         // find AnalysisView by view name
-        AnalysisView *view = topCell->getAnalysisView(args.view_name);
+        AnalysisView *view = timing_lib->getAnalysisView(args.view_name);
         if (view == nullptr) {
             open_edi::util::message->issueMsg(open_edi::util::kError,
                                               "Cannot find the view %s.\n",
@@ -1006,10 +1011,10 @@ int setAnalysisViewStatusCommand(ClientData cld, Tcl_Interp *itp, int argc,
         view->set_cell_em(args.cell_em);
         view->set_signal_em(args.signal_em);
         if (args.active && args.setup) {
-            topCell->addActiveSetupView(view->getId());
+            timing_lib->addActiveSetupView(view->getId());
         }
         if (args.active && args.hold) {
-            topCell->addActiveHoldView(view->getId());
+            timing_lib->addActiveHoldView(view->getId());
         }
 
         open_edi::util::message->info("Setting view %s status successfully.\n",
