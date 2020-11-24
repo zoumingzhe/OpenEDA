@@ -74,12 +74,11 @@ void spef_error(yyscan_t scanner, SpefReader::SpefReader *spefReader, const char
 %type <string> entity cell_type driver_cell pnet_ref
 %type <string> pexternal_connection internal_pdspf_node
 %type <string> parasitic_node internal_parasitic_node
+%type <string> pin_name driver_pair internal_connection external_connection
 
 %type <ch> hchar suffix_bus_delim prefix_bus_delim
 
 %type <stringVec> qstrings
-
-%type<pin> pin_name driver_pair internal_connection external_connection
 
 %type<net> net
 
@@ -307,7 +306,7 @@ port_entries:
 
 port_entry:
 	port_name direction conn_attrs
-	{ spefReader->stringDelete($1); }
+	{ spefReader->addPort($1); }
 ;
 
 direction:
@@ -461,9 +460,7 @@ d_net:
 
 net:
 	name_or_index
-	{ $$ = spefReader->findNet($1);
-	  spefReader->stringDelete($1);
-	}
+	{ $$ = spefReader->findNet($1); }
 ;
 
 total_cap:
@@ -487,23 +484,23 @@ conn_sec:
 ;
 
 conn_defs:
-	conn_def
+	/* empty */
 |	conn_defs conn_def
 ;
 
 conn_def:
 	PPORT external_connection direction conn_attrs
-	{ spefReader->addPinNode($2); }
+        { spefReader->addPinNode($2); }
 |	PINT internal_connection direction conn_attrs
         { spefReader->addPinNode($2); }
 ;
 
 external_connection:
 	name_or_index
-	{ $$ = spefReader->findPin($1); }
+	{ $$ = $1; }
 |	physical_inst ':' pport
-	{ spefReader->stringDelete($1);
-	  spefReader->stringDelete($3);
+	{ $$ = $3;
+	  spefReader->stringDelete($1);
 	}
 ;
 
@@ -513,7 +510,7 @@ internal_connection:
 
 pin_name:
 	name_or_index
-	{ $$ = spefReader->findPin($1); }
+	{ $$ = $1; }
 ;
 
 internal_node_coords:
@@ -819,6 +816,6 @@ pos_number:
 void spef_error(yyscan_t scanner, SpefReader::SpefReader *spefReader, const char *str)
 {
     char errMsg[4096];
-    sprintf(errMsg, "Error found in line %lu in SPEF file %s", spefReader->getLineNo(), spefReader->getSpefFile().c_str()); 
+    sprintf(errMsg, "Error found in line %lu in SPEF file %s\n", spefReader->getLineNo(), spefReader->getSpefFile().c_str()); 
     open_edi::util::message->issueMsg(open_edi::util::kError, errMsg);
 }

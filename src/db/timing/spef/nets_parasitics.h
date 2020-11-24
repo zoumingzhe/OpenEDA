@@ -79,6 +79,7 @@ class NetsParasitics : public Object {
     void setInductScale(float scale) { inductScale_ = scale; }
     float getInductScale() const { return inductScale_; }
     void addNameMap(uint32_t index, SymbolIndex symIdx) { nameMap_[index] = symIdx; }
+    void addPort(ObjectId portId) { portsVec_.push_back(portId); }
     //std::unordered_map<uint32_t, SymbolIndex> getNameMap() { return nameMap_; } 
     //void addPowerNet(ObjectId sNetId) { pwrNetVec_.push_back(sNetId); }
     //void addGroundNet(ObjectId sNetId) { gndNetVec_.push_back(sNetId); }
@@ -96,6 +97,7 @@ class NetsParasitics : public Object {
     std::string getCellDumpName(Cell *cell);
     std::string getIntNodeDumpName(Net *net, ParasiticIntNode *intNode);
     std::string getPinDumpName(Pin *pin);
+    std::string getTermDirDumpName(Pin *pin);
     std::string getExtNodeDumpName(ParasiticExtNode *extNode);
     std::string getNodeDumpName(Net *net, ObjectId objId);
     void dumpSpefHeader(OStreamBase& os);

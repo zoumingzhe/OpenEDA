@@ -77,6 +77,13 @@ NAME {QSTRING}|{IDENTIFIER}
 PHYSICAL_NAME {NAME}
 PARTIAL_PHYSICAL_REF {HIER_DELIM}{PHYSICAL_NAME}
 PHYSICAL_REF {PHYSICAL_NAME}{PARTIAL_PHYSICAL_REF}+
+
+BUS_SUB {DIGIT}|{ALPHA}|"_"
+BIT_IDENT {IDENTIFIER}({PREFIX_BUS_DELIM}{BUS_SUB}+{SUFFIX_BUS_DELIM})+
+ID_OR_BIT {IDENTIFIER}|{BIT_IDENT}
+IDENT {INTEGER}*{ID_OR_BIT}({HIER_DELIM}|{INTEGER}|{ID_OR_BIT})*
+IDENT_OR_BIT {IDENTIFIER}|{BIT_IDENT}
+NAME_PAIR ({PATH}|{INDEX}){HIER_DELIM}({INDEX}|{IDENT_OR_BIT}|{POS_INTEGER})
 INDEX "*"{POS_INTEGER}
 
 %%
@@ -85,39 +92,12 @@ INDEX "*"{POS_INTEGER}
 yylval = yylval_param;
 %}
 
-
-"/*"                    { BEGIN(COMMENT); }
-<COMMENT>[^*\n]*        /* eat anything that's not a '*' */
-<COMMENT>"*"+[^*/\n]*   /* eat up '*'s not followed by '/'s */
-<COMMENT>\n             { spefReader->incrLineNo(); }
-<COMMENT>"*"+"/"        { BEGIN(INITIAL); }
-<COMMENT><<EOF>>        { open_edi::util::message->issueMsg(
-                              open_edi::util::kError, "Unterminated comment"); 
-                          BEGIN(INITIAL); 
-			  yyterminate(); 
-			}
-
-"//".*\n        { spefReader->incrLineNo(); }
-[ \t\r]*        {}
-\n              { spefReader->incrLineNo(); }
-"\""            { BEGIN(QUOTE); }
-<QUOTE>[ \t\r]+ /* eat anything that's not a '\n' */
-<QUOTE>\n       { spefReader->incrLineNo(); }
-<QUOTE>"\\".    { spefReader->recordChar(yytext[1]); }
-<QUOTE>"\""     { BEGIN(INITIAL); 
-		  yylval->string = spefReader->getRecordStr(); 
-                  return QSTRING; }
-<QUOTE>.        { spefReader->recordChar(yytext[0]); }
-<QUOTE><<EOF>>  { open_edi::util::message->issueMsg(
-                              open_edi::util::kError, "Unterminated comment");
-                  BEGIN(INITIAL); 
-		  yyterminate(); }
 "*SPEF"         { return SPEF; }
 "*DESIGN"       { return DESIGN; }
-"*DATE"     /* Don't save it for now */
-"*VENDOR"   /* Don't save it for now */
-"*PROGRAM"  /* Don't save it for now */
-"*VERSION"  /* Don't save it for now */
+"*DATE"         { return DATE; }
+"*VENDOR"       { return VENDOR; }
+"*PROGRAM"      { return PROGRAM; }
+"*VERSION"      { return PVERSION; }
 "*DESIGN_FLOW" { return DESIGN_FLOW; }
 "*DIVIDER"     { return DIVIDER; }
 "*DELIMITER"   { return DELIMITER; }
@@ -160,13 +140,40 @@ yylval = yylval_param;
 "*END"    { return END; }
 "*R_PNET" { return R_PNET; }
 
+"/*"                    { BEGIN(COMMENT); }
+<COMMENT>[^*\n]*        /* eat anything that's not a '*' */
+<COMMENT>"*"+[^*/\n]*   /* eat up '*'s not followed by '/'s */
+<COMMENT>\n             { spefReader->incrLineNo(); }
+<COMMENT>"*"+"/"        { BEGIN(INITIAL); }
+<COMMENT><<EOF>>        { open_edi::util::message->issueMsg(
+                              open_edi::util::kError, "Unterminated comment");
+                          BEGIN(INITIAL);
+                          yyterminate();
+                        }
+
+"//".*\n        { spefReader->incrLineNo(); }
+[ \t\r]*\n      { spefReader->incrLineNo(); }
+[ \t\r]         {}
+"\""            { BEGIN(QUOTE); spefReader->clearRecordStr(); }
+<QUOTE>\r?\n    { spefReader->incrLineNo(); }
+<QUOTE>"\\".    { spefReader->recordChar(yytext[1]); }
+<QUOTE>"\""     { BEGIN(INITIAL);
+                  yylval->string = spefReader->getRecordStr();
+                  return QSTRING; }
+<QUOTE>.        { spefReader->recordChar(yytext[0]); }
+<QUOTE><<EOF>>  { open_edi::util::message->issueMsg(
+                              open_edi::util::kError, "Unterminated comment");
+                  BEGIN(INITIAL);
+                  yyterminate(); }
+
+
 {INTEGER} { yylval->integer = atoi(yytext); return INTEGER; }
 
 {FLOAT}   { yylval->value = static_cast<float>(atof(yytext)); return FLOAT; }
 
 {IDENTIFIER}   { yylval->string = spefReader->stringCopy(yytext); return IDENTIFIER; }
 
-{PATH} { yylval->string = spefReader->stringCopy(yytext); return NAME; }
+{PATH}|{NAME_PAIR} { yylval->string = spefReader->stringCopy(yytext); return NAME; }
 
 {INDEX} { yylval->string = spefReader->stringCopy(yytext); return INDEX; }
 

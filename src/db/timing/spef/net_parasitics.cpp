@@ -18,6 +18,7 @@
 
 #include "db/core/db.h"
 #include "util/stream.h"
+#include "util/util_mem.h"
 
 namespace open_edi {
 namespace db {
@@ -33,29 +34,49 @@ NetParasitics::~NetParasitics() {
 }
 
 DNetParasitics::DNetParasitics()
-    : NetParasitics() {
+    : NetParasitics(),
+      pinNodeVecId_(UNINIT_OBJECT_ID),
+      gCapVecId_(UNINIT_OBJECT_ID),
+      xCapVecId_(UNINIT_OBJECT_ID),
+      resVecId_(UNINIT_OBJECT_ID) {
     setObjectType(ObjectType::kObjectTypeDNetParasitics);
 }
 
-ObjectId DNetParasitics::addPinNode(ObjectId pinId, bool isExtPin) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        auto pinNode = topCell->createObject<ParasiticPinNode>(kObjectTypeParasiticPinNode);
+ObjectId DNetParasitics::addPinNode(ObjectId pinId, ObjectId cellId, bool isExtPin) {
+    Cell *cell = getTopCell();
+    //Cell *cell = Object::addr<Cell>(cellId);
+    if (cell) {
+        auto pinNode = cell->createObject<ParasiticPinNode>(kObjectTypeParasiticPinNode);
         if (pinNode) {
             pinNode->setOwner(this);
 	    pinNode->setPinId(pinId);
-	    if (!isExtPin) //Only add internal pin node
-	        pinNodeVec_.push_back(pinNode->getId());
+	    
+	    if (!isExtPin) { //Only add internal pin node
+		ArrayObject<ObjectId> *vct = nullptr;
+                if (pinNodeVecId_ == UNINIT_OBJECT_ID) {
+		    vct = cell->createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
+		    if (vct != nullptr) {
+			vct->setPool(cell->getPool());
+			vct->reserve(5);
+			pinNodeVecId_ = vct->getId();
+		    }
+		} else {
+		    vct = addr< ArrayObject<ObjectId> >(pinNodeVecId_);
+		}
+                if (vct != nullptr)
+                    vct->pushBack(pinNode->getId());
+            }
 	    return pinNode->getId();
         }
     }
     return UNINIT_OBJECT_ID;
 }
 
-ObjectId DNetParasitics::addIntNode(uint32_t intNodeId) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        auto intNode = topCell->createObject<ParasiticIntNode>(kObjectTypeParasiticIntNode);
+ObjectId DNetParasitics::addIntNode(ObjectId cellId, uint32_t intNodeId) {
+    Cell *cell = getTopCell();
+    //Cell *cell = Object::addr<Cell>(cellId);
+    if (cell) {
+        auto intNode = cell->createObject<ParasiticIntNode>(kObjectTypeParasiticIntNode);
         if (intNode) {
             intNode->setOwner(this);
             intNode->setIntNodeId(intNodeId);
@@ -65,10 +86,11 @@ ObjectId DNetParasitics::addIntNode(uint32_t intNodeId) {
     return UNINIT_OBJECT_ID;
 }
 
-ObjectId DNetParasitics::addExtNode(ObjectId netId, uint32_t extNodeId) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        auto extNode = topCell->createObject<ParasiticExtNode>(kObjectTypeParasiticExtNode);
+ObjectId DNetParasitics::addExtNode(ObjectId netId, ObjectId cellId, uint32_t extNodeId) {
+    Cell *cell = getTopCell();
+    //Cell *cell = Object::addr<Cell>(cellId);
+    if (cell) {
+        auto extNode = cell->createObject<ParasiticExtNode>(kObjectTypeParasiticExtNode);
         if (extNode) {
             extNode->setOwner(this);
 	    extNode->setExtNetId(netId);
@@ -79,43 +101,85 @@ ObjectId DNetParasitics::addExtNode(ObjectId netId, uint32_t extNodeId) {
     return UNINIT_OBJECT_ID;
 }
 
-void DNetParasitics::addGroundCap(ObjectId nodeId, float capValue) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        auto gCap = topCell->createObject<ParasiticCap>(kObjectTypeParasiticCap);
+void DNetParasitics::addGroundCap(ObjectId nodeId, ObjectId cellId, float capValue) {
+    Cell *cell = getTopCell();
+    //Cell *cell = Object::addr<Cell>(cellId);
+    if (cell) {
+        auto gCap = cell->createObject<ParasiticCap>(kObjectTypeParasiticCap);
         if (gCap) {
             gCap->setOwner(this);
 	    gCap->setNode1Id(nodeId);
 	    gCap->setCapacitance(capValue);
-	    gCapVec_.push_back(gCap->getId());
+
+	    ArrayObject<ObjectId> *vct = nullptr;
+            if (gCapVecId_ == UNINIT_OBJECT_ID) {
+                vct = cell->createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
+                if (vct == nullptr)
+		    return;
+                vct->setPool(cell->getPool());
+                vct->reserve(50);
+                gCapVecId_ = vct->getId();
+            } else {
+                vct = addr< ArrayObject<ObjectId> >(gCapVecId_);
+            }
+            if (vct != nullptr)
+                vct->pushBack(gCap->getId());
         }
     }
 }
 
-void DNetParasitics::addCouplingCap(ObjectId node1Id, ObjectId node2Id, float capValue) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        auto xCap = topCell->createObject<ParasiticXCap>(kObjectTypeParasiticXCap);
+void DNetParasitics::addCouplingCap(ObjectId node1Id, ObjectId node2Id, ObjectId cellId, float capValue) {
+    Cell *cell = getTopCell();
+    //Cell *cell = Object::addr<Cell>(cellId);
+    if (cell) {
+        auto xCap = cell->createObject<ParasiticXCap>(kObjectTypeParasiticXCap);
         if (xCap) {
             xCap->setOwner(this);
             xCap->setNode1Id(node1Id);
 	    xCap->setNode2Id(node2Id);
             xCap->setCapacitance(capValue);
-            xCapVec_.push_back(xCap->getId());
+
+	    ArrayObject<ObjectId> *vct = nullptr;
+            if (xCapVecId_ == UNINIT_OBJECT_ID) {
+                vct = cell->createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
+                if (vct == nullptr)
+                    return;
+                vct->setPool(cell->getPool());
+                vct->reserve(20);
+                gCapVecId_ = vct->getId();
+            } else {
+                vct = addr< ArrayObject<ObjectId> >(xCapVecId_);
+            }
+            if (vct != nullptr)
+                vct->pushBack(xCap->getId());
         }
     }
 }
 
-void DNetParasitics::addResistor(ObjectId node1Id, ObjectId node2Id, float resValue) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        auto res = topCell->createObject<ParasiticResistor>(kObjectTypeParasiticResistor);
+void DNetParasitics::addResistor(ObjectId node1Id, ObjectId node2Id, ObjectId cellId, float resValue) {
+    Cell *cell = getTopCell();
+    //Cell *cell = Object::addr<Cell>(cellId);
+    if (cell) {
+        auto res = cell->createObject<ParasiticResistor>(kObjectTypeParasiticResistor);
         if (res) {
             res->setOwner(this);
             res->setNode1Id(node1Id);
 	    res->setNode2Id(node2Id);
             res->setResistance(resValue);
-            resVec_.push_back(res->getId());
+
+	    ArrayObject<ObjectId> *vct = nullptr;
+            if (resVecId_ == UNINIT_OBJECT_ID) {
+                vct = cell->createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
+                if (vct == nullptr)
+                    return;
+                vct->setPool(cell->getPool());
+                vct->reserve(50);
+                resVecId_ = vct->getId();
+            } else {
+                vct = addr< ArrayObject<ObjectId> >(resVecId_);
+            }
+            if (vct != nullptr)
+                vct->pushBack(res->getId());
         }
     }
 }

@@ -29,17 +29,23 @@ SpefReader::SpefReader(std::string fileName, DesignParasitics *designParasitics)
       net_(nullptr),
       dnetParasitics_(nullptr),
       rnetParasitics_(nullptr),
-      lineNo_(0),
+      lineNo_(1),
       netNodeMap_(),
       scanner_(nullptr) {
     spefField_ = designParasitics->getSpefField();
+    //addDesignNetsParasitics();
 }
 
 SpefReader::~SpefReader() {
 }
 
-char* SpefReader::stringCopy(const char *str)
-{ 
+void SpefReader::stringDelete(const char *str) {
+    if (str) {
+        delete [] str;
+    }
+}
+
+char* SpefReader::stringCopy(const char *str) { 
     if (str) {
         char *copy = new char[strlen(str) + 1];
         strcpy(copy, str);
@@ -48,8 +54,7 @@ char* SpefReader::stringCopy(const char *str)
         return nullptr;
 }
 
-bool SpefReader::isDigits(const char *str)
-{
+bool SpefReader::isDigits(const char *str) {
   for (const char *s = str; *s; s++) {
     if (!isdigit(*s))
       return false;
@@ -59,27 +64,28 @@ bool SpefReader::isDigits(const char *str)
 
 void SpefReader::setCell(const char *designName) {
     Cell* topCell = getTopCell();
-    if (topCell) {
+    if (topCell != nullptr) {
 	cell_ = topCell->getCell(std::string(designName));
         if (cell_ == nullptr) {
+            cell_ == topCell;  //Use top cell for the time being
 	    open_edi::util::message->issueMsg(open_edi::util::kError,
                                               "Failed to find SPEF cell in design.\n");
-            //return TCL_ERROR;
-        }    
+            return;
+        }
+        addDesignNetsParasitics();
     }
-    //return TCL_OK;
 }
 
 void SpefReader::addDesignNetsParasitics() {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        netsParasitics_ = topCell->createObject<NetsParasitics>(kObjectTypeNetsParasitics);
+    if (cell_ != nullptr) {
+        netsParasitics_ = cell_->createObject<NetsParasitics>(kObjectTypeNetsParasitics);
         if (netsParasitics_ == nullptr) {
             open_edi::util::message->issueMsg(open_edi::util::kError,
                                               "Creating NetsParasitics failed.\n");
             return;
         }
-        SymbolIndex spefFileIdx = topCell->getOrCreateSymbol(spefFileName_.c_str());
+        netsParasitics_->setCellId(cell_->getId());
+        SymbolIndex spefFileIdx = cell_->getOrCreateSymbol(spefFileName_.c_str());
 	if (designParasitics_ && cell_) {
             designParasitics_->addSpefMap(cell_->getId(), spefFileIdx);
 	    designParasitics_->addParasiticsMap(cell_->getId(), netsParasitics_->getId());
@@ -132,7 +138,7 @@ void SpefReader::setResScale(float digits, const char* unit) {
 void SpefReader::setInductScale(float digits, const char* unit) {
     float scale = 1.0;
     if (strcmp(unit, "HENRY") == 0)
-        scale = digits*1.0e-12;
+        scale = digits;
     else if (strcmp(unit, "MH") == 0)
         scale = digits*1.0e-3;
     else if (strcmp(unit, "UH") == 0)
@@ -145,14 +151,21 @@ void SpefReader::setInductScale(float digits, const char* unit) {
     stringDelete(unit);
 }
 
-void SpefReader::addNameMap(char* index, char* name) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex nameIdx = topCell->getOrCreateSymbol(name); 
-	uint32_t idx = strtoul(index, NULL, 0);
-	netsParasitics_->addNameMap(idx, nameIdx);
+void SpefReader::addNameMap(char *index, char *name) {
+    if (cell_ && netsParasitics_) {
+        SymbolIndex nameIdx = cell_->getOrCreateSymbol(name);
+        if (index[0] == '*') {
+	    uint32_t idx = strtoul(index+1, NULL, 0);
+	    netsParasitics_->addNameMap(idx, nameIdx);
+        }
     }
     stringDelete(index); 
+}
+
+void SpefReader::addPort(char *name) {
+    Pin *pin = findPin(name);
+    if (netsParasitics_ && pin) 
+        netsParasitics_->addPort(pin->getId());
 }
 
 /*void SpefReader::addPowerNet(char* name) {
@@ -194,31 +207,32 @@ Pin* SpefReader::findPin(char *name) {
 }
 
 void SpefReader::addDNetBegin(Net *net) { 
-    if (netsParasitics_) 
-        dnetParasitics_ = netsParasitics_->addDNetParasitics(net_->getId(), parValue_); 
+    if (netsParasitics_ && net) { 
+        net_ = net;
+        dnetParasitics_ = netsParasitics_->addDNetParasitics(net->getId(), parValue_); 
+    }
 }
 
 void SpefReader::addDNetEnd() { 
     net_ = nullptr; 
     dnetParasitics_ = nullptr;
-    for(auto it=netNodeMap_.begin(); it!=netNodeMap_.end(); ++it)
-        stringDelete(it->first);
     netNodeMap_.clear(); 
 }
 
-void SpefReader::addPinNode(Pin *pin) {
-    if (pin) {
-        const char *pinName = pin->getName().c_str();
-        ObjectId pinNodeId = getParasiticNode(pinName);
-        dnetParasitics_->addPinNode(pinNodeId);
+void SpefReader::addPinNode(char *pinName) {
+    if (pinName && dnetParasitics_) {
+        std::string pinStr = pinName;
+        stringDelete(pinName);
+        ObjectId pinNodeId = getParasiticNode(pinStr);
+        dnetParasitics_->addPinNode(pinNodeId, cell_->getId());
     }
 }
 
-ObjectId SpefReader::getParasiticNode(const char *nodeName) {
+ObjectId SpefReader::getParasiticNode(std::string nodeName) {
     ObjectId paraNodeId = UNINIT_OBJECT_ID;
     if (netsParasitics_ && dnetParasitics_) {
 	if (netNodeMap_.find(nodeName) == netNodeMap_.end()) {
-            paraNodeId = netsParasitics_->addNode(dnetParasitics_, nodeName);
+            paraNodeId = netsParasitics_->addNode(dnetParasitics_, nodeName.c_str());
             if (paraNodeId != UNINIT_OBJECT_ID)
                 netNodeMap_[nodeName] = paraNodeId;
         } else
@@ -230,39 +244,55 @@ ObjectId SpefReader::getParasiticNode(const char *nodeName) {
 
 void SpefReader::addGroundCap(char *nodeName) {
     //For gound cap only need to handle internal node as pin node handled in CONN section
-    if (dnetParasitics_) {
-	ObjectId paraNodeId = getParasiticNode(nodeName);
+    if (nodeName && dnetParasitics_) {
+        std::string nodeStr = nodeName;
+        stringDelete(nodeName);
+	ObjectId paraNodeId = getParasiticNode(nodeStr);
         if (paraNodeId != UNINIT_OBJECT_ID)
-            dnetParasitics_->addGroundCap(paraNodeId, parValue_);
+            dnetParasitics_->addGroundCap(paraNodeId, cell_->getId(), parValue_);
     }
 }
 
 void SpefReader::addCouplingCap(char *nodeName1, char *nodeName2) {
-    if (dnetParasitics_) {
+    if (nodeName1 && nodeName2 && dnetParasitics_) {
+        std::string node1Str = nodeName1;
+        std::string node2Str = nodeName2;
+        stringDelete(nodeName1);
+	stringDelete(nodeName2);
 	ObjectId paraNode1Id = getParasiticNode(nodeName1);
         ObjectId paraNode2Id = getParasiticNode(nodeName2);
 	if (paraNode1Id != UNINIT_OBJECT_ID && paraNode2Id != UNINIT_OBJECT_ID)
-	    dnetParasitics_->addCouplingCap(paraNode1Id, paraNode2Id, parValue_);
+	    dnetParasitics_->addCouplingCap(paraNode1Id, paraNode2Id, cell_->getId(), parValue_);
     }
 }
 
 void SpefReader::addResistor(char *nodeName1, char *nodeName2) {
-    if (dnetParasitics_) {
+    if (nodeName1 && nodeName2 && dnetParasitics_) {
+        std::string node1Str = nodeName1;
+	std::string node2Str = nodeName2;
+	stringDelete(nodeName1);
+	stringDelete(nodeName2);
 	ObjectId paraNode1Id = getParasiticNode(nodeName1);
         ObjectId paraNode2Id = getParasiticNode(nodeName2);
         if (paraNode1Id != UNINIT_OBJECT_ID && paraNode2Id != UNINIT_OBJECT_ID)
-            dnetParasitics_->addResistor(paraNode1Id, paraNode2Id, parValue_);
+            dnetParasitics_->addResistor(paraNode1Id, paraNode2Id, cell_->getId(), parValue_);
     }
 }
 
 void SpefReader::addRNetBegin(Net *net) {
-    if (netsParasitics_)
-        rnetParasitics_ = netsParasitics_->addRNetParasitics(net_->getId(), parValue_);
+    if (netsParasitics_) {
+	net_ = net;
+        rnetParasitics_ = netsParasitics_->addRNetParasitics(net->getId(), parValue_);
+    } 
 }
 
-void SpefReader::addRNetDrvr(Pin *pin) {
-    if (rnetParasitics_) 
-	rnetParasitics_->setDriverPinId(pin->getId());
+void SpefReader::addRNetDrvr(char *pinName) {
+    if (pinName && rnetParasitics_) { 
+	Pin *pin = findPin(pinName);
+        stringDelete(pinName);
+        if (pin)
+	    rnetParasitics_->setDriverPinId(pin->getId());
+    }
 }
 
 void SpefReader::addPiModel(float c2, float r1, float c1) {
@@ -286,6 +316,7 @@ bool SpefReader::parseSpefFile() {
 
     __spef_parse_begin(fspef);
     if (__spef_parse() != 0) {
+        errMsg = "Failed to parse SPEF file: " + spefFileName_;
 	open_edi::util::message->issueMsg(
                         open_edi::util::kError, errMsg.c_str());
 

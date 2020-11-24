@@ -130,9 +130,20 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 return TCL_ERROR;
             }
         }
+        DesignParasitics *dsgParasitics = corner->get_design_parasitics();
+        if (dsgParasitics == nullptr) {
+	    dsgParasitics = topCell->createObject<DesignParasitics>(kObjectTypeDesignParasitics);
+            if (dsgParasitics == nullptr) {
+                open_edi::util::message->issueMsg(
+                    open_edi::util::kError,
+                    "Create spef database failed.");
+                return TCL_ERROR;
+	    }
+            corner->set_design_parasitics(dsgParasitics->getId());
+        }
         open_edi::util::message->info("\nReading SPEF file\n");
         for (auto spefFile : spefFiles) {
-            if (!parseSpefFile(spefFile, corner->get_design_parasitics())) {
+            if ( parseSpefFile(spefFile, dsgParasitics) == TCL_ERROR ) {
                 std::string errMsg = "Failed to parse SPEF file: " + spefFile;       
                 open_edi::util::message->issueMsg(
                     open_edi::util::kError,

@@ -53,17 +53,17 @@ class DNetParasitics : public NetParasitics {
   public:
     DNetParasitics();
     ~DNetParasitics();
-    std::vector<ObjectId> getPinNode() const { return pinNodeVec_; }
-    std::vector<ObjectId> getGroundCap() const { return gCapVec_; }
-    std::vector<ObjectId> getCouplingCap() const { return xCapVec_; }
-    std::vector<ObjectId> getResistor() const { return resVec_; } 
+    ObjectId getPinNodeVecId() const { return pinNodeVecId_; }
+    ObjectId getGroundCapVecId() const { return gCapVecId_; }
+    ObjectId getCouplingCapVecId() const { return xCapVecId_; }
+    ObjectId getResistorVecId() const { return resVecId_; } 
 
-    ObjectId addPinNode(ObjectId pinId, bool isExtPin = false);
-    ObjectId addIntNode(uint32_t intNodeId);
-    ObjectId addExtNode(ObjectId netId, uint32_t extNodeId);
-    void addGroundCap(ObjectId nodeId, float capValue);
-    void addCouplingCap(ObjectId node1Id, ObjectId node2Id, float capValue);
-    void addResistor(ObjectId node1Id, ObjectId node2Id, float resValue);
+    ObjectId addPinNode(ObjectId pinId, ObjectId cellId, bool isExtPin = false);
+    ObjectId addIntNode(ObjectId cellId, uint32_t intNodeId);
+    ObjectId addExtNode(ObjectId netId, ObjectId cellId, uint32_t extNodeId);
+    void addGroundCap(ObjectId nodeId, ObjectId cellId, float capValue);
+    void addCouplingCap(ObjectId node1Id, ObjectId node2Id, ObjectId cellId, float capValue);
+    void addResistor(ObjectId node1Id, ObjectId node2Id, ObjectId cellId, float resValue);
     
 
   protected:
@@ -72,13 +72,13 @@ class DNetParasitics : public NetParasitics {
 
   private:
     /// The vector to store Pin Node pointer belongs to this net
-    std::vector<ObjectId> pinNodeVec_;
+    ObjectId pinNodeVecId_;
     /// The vector to store Grounded Cap pointer belongs to this net
-    std::vector<ObjectId> gCapVec_;
+    ObjectId gCapVecId_;
     /// The vector to store Coupling Cap pointer belongs to this net
-    std::vector<ObjectId> xCapVec_;
+    ObjectId xCapVecId_;
     /// The vector to store Resistor pointer belongs to this net
-    std::vector<ObjectId> resVec_;
+    ObjectId resVecId_;
 };
 
 class RNetParasitics : public NetParasitics {
