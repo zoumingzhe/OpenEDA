@@ -96,6 +96,8 @@ static int readDBCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *
 
 // write db to disk
 static int writeDBCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
+    MonitorId monitor_id = createMonitor();
+
     std::string cell_name;
     bool debug = false;
 
@@ -115,17 +117,25 @@ static int writeDBCommand(ClientData cld, Tcl_Interp *itp, int argc, const char 
 
     if (!cell_name.compare("")) {
         message->issueMsg(kError, "Invalid DB file name.\n");
+        destroyMonitor(monitor_id);
         return TCL_ERROR;
     }
 
     Cell *top_cell = getTopCell();
     if (!top_cell || !top_cell->getPool()) {
         message->issueMsg(kError, "Failed to get top cell.\n");
+        destroyMonitor(monitor_id);
         return TCL_ERROR;
     }
     WriteDesign write_design(cell_name);
     write_design.setDebug(debug);
-    return write_design.run();
+    //ProfilerStart("test_compress_mr.prof");
+    write_design.run();
+    //ProfilerStop();
+
+    outputMonitor(monitor_id, kElapsedTime, "writeDBCommand ");
+    destroyMonitor(monitor_id);
+    return 0;
 }
 // end of write_design
 

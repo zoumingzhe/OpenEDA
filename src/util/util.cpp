@@ -14,6 +14,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include "util/util.h"
+#include "util/monitor.h"
 
 namespace open_edi {
 namespace util {
@@ -77,6 +78,7 @@ static int MessageInit() {
         timinglib_msg_path = path + "/include/src/db/timing/timinglib/timinglib.msg";
     }
 
+
     message->registerMsgFile(
         util_msg_path.c_str());  // register util message file
     message->registerMsgFile(
@@ -90,16 +92,12 @@ int utilInit() {
 }
 
 void* processBar(void* arg) {
-    clock_t start, current;
-    uint32_t  duration;
-    start = clock();
+    MonitorId monitor_id = createMonitor();
     while (true) {
         sleep(1);
-        current = clock();
-        duration = (uint32_t)(current - start) / CLOCKS_PER_SEC;
-        message->info("Elapsed Time(s): %d                       \r", duration);
-        fflush(stdout);
+        outputMonitor(monitor_id, kElapsedTime, "", false);
     }
+    destroyMonitor(monitor_id);
 }
 
 int runCommandWithProcessBar(command_t command, int argc, const char **argv) {

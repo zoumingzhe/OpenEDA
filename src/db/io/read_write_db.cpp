@@ -226,8 +226,19 @@ bool WriteDesign::__setAfterWrite() {
 }
 
 int WriteDesign::run() {
-    if (!__writeDBFile() || !__writePolyFile() || !__writeSymFile() ||
-        !__setAfterWrite()) {
+    if (!__writeDBFile()) {
+        return ERROR;
+    }
+
+    if (!__writePolyFile()) {
+        return ERROR;
+    }
+
+    if (!__writeSymFile()) {
+        return ERROR;
+    }
+
+    if (!__setAfterWrite()) {
         return ERROR;
     }
     std::cout << "INFO: Successfully write design " << saved_name_ << ".\n";

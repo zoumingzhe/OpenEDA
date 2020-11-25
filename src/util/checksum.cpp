@@ -10,6 +10,7 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 #include "util/checksum.h"
+#include "util/monitor.h"
 
 namespace open_edi {
 namespace util {
