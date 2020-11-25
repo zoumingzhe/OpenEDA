@@ -13,7 +13,7 @@ if (CUDA_FOUND)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
     set(CUDA_SEPARABLE_COMPILATION TRUE)
     list(APPEND CUDA_NVCC_FLAGS
-        -O3 -std=c++11 ${CMAKE_CUDA_FLAGS} 
+        -O3 -std=c++14 ${CMAKE_CUDA_FLAGS} 
         )
     list(APPEND CUDA_NVCC_FLAGS --compiler-options -fPIC)
 
@@ -30,9 +30,9 @@ if (CUDA_FOUND)
         ${Boost_INCLUDE_DIRS}
         )
 
-    # Request that cuda_linked be built with -std=c++11
+    # Request that cuda_linked be built with -std=c++14
     # As this is a public compile feature anything that links to cuda_linked
-    # will also build with -std=c++11
+    # will also build with -std=c++14
 	#target_compile_features(${CUDA_LINKED} PUBLIC cxx_std_11)
 
     # We need to explicitly state that we need all CUDA files in the cuda_linked
@@ -49,11 +49,12 @@ file(GLOB SOURCES
     )
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../.."
+    "${CMAKE_CURRENT_SOURCE_DIR}/../../../../.."
     "${MUNKRES_CPP_INCLUDE_DIRS}"
     "${LEMON_INCLUDE_DIRS}"
     "${CUB_DIR}"
     "${LIMBO_SOURCE_DIR}"
-    "${Boost_INCLUDE_DIRS})"
+    "${Boost_INCLUDE_DIRS}"
     )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)

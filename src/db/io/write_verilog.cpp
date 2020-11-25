@@ -260,8 +260,14 @@ static bool writeModule(std::ostream *out_stream, Cell *cell) {
             ObjectId pins = inst->getPins();
             ArrayObject<ObjectId> *pins_vector =
                     cell->addr<ArrayObject<ObjectId>>(pins);
+            if (!pins_vector) {
+                message->issueMsg(kError,
+                        "cannot get pins vector from id %d of instance %s.\n",
+                        pins, inst->getName().c_str());
+                //return false;
+            }
             first = true;
-            for (int j = 0; j < pins_vector->getSize(); j++) {
+            for (int j = 0; pins_vector && j < pins_vector->getSize(); j++) {
                 ObjectId pin_id = (*pins_vector)[j];
                 Pin *pin = cell->addr<Pin>(pin_id);
                 if (!pin) {

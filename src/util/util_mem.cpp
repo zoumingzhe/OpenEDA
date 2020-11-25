@@ -10,7 +10,6 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 
-
 #include <string.h>
 #include <sys/sysinfo.h>
 #include <sys/time.h>
@@ -546,9 +545,13 @@ bool MemPool::destroyMemPool() {
 MemPagePool *MemPool::newPagePool() {
     std::lock_guard<std::mutex> sg(mutex_);
 
-    if (!initialized_) return nullptr;
+    if (!initialized_) {
+        message->issueMsg(kError, "Cannot new Page pool when Memory pool"
+                                  " is not initialized.\n");
+        return nullptr;
+    }
     if (pool_no_ == MEM_POOL_MAX) {
-        message->issueMsg(kError, "page pool is full. %s\n", pool_no_);
+        message->issueMsg(kError, "Page pool is full. %d\n", pool_no_);
         return nullptr;
     }
 
@@ -568,9 +571,13 @@ MemPagePool *MemPool::newPagePool() {
 MemPagePool *MemPool::newPagePool(uint64_t cell_id) {
     std::lock_guard<std::mutex> sg(mutex_);
 
-    if (!initialized_) return nullptr;
+    if (!initialized_) {
+        message->issueMsg(kError, "Cannot new Page pool when Memory pool"
+                                  " is not initialized.\n");
+        return nullptr;
+    }
     if (pool_no_ == MEM_POOL_MAX) {
-        message->issueMsg(kError, "page pool is full. %s\n", pool_no_);
+        message->issueMsg(kError, "Page pool is full. %d\n", pool_no_);
         return nullptr;
     }
 

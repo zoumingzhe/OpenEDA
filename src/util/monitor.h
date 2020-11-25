@@ -85,13 +85,11 @@ class Monitor {
      MonitorInformation current_info_;
 };
 
-
-
 class MonitorManager {
  public:
      MonitorManager();
      ~MonitorManager();
-     MonitorId createMonitor(); //file line macro
+     MonitorId createMonitor();
      Monitor* queryMonitor(MonitorId monitor_id) {
          return monitor_map_[monitor_id];
      }

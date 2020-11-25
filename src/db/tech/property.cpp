@@ -31,7 +31,7 @@ Property::~Property() {
     PropDataType data_type = getDataType();
     if (data_type == PropDataType::kString && 
             (value_u_.string_value_ != kInvalidSymbolIndex)) {
-        SymbolTable *symbol_table = getTopCell()->getSymbolTable();
+        SymbolTable *symbol_table = getTechLib()->getSymbolTable();
         symbol_table->removeReference(value_u_.string_value_, this->getId());
     }
 }
@@ -68,7 +68,7 @@ void Property::copy(Property const &rhs) {
     if (data_type == PropDataType::kString && 
             (rhs.value_u_.string_value_ != kInvalidSymbolIndex)) {
         value_u_ = rhs.value_u_;
-        getTopCell()->addSymbolReference(value_u_.string_value_, this->getId());
+        getTechLib()->addSymbolReference(value_u_.string_value_, this->getId());
     } else {
         value_u_ = rhs.value_u_;
     }
@@ -175,13 +175,13 @@ int Property::getIntValue() const { return value_u_.int_value_; }
 double Property::getRealValue() const { return value_u_.real_value_; }
 
 std::string Property::getStringValue() const {
-    return getTopCell()->getSymbolByIndex(value_u_.string_value_);
+    return getTechLib()->getSymbolByIndex(value_u_.string_value_);
 }
 
 // Set
 void Property::setDefinitionId(PropType type, const std::string &name) {
     ObjectId prop_def =
-        getTopCell()->getTechLib()->getPropertyDefinitionId(type, name.c_str());
+        getTechLib()->getPropertyDefinitionId(type, name.c_str());
     // TODO: warning if the object id is invalid.
     definition_id_ = prop_def;
 }
@@ -226,14 +226,14 @@ void Property::setStringValue(const std::string &v) {
     PropDataType data_type = getDataType();
     if (data_type == PropDataType::kString) {
         if (value_u_.string_value_ != kInvalidSymbolIndex) {
-            SymbolTable *symbol_table = getTopCell()->getSymbolTable();
+            SymbolTable *symbol_table = getTechLib()->getSymbolTable();
             symbol_table->removeReference(value_u_.string_value_,
                                           this->getId());
         }
 
         value_u_.string_value_ =
-            getTopCell()->getOrCreateSymbol((std::string &)v);
-        getTopCell()->addSymbolReference(value_u_.string_value_, this->getId());
+            getTechLib()->getOrCreateSymbol((std::string &)v);
+        getTechLib()->addSymbolReference(value_u_.string_value_, this->getId());
     }
 }
 
