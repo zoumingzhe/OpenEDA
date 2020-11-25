@@ -125,113 +125,113 @@ void Units::move(Units &&rhs) {
 const char *Units::getCapacitanceUnits() const {
     if (capacitance_unit_ == kInvalidSymbolIndex) return nullptr;
 
-    return getTopCell()->getSymbolByIndex(capacitance_unit_).c_str();
+    return getTechLib()->getSymbolByIndex(capacitance_unit_).c_str();
 }
 
 const char *Units::getCurrentUnits() const {
     if (current_unit_ == kInvalidSymbolIndex) return nullptr;
 
-    return getTopCell()->getSymbolByIndex(current_unit_).c_str();
+    return getTechLib()->getSymbolByIndex(current_unit_).c_str();
 }
 
 const char *Units::getPowerUnits() const {
     if (power_unit_ == kInvalidSymbolIndex) return nullptr;
 
-    return getTopCell()->getSymbolByIndex(power_unit_).c_str();
+    return getTechLib()->getSymbolByIndex(power_unit_).c_str();
 }
 
 const char *Units::getResistanceUnits() const {
     if (resistance_unit_ == kInvalidSymbolIndex) return nullptr;
 
-    return getTopCell()->getSymbolByIndex(resistance_unit_).c_str();
+    return getTechLib()->getSymbolByIndex(resistance_unit_).c_str();
 }
 
 const char *Units::getVoltageUnits() const {
     if (voltage_unit_ == kInvalidSymbolIndex) return nullptr;
 
-    return getTopCell()->getSymbolByIndex(voltage_unit_).c_str();
+    return getTechLib()->getSymbolByIndex(voltage_unit_).c_str();
 }
 
 const char *Units::getTimeUnits() const {
     if (time_unit_ == kInvalidSymbolIndex) return nullptr;
 
-    return getTopCell()->getSymbolByIndex(time_unit_).c_str();
+    return getTechLib()->getSymbolByIndex(time_unit_).c_str();
 }
 
 const char *Units::getFrequencyUnits() const {
     if (frequency_unit_ == kInvalidSymbolIndex) return nullptr;
 
-    return getTopCell()->getSymbolByIndex(frequency_unit_).c_str();
+    return getTechLib()->getSymbolByIndex(frequency_unit_).c_str();
 }
 
 const char *Units::getLengthUnits() const {
     if (length_unit_ == kInvalidSymbolIndex) return nullptr;
 
-    return getTopCell()->getSymbolByIndex(length_unit_).c_str();
+    return getTechLib()->getSymbolByIndex(length_unit_).c_str();
 }
 
 void Units::setCapacitanceUnits(const char *v) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(v);
     if (index == kInvalidSymbolIndex) return;
 
     capacitance_unit_ = index;
-    getTopCell()->addSymbolReference(capacitance_unit_, this->getId());
+    getTechLib()->addSymbolReference(capacitance_unit_, this->getId());
 }
 
 void Units::setCurrentUnits(const char *v) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(v);
     if (index == kInvalidSymbolIndex) return;
 
     current_unit_ = index;
-    getTopCell()->addSymbolReference(current_unit_, this->getId());
+    getTechLib()->addSymbolReference(current_unit_, this->getId());
 }
 
 void Units::setPowerUnits(const char *v) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(v);
     if (index == kInvalidSymbolIndex) return;
 
     power_unit_ = index;
-    getTopCell()->addSymbolReference(power_unit_, this->getId());
+    getTechLib()->addSymbolReference(power_unit_, this->getId());
 }
 
 void Units::setResistanceUnits(const char *v) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(v);
     if (index == kInvalidSymbolIndex) return;
 
     resistance_unit_ = index;
-    getTopCell()->addSymbolReference(resistance_unit_, this->getId());
+    getTechLib()->addSymbolReference(resistance_unit_, this->getId());
 }
 
 void Units::setVoltageUnits(const char *v) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(v);
     if (index == kInvalidSymbolIndex) return;
 
     voltage_unit_ = index;
-    getTopCell()->addSymbolReference(voltage_unit_, this->getId());
+    getTechLib()->addSymbolReference(voltage_unit_, this->getId());
 }
 
 void Units::setTimeUnits(const char *v) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(v);
     if (index == kInvalidSymbolIndex) return;
 
     time_unit_ = index;
-    getTopCell()->addSymbolReference(time_unit_, this->getId());
+    getTechLib()->addSymbolReference(time_unit_, this->getId());
 }
 
 void Units::setFrequencyUnits(const char *v) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(v);
     if (index == kInvalidSymbolIndex) return;
 
     frequency_unit_ = index;
-    getTopCell()->addSymbolReference(frequency_unit_, this->getId());
+    getTechLib()->addSymbolReference(frequency_unit_, this->getId());
 }
 
 void Units::setLengthUnits(const char *v) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(v);
     if (index == kInvalidSymbolIndex) return;
 
     length_unit_ = index;
-    getTopCell()->addSymbolReference(length_unit_, this->getId());
+    getTechLib()->addSymbolReference(length_unit_, this->getId());
 }
 
 void Units::printLEF(std::ofstream &ofs) const {

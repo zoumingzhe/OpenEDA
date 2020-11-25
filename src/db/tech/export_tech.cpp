@@ -36,7 +36,7 @@ ExportTechLef::ExportTechLef(const char* tech_name) {
         }
         rename(tech_name, old_tech_name.c_str());
     }
-    tech_lib_ = getTopCell()->getTechLib();
+    tech_lib_ = getTechLib();
     ofs_.open(tech_name, std::ios::out | std::ios::app);
 
     default_precision_ = cur_precision_ = ofs_.precision();
@@ -1221,10 +1221,10 @@ void ExportTechLef::exportOverlapLayer(Layer* layer) {
 
 void ExportTechLef::exportLayerProperty(const Layer* layer) {
     if (layer->getPropId()) {
-        VectorObject16* vobj =
-            Object::addr<VectorObject16>(layer->getPropId());
-        if (vobj && vobj->totalSize()) {
-            for (int ii = 0; ii < vobj->totalSize(); ++ii) {
+        IdArray* vobj =
+            Object::addr<IdArray>(layer->getPropId());
+        if (vobj && vobj->getSize()) {
+            for (int ii = 0; ii < vobj->getSize(); ++ii) {
                 Property* prop = Object::addr<Property>((*vobj)[ii]);
                 std::ostringstream oss;
                 std::string header = "    PROPERTY ";
@@ -1331,10 +1331,10 @@ void ExportTechLef::exportNDR() {
 }
 
 void ExportTechLef::exportCells() {
-    Cell* top_cell = getTopCell();
-    if (!top_cell) return;
-    for (uint64_t i = 0; i < top_cell->getNumOfCells(); i++) {
-        Cell* cell = top_cell->getCell(i);
+    Tech* tech_lib = getTechLib();
+    if (!tech_lib) return;
+    for (uint64_t i = 0; i < tech_lib->getNumOfCells(); i++) {
+        Cell* cell = tech_lib->getCell(i);
         if (cell) {
             // message->info("print out %dth macro to topcell\n", test_counttt);
             cell->printLEF(ofs_);
