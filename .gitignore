@@ -17,4 +17,4 @@ tags
 unittest/unittest_db
 src/parser/lef/lib/
 src/gui/console/lib/.tclsh-history
-share/
+/share
