@@ -113,63 +113,23 @@ Box Inst::getBox() {
         size_y = cell->getSizeY();
     }
 
-    size_x += origin_x;
-    size_y += origin_y;
+    // size_x += origin_x;
+    // size_y += origin_y;
 
-    if (getOrient() == Orient::kN) {
+    if (getOrient() == Orient::kN || getOrient() == Orient::kS ||
+        getOrient() == Orient::kW || getOrient() == Orient::kE) {
         llx = getLocation().getX();
         lly = getLocation().getY();
         urx = llx + size_x;
         ury = lly + size_y;
     }
 
-    if (getOrient() == Orient::kS) {
-        llx = getLocation().getX() - size_x;
-        lly = getLocation().getY() - size_y;
-        urx = getLocation().getX();
-        ury = getLocation().getY();
-    }
-
-    if (getOrient() == Orient::kW) {
-        llx = getLocation().getX() - size_y;
-        lly = getLocation().getY();
-        urx = getLocation().getX();
-        ury = getLocation().getY() + size_x;
-    }
-
-    if (getOrient() == Orient::kE) {
-        llx = getLocation().getX();
-        lly = getLocation().getY() - size_x;
-        urx = getLocation().getX() + size_y;
-        ury = getLocation().getY();
-    }
-
-    if (getOrient() == Orient::kFN) {
+    if (getOrient() == Orient::kFN || getOrient() == Orient::kFS ||
+        getOrient() == Orient::kFW || getOrient() == Orient::kFE) {
         llx = getLocation().getX() - size_x;
         lly = getLocation().getY();
         urx = getLocation().getX();
         ury = getLocation().getY() + size_y;
-    }
-
-    if (getOrient() == Orient::kFS) {
-        llx = getLocation().getX();
-        lly = getLocation().getY() - size_y;
-        urx = getLocation().getX() + size_x;
-        ury = getLocation().getY();
-    }
-
-    if (getOrient() == Orient::kFW) {
-        llx = getLocation().getX();
-        lly = getLocation().getY();
-        urx = getLocation().getX() + size_y;
-        ury = getLocation().getY() + size_x;
-    }
-
-    if (getOrient() == Orient::kFS) {
-        llx = getLocation().getX() - size_y;
-        lly = getLocation().getY() - size_x;
-        urx = getLocation().getX();
-        ury = getLocation().getY();
     }
 
     Box bbox(llx, lly, urx, ury);
@@ -550,8 +510,9 @@ ArrayObject<ObjectId> *Inst::getPinArray() const {
     }
 }
 ArrayObject<ObjectId> *Inst::getPGPinArray() const {
-        if (pg_pins_ != 0) {
-        ArrayObject<ObjectId>* pg_pin_array = addr<ArrayObject<ObjectId>>(pg_pins_);
+    if (pg_pins_ != 0) {
+        ArrayObject<ObjectId> *pg_pin_array =
+            addr<ArrayObject<ObjectId>>(pg_pins_);
         return pg_pin_array;
     } else {
         return nullptr;
