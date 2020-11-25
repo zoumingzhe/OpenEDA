@@ -14,8 +14,10 @@ DREAMPLACE_BEGIN_NAMESPACE
 
 void MacroLegal::run()
 {
+  dreamplacePrint(kINFO, "Starting Macro Legalization\n");
   // exit if no DB
-  if (!db_ || !db_->isCommonDBReady()) {
+  if (!isCommonDBReady()) {
+    dreamplacePrint(kINFO, "Error out\n");
     return;
   }
 }

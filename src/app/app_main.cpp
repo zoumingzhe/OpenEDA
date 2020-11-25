@@ -17,6 +17,9 @@
 #include "db/core/db_tcl_command.h"
 #include "tcl/test_app.h"
 #include "gui/gui_tcl_command.h"
+#ifdef _MAKE_PLACE
+#include "DREAMPlace/dreamplace/ops/tcl_command/src/place_tcl_command.h"
+#endif //end of MAKE_PLACE
 
 
 
@@ -31,6 +34,12 @@ static void registerSystemCommands(Tcl_Interp *itp)
     open_edi::db::registerDatabaseTclCommands(itp);
 
     open_edi::tcl::registerTestCommands(itp);
+#ifdef _MAKE_PLACE
+    // register commands of place
+    DreamPlace::registerPlaceTclCommands(itp);
+#endif //end of MAKE_PLACE
+
+    open_edi::gui::registerGuiTclCommands(itp);
 
 }
 /************************************
@@ -48,9 +57,12 @@ int Tcl_AppInit(Tcl_Interp *itp) {
     if (Tcl_Init(itp) == TCL_ERROR) {
         return TCL_ERROR;
     }
-    //add enhancement console
-    open_edi::gui::tclConsoleInit(itp);
+    
+    
+   
     registerSystemCommands(itp);
+    //add enhanced console
+    open_edi::gui::tclConsoleInit(itp);
 
     return TCL_OK;
 }
@@ -62,7 +74,7 @@ int Tcl_AppInit(Tcl_Interp *itp) {
 ///
 /// @return 
 static bool initApplication(int argc, char *argv[]) {
-
+    open_edi::gui::startQt(argc,argv);
     open_edi::util::setAppPath(argv[0]);
     open_edi::util::utilInit();
     open_edi::util::MemPool::initMemPool(); // initial MemPool

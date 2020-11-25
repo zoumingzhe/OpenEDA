@@ -53,7 +53,7 @@ target_include_directories(${PROJECT_NAME_LOWERCASE}_db PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/.. 
     ${CMAKE_CURRENT_SOURCE_DIR}/../parser/verilog
     ${TCL_DIR}/include 
-    ${Boost_HEADERS} 
+    ${Boost_INCLUDE_DIRS} 
     ${PROFILER_DIR}/include
     ${CMAKE_CURRENT_BINARY_DIR} 
     ${CMAKE_CURRENT_SOURCE_DIR}/timing/timinglib

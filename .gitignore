@@ -4,12 +4,13 @@ demo/.ipynb_checkpoints/
 demo/demo.tar
 .vscode/
 install/
-include/
+/include
 lib/static/
 bin/
 *~
 *.swp
 *.swo
+*.output
 build-g/
 tags
 *.orig

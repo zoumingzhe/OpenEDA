@@ -15,6 +15,7 @@
 #include "db/core/attr_object.h"
 #include "db/core/inst_attr.h"
 #include "db/tech/type_def.h"
+#include "db/util/array.h"
 #include "db/util/box.h"
 #include "util/enums.h"
 #include "util/point.h"
@@ -71,13 +72,9 @@ class Inst : public Object {
 
     std::string getName() const;
     void setName(std::string name);
-    Cell *getCell() const;
-    void setCell(const std::string &name);
-    void setCell(const Cell *cell);
     Cell *getParent() const;
     void setParent(const std::string name);
     void setParent(const Cell *cell);
-    Cell *getOwnerCell() const;
     Cell *getMaster() const;
     void setMaster(ObjectId master);
     void setMaster(const std::string name);
@@ -95,6 +92,8 @@ class Inst : public Object {
     Pin *createInstancePin(std::string &pin_name);
     Pin *createInstancePinWithoutMaster(std::string &pin_name);
     void addCell(Cell *model);
+
+    Box getBox();
 
     PlaceStatus getStatus() const;
     void setStatus(const PlaceStatus &s);
@@ -127,6 +126,9 @@ class Inst : public Object {
     uint64_t getNumProperties() const;
     void addProperty(ObjectId prop_id);
     ObjectId getPropertiesId() const;
+
+    ArrayObject<ObjectId>* getPinArray() const;
+    ArrayObject<ObjectId>* getPGPinArray() const;
 
     void clear();
 

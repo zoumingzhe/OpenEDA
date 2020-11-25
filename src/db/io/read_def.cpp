@@ -1235,7 +1235,7 @@ int readSubNet(defiNet* io_net, Net* net) {
                     Inst* inst = top_cell->getInstance(inst_name.c_str());
                     if (inst) pin = inst->getPin(io_net->pin(i));
                 }
-                if (!pin) pin = top_cell->getVPin(io_net->pin(i));
+                if (!pin) pin = top_cell->getIOPin(io_net->pin(i));
 
                 // if (pin) sub_net->addPin(pin);
             }
@@ -1482,16 +1482,28 @@ int getSourceStatus(const char* status) {
     return 0;
 }
 
-int getNetType(const char* type) {
-    if (strcmp(type, "ANALOG") == 0) return 1;
-    if (strcmp(type, "CLOCK") == 0) return 2;
-    if (strcmp(type, "GROUND") == 0) return 3;
-    if (strcmp(type, "POWER") == 0) return 4;
-    if (strcmp(type, "RESET") == 0) return 5;
-    if (strcmp(type, "SCAN") == 0) return 6;
-    if (strcmp(type, "SIGNAL") == 0) return 7;
-    if (strcmp(type, "TIEOFF") == 0) return 8;
-    return 0;
+NetType getNetType(const char* type) {
+    if (strcmp(type, "ANALOG") == 0) return NetType::kNetTypeAnalog;
+    if (strcmp(type, "CLOCK") == 0) return NetType::kNetTypeClock;
+    if (strcmp(type, "GROUND") == 0) return NetType::kNetTypeGround;
+    if (strcmp(type, "POWER") == 0) return NetType::kNetTypePower;
+    if (strcmp(type, "RESET") == 0) return NetType::kNetTypeReset;
+    if (strcmp(type, "SCAN") == 0) return NetType::kNetTypeScan;
+    if (strcmp(type, "SIGNAL") == 0) return NetType::kNetTypeSignal;
+    if (strcmp(type, "TIEOFF") == 0) return NetType::kNetTypeTieOff;
+    return NetType::kNetTypeUnknown;
+}
+
+SpecialNetType getSpecialNetType(const char* type) {
+    if (strcmp(type, "ANALOG") == 0) return SpecialNetType::kSpecialNetTypeAnalog;
+    if (strcmp(type, "CLOCK") == 0) return SpecialNetType::kSpecialNetTypeClock;
+    if (strcmp(type, "GROUND") == 0) return SpecialNetType::kSpecialNetTypeGround;
+    if (strcmp(type, "POWER") == 0) return SpecialNetType::kSpecialNetTypePower;
+    if (strcmp(type, "RESET") == 0) return SpecialNetType::kSpecialNetTypeReset;
+    if (strcmp(type, "SCAN") == 0) return SpecialNetType::kSpecialNetTypeScan;
+    if (strcmp(type, "SIGNAL") == 0) return SpecialNetType::kSpecialNetTypeSignal;
+    if (strcmp(type, "TIEOFF") == 0) return SpecialNetType::kSpecialNetTypeTieOff;
+    return SpecialNetType::kSpecialNetTypeUnknown;
 }
 
 int getNetPattern(const char* pattern) {
@@ -1839,7 +1851,7 @@ int readSpecialNet(defiNet* io_net) {
     }
 
     if (io_net->hasUse()) {
-        int type = getNetType(io_net->use());
+        SpecialNetType type = getSpecialNetType(io_net->use());
         net->setType(type);
     }
     if (io_net->hasSource()) {
@@ -1957,7 +1969,7 @@ int readNet(defiNet* io_net) {
     }
 
     if (io_net->hasUse()) {
-        int type = getNetType(io_net->use());
+        NetType type = getNetType(io_net->use());
         net->setType(type);
     }
     if (io_net->hasSource()) {
@@ -2561,18 +2573,22 @@ int readGroup(defiGroup* io_group) {
 
     for (int i = 0; i < kGroupCompNamePatterns.size(); ++i) {
         group->addPattern(kGroupCompNamePatterns[i]);
+        // TODO (ly): wildcard matching.
         Inst* instance = top_cell->getInstance(kGroupCompNamePatterns[i]);
         if (!instance) {
             message->issueMsg(kError, "Cannot find instance %s \n",
                               kGroupCompNamePatterns[i]);
             continue;
         }
-        group->addInstanceId(instance->getId());
+        group->addInstance(instance->getId());
     }
 
     if (io_group->hasRegionName()) {
-        group->setHasRegion(true);
-        group->addRegion(io_group->regionName());
+        std::string name = io_group->regionName();
+        Constraint* region = top_cell->getFloorplan()->getRegion(name);
+        if (region != nullptr) {
+            group->setRegion(region->getId());
+        }
     }
 
     readProperties<defiGroup, Group>(PropType::kGroup,
@@ -3015,6 +3031,7 @@ int readPin(defiPin* def_pin) {
                 p->setOrient(convertDefIntToOrient(def_pin->orient()));
             }
         }
+        p->setTermId(term->getId());
         term->addPort(p->getId());
     }
     if (def_pin->hasPort()) {
@@ -3113,6 +3130,7 @@ int readPin(defiPin* def_pin) {
                     p->setOrient(convertDefIntToOrient(port->orient()));
                 }
             }
+            p->setTermId(term->getId());
             term->addPort(p->getId());
         }
     }

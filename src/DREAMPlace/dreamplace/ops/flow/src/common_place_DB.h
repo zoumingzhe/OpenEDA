@@ -5,17 +5,18 @@
     > Created Time: Fri 25 Sep 2020 03:20:14 PM CDT
  ************************************************************************/
 
-#ifndef _DREAMPLACE_OEM_LEGALDETAILEDPLACEDB_H
-#define _DREAMPLACE_OEM_LEGALDETAILEDPLACEDB_H
+#ifndef _DREAMPLACE_OEM_COMMONPLACEDB_H
+#define _DREAMPLACE_OEM_COMMONPLACEDB_H
 
 #include <vector>
 #include <limits>
+#include "db.h"
 #include "utility/src/Msg.h"
 #include "utility/src/DetailedPlaceDB.h"
 
 DREAMPLACE_BEGIN_NAMESPACE
 
-typedef int Coord;
+typedef PlInt Coord;
 struct plLoc
 {
   Coord x;
@@ -146,6 +147,7 @@ class CommonDB
     int            getNumFences()             const { return num_fences_;              }
     int            getNumMoveableNodes()      const { return num_movable_nodes_;       }
   private:
+    bool __isDBLoaded();
     void __init();
     void __free();
   private:
@@ -177,7 +179,8 @@ class CommonDB
     int            num_pins_                = 0;        // number of pins
     int            num_regions_             = 0;        // number of regions for region_boxes and region_boxes_start
     int            num_fences_              = 0;        // number of fences for fence_boxes and fence_boxes_start
-    int            num_movable_nodes_       = 0;           // num of movebale nodes 
+    int            num_movable_nodes_       = 0;        // num of movebale nodes 
+    std::vector<PlObjId> idx_to_instId_;                // get db inst id by place id
 
 };
 

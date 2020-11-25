@@ -14,7 +14,9 @@
 
 #include <string>
 #include <vector>
+#include "db/core/root.h"
 
+#include "db/core/bus.h"
 #include "db/core/fill.h"
 #include "db/core/fplan.h"
 #include "db/core/group.h"
@@ -24,7 +26,6 @@
 #include "db/core/scan_chain.h"
 #include "db/core/special_net.h"
 #include "db/core/term.h"
-#include "db/core/bus.h"
 #include "db/tech/tech.h"
 #include "db/util/box.h"
 #include "db/util/geometrys.h"
@@ -36,9 +37,7 @@ namespace open_edi {
 namespace db {
 
 class SpecialNet;
-class AnalysisView;
-class AnalysisMode;
-class AnalysisCorner;
+class StorageUtil;
 
 class Foreign : public Object {
   public:
@@ -130,7 +129,7 @@ class SitePattern : public Object {
     SitePattern() {}
     ~SitePattern() {}
     std::string getName() const;
-	Site* getSite();
+    Site *getSite();
     void setSiteID(ObjectId v);
     void setxOrigin(int value) { x_origin_ = value; }
     int getxOrigin() const { return x_origin_; }
@@ -142,11 +141,73 @@ class SitePattern : public Object {
     StepPattern getStepPattern() const { return sp_; }
 
   private:
-    ObjectId site_index_;
+    ObjectId site_;
     int x_origin_;
     int y_origin_;
     Orient site_orient_;
     StepPattern sp_;
+};
+
+class HierData : public Object {
+  public:
+    // Utils: symbol table, polygon table, pool, etc.
+    void setSymbolTable(SymbolTable *stb);
+    SymbolTable *getSymbolTable();
+    void setPolygonTable(PolygonTable *pt);
+    PolygonTable *getPolygonTable();
+    std::string &getSymbolByIndex(SymbolIndex index);
+    bool addSymbolReference(SymbolIndex index, ObjectId owner);
+    void setPool(MemPagePool *p);
+    MemPagePool *getPool();
+    void setStorageUtil(StorageUtil *v);
+    StorageUtil* getStorageUtil() const;
+
+    // void setTechLibId(ObjectId v);
+    // ObjectId getTechLibId() const;
+    void setFloorplanId(ObjectId v);
+    ObjectId getFloorplanId() const;
+
+    // Get object vector:
+    ObjectId getCells() const;
+    ObjectId getInstances() const;
+    ObjectId getBuses() const;
+    ObjectId getNets() const;
+    ObjectId getSpecialNets() const;
+    ObjectId getIOPins() const;
+    ObjectId getGroups() const;
+    ObjectId getFills() const;
+    ObjectId getScanChains() const;
+    ObjectId getRegions() const;
+
+    // Set object vector:
+    void setCells(ObjectId v);
+    void setInstances(ObjectId v);
+    void setBuses(ObjectId v);
+    void setNets(ObjectId v);
+    void setSpecialNets(ObjectId v);
+    void setIOPins(ObjectId v);
+    void setGroups(ObjectId v);
+    void setFills(ObjectId v);
+    void setScanChains(ObjectId v);
+    void setRegions(ObjectId v);
+
+  private:
+    void __init();
+
+    StorageUtil *storage_util_; // runtime object.
+    ObjectId floor_plan_;
+    // ObjectId tech_lib_;  ///< tech LEF information
+    ObjectId cells_;  ///< Macro in LEF, module in Verilog,full implemented sub
+                      ///< blocks. Only used by hierarchical cell
+    ObjectId instances_;  ///< Instantiation of a cell
+    ObjectId buses_;
+    ObjectId nets_;  ///< connection between devices
+    ObjectId special_nets_;
+    ObjectId io_pins_;  ///< IO pins in top cell
+    ObjectId groups_;
+    ObjectId fills_;        /// FILLS defined in DEF
+    ObjectId scan_chains_;  /// SCANCHAINS defined in DEF
+    ObjectId regions_;      /// REGIONS defined in DEF
 };
 
 /// @brief cell class for cells/stencils in the library
@@ -158,10 +219,6 @@ class Cell : public Object {
     T *createObject(ObjectType type);
     template <class T>
     void deleteObject(T *obj);
-#if 0
-    template <class T>
-    ArrayObject<T> *createObjectArray(uint64_t array_num);
-#endif
 
     template <class T>
     T *getObjectByName(const std::string &);
@@ -169,10 +226,11 @@ class Cell : public Object {
     Cell();
     Cell(Object *owner, ObjectId id);
     ~Cell();
-    
+
     // Name and CellType:
     CellType getCellType() const { return cell_type_; }
-    void setCellType(CellType const &v) { cell_type_ = v; }
+    void setCellType(CellType const &v);
+    bool isHierCell() const;
     SymbolIndex getNameIndex();
     std::string const &getName();
     void setName(std::string &v);
@@ -180,14 +238,19 @@ class Cell : public Object {
     // Utils: symbol table, polygon table, pool, etc.
     void setSymbolTable(SymbolTable *stb);
     SymbolTable *getSymbolTable();
+    SymbolTable *getParentOrTopSymbolTable();
     void setPolygonTable(PolygonTable *pt);
     PolygonTable *getPolygonTable();
     std::string &getSymbolByIndex(SymbolIndex index);
-    int64_t getOrCreateSymbol(const char *name);
-    int64_t getOrCreateSymbol(std::string &name);
+    SymbolIndex getOrCreateSymbol(const char *name);
+    SymbolIndex getOrCreateSymbol(std::string &name);
     bool addSymbolReference(SymbolIndex index, ObjectId owner);
     void setPool(MemPagePool *p);
     MemPagePool *getPool();
+    StorageUtil *getStorageUtil();
+    void setStorageUtil(StorageUtil *v);
+    void initHierData(StorageUtil *v);
+    void initHierData();
 
     // Get object vector size:
     uint64_t getNumOfCells() const;
@@ -200,12 +263,16 @@ class Cell : public Object {
     uint64_t getNumOfGroups() const;
     uint64_t getNumOfFills() const;
     uint64_t getNumOfScanChains() const;
-    uint64_t getNumOfAnalysisViews() const;
-    
+    uint64_t getNumOfForeigns() const;
+    uint64_t getNumOfSitePatterns() const;
+
     // Get object by name:
     Cell *getCell(std::string name);
+    Cell *getCellFromTechLib(std::string name);
+
     Term *getTerm(std::string name);
-    Bus  *getBus(std::string name);
+
+    Bus *getBus(std::string name);
     Net *getNet(std::string name);
     Inst *getInstance(std::string name);
     SpecialNet *getSpecialNet(std::string name);
@@ -213,7 +280,7 @@ class Cell : public Object {
     Pin *getIOPin(const std::string &name);
     Pin *getVPin(const std::string &name);
     Group *getGroup(std::string &name);
-    
+
     // Get object vector:
     ObjectId getInstances() const;
     ObjectId getCells() const;
@@ -222,10 +289,22 @@ class Cell : public Object {
     ObjectId getNets() const;
     ObjectId getSpecialNets() const;
     ObjectId getGroups() const;
-    
+    ObjectId getIOPins() const;
+    ObjectId getFills() const;
+    ObjectId getScanChains() const;
+    ObjectId getForeigns() const;
+
+    ArrayObject<ObjectId> *getCellArray() const;
+    ArrayObject<ObjectId> *getInstanceArray() const;
+    ArrayObject<ObjectId> *getTermArray() const;
+    ArrayObject<ObjectId> *getBusArray() const;
+    ArrayObject<ObjectId> *getNetArray() const;
+    ArrayObject<ObjectId> *getSpecialNetArray() const;
+    ArrayObject<ObjectId> *getGroupArray() const;
+
     // Get object by index/ID:
-    Pin *getIOPinById(ObjectId obj_id);  //TODO: to be removed.
-    Inst *getInstance(ObjectId obj_id) const; //TODO: to be removed.
+    Pin *getIOPinById(ObjectId obj_id);        // TODO: to be removed.
+    Inst *getInstance(ObjectId obj_id) const;  // TODO: to be removed.
     Pin *getIOPin(size_t idx);
     Term *getTerm(size_t idx) const;
     Group *getGroup(size_t idx) const;
@@ -252,13 +331,15 @@ class Cell : public Object {
     void addForeign(ObjectId f);
     void addDensity(ObjectId density);
     void addOBS(ObjectId id);
-    
+
+    void setForeigns(ObjectId id);
+
     // the following functions only allocate an object in the pool, the content
     // should be filled by the caller.
     Floorplan *createFloorplan();
     Cell *createCell(std::string &name, bool isHier = false);
     Term *createTerm(std::string &name);
-    Bus  *createBus(std::string &name);
+    Bus *createBus(std::string &name);
     Inst *createInstance(std::string &name);
     Net *createNet(std::string &name);
     SpecialNet *createSpecialNet(std::string &name);
@@ -271,26 +352,17 @@ class Cell : public Object {
     void deleteCell(Cell *cell);
 
     // timinglib
-    void resetTerms(const std::vector<Term*> &terms);
-    AnalysisMode *getAnalysisMode(std::string name);
-    AnalysisCorner *getAnalysisCorner(std::string name);
-    AnalysisView *getAnalysisView(std::string name);
-    AnalysisView *getAnalysisView(size_t idx) const;
-    void addActiveSetupView(ObjectId id);
-    void addActiveHoldView(ObjectId id);
-    AnalysisMode *createAnalysisMode(std::string &name);
-    AnalysisCorner *createAnalysisCorner(std::string &name);
-    AnalysisView *createAnalysisView(std::string &name);
+    void resetTerms(const std::vector<Term *> &terms);
     // timinglib
-    
-    //Container: tech, floorplan, etc.
-    void setTechLib(Tech *t);
+
+    // Container: tech, floorplan, etc.
+    // void setTechLib(Tech *t);
     Tech *getTechLib();
     Layer *getLayerByLayerId(Int32 id);
     void setFloorplan(Floorplan *fp);
     Floorplan *getFloorplan();
 
-    //Physical attribute access:
+    // Physical attribute access:
     void setHasSize(int value) { has_size_ = value; }
     int hasSize() { return has_size_; }
     void setSizeX(int value) { sizeX_ = value; }
@@ -311,15 +383,15 @@ class Cell : public Object {
     bool hasXSymmetry() const { return has_x_symmetry_; }
     void setHasSiteName(int value) { has_site_name_ = value; }
     int hasSiteName() { return has_site_name_; }
-    void setSiteID(ObjectId v) { site_index_ = v; }
-    ObjectId getSiteID() { return site_index_; }
+    void setSiteID(ObjectId v) { site_ = v; }
+    ObjectId getSiteID() { return site_; }
     std::string getSiteName();
-    Site* getSite();
-    void setNumSites(int value) { site_num_ = value; }
-    int getNumSites() { return site_num_; }
+    Site *getSite();
+    // void setNumSites(int value) { site_num_ = value; }
+    // int getNumSites() { return site_num_; }
     SitePattern *getSitePattern(int i) const;
-    int numForeigns() const { return foreign_num_; }
-    void setNumForeigns(int value) { foreign_num_ = value; }
+    // int numForeigns() const { return foreign_num_; }
+    // void setNumForeigns(int value) { foreign_num_ = value; }
 
     void setClass(const char *cls);
     std::string const &getClass();
@@ -334,75 +406,50 @@ class Cell : public Object {
     uint8_t getNumMaskShiftLayers();
     bool addMaskShiftLayer(ObjectId layer_id);
     ObjectId getMaskShiftLayer(uint8_t index);
-    
-    //Print:
-    void print();
+
+    // Print:
+    // void print();
     void printLEF(std::ofstream &ofs);
 
   private:
+    void __init();
+    const HierData *__getConstHierData() const;
+    HierData *__getHierData();
+    //void __initHierData();
+
     SymbolIndex name_index_;  ///< cell name
     CellType cell_type_;      ///< cell type
+    ObjectId hier_data_id_;   ///< hier only data: check with is_hierarchical_;
 
-    int is_fixed_mask_     :1;  /// macro
-    int has_origin_        :1;
-    int has_eeq_           :1;
-    int has_size_          :1;
-    int has_site_name_     :1;
-    bool has_x_symmetry_   :1;
-    bool has_y_symmetry_   :1;
-    bool has_90_symmetry_  :1;
-    int reserved_          :24;
-
-    MemPagePool *pool_;  ///< use the memory pool to allocate object
-    SymbolTable *symtbl_;
-    PolygonTable *polytbl_;
-    ObjectId floor_plan_;
-    ObjectId tech_lib_;  ///< tech LEF information
-
-    ObjectId cells_;  ///< Macro in LEF, module in Verilog,full implemented sub
-                      ///< blocks. Only used by hierarchical cell
-    ObjectId terms_;  ///< corresponding to Verilog module port definition or
-                      ///< LEF macro pin definitions.
-    ObjectId buses_;
-    ObjectId instances_;  ///< Instantiation of a cell
-    ObjectId nets_;       ///< connection between devices
-    ObjectId special_nets_;
-    ObjectId io_pins_;  ///< IO pins in top cell
-    ObjectId virtual_pins_;
-    ObjectId groups_;
-    ObjectId fills_;        /// FILLS defined in DEF
-    ObjectId scan_chains_;  /// SCANCHAINS defined in DEF
-    ObjectId regions_;      /// REGIONS defined in DEF
-
-    uint8_t num_mask_shift_layers_;
-    ObjectId
-        mask_shift_layers_[max_layer_num];  ///< Component mask shift in DEF
-
-    // ObjectId vct_OBS_;
-    // std::string name;
-    SymbolIndex macro_class_index_;
     int originX_;
     int originY_;
-    SymbolIndex eeq_index_;
     int sizeX_;
     int sizeY_;
 
-    // int siteNameSize_;
-    ObjectId site_index_;
-    int site_num_ = 0;
+    ObjectId terms_;  ///< corresponding to Verilog module port definition or
+                      ///< LEF macro pin definitions.
+
+    SymbolIndex class_index_;
+    SymbolIndex eeq_index_;
+    ObjectId site_;
     ObjectId site_patterns_;
-    int foreign_num_ = 0;
     ObjectId foreigns_;
     ObjectId densities_;
     ObjectId obses_;
-
-    // timinglib
-    ObjectId analysis_modes_;
-    ObjectId analysis_corners_;
-    ObjectId analysis_views_;
-    ObjectId active_setup_views_;
-    ObjectId active_hold_views_;
-    // timinglib
+   
+    ///< Component mask shift in DEF
+    ObjectId mask_shift_layers_[max_layer_num];
+    uint8_t num_mask_shift_layers_;
+    
+    // Bits:
+    Bits has_origin_ : 1;
+    Bits has_eeq_ : 1;
+    Bits has_size_ : 1;
+    Bits has_x_symmetry_ : 1;
+    Bits has_y_symmetry_ : 1;
+    Bits has_90_symmetry_ : 1;
+    Bits has_site_name_ : 1;
+    Bits is_fixed_mask_ : 1;
 };
 
 /// @brief createObject create object within memory pool

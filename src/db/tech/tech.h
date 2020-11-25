@@ -21,10 +21,12 @@
 #include "db/tech/site.h"
 #include "db/tech/units.h"
 #include "db/tech/via_rule.h"
+#include "db/util/array.h"
 #include "util/util.h"
 
 namespace open_edi {
 namespace db {
+class StorageUtil;
 
 class Tech : public Object {
   public:
@@ -74,15 +76,21 @@ class Tech : public Object {
     ObjectId getPropertyDefinitionVectorId(PropType type);
     ObjectId getPropertyDefinitionId(PropType type, const char *prop_name);
     MaxViaStack *getMaxViaStack() const;
-    void setMaxViaStack(MaxViaStack *mvs);
+    void setMaxViaStack(ObjectId mvs_id);
     ViaRule *getViaRule() const;
     ViaRule *getViaRule(const char *name) const;
     ObjectId getNonDefaultRuleVectorId() const;
     ObjectId getViaMasterVectorId() const;
     ObjectId getViaRuleVectorId() const;
+    ObjectId getSiteVectorId() const;
     ObjectId getNonDefaultRuleIdByName(const char *ndr_rule_name) const;
     NonDefaultRule *getNonDefaultRule(const char *ndr_rule_name) const;
     void addNonDefaultRule(ObjectId ndr_rule_id);
+
+    ArrayObject<ObjectId> *getNonDefaultRuleArray() const;
+    ArrayObject<ObjectId> *getViaMasterArray() const;
+    ArrayObject<ObjectId> *getViaRuleArray() const;
+    ArrayObject<ObjectId> *getSiteArray() const;
 
     ViaMaster *createAndAddViaMaster(std::string &name);
     ViaRule *createViaRule(std::string &name);
@@ -95,13 +103,36 @@ class Tech : public Object {
 
     void addSite(Site *site);
     Site *getSiteByName(const char *site_name) const;
-    ObjectId getSiteVectorId() const;
 
     // transfer between user unit and db unit
     Int32 micronsToDBU(double microns);
     double areaMicronsToDBU(double microns);
     double dbuToMicrons(Int32 dbu);
     double areaDBUToMicrons(Long dbu);
+
+    ObjectId getCells() const;
+    ArrayObject<ObjectId> *getCellArray() const;
+    uint64_t getNumOfCells() const;
+    Cell *getCell(int i) const;
+    void addCell(ObjectId id);
+    Cell *createCell(std::string &name);
+
+    MemPagePool *getPool() const;
+    void setPool(MemPagePool *p);
+    
+    SymbolTable *getSymbolTable();
+    void setSymbolTable(SymbolTable *stb);
+
+    PolygonTable *getPolygonTable();
+    void setPolygonTable(PolygonTable *pt);
+
+    StorageUtil* getStorageUtil() const;
+    void setStorageUtil(StorageUtil *v);
+
+    std::string &getSymbolByIndex(SymbolIndex index);
+    SymbolIndex getOrCreateSymbol(const char *name);
+    SymbolIndex getOrCreateSymbol(std::string &name);
+    bool addSymbolReference(SymbolIndex index, ObjectId owner);
 
   private:
     // first 32 bits
@@ -125,11 +156,13 @@ class Tech : public Object {
     ObjectId layer_ids_;
     ObjectId sites_;
     ObjectId property_definitions_array_[static_cast<int>(PropType::kUnknown)];
-    MaxViaStack *max_via_stack_;
+    // MaxViaStack *max_via_stack_;
+    ObjectId max_via_stack_;
     ObjectId via_rules_;
     ObjectId ndr_rules_;
     ObjectId via_masters_;
-    ObjectId cell_;  // top cell
+    ObjectId cells_;  // cell array
+    StorageUtil *storage_util_;
 };
 
 }  // namespace db

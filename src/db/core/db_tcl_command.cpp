@@ -25,9 +25,12 @@
 #include "db/timing/timinglib/timinglib_tcl_command.h"
 #include "db/timing/spef/spef_tcl_command.h"
 #include "util/util.h"
+#include "infra/command_manager.h"
 
 namespace open_edi {
 namespace db {
+
+using namespace open_edi::infra;
 
 static bool kIsLEFReaded = false;
 
@@ -307,8 +310,121 @@ static int reportCellCommand(ClientData cld, Tcl_Interp *itp, int argc, const ch
     return TCL_OK;
 }
 // end of report_cell
+static int testCommandManager(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
+    message->info("in test command \n");
+    Command* cmd = CommandManager::parseCommand(argc, argv);
+    if (cmd == nullptr) {
+        message->info("fail to parse command \n");
+        //return -1;
+    }
+    // it should go to use function afterwards
+    std::string op_name1 = "-i";
+    if (cmd->isOptionSet("-i")) {
+        int value_int;
+        bool res = cmd->getOptionValue("-i", value_int);
+        message->info("get option %s int data %d \n", op_name1.c_str(), value_int);
+    }
+
+    std::string op_namei1 = "i1";
+    if (cmd->isOptionSet("i1")) {
+        int value_int;
+        bool res = cmd->getOptionValue("i1", value_int);
+        message->info("get option %s int data %d \n", op_namei1.c_str(), value_int);
+    }
+
+    std::string op_namei2 = "i2";
+    if (cmd->isOptionSet("i2")) {
+        int value_int;
+        bool res = cmd->getOptionValue("i2", value_int);
+        message->info("get option %s int data %d \n", op_namei2.c_str(), value_int);
+    }
+
+    std::string op_namef = "-f";
+    if (cmd->isOptionSet("-f")) {
+        double value;
+        bool res = cmd->getOptionValue("-f", value);
+        message->info("get option %s float data %f \n", op_namef.c_str(), value);
+    }
+
+    std::string op_name2 = "-b";
+    if (cmd->isOptionSet("-b")) {
+        bool value_bool;
+        bool res = cmd->getOptionValue("-b", value_bool);
+        if (value_bool == true)
+            message->info("get option %s bool data true \n", op_name2.c_str());
+        else
+            message->info("get option %s bool data false \n", op_name2.c_str());
+    }
+
+    std::string op_nameb2 = "b2";
+    if (cmd->isOptionSet("b2")) {
+        bool value_bool;
+        bool res = cmd->getOptionValue("b2", value_bool);
+        if (value_bool == true)
+            message->info("get option %s bool data true \n", op_nameb2.c_str());
+        else
+            message->info("get option %s bool data false \n", op_nameb2.c_str());
+    }
+    
+    std::string op_name3 = "-s";
+    if (cmd->isOptionSet("-s")) {
+        std::string value_string;
+        bool res = cmd->getOptionValue("-s", value_string);
+        message->info("get option %s string data %s \n", op_name3.c_str(), value_string.c_str());
+    }
+
+    std::string op_name4 = "-p";
+     if (cmd->isOptionSet("-p")) {
+         Point *value_p = new Point();
+         bool res = cmd->getOptionValue("-p", &value_p);
+         message->info("get option %s point data1 %d, data2 %d\n", op_name4.c_str(), value_p->getX(), value_p->getY());
+     }
+
+    std::string op_name5 = "-e";
+     if (cmd->isOptionSet("-e")) {
+         int value_e;
+         bool res = cmd->getOptionValue("-e", value_e);
+         message->info("get option %s enum data %d \n", op_name5.c_str(), value_e);
+     }
+
+    std::string op_name6 = "-r";
+    if (cmd->isOptionSet("-r")) {
+         db::Box *value_b = new db::Box();
+         bool res = cmd->getOptionValue("-r", &value_b);
+         message->info("get option %s rect lx %d, ly %d, ux %d, uy %d\n", op_name6.c_str(), value_b->getLLX(), value_b->getLLY(), value_b->getURX(), value_b->getURY());
+     }
+    return TCL_OK;  // runCommandWithProcessBar(testcmd, argc, argv);
+}
+
+static void registerTestCommandManager() {
+    CommandManager* cmd_manager = CommandManager::getCommandManager();
+    std::vector<std::string>* enums = new std::vector<std::string>();
+    enums->push_back("aa");
+    enums->push_back("bb");
+    enums->push_back("cc");
+    Command* test_command = cmd_manager->createCommand("test_cmd", "command descprition", *(new Option("-i", OptionDataType::kInt, false, 22, "opt description", 0, 10000))
+                                                                    + *(new Option("-b", OptionDataType::kBool, false, "opt description\n"))
+                                                                    + *(new Option("i1", OptionDataType::kInt, false, "opt description\n"))
+                                                                    + *(new Option("b2", OptionDataType::kBool, false, "opt description\n"))
+                                                                    + *(new Option("i2", OptionDataType::kInt, false, "opt description\n"))
+                                                                    + *(new Option("-s", OptionDataType::kString, false, "opt description\n"))
+                                                                    + *(new Option("-e", OptionDataType::kEnum, false, enums, "opt description\n"))
+                                                                    + *(new Option("-p", OptionDataType::kPoint, false, "opt description\n"))
+                                                                    + *(new Option("-r", OptionDataType::kRect, false, "opt description\n"))
+                                                                    + *(new Option("-il", OptionDataType::kIntList, false, "opt description\n"))
+                                                                    + *(new Option("-x", OptionDataType::kInt, false, "opt description\n"))
+                                                                    + *(new Option("-y", OptionDataType::kInt, false, "opt description\n"))
+                                                                    + *(new Option("-z", OptionDataType::kInt, false, "opt description\n"))
+                                                                    + *(new Option("-f", OptionDataType::kDouble, false, 1.23, "opt description\n")),
+                                                                    *(new OptionGroup("-x", "-y", kDependency))
+                                                                    //+(new OptionGroup("-x", "-j", kExclusive))// should not pass register
+                                                                    +*(new OptionGroup("-x", "-z", kExclusive)));
+}
 
 void registerDatabaseTclCommands(Tcl_Interp *itp) {
+    registerTestCommandManager();
+    Tcl_CreateCommand(itp, "test_cmd", testCommandManager, NULL, NULL);
+
     Tcl_CreateCommand(itp, "read_lef", readLefCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "write_lef", writeLefCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "read_def", readDefCommand, NULL, NULL);
