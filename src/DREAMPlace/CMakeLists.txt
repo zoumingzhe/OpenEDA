@@ -24,7 +24,7 @@ add_definitions(-D_GLIBCXX_USE_CXX11_ABI=${CMAKE_CXX_ABI})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 find_program(PYTHON "python" REQUIRED)
 find_package(Python 3.5 REQUIRED COMPONENTS Interpreter Development)
@@ -118,7 +118,7 @@ if (CMAKE_PLACE)
         set(CMAKE_POSITION_INDEPENDENT_CODE ON)
         set(CUDA_SEPARABLE_COMPILATION TRUE)
         list(APPEND CUDA_NVCC_FLAGS
-            -O3 -std=c++11 ${CMAKE_CUDA_FLAGS} 
+            -O3 -std=c++14 ${CMAKE_CUDA_FLAGS} 
             )
         list(APPEND CUDA_NVCC_FLAGS --compiler-options -fPIC)
     
