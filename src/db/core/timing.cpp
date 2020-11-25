@@ -36,9 +36,7 @@ StorageUtil* Timing::getStorageUtil() const { return storage_util_; }
 void Timing::setStorageUtil(StorageUtil *v) { storage_util_ = v; }
 
 /// @brief getSymbolByIndex
-///
 /// @param index
-///
 /// @return
 std::string &Timing::getSymbolByIndex(SymbolIndex index) {
     return getSymbolTable()->getSymbolByIndex(index);
@@ -61,13 +59,18 @@ SymbolIndex Timing::getOrCreateSymbol(std::string &name) {
 }
 
 /// @brief addSymbolReference
-///
 /// @param index
 /// @param owner
-///
 /// @return
 bool Timing::addSymbolReference(SymbolIndex index, ObjectId owner) {
     return getSymbolTable()->addReference(index, owner);
+}
+
+uint64_t Timing::getNumOfAnalysisViews() const {
+    if (analysis_views_ == UNINIT_OBJECT_ID) return 0;
+    ArrayObject<ObjectId> *p = addr<ArrayObject<ObjectId>>(analysis_views_);
+    if (p == nullptr) return 0;
+    return p->getSize();
 }
 
 AnalysisMode *Timing::createAnalysisMode(std::string &name) {

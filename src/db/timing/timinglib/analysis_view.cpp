@@ -150,12 +150,12 @@ AnalysisView::IndexType AnalysisView::memory() const {
 
 /// set
 void AnalysisView::set_name(const std::string& name) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
         if (idx != kInvalidSymbolIndex) {
             name_ = idx;
-            topCell->addSymbolReference(name_, this->getId());
+            timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
@@ -175,9 +175,9 @@ void AnalysisView::set_signal_em(bool b) { is_signal_em_ = b; }
 /// get
 SymbolIndex AnalysisView::get_name_index(void) { return name_; }
 std::string AnalysisView::get_name(void) const {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(name_);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }

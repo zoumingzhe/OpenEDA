@@ -86,12 +86,12 @@ void TTermAttr::set_min_period(float f) { min_period_ = f; }
 void TTermAttr::set_min_pulse_width_high(float f) { min_pulse_width_high_ = f; }
 void TTermAttr::set_min_pulse_width_low(float f) { min_pulse_width_low_ = f; }
 void TTermAttr::set_name(const std::string &name) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
         if (index != kInvalidSymbolIndex) {
             name_ = index;
-            // topCell->addSymbolReference(name_, this->getId());
+            // timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
@@ -125,9 +125,9 @@ float TTermAttr::get_min_pulse_width_high(void) {
 }
 float TTermAttr::get_min_pulse_width_low(void) { return min_pulse_width_low_; }
 std::string TTermAttr::get_name(void) const {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(name_);
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
