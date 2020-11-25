@@ -10,14 +10,17 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 
-#include "string.h"
-
+#include <string.h>
+#include <sys/sysinfo.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <fstream>
 #include <iostream>
 
+#include "lz4.h"
 #include "util/util_mem.h"
 #include "util/message.h"
+#include "util/compress.h"
 
 namespace open_edi {
 namespace util {
@@ -352,33 +355,100 @@ void MemPagePool::__readFreeListInfo(std::ifstream &infile, bool debug) {
     }
 }
 
+static uint32_t calcThreadNumber(uint64_t num_tasks) {
+    uint32_t max_num_thread = std::thread::hardware_concurrency();
+    if (max_num_thread == 0) {
+        return 1;
+    }
+
+    if (num_tasks > max_num_thread * 8) {
+        return (max_num_thread + 1) / 2;
+    } else if (num_tasks > max_num_thread * 4) {
+        return (max_num_thread + 3) / 4;
+    } else if (num_tasks > max_num_thread * 2) {
+        return (max_num_thread + 7) / 8;
+    } else {
+        return (max_num_thread + 15) / 16;
+    }
+}
+
 void MemPagePool::__writeChunks(std::ofstream &outfile, bool debug) {
+    if (num_chunks_ <= 0) {
+        return;
+    }
+    struct timeval start, current;
+    double timeuse;
+    if (debug) {
+        gettimeofday(&start, NULL);
+    }
+
     int i = 0;
-    for (auto &mem_chunk : chunks_) {
-        if (debug)
-            cout << "RWDBGINFO: write chunk#" << i << " with size "
-                 << mem_chunk->getSize() << endl;
-        outfile.write((char *)(mem_chunk->getChunk()), mem_chunk->getSize());
-        ++i;
+    int num_thread = calcThreadNumber(num_chunks_);
+    std::vector<MemChunk*> copy_src_chunks;
+    std::vector<MemChunk*> dst_chunks;
+    size_t dst_size = LZ4F_compressFrameBound(chunk_size_, NULL);
+    for (int j = 0; j < num_thread; ++j) {
+        MemChunk *new_chunk = new MemChunk(dst_size);
+        dst_chunks.push_back(new_chunk);
+    }
+
+    std::vector<int> compressed_sizes;
+    compressed_sizes.resize(num_thread, 0);
+
+    Compressor compressor;
+    compressor.setCompressType(kLz4);
+
+    for (i = 0; i + num_thread < num_chunks_; i += num_thread) {
+        for (int j = 0; j < num_thread; ++j) {
+            copy_src_chunks.push_back(chunks_[i + j]);
+        }
+        CompressInput input(&copy_src_chunks, &dst_chunks, &compressed_sizes);
+        compressor.setInput(&input);
+        compressor.run(1, num_thread, 1);
+        for (int k = 0; k < num_thread; ++k) {
+            if (compressed_sizes[k] > 0) {
+                outfile.write((char*)&(compressed_sizes[k]), sizeof(int));
+                outfile.write((char*)dst_chunks[k]->getChunk(),
+                                                          compressed_sizes[k]);
+            } else {
+                cout << "Lz4 compress chunk failed, return code is "
+                        << compressed_sizes[k] << endl;
+                return;
+            }
+        }
+        copy_src_chunks.clear();
+        compressed_sizes.resize(num_thread, 0);
+    }
+    int num_last_chunks = num_chunks_ - i;
+    for (int j = 0; j < num_last_chunks - i; ++j) {
+        copy_src_chunks.push_back(chunks_[i + j]);
+    }
+    CompressInput input(&copy_src_chunks, &dst_chunks, &compressed_sizes);
+    compressor.setInput(&input);
+    compressor.run(1, num_last_chunks - i, 1);
+    for (int k = 0; k < num_last_chunks; ++k) {
+        if (compressed_sizes[k] > 0) {
+            outfile.write((char*)dst_chunks[k]->getChunk(),
+                                                      compressed_sizes[k]);
+        } else {
+            cout << "Lz4 compress chunk failed, return code is "
+                    << compressed_sizes[k] << endl;
+            return;
+        }
+    }
+
+    for (auto mem_chunk : dst_chunks) {
+        delete mem_chunk;
+    }
+    if (debug) {
+        gettimeofday(&current, NULL);
+        timeuse = (current.tv_sec - start.tv_sec) +
+            (double)(current.tv_usec - start.tv_usec)/1000000.0;
+        std::cout << "__writeChunks time : " << timeuse << std::endl;
     }
 }
 
 void MemPagePool::__readChunks(std::ifstream &infile, bool debug) {
-    for (uint64_t i = 0; i < num_chunks_; ++i) {
-        void *chunk = chunks_[i]->getChunk();
-        size_t size = chunks_[i]->getSize();
-        if (debug)
-            cout << "RWDBGINFO: read chunk#" << i << " with size "
-                 << chunks_[i]->getSize() << endl;
-        if (debug)
-            cout << "RWDBGINFO: read (before) chunk_data "
-                 << ((long *)(chunk))[0] << endl;
-
-        infile.read((char *)(chunk), size);
-        if (debug)
-            cout << "RWDBGINFO: read chunk_data " << ((long *)(chunk))[0]
-                 << endl;
-    }
 }
 
 /// @brief write header to a file

@@ -485,7 +485,19 @@ int WriteDesign::run() {
     if (!__preWork()) {
         return ERROR;
     }
-    if (!__writeTimingLib() || !__writeTechLib() || !__writeCell()) {
+    if (!__writeDBFile()) {
+        return ERROR;
+    }
+
+    if (!__writePolyFile()) {
+        return ERROR;
+    }
+
+    if (!__writeSymFile()) {
+        return ERROR;
+    }
+
+    if (!__setAfterWrite()) {
         return ERROR;
     }
     if (!__postWork()) {

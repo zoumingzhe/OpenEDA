@@ -106,12 +106,12 @@ int utilInit() {
 
 
 void* processBar(void* arg) {
-    MonitorId monitor_id = kMonitorManager.createMonitor();
+    MonitorId monitor_id = createMonitor();
     while (true) {
         sleep(1);
-        kMonitorManager.outputMonitor(monitor_id, kElapsedTime, "", "\r");
+        outputMonitor(monitor_id, kElapsedTime, "", false);
     }
-    kMonitorManager.destroyMonitor(monitor_id);
+    destroyMonitor(monitor_id);
 }
 
 int runCommandWithProcessBar(command_t command, int argc, const char **argv) {

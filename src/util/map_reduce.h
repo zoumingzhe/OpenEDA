@@ -15,6 +15,7 @@
 
 #include <assert.h>
 #include <pthread.h>
+#include <thread>
 #include <semaphore.h>
 
 #include <string>
