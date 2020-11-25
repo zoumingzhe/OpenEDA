@@ -37,9 +37,6 @@ namespace open_edi {
 namespace db {
 
 class SpecialNet;
-class AnalysisView;
-class AnalysisMode;
-class AnalysisCorner;
 class StorageUtil;
 
 class Foreign : public Object {
@@ -268,7 +265,6 @@ class Cell : public Object {
     uint64_t getNumOfScanChains() const;
     uint64_t getNumOfForeigns() const;
     uint64_t getNumOfSitePatterns() const;
-    uint64_t getNumOfAnalysisViews() const;
 
     // Get object by name:
     Cell *getCell(std::string name);
@@ -357,15 +353,6 @@ class Cell : public Object {
 
     // timinglib
     void resetTerms(const std::vector<Term *> &terms);
-    AnalysisMode *getAnalysisMode(std::string name);
-    AnalysisCorner *getAnalysisCorner(std::string name);
-    AnalysisView *getAnalysisView(std::string name);
-    AnalysisView *getAnalysisView(size_t idx) const;
-    void addActiveSetupView(ObjectId id);
-    void addActiveHoldView(ObjectId id);
-    AnalysisMode *createAnalysisMode(std::string &name);
-    AnalysisCorner *createAnalysisCorner(std::string &name);
-    AnalysisView *createAnalysisView(std::string &name);
     // timinglib
 
     // Container: tech, floorplan, etc.
@@ -449,14 +436,7 @@ class Cell : public Object {
     ObjectId foreigns_;
     ObjectId densities_;
     ObjectId obses_;
-    // timinglib
-    ObjectId analysis_modes_;
-    ObjectId analysis_corners_;
-    ObjectId analysis_views_;
-    ObjectId active_setup_views_;
-    ObjectId active_hold_views_;
-    // timinglib
-    
+   
     ///< Component mask shift in DEF
     ObjectId mask_shift_layers_[max_layer_num];
     uint8_t num_mask_shift_layers_;

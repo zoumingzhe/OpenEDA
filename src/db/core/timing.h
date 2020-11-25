@@ -55,6 +55,8 @@ class Timing : public Object {
     bool addSymbolReference(SymbolIndex index, ObjectId owner);
 
     // timinglib
+    uint64_t getNumOfAnalysisViews() const;
+
     AnalysisMode *getAnalysisMode(std::string name);
     AnalysisCorner *getAnalysisCorner(std::string name);
     AnalysisView *getAnalysisView(std::string name);

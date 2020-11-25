@@ -14,10 +14,10 @@
 
 #include "db/core/db.h"
 #include "db/tech/tech.h"
-#include "db/util/vector_object_var.h"
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 ExportTechLef::ExportTechLef(const char* tech_name) {
     if (!tech_name) return;
@@ -176,9 +176,10 @@ void ExportTechLef::exportPropertyDefinitions() {
         ObjectId vobj_id =
             tech_lib_->getPropertyDefinitionVectorId(toEnum<PropType, int>(i));
         if (vobj_id == 0) continue;
-        ArrayObject<ObjectId>* arr_ptr = Object::addr<ArrayObject<ObjectId>>(vobj_id);
+        IdArray* arr_ptr = Object::addr<IdArray>(vobj_id);
         if (!arr_ptr) continue;
-        for (ArrayObject<ObjectId>::iterator iter = arr_ptr->begin(); iter != arr_ptr->end(); iter++) {
+        for (IdArray::iterator iter = arr_ptr->begin(); 
+                iter != arr_ptr->end(); iter++) {
             ObjectId obj_id = (*iter);
             if (!obj_id) continue;
             PropertyDefinition* obj_data =
@@ -198,10 +199,10 @@ void ExportTechLef::exportMaxViaStack() {}
 void ExportTechLef::exportSite() {
     ObjectId vobj_id = tech_lib_->getSiteVectorId();
     if (vobj_id == 0) return;
-    ArrayObject<ObjectId> *arr_ptr = Object::addr<ArrayObject<ObjectId>>(vobj_id);
+    IdArray *arr_ptr = Object::addr<IdArray>(vobj_id);
     if (!arr_ptr) return;
 
-    for (ArrayObject<ObjectId>::iterator iter = arr_ptr->begin(); iter != arr_ptr->end(); ++iter) {
+    for (IdArray::iterator iter = arr_ptr->begin(); iter != arr_ptr->end(); ++iter) {
         ObjectId obj_id = (*iter);
         if (!obj_id) continue;
         Site* obj_data = Object::addr<Site>(obj_id);
@@ -1280,10 +1281,10 @@ void ExportTechLef::exportAllLayers() {
 void ExportTechLef::exportViaMaster() {
     ObjectId vobj_id = tech_lib_->getViaMasterVectorId();
     if (vobj_id == 0) return;
-    ArrayObject<ObjectId>* arr_ptr = Object::addr<ArrayObject<ObjectId>>(vobj_id);
+    IdArray* arr_ptr = Object::addr<IdArray>(vobj_id);
     if (!arr_ptr) return;
 
-    for (ArrayObject<ObjectId>::iterator iter = arr_ptr->begin(); iter != arr_ptr->end();
+    for (IdArray::iterator iter = arr_ptr->begin(); iter != arr_ptr->end();
          ++iter) {
         ObjectId obj_id = (*iter);
         if (!obj_id) continue;
@@ -1298,10 +1299,10 @@ void ExportTechLef::exportViaMaster() {
 void ExportTechLef::exportViaRule() {
     ObjectId vobj_id = tech_lib_->getViaRuleVectorId();
     if (vobj_id == 0) return;
-    ArrayObject<ObjectId>* arr_ptr= Object::addr<ArrayObject<ObjectId>>(vobj_id);
+    IdArray* arr_ptr= Object::addr<IdArray>(vobj_id);
     if (!arr_ptr) return;
 
-    for (ArrayObject<ObjectId>::iterator iter = arr_ptr->begin(); iter != arr_ptr->end();
+    for (IdArray::iterator iter = arr_ptr->begin(); iter != arr_ptr->end();
          ++iter) {
         ObjectId obj_id = (*iter);
         if (!obj_id) continue;
@@ -1315,10 +1316,10 @@ void ExportTechLef::exportViaRule() {
 void ExportTechLef::exportNDR() {
     ObjectId vobj_id = tech_lib_->getNonDefaultRuleVectorId();
     if (vobj_id == 0) return;
-    ArrayObject<ObjectId>* arr_ptr = Object::addr<ArrayObject<ObjectId>>(vobj_id);
+    IdArray* arr_ptr = Object::addr<IdArray>(vobj_id);
     if (!arr_ptr) return;
 
-    for (ArrayObject<ObjectId>::iterator iter = arr_ptr->begin(); iter != arr_ptr->end();
+    for (IdArray::iterator iter = arr_ptr->begin(); iter != arr_ptr->end();
          ++iter) {
         ObjectId obj_id = (*iter);
         if (!obj_id) continue;

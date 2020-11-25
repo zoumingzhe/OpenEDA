@@ -14,9 +14,6 @@
 
 #include <vector>
 #include "db/core/db.h"
-#include "db/timing/timinglib/analysis_corner.h"
-#include "db/timing/timinglib/analysis_mode.h"
-#include "db/timing/timinglib/analysis_view.h"
 #include "db/util/array.h"
 
 namespace open_edi {
@@ -226,12 +223,6 @@ void Cell::__init() {
     has_90_symmetry_ = 0;
     has_site_name_ = 0;
     is_fixed_mask_ = 0;
-    // timing lib:
-    analysis_modes_ = 0;
-    analysis_corners_ = 0;
-    analysis_views_ = 0;
-    active_setup_views_ = 0;
-    active_hold_views_ = 0;
 }
 
 /// @brief Cell default constructor
@@ -1004,13 +995,6 @@ uint64_t Cell::getNumOfSpecialNets() const {
     return obj_vector->getSize();
 }
 
-uint64_t Cell::getNumOfAnalysisViews() const {
-    if (analysis_views_ == UNINIT_OBJECT_ID) return 0;
-    ArrayObject<ObjectId> *p = addr<ArrayObject<ObjectId>>(analysis_views_);
-    if (p == nullptr) return 0;
-    return p->getSize();
-}
-
 ObjectId Cell::getCells() const {
     if (__getConstHierData() == nullptr) {
         return 0;
@@ -1450,60 +1434,6 @@ ScanChain *Cell::getScanChain(size_t idx) const {
     return (addr<ScanChain>(sc_id));
 }
 
-AnalysisMode *Cell::createAnalysisMode(std::string &name) {
-    AnalysisMode *analysis_mode =
-        createObject<AnalysisMode>(kObjectTypeAnalysisMode);
-    if (analysis_mode == nullptr) return nullptr;
-    analysis_mode->set_name(name);
-    if (analysis_modes_ == 0) {
-        ArrayObject<ObjectId> *am_vector =
-            createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-        analysis_modes_ = am_vector->getId();
-        am_vector->setPool(getPool());
-        am_vector->reserve(32);
-    }
-    ArrayObject<ObjectId> *am_vector =
-        addr<ArrayObject<ObjectId>>(analysis_modes_);
-    am_vector->pushBack(analysis_mode->getId());
-    return analysis_mode;
-}
-
-AnalysisCorner *Cell::createAnalysisCorner(std::string &name) {
-    AnalysisCorner *analysis_corner =
-        createObject<AnalysisCorner>(kObjectTypeAnalysisCorner);
-    if (analysis_corner == nullptr) return nullptr;
-    analysis_corner->set_name(name);
-    if (analysis_corners_ == 0) {
-        ArrayObject<ObjectId> *ac_vector =
-            createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-        analysis_corners_ = ac_vector->getId();
-        ac_vector->setPool(getPool());
-        ac_vector->reserve(32);
-    }
-    ArrayObject<ObjectId> *ac_vector =
-        addr<ArrayObject<ObjectId>>(analysis_corners_);
-    ac_vector->pushBack(analysis_corner->getId());
-    return analysis_corner;
-}
-
-AnalysisView *Cell::createAnalysisView(std::string &name) {
-    AnalysisView *analysis_view =
-        createObject<AnalysisView>(kObjectTypeAnalysisView);
-    if (analysis_view == nullptr) return nullptr;
-    analysis_view->set_name(name);
-    if (analysis_views_ == 0) {
-        ArrayObject<ObjectId> *av_vector =
-            createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-        analysis_views_ = av_vector->getId();
-        av_vector->setPool(getPool());
-        av_vector->reserve(32);
-    }
-    ArrayObject<ObjectId> *av_vector =
-        addr<ArrayObject<ObjectId>>(analysis_views_);
-    av_vector->pushBack(analysis_view->getId());
-    return analysis_view;
-}
-
 void Cell::resetTerms(const std::vector<Term *> &terms) {
     if (terms.empty() && terms_ == UNINIT_OBJECT_ID) return;
     ArrayObject<ObjectId> *p = nullptr;
@@ -1542,82 +1472,6 @@ void Cell::resetTerms(const std::vector<Term *> &terms) {
             }
         }
     }
-}
-
-AnalysisMode *Cell::getAnalysisMode(std::string name) {
-    if (analysis_modes_ == 0 || name == "") return nullptr;
-    ArrayObject<ObjectId> *object_vector =
-        addr<ArrayObject<ObjectId>>(analysis_modes_);
-    if (object_vector == nullptr) return nullptr;
-    for (auto iter = object_vector->begin(); iter != object_vector->end();
-         iter++) {
-        AnalysisMode *target = addr<AnalysisMode>(*iter);
-        if (target && target->get_name() == name) return target;
-    }
-    return nullptr;
-}
-
-AnalysisCorner *Cell::getAnalysisCorner(std::string name) {
-    if (analysis_corners_ == 0 || name == "") return nullptr;
-    ArrayObject<ObjectId> *object_vector =
-        addr<ArrayObject<ObjectId>>(analysis_corners_);
-    if (object_vector == nullptr) return nullptr;
-    for (auto iter = object_vector->begin(); iter != object_vector->end();
-         iter++) {
-        AnalysisCorner *target = addr<AnalysisCorner>(*iter);
-        if (target && target->get_name() == name) return target;
-    }
-    return nullptr;
-}
-
-AnalysisView *Cell::getAnalysisView(std::string name) {
-    if (analysis_views_ == 0 || name == "") return nullptr;
-    ArrayObject<ObjectId> *object_vector =
-        addr<ArrayObject<ObjectId>>(analysis_views_);
-    if (object_vector == nullptr) return nullptr;
-    for (auto iter = object_vector->begin(); iter != object_vector->end();
-         iter++) {
-        AnalysisView *target = addr<AnalysisView>(*iter);
-        if (target && target->get_name() == name) return target;
-    }
-    return nullptr;
-}
-
-AnalysisView *Cell::getAnalysisView(size_t idx) const {
-    if (analysis_views_ == 0) return nullptr;
-    ArrayObject<ObjectId> *object_vector =
-        addr<ArrayObject<ObjectId>>(analysis_views_);
-    if (object_vector == nullptr) return nullptr;
-    ObjectId id = (*object_vector)[idx];
-    return addr<AnalysisView>(id);
-}
-
-void Cell::addActiveSetupView(ObjectId id) {
-    if (id == 0) return;
-    if (active_setup_views_ == 0) {
-        ArrayObject<ObjectId> *asv_vector =
-            createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-        active_setup_views_ = asv_vector->getId();
-        asv_vector->setPool(getPool());
-        asv_vector->reserve(32);
-    }
-    ArrayObject<ObjectId> *asv_vector =
-        addr<ArrayObject<ObjectId>>(active_setup_views_);
-    asv_vector->pushBack(id);
-}
-
-void Cell::addActiveHoldView(ObjectId id) {
-    if (id == 0) return;
-    if (active_hold_views_ == 0) {
-        ArrayObject<ObjectId> *ahv_vector =
-            createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-        active_hold_views_ = ahv_vector->getId();
-        ahv_vector->setPool(getPool());
-        ahv_vector->reserve(32);
-    }
-    ArrayObject<ObjectId> *ahv_vector =
-        addr<ArrayObject<ObjectId>>(active_hold_views_);
-    ahv_vector->pushBack(id);
 }
 
 std::string const &Cell::getClass() {
