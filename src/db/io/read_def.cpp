@@ -2981,7 +2981,7 @@ int readPin(defiPin* def_pin) {
             defiPoints pts = def_pin->getPolygon(i);
             for (int j = 0; j < pts.numPoints; j++) {
                 Point* p = new Point(pts.x[j], pts.y[j]);
-                geoPoly->addPoint(*p);
+                geoPoly->addPoint(p);
             }
             geo->setPolygonID(lg->CreatePolygon(geoPoly));
             if (def_pin->polygonMask(i)) {
@@ -3081,7 +3081,7 @@ int readPin(defiPin* def_pin) {
                 defiPoints pts = port->getPolygon(i);
                 for (int k = 0; k < pts.numPoints; k++) {
                     Point* p = new Point(pts.x[k], pts.y[k]);
-                    geoPoly->addPoint(*p);
+                    geoPoly->addPoint(p);
                 }
                 geo->setPolygonID(lg->CreatePolygon(geoPoly));
                 if (port->polygonMask(i)) {

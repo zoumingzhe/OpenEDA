@@ -24,19 +24,6 @@ namespace db {
 // Class Root (runtime object):
 Root::Root() {
     MemPool::initMemPool();
-    // Top cell:
-    StorageUtil *top_cell_storage = new StorageUtil;
-    MemPagePool *top_cell_pool = top_cell_storage->getPool();
-    if (top_cell_pool == nullptr) return;
-    ObjectId cell_id = 0;
-    top_cell_ = top_cell_pool->allocate<Cell>(kObjectTypeCell, cell_id);
-    top_cell_->setId(cell_id);
-    top_cell_->setOwner(cell_id);
-    top_cell_->setObjectType(kObjectTypeCell);
-    top_cell_->initHierData(top_cell_storage);
-    top_cell_->setCellType(CellType::kHierCell);
-    // MemPool::insertPagePool(cell_id, top_cell_pool);
-    
     // Tech:
     StorageUtil *tech_lib_storage = new StorageUtil;
     MemPagePool *tech_lib_pool = tech_lib_storage->getPool();
@@ -60,12 +47,25 @@ Root::Root() {
     timing_->setObjectType(kObjectTypeTiming);
     timing_->setStorageUtil(timing_lib_storage);
     // MemPool::insertPagePool(timing_id, timing_lib_pool);
+
+    // Top cell:
+    StorageUtil *top_cell_storage = new StorageUtil;
+    MemPagePool *top_cell_pool = top_cell_storage->getPool();
+    if (top_cell_pool == nullptr) return;
+    ObjectId cell_id = 0;
+    top_cell_ = top_cell_pool->allocate<Cell>(kObjectTypeCell, cell_id);
+    top_cell_->setId(cell_id);
+    top_cell_->setOwner(cell_id);
+    top_cell_->setObjectType(kObjectTypeCell);
+    top_cell_->initHierData(top_cell_storage);
+    top_cell_->setCellType(CellType::kHierCell);
+    // MemPool::insertPagePool(cell_id, top_cell_pool);
 }
 
 Root::~Root() {
-    delete top_cell_;
-    delete timing_;
-    delete tech_;
+    Object::deleteObject<Cell>(top_cell_);
+    Object::deleteObject<Timing>(timing_);
+    Object::deleteObject<Tech>(tech_);
 }
 
 void Root::setTechLib(Tech *v) {
