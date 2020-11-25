@@ -103,8 +103,8 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                     }
                 }
                 LayerGeometry *geo =
-                    current_top_cell->createObject<LayerGeometry>(
-                        kObjectTypeLayerGeometry);
+                    Object::createObject<LayerGeometry>(
+                        kObjectTypeLayerGeometry, lib->getId());
                 current_lg = geo;
                 current_lg->setName(geometry->lefiGeometries::getLayer(i));
                 break;
@@ -144,8 +144,8 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                 }
                 current_lg->setType(GeometryType::kPath);
                 path = geometry->lefiGeometries::getPath(i);
-                Geometry *base = current_top_cell->createObject<Geometry>(
-                    kObjectTypeGeometry);
+                Geometry *base = Object::createObject<Geometry>(
+                    kObjectTypeGeometry, lib->getId());
                 Polygon *geoPath = new Polygon();  // use polygon to path
                 if (path->colorMask != 0) {
                     base->setNumMask(path->colorMask);
@@ -171,8 +171,8 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                 for (int i = 0; i < pathIter->xStart; i++) {
                     for (int j = 0; j < pathIter->yStart; j++) {
                         Geometry *base =
-                            current_top_cell->createObject<Geometry>(
-                                kObjectTypeGeometry);
+                            Object::createObject<Geometry>(
+                                kObjectTypeGeometry, lib->getId());
                         Polygon *geoPath = new Polygon();
                         if (pathIter->colorMask != 0)
                             base->setNumMask(pathIter->colorMask);
@@ -196,8 +196,8 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                 }
                 current_lg->setType(GeometryType::kRect);
                 rect = geometry->lefiGeometries::getRect(i);
-                Geometry *base = current_top_cell->createObject<Geometry>(
-                    kObjectTypeGeometry);
+                Geometry *base = Object::createObject<Geometry>(
+                    kObjectTypeGeometry, lib->getId());
                 if (rect->colorMask != 0) {
                     base->setNumMask(rect->colorMask);
                 }
@@ -218,8 +218,8 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                 for (int i = 0; i < rectIter->xStart; i++) {
                     for (int j = 0; j < rectIter->yStart; j++) {
                         Geometry *base =
-                            current_top_cell->createObject<Geometry>(
-                                kObjectTypeGeometry);
+                            Object::createObject<Geometry>(
+                                kObjectTypeGeometry, lib->getId());
                         if (rectIter->colorMask != 0)
                             base->setNumMask(rectIter->colorMask);
 
@@ -245,8 +245,8 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                 }
                 current_lg->setType(GeometryType::kPolygon);
                 polygon = geometry->lefiGeometries::getPolygon(i);
-                Geometry *base = current_top_cell->createObject<Geometry>(
-                    kObjectTypeGeometry);
+                Geometry *base = Object::createObject<Geometry>(
+                    kObjectTypeGeometry, lib->getId());
                 Polygon *geoPoly = new Polygon();
                 if (polygon->colorMask != 0) {
                     base->setNumMask(polygon->colorMask);
@@ -270,8 +270,8 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                 for (int i = 0; i < polygonIter->xStart; i++) {
                     for (int j = 0; j < polygonIter->yStart; j++) {
                         Geometry *base =
-                            current_top_cell->createObject<Geometry>(
-                                kObjectTypeGeometry);
+                            Object::createObject<Geometry>(
+                                kObjectTypeGeometry, lib->getId());
                         Polygon *geoPoly = new Polygon();
                         if (polygonIter->colorMask != 0)
                             base->setNumMask(polygonIter->colorMask);
@@ -300,20 +300,20 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                                 currentCell->addOBS(current_lg->getId());
                         }
                         LayerGeometry *geo =
-                            current_top_cell->createObject<LayerGeometry>(
-                                kObjectTypeLayerGeometry);
+                            Object::createObject<LayerGeometry>(
+                                kObjectTypeLayerGeometry, lib->getId());
                         current_lg = geo;
                     }
                 } else {
                     LayerGeometry *geo =
-                        current_top_cell->createObject<LayerGeometry>(
-                            kObjectTypeLayerGeometry);
+                        Object::createObject<LayerGeometry>(
+                            kObjectTypeLayerGeometry, lib->getId());
                     current_lg = geo;
                 }
                 via = geometry->lefiGeometries::getVia(i);
                 current_lg->setType(GeometryType::kVia);
-                GeometryVia *v = current_top_cell->createObject<GeometryVia>(
-                    kObjectTypeGeometryVia);
+                GeometryVia *v = Object::createObject<GeometryVia>(
+                    kObjectTypeGeometryVia, lib->getId());
                 v->setName(via->name);
                 Point p(lib->micronsToDBU(via->x), lib->micronsToDBU(via->y));
                 v->setPoint(p);
@@ -333,14 +333,14 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                                 currentCell->addOBS(current_lg->getId());
                         }
                         LayerGeometry *geo =
-                            current_top_cell->createObject<LayerGeometry>(
-                                kObjectTypeLayerGeometry);
+                            Object::createObject<LayerGeometry>(
+                                kObjectTypeLayerGeometry, lib->getId());
                         current_lg = geo;
                     }
                 } else {
                     LayerGeometry *geo =
-                        current_top_cell->createObject<LayerGeometry>(
-                            kObjectTypeLayerGeometry);
+                        Object::createObject<LayerGeometry>(
+                            kObjectTypeLayerGeometry, lib->getId());
                     current_lg = geo;
                 }
                 viaIter = geometry->lefiGeometries::getViaIter(i);
@@ -348,8 +348,8 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                 for (int i = 0; i < viaIter->xStart; i++) {
                     for (int j = 0; j < viaIter->yStart; j++) {
                         GeometryVia *v =
-                            current_top_cell->createObject<GeometryVia>(
-                                kObjectTypeGeometryVia);
+                            Object::createObject<GeometryVia>(
+                                kObjectTypeGeometryVia, lib->getId());
                         v->setName(viaIter->name);
                         Point p(
                             lib->micronsToDBU(viaIter->x + i * viaIter->xStep),
@@ -571,16 +571,16 @@ int macroCB(lefrCallbackType_e c, lefiMacro *macro, lefiUserData) {
     Cell *current_top_cell = getTopCell();
     if (!current_top_cell) return 0;
     Cell *cell;
+    Tech *lib = getTechLib();
     if (currentCell) {
         cell = currentCell;
     } else {
-        cell = current_top_cell->createObject<Cell>(kObjectTypeCell);
+        cell = Object::createObject<Cell>(kObjectTypeCell, lib->getId());
         currentCell = cell;
     }
 
     std::string name = macro->lefiMacro::name();
     cell->setName(name);
-    Tech *lib = getTopCell()->getTechLib();
 
     if (macro->lefiMacro::hasClass())
         cell->setClass(macro->lefiMacro::macroClass());
@@ -609,8 +609,8 @@ int macroCB(lefrCallbackType_e c, lefiMacro *macro, lefiUserData) {
     if (macro->lefiMacro::hasSitePattern()) {
         //cell->setNumSites(macro->lefiMacro::numSitePattern());
         for (i = 0; i < macro->lefiMacro::numSitePattern(); i++) {
-            SitePattern *siteP = current_top_cell->createObject<SitePattern>(
-                kObjectTypeCellSitePattern);
+            SitePattern *siteP = Object::createObject<SitePattern>(
+                kObjectTypeCellSitePattern, lib->getId());
             pattern = macro->lefiMacro::sitePattern(i);
             Site* site = lib->getSiteByName(pattern->lefiSitePattern::name());
             if (site) {
@@ -644,7 +644,7 @@ int macroCB(lefrCallbackType_e c, lefiMacro *macro, lefiUserData) {
         //cell->setNumForeigns(macro->lefiMacro::numForeigns());
         for (i = 0; i < macro->lefiMacro::numForeigns(); i++) {
             Foreign *f =
-                current_top_cell->createObject<Foreign>(kObjectTypeForeign);
+                Object::createObject<Foreign>(kObjectTypeForeign, lib->getId());
             f->sethasForeignPoint(macro->lefiMacro::hasForeignPoint(i));
             f->setforeignOrient(
                 orientTransfer(macro->lefiMacro::foreignOrient(i)));
@@ -662,7 +662,8 @@ int macroCB(lefrCallbackType_e c, lefiMacro *macro, lefiUserData) {
     }
 
     // cell->print();
-    current_top_cell->addCell(cell->getId());
+    //current_top_cell->addCell(cell->getId());
+    lib->addCell(cell->getId());
     // test_count++;
     // message->info("add %dth macro to topcell\n", test_count);
     // cell->print();
@@ -696,7 +697,9 @@ int manufacturingCB(lefrCallbackType_e c, double num, lefiUserData) {
 int maxStackViaCB(lefrCallbackType_e c, lefiMaxStackVia *maxStack,
                   lefiUserData) {
     checkType(c);
-    MaxViaStack *mvs = getTopCell()->createObject<MaxViaStack>(kObjectTypeMaxViaStack);
+    Tech *lib = getTechLib();
+    MaxViaStack *mvs = Object::createObject<MaxViaStack>(
+        kObjectTypeMaxViaStack, lib->getId());
     mvs->setNumStackedVia(maxStack->lefiMaxStackVia::maxStackVia());
     if (maxStack->lefiMaxStackVia::hasMaxStackViaRange()) {
         int top_id = getTopCell()->getTechLib()->getLayerLEFIndexByName(
@@ -735,7 +738,9 @@ int obstructionCB(lefrCallbackType_e c, lefiObstruction *obs, lefiUserData) {
     if (!currentCell) {
         Cell *current_top_cell = getTopCell();
         if (!current_top_cell) return 0;
-        currentCell = current_top_cell->createObject<Cell>(kObjectTypeCell);
+        Tech *lib = getTechLib();
+        currentCell = Object::createObject<Cell>(
+            kObjectTypeCell, lib->getId());
     }
     geometry = obs->lefiObstruction::geometries();
     prtGeometry(geometry);
@@ -751,13 +756,15 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
 
     Cell *current_top_cell = getTopCell();
     if (!current_top_cell) return 0;
+    Tech *lib = getTechLib();
     if (!currentCell) {
-        currentCell = current_top_cell->createObject<Cell>(kObjectTypeCell);
+        currentCell = Object::createObject<Cell>(
+            kObjectTypeCell, lib->getId());
     }
 
-    Term *term = current_top_cell->createObject<Term>(kObjectTypeTerm);
+    Term *term = Object::createObject<Term>(
+            kObjectTypeTerm, currentCell->getId());
     checkType(c);
-    Tech *lib = getTopCell()->getTechLib();
     term->setName(pin->lefiPin::name());
     if (pin->lefiPin::hasDirection())
         term->setDirection(pin->lefiPin::direction());
@@ -775,8 +782,8 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
 
     if (pin->lefiPin::hasAntennaPartialMetalArea()) {
         for (i = 0; i < pin->lefiPin::numAntennaPartialMetalArea(); i++) {
-            AntennaArea *ap = current_top_cell->createObject<AntennaArea>(
-                kObjectTypePinAntennaArea);
+            AntennaArea *ap = Object::createObject<AntennaArea>(
+                kObjectTypePinAntennaArea, lib->getId());
             ap->setArea(lib->areaMicronsToDBU(
                 pin->lefiPin::antennaPartialMetalArea(i)));
             if (pin->lefiPin::antennaPartialMetalAreaLayer(i))
@@ -787,8 +794,8 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
     }
     if (pin->lefiPin::hasAntennaPartialMetalSideArea()) {
         for (i = 0; i < pin->lefiPin::numAntennaPartialMetalSideArea(); i++) {
-            AntennaArea *ap = current_top_cell->createObject<AntennaArea>(
-                kObjectTypePinAntennaArea);
+            AntennaArea *ap = Object::createObject<AntennaArea>(
+                kObjectTypePinAntennaArea, lib->getId());
             ap->setArea(lib->areaMicronsToDBU(
                 pin->lefiPin::antennaPartialMetalSideArea(i)));
             if (pin->lefiPin::antennaPartialMetalSideAreaLayer(i))
@@ -801,8 +808,8 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
 
     if (pin->lefiPin::hasAntennaPartialCutArea()) {
         for (i = 0; i < pin->lefiPin::numAntennaPartialCutArea(); i++) {
-            AntennaArea *ap = current_top_cell->createObject<AntennaArea>(
-                kObjectTypePinAntennaArea);
+            AntennaArea *ap = Object::createObject<AntennaArea>(
+                kObjectTypePinAntennaArea, lib->getId());
             ap->setArea(
                 lib->areaMicronsToDBU(pin->lefiPin::antennaPartialCutArea(i)));
             if (pin->lefiPin::antennaPartialCutAreaLayer(i))
@@ -814,8 +821,8 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
 
     if (pin->lefiPin::hasAntennaDiffArea()) {
         for (i = 0; i < pin->lefiPin::numAntennaDiffArea(); i++) {
-            AntennaArea *ap = current_top_cell->createObject<AntennaArea>(
-                kObjectTypePinAntennaArea);
+            AntennaArea *ap = Object::createObject<AntennaArea>(
+                kObjectTypePinAntennaArea, lib->getId());
             ap->setArea(
                 lib->areaMicronsToDBU(pin->lefiPin::antennaDiffArea(i)));
             if (pin->lefiPin::antennaDiffAreaLayer(i))
@@ -827,8 +834,8 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
 
     for (j = 0; j < pin->lefiPin::numAntennaModel(); j++) {
         aModel = pin->lefiPin::antennaModel(j);
-        AntennaModelTerm *am = current_top_cell->createObject<AntennaModelTerm>(
-                    kObjectTypeAntennaModelTerm);
+        AntennaModelTerm *am = Object::createObject<AntennaModelTerm>(
+                    kObjectTypeAntennaModelTerm, lib->getId());
         std::string oxide_string = aModel->lefiPinAntennaModel::antennaOxide();
         oxide_string = oxide_string.substr(5);
         int oxide = stoi(oxide_string);
@@ -839,8 +846,8 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
         if (aModel->lefiPinAntennaModel::hasAntennaGateArea()) {
             for (i = 0; i < aModel->lefiPinAntennaModel::numAntennaGateArea();
                  i++) {
-                AntennaArea *ap = current_top_cell->createObject<AntennaArea>(
-                    kObjectTypePinAntennaArea);
+                AntennaArea *ap = Object::createObject<AntennaArea>(
+                    kObjectTypePinAntennaArea, lib->getId());
                 ap->setArea(lib->areaMicronsToDBU(
                     aModel->lefiPinAntennaModel::antennaGateArea(i)));
                 if (aModel->lefiPinAntennaModel::antennaGateAreaLayer(i))
@@ -854,8 +861,8 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
         if (aModel->lefiPinAntennaModel::hasAntennaMaxAreaCar()) {
             for (i = 0; i < aModel->lefiPinAntennaModel::numAntennaMaxAreaCar();
                  i++) {
-                AntennaArea *ap = current_top_cell->createObject<AntennaArea>(
-                    kObjectTypePinAntennaArea);
+                AntennaArea *ap = Object::createObject<AntennaArea>(
+                    kObjectTypePinAntennaArea, lib->getId());
                 ap->setArea(lib->areaMicronsToDBU(
                     aModel->lefiPinAntennaModel::antennaMaxAreaCar(i)));
                 if (aModel->lefiPinAntennaModel::antennaMaxAreaCarLayer(i))
@@ -870,8 +877,8 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
             for (i = 0;
                  i < aModel->lefiPinAntennaModel::numAntennaMaxSideAreaCar();
                  i++) {
-                AntennaArea *ap = current_top_cell->createObject<AntennaArea>(
-                    kObjectTypePinAntennaArea);
+                AntennaArea *ap = Object::createObject<AntennaArea>(
+                    kObjectTypePinAntennaArea, lib->getId());
                 ap->setArea(lib->areaMicronsToDBU(
                     aModel->lefiPinAntennaModel::antennaMaxSideAreaCar(i)));
                 if (aModel->lefiPinAntennaModel::antennaMaxSideAreaCarLayer(i))
@@ -886,8 +893,8 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
         if (aModel->lefiPinAntennaModel::hasAntennaMaxCutCar()) {
             for (i = 0; i < aModel->lefiPinAntennaModel::numAntennaMaxCutCar();
                  i++) {
-                AntennaArea *ap = current_top_cell->createObject<AntennaArea>(
-                    kObjectTypePinAntennaArea);
+                AntennaArea *ap = Object::createObject<AntennaArea>(
+                    kObjectTypePinAntennaArea, lib->getId());
                 ap->setArea(lib->areaMicronsToDBU(
                     aModel->lefiPinAntennaModel::antennaMaxCutCar(i)));
                 if (aModel->lefiPinAntennaModel::antennaMaxCutCarLayer(i))
@@ -907,7 +914,8 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
         if (numItems <= 0) {
             continue;
         }
-        Port *p = current_top_cell->createObject<Port>(kObjectTypePort);
+        Port *p = Object::createObject<Port>(
+                  kObjectTypePort, lib->getId());
         for (int j = 0; j < numItems; j++) {
             if (lefiGeomClassE == geometry->lefiGeometries::itemType(j)) {
                 p->setClass(geometry->lefiGeometries::getClass(j));
@@ -918,12 +926,14 @@ int pinCB(lefrCallbackType_e c, lefiPin *pin, lefiUserData) {
         p->setTermId(term->getId());
         term->addPort(p->getId());
     }
-    if (currentCell)
+    if (currentCell) {
+        term->setCellId(currentCell->getId());
         currentCell->addTerm(term->getId());
-    else
+    } else {
         message->info(
             "----------------pin %s do not find macro ---------------------\n",
             term->getName().c_str());
+    }
 
     return 0;
 }
@@ -935,16 +945,17 @@ int densityCB(lefrCallbackType_e c, lefiDensity *density, lefiUserData) {
     checkType(c);
     Cell *current_top_cell = getTopCell();
     if (!currentCell) {
-        currentCell = current_top_cell->createObject<Cell>(kObjectTypeCell);
+        currentCell = Object::createObject<Cell>(
+                      kObjectTypeCell, lib->getId());
     }
     if (!current_top_cell) return 0;
     for (int i = 0; i < density->lefiDensity::numLayer(); i++) {
-        Density *den =
-            current_top_cell->createObject<Density>(kObjectTypeDensity);
+        Density *den = Object::createObject<Density>(
+                        kObjectTypeDensity, lib->getId());
         den->setName(density->lefiDensity::layerName(i));
         for (int j = 0; j < density->lefiDensity::numRects(i); j++) {
-            DensityLayer *layer = current_top_cell->createObject<DensityLayer>(
-                kObjectTypeDensityLayer);
+            DensityLayer *layer = Object::createObject<DensityLayer>(
+                kObjectTypeDensityLayer, lib->getId());
             rect = density->lefiDensity::getRect(i, j);
             Box *box = creatBox(
                 lib->micronsToDBU(rect.xl), lib->micronsToDBU(rect.yl),
@@ -2361,10 +2372,10 @@ static int setCutLayerRule(lefiLayer *io_layer, Layer *edi_layer) {
 static void readLayerProperty(lefiLayer *io_layer, Layer *edi_layer) {
     Cell *top_cell = getTopCell();
     if (!top_cell) return;
-
+    Tech *lib = getTechLib();
     for (int ii = 0; ii < io_layer->numProps(); ++ii) {
-        Property *property =
-            top_cell->createObject<Property>(kObjectTypeProperty);
+        Property *property = Object::createObject<Property>(
+                              kObjectTypeProperty, lib->getId());
         property->setDefinitionId(PropType::kLayer, io_layer->propName(ii));
         if (io_layer->propIsNumber(ii)) {
             if (property->getDataType() == PropDataType::kInt) {
@@ -2388,12 +2399,12 @@ int readLayer(lefiLayer *io_layer) {
     if (!curr_cell) return 0;
 
     Tech *lib = curr_cell->getTechLib();
-    Layer *edi_layer = curr_cell->createObject<Layer>(kObjectTypeLayer);
+    Layer *edi_layer = Object::createObject<Layer>(kObjectTypeLayer, lib->getId());
 
     // set basic layer information
-    SymbolIndex sym_id = curr_cell->getOrCreateSymbol(io_layer->name());
+    SymbolIndex sym_id = lib->getOrCreateSymbol(io_layer->name());
     edi_layer->setNameId(sym_id);
-    curr_cell->addSymbolReference(sym_id, edi_layer->getId());
+    lib->addSymbolReference(sym_id, edi_layer->getId());
 
     // only handle normal layer
     // for LEF58_TYPE, it will be handled during LEF parser
@@ -2449,7 +2460,7 @@ int readViaMaster(lefiVia *io_via, bool is_from_ndr) {
     db_via_master->setPropertySize(io_via->numProperties());
     for (int i = 0; i < io_via->numProperties(); i++) {
         Property *property =
-            top_cell->createObject<Property>(kObjectTypeProperty);
+            Object::createObject<Property>(kObjectTypeProperty, lib->getId());
         property->setDefinitionId(PropType::kVia, io_via->propName(i));
         if (io_via->propIsNumber(i)) {
             if (property->getDataType() == PropDataType::kInt) {
@@ -2569,7 +2580,7 @@ int readViaRule(lefiViaRule *io_via_rule) {
     db_via_rule->setPropertySize(io_via_rule->numProps());
     for (int i = 0; i < io_via_rule->numProps(); i++) {
         Property *property =
-            top_cell->createObject<Property>(kObjectTypeProperty);
+            Object::createObject<Property>(kObjectTypeProperty, lib->getId());
         property->setDefinitionId(PropType::kViaRule, io_via_rule->propName(i));
         if (io_via_rule->propIsNumber(i)) {
             if (property->getDataType() == PropDataType::kInt) {
@@ -2655,7 +2666,7 @@ int readSite(lefiSite *io_site) {
     if (!current_top_cell) return 0;
     Tech *lib = current_top_cell->getTechLib();
 
-    Site *db_site = current_top_cell->createObject<Site>(kObjectTypeSite);
+    Site *db_site = Object::createObject<Site>(kObjectTypeSite, lib->getId());
 
     db_site->setName(const_cast<char *>(io_site->lefiSite::name()));
     db_site->setClass(io_site->lefiSite::siteClass());
@@ -2676,8 +2687,8 @@ int readSite(lefiSite *io_site) {
         db_site->setPatternSize(io_site->lefiSite::numSites());
         for (int i = 0; i < io_site->lefiSite::numSites(); i++) {
             SitePatternPair *site_pattern =
-                current_top_cell->createObject<SitePatternPair>(
-                    kObjectTypeSitePatternPair);
+                Object::createObject<SitePatternPair>(
+                    kObjectTypeSitePatternPair, lib->getId());
             if (site_pattern == nullptr) continue;
             site_pattern->setName(io_site->lefiSite::siteName(i));
             site_pattern->setOrientation(
@@ -2693,8 +2704,10 @@ int readSite(lefiSite *io_site) {
 int readUnit(lefiUnits *io_units) {
     Cell *current_top_cell = getTopCell();
     if (!current_top_cell) return 0;
+    Tech *lib = getTechLib();
 
-    Units *db_units = current_top_cell->createObject<Units>(kObjectTypeUnits);
+    Units *db_units = Object::createObject<Units>(
+                        kObjectTypeUnits, lib->getId());
 
     if (io_units->hasDatabase()) {
         db_units->setLengthUnits(io_units->databaseName());
@@ -2736,10 +2749,10 @@ int readUnit(lefiUnits *io_units) {
 int readPropertyDefinition(lefiProp *io_prop) {
     Cell *current_top_cell = getTopCell();
     if (!current_top_cell) return 0;
-
+    Tech *lib = getTechLib();
     PropertyDefinition *prop_definition =
-        current_top_cell->createObject<PropertyDefinition>(
-            kObjectTypePropertyDefinition);
+        Object::createObject<PropertyDefinition>(
+            kObjectTypePropertyDefinition, lib->getId());
     PropType type = toEnumByString<PropType>(io_prop->lefiProp::propType());
     prop_definition->setPropType(type);
 
@@ -2793,12 +2806,11 @@ int readPropertyDefinition(lefiProp *io_prop) {
 int readNonDefaultRule(lefiNonDefault *io_ndr_rule) {
     Cell *current_top_cell = getTopCell();
     if (!current_top_cell) return 0;
-
+    Tech *lib = getTechLib();
     NonDefaultRule *edi_ndr_rule =
-        current_top_cell->createObject<NonDefaultRule>(kObjectTypeRule);
+        Object::createObject<NonDefaultRule>(kObjectTypeRule, lib->getId());
     ediAssert(edi_ndr_rule != nullptr);
     int i = 0;
-    Tech *lib = getTopCell()->getTechLib();
     // name
     edi_ndr_rule->setName(io_ndr_rule->lefiNonDefault::name());
     // hard_spacing
@@ -2807,8 +2819,8 @@ int readNonDefaultRule(lefiNonDefault *io_ndr_rule) {
     edi_ndr_rule->setLayerSize(io_ndr_rule->lefiNonDefault::numLayers());
     for (i = 0; i < io_ndr_rule->lefiNonDefault::numLayers(); i++) {
         NonDefaultRuleLayer *layer =
-            current_top_cell->createObject<NonDefaultRuleLayer>(
-                kObjectTypeNonDefaultRuleLayer);
+            Object::createObject<NonDefaultRuleLayer>(
+                kObjectTypeNonDefaultRuleLayer, lib->getId());
 
         layer->setName(io_ndr_rule->lefiNonDefault::layerName(i));
         if (io_ndr_rule->lefiNonDefault::hasLayerWidth(i))
@@ -2838,8 +2850,8 @@ int readNonDefaultRule(lefiNonDefault *io_ndr_rule) {
     edi_ndr_rule->setMinCutsSize(io_ndr_rule->lefiNonDefault::numMinCuts());
     for (i = 0; i < io_ndr_rule->lefiNonDefault::numMinCuts(); i++) {
         NonDefaultRuleMinCuts *min_cuts =
-            current_top_cell->createObject<NonDefaultRuleMinCuts>(
-                kObjectTypeNonDefaultRuleMinCuts);
+            Object::createObject<NonDefaultRuleMinCuts>(
+                kObjectTypeNonDefaultRuleMinCuts, lib->getId());
         min_cuts->setName(io_ndr_rule->lefiNonDefault::cutLayerName(i));
         min_cuts->setNumCuts(io_ndr_rule->lefiNonDefault::numCuts(i));
         edi_ndr_rule->addMinCuts(min_cuts->getId());
@@ -2879,7 +2891,7 @@ int readNonDefaultRule(lefiNonDefault *io_ndr_rule) {
     edi_ndr_rule->setPropertySize(io_ndr_rule->lefiNonDefault::numProps());
     for (i = 0; i < io_ndr_rule->lefiNonDefault::numProps(); i++) {
         Property *property =
-            current_top_cell->createObject<Property>(kObjectTypeProperty);
+            Object::createObject<Property>(kObjectTypeProperty, lib->getId());
         property->setDefinitionId(PropType::kNonDefaultRule,
                                   io_ndr_rule->lefiNonDefault::propName(i));
         if (io_ndr_rule->lefiNonDefault::propIsNumber(i)) {

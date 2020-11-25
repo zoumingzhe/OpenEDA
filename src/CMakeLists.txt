@@ -18,7 +18,11 @@ endif(EDI_BIND_PYTHON)
 add_subdirectory(parser)
 # gui
 add_subdirectory(gui)
+# add infra
+add_subdirectory(infra)
 # place
-add_subdirectory(DREAMPlace)
+if (CMAKE_PLACE)
+  add_subdirectory(DREAMPlace)
+endif(CMAKE_PLACE)
 # app main
 add_subdirectory(app)

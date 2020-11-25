@@ -25,6 +25,7 @@
 namespace open_edi {
 
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 Yosys::RTLIL::Design *yosys_design = NULL;
 bool kFirstRunReadVerilog = false;
 std::map<Inst*, std::string> kInstMasterMap;
@@ -220,12 +221,15 @@ static bool readVerilogWireToDB(Cell *hcell,
     std::vector<std::string> bus_net_names;
     if (range_left != INT_MAX || range_right != INT_MIN) {
         std::string net_name = wire_name;
-        net = hcell->createNet(net_name);
+        net = hcell->getNet(net_name);
         if (!net) {
-                message->issueMsg(kError,
-                        "create net %s failed for module %s.\n",
-                        net_name.c_str(), hcell->getName().c_str());
-                return false;
+            net = hcell->createNet(net_name);
+            if (!net) {
+                    message->issueMsg(kError,
+                            "create net %s failed for module %s.\n",
+                            net_name.c_str(), hcell->getName().c_str());
+                    return false;
+            }
         }
         net->setIsBusNet(true);
         if (is_term) {
@@ -250,12 +254,15 @@ static bool readVerilogWireToDB(Cell *hcell,
         net_names.push_back(wire_name);
     }
     for (std::string net_name : net_names) {
-        net = hcell->createNet(net_name);
+        net = hcell->getNet(net_name);
         if (!net) {
-                message->issueMsg(kError,
-                        "create net %s failed for module %s.\n",
-                        net_name.c_str(), hcell->getName().c_str());
-                return false;
+            net = hcell->createNet(net_name);
+            if (!net) {
+                    message->issueMsg(kError,
+                            "create net %s failed for module %s.\n",
+                            net_name.c_str(), hcell->getName().c_str());
+                    return false;
+            }
         }
         if (is_tri) {
             net->setType(NetType::kNetTypeTri);
@@ -276,12 +283,15 @@ static bool readVerilogWireToDB(Cell *hcell,
         }
     }
     for (std::string net_name : bus_net_names) {
-        net = hcell->createNet(net_name);
+        net = hcell->getNet(net_name);
         if (!net) {
+            net = hcell->createNet(net_name);
+            if (!net) {
                 message->issueMsg(kError,
                         "create net %s failed for module %s.\n",
                         net_name.c_str(), hcell->getName().c_str());
                 return false;
+            }
         }
         net->setIsOfBus(true);
         if (is_term) {
@@ -449,11 +459,11 @@ static void findMasterForInst() {
         inst->setMaster(cell->getId());
 
         ObjectId pins = inst->getPins();
-        VectorObject8 *pins_vector = cell->addr<VectorObject8>(pins);
-        VectorObject8 *pgpin_vector = nullptr;
-        for (int i = 0; i < pins_vector->totalSize(); i++) {
+        IdArray *pins_vector = Object::addr<IdArray>(pins);
+        IdArray *pgpin_vector = nullptr;
+        for (int i = 0; i < pins_vector->getSize(); i++) {
             ObjectId pin_id = (*pins_vector)[i];
-            Pin *pin = cell->addr<Pin>(pin_id);
+            Pin *pin = Object::addr<Pin>(pin_id);
             Term *term = cell->getTerm(pin->getName());
             if (!term) {
                 message->issueMsg(kError,

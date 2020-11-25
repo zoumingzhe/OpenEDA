@@ -10,11 +10,13 @@
  */
 
 #include "db/util/geometrys.h"
-#include "db/util/vector_object_var.h"
+#include "db/util/array.h"
 #include "db/core/db.h"
+#include "db/core/root.h"
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 /*GeomPath &GeomPath::operator=(const GeomPath &path) {
     for(int i = 0; i < path.getNumPoints(); i++){
@@ -55,14 +57,9 @@ LayerGeometry::~LayerGeometry() {
 }
 
 SymbolTable *LayerGeometry::getSymbolTable() {
-    Cell *top_cell = getTopCell();
-    if (!top_cell) {
-        message->issueMsg(kError,
-             "Cannot find top cell when finding symboltable.\n");
-        return nullptr;
-    }
-
-    return top_cell->getSymbolTable();
+    StorageUtil *owner_util = Object::getStorageUtilById(this->getOwnerId());
+    ediAssert(owner_util != nullptr);  
+    return owner_util->getSymbolTable();
 }
 
 SymbolIndex LayerGeometry::getOrCreateSymbol(const char *name) {
@@ -74,53 +71,32 @@ std::string LayerGeometry::getName() {
 }
 
 void LayerGeometry::addGeometry(ObjectId id) {
-    VectorObject32 *vct = nullptr;
+    IdArray *vct = nullptr;
 
     if (geometrys_ == 0) {
-        Cell *top_cell = getTopCell();
-        if (!top_cell) {
-            message->issueMsg(kError,
-                 "Cannot find top cell when create vectorobject32.\n");
-            return;
-        }
-        vct = top_cell->createVectorObject<VectorObject32>();
-        if (vct == nullptr)
-            return;
-        geometrys_ = vct->getId();
-    } else {
-        vct = addr<VectorObject32>(geometrys_);
+        geometrys_ = __createObjectIdArray(32);
     }
-
+    vct = addr<IdArray>(geometrys_);
     if (type_ != kVia)
-        vct->push_back(id);
+        vct->pushBack(id);
 }
 
 void LayerGeometry::addGeometryVia(ObjectId id) {
-    VectorObject32 *vct = nullptr;
+    IdArray *vct = nullptr;
     if (geometrys_ == 0) {
-        Cell *top_cell = getTopCell();
-        if (!top_cell) {
-            message->issueMsg(kError,
-                "Cannot find top cell when create vectorobject32.\n");
-            return;
-        }
-        vct = top_cell->createVectorObject<VectorObject32>();
-        if (vct == nullptr)
-            return;
-        geometrys_ = vct->getId();
-    } else {
-        vct = addr<VectorObject32>(geometrys_);
+        geometrys_ = __createObjectIdArray(32);
     }
+    vct = addr<IdArray>(geometrys_);
     if (type_ == kVia)
-        vct->push_back(id);
+        vct->pushBack(id);
 }
 
 Geometry* LayerGeometry::getGeometry(int i) const {
-    VectorObject32 *vct = nullptr;
+    IdArray *vct = nullptr;
     if (geometrys_ == 0) {
         return nullptr;
     } else {
-        vct = addr<VectorObject32>(geometrys_);
+        vct = addr<IdArray>(geometrys_);
     }
     if (vct && type_ != kVia) {
         Geometry *obj_data = addr<Geometry>((*vct)[i]);
@@ -132,11 +108,11 @@ Geometry* LayerGeometry::getGeometry(int i) const {
 }
 
 GeometryVia* LayerGeometry::getGeometryVia(int i) const {
-    VectorObject32 *vct = nullptr;
+    IdArray *vct = nullptr;
     if (geometrys_ == 0) {
         return nullptr;
     } else {
-        vct = addr<VectorObject32>(geometrys_);
+        vct = addr<IdArray>(geometrys_);
     }
     if (vct && type_ == kVia) {
         GeometryVia *obj_data = addr<GeometryVia>((*vct)[i]);
@@ -147,27 +123,22 @@ GeometryVia* LayerGeometry::getGeometryVia(int i) const {
     return nullptr;
 }
 int LayerGeometry::getVecNum() const {
-    VectorObject32 *vct = nullptr;
+    IdArray *vct = nullptr;
     if (geometrys_ == 0) {
         return -1;
     } else {
-        vct = addr<VectorObject32>(geometrys_);
+        vct = addr<IdArray>(geometrys_);
     }
     if (vct) {
-        return vct->totalSize();
+        return vct->getSize();
     }
     return 0;
 }
 
 PolygonTable* LayerGeometry::getPolygonTable() {
-    Cell *top_cell = getTopCell();
-    if (!top_cell) {
-        message->issueMsg(kError,
-             "Cannot find top cell when finding polygontable.\n");
-        return nullptr;
-    }
-
-    return top_cell->getPolygonTable();
+    StorageUtil *owner_util = Object::getStorageUtilById(this->getOwnerId());
+    ediAssert(owner_util != nullptr);
+    return owner_util->getPolygonTable();
 }
 
 int64_t LayerGeometry::CreatePolygon(Polygon* p) {
@@ -177,7 +148,7 @@ int64_t LayerGeometry::CreatePolygon(Polygon* p) {
 }
 
 void LayerGeometry::print() {
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getTechLib();
     message->info("         LAYER %s ", this->getName().c_str());
     if ( this->hasEXCEPTPGNET())
         message->info("EXCEPTPGNET");
@@ -254,7 +225,7 @@ void LayerGeometry::print() {
 }
 
 void LayerGeometry::printLEF(std::ofstream & ofs, bool from_port) {
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getTechLib();
     if (from_port && this->getType() != GeometryType::kVia)
         ofs << "   ";
 	if (getType() != GeometryType::kVia)

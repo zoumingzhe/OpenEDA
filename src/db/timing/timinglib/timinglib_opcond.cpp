@@ -84,12 +84,12 @@ OperatingConditions::IndexType OperatingConditions::memory() const {
 }
 
 void OperatingConditions::set_name(const std::string& name) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
         if (index != kInvalidSymbolIndex) {
             name_ = index;
-            topCell->addSymbolReference(name_, this->getId());
+            timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
@@ -97,8 +97,8 @@ void OperatingConditions::set_wire_load_tree(WireLoadTree ty) {
     wire_load_tree_ = ty;
 }
 std::string OperatingConditions::get_name(void) const {
-    Cell* topCell = getTopCell();
-    if (topCell) return topCell->getSymbolByIndex(name_);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) return timing_lib->getSymbolByIndex(name_);
     return "";
 }
 SymbolIndex OperatingConditions::get_name_index(void) { return name_; }

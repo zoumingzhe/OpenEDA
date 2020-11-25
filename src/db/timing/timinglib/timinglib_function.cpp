@@ -95,12 +95,12 @@ TFunction::IndexType TFunction::memory() const {
 
 /// set
 void TFunction::set_func_str(const std::string& str) {
-    Cell* topCell = getTopCell();
-    if (topCell != nullptr) {
-        SymbolIndex idx = topCell->getOrCreateSymbol(str.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib != nullptr) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(str.c_str());
         if (idx != kInvalidSymbolIndex) {
             func_str_ = idx;
-            topCell->addSymbolReference(func_str_, this->getId());
+            timing_lib->addSymbolReference(func_str_, this->getId());
         }
     }
 }
@@ -138,9 +138,9 @@ OStreamBase& operator<<(OStreamBase& os, TFunction const& rhs) {
 
     os << DataFieldName("func_str_");
     {
-        Cell* topCell = getTopCell();
-        if (topCell != nullptr && rhs.func_str_ != 0) {
-            os << topCell->getSymbolByIndex(rhs.func_str_);
+        Timing* timing_lib = getTimingLib();
+        if (timing_lib != nullptr && rhs.func_str_ != 0) {
+            os << timing_lib->getSymbolByIndex(rhs.func_str_);
         } else {
             os << "";
         }

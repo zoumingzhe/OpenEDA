@@ -85,42 +85,42 @@ void TPgTerm::print(std::ostream& stream) {
 
 /// set
 void TPgTerm::set_name(const std::string& name) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
         if (index != kInvalidSymbolIndex) {
             name_ = index;
-            topCell->addSymbolReference(name_, this->getId());
+            timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
 
 void TPgTerm::set_pg_type(PGType t) { pg_type_ = t; }
 void TPgTerm::set_voltage_name(const std::string& name) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
         if (index != kInvalidSymbolIndex) {
             voltage_name_ = index;
-            topCell->addSymbolReference(voltage_name_, this->getId());
+            timing_lib->addSymbolReference(voltage_name_, this->getId());
         }
     }
 }
 
 /// get
 std::string TPgTerm::get_name(void) const {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(name_);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
 SymbolIndex TPgTerm::get_name_index(void) { return name_; }
 PGType TPgTerm::get_pg_type(void) { return pg_type_; }
 std::string TPgTerm::get_voltage_name(void) const {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(voltage_name_);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(voltage_name_);
     }
     return "";
 }

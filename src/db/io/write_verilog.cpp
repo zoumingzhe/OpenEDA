@@ -144,6 +144,7 @@ static bool writeModule(std::ostream *out_stream, Cell *cell) {
         }
     }
     // net
+    std::vector<Net*> assign_nets;
     ObjectId nets = cell->getNets();
     if ( nets > 0 ) {
         Net *net = nullptr;
@@ -174,48 +175,58 @@ static bool writeModule(std::ostream *out_stream, Cell *cell) {
                 }
             }
             AssignType assign_type = net->getAssignType();
-            switch (assign_type) {
-                case kAssignTypeNet: {
-                    ObjectId assign_net_id = net->getAssignNet();
-                    if (assign_net_id > 0) {
-                        Net *assign_net = cell->addr<Net>(assign_net_id);
-                        if (!assign_net) {
-                            message->issueMsg(kError,
-                                    "cannot get net from id %d of cell %s.\n",
-                                    assign_net_id, cell->getName().c_str());
-                            return false;
-                        }
-                        *out_stream << "  assign " << net->getName() << " = "
-                                  << assign_net->getName() << ";" << std::endl;
-                    }
-                    }
-                    break;
-                case kAssignTypeInt: {
-                    int int_constant = net->getAssignInt();
-                    if (0 == int_constant) {
-                        *out_stream << "  supply0 " << net->getName()
-                                    << ";" << std::endl;
-                    } else if (1 == int_constant) {
-                        *out_stream << "  supply1 " << net->getName()
-                                    << ";" << std::endl;
-                    } else {
-                        *out_stream << "  assign " << net->getName() << " = "
-                                  << int_constant << ";" << std::endl;
-                    }
-                    }
-                    break;
-                case kAssignTypeReal: {
-                    double real_constant = net->getAssignReal();
-                    *out_stream << "  assign " << net->getName() << " = "
-                              << real_constant << ";" << std::endl;
-                    }
-                    break;
-                default:
-                    break;
+            if ((assign_type == kAssignTypeNet) ||
+                (assign_type == kAssignTypeInt) ||
+                (assign_type == kAssignTypeReal)) {
+                assign_nets.push_back(net);
             }
+
+       }
+    }
+    // output assign statement
+    for (auto net : assign_nets) {
+        AssignType assign_type = net->getAssignType();
+        switch (assign_type) {
+            case kAssignTypeNet: {
+                ObjectId assign_net_id = net->getAssignNet();
+                if (assign_net_id > 0) {
+                    Net *assign_net = cell->addr<Net>(assign_net_id);
+                    if (!assign_net) {
+                        message->issueMsg(kError,
+                                "cannot get net from id %d of cell %s.\n",
+                                assign_net_id, cell->getName().c_str());
+                        return false;
+                    }
+                    *out_stream << "  assign " << net->getName() << " = "
+                              << assign_net->getName() << ";" << std::endl;
+                }
+                }
+                break;
+            case kAssignTypeInt: {
+                int int_constant = net->getAssignInt();
+                if (0 == int_constant) {
+                    *out_stream << "  supply0 " << net->getName()
+                                << ";" << std::endl;
+                } else if (1 == int_constant) {
+                    *out_stream << "  supply1 " << net->getName()
+                                << ";" << std::endl;
+                } else {
+                    *out_stream << "  assign " << net->getName() << " = "
+                              << int_constant << ";" << std::endl;
+                }
+                }
+                break;
+            case kAssignTypeReal: {
+                double real_constant = net->getAssignReal();
+                *out_stream << "  assign " << net->getName() << " = "
+                          << real_constant << ";" << std::endl;
+                }
+                break;
+            default:
+                break;
         }
     }
-
+ 
     // instance
     ObjectId insts = cell->getInstances();
     if ( insts > 0 ) {
@@ -249,8 +260,14 @@ static bool writeModule(std::ostream *out_stream, Cell *cell) {
             ObjectId pins = inst->getPins();
             ArrayObject<ObjectId> *pins_vector =
                     cell->addr<ArrayObject<ObjectId>>(pins);
+            if (!pins_vector) {
+                message->issueMsg(kError,
+                        "cannot get pins vector from id %d of instance %s.\n",
+                        pins, inst->getName().c_str());
+                //return false;
+            }
             first = true;
-            for (int j = 0; j < pins_vector->getSize(); j++) {
+            for (int j = 0; pins_vector && j < pins_vector->getSize(); j++) {
                 ObjectId pin_id = (*pins_vector)[j];
                 Pin *pin = cell->addr<Pin>(pin_id);
                 if (!pin) {

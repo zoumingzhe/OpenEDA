@@ -66,6 +66,7 @@ typedef enum ObjectType {
     kObjectTypeMarker,
     kObjectTypeGroup,
     // Timing related
+    kObjectTypeTiming,
     kObjectTypeClock,
     kObjectTypeAnalysisView,
     kObjectTypeAnalysisCorner,
@@ -126,6 +127,7 @@ class ArrayObject : public std::vector<T> {
 
 #define UNINIT_OBJECT_ID 0
 class Cell;
+class StorageUtil;
 
 class Object {
   public:
@@ -139,6 +141,11 @@ class Object {
 
     template <class T>
     static T* addr(ObjectId obj_id);
+
+    template <class T>
+    static T *createObject(ObjectType type, ObjectId owner_id);
+    template <class T>
+    static void deleteObject(T *obj);
 
     /// @brief default constructor
     Object();
@@ -172,6 +179,11 @@ class Object {
     /// @brief get the owner cell of the object
     /// @return the owner Cell
     Cell *getOwnerCell() const;
+
+    /// @brief get the storage_util by the specified owner_id
+    /// @return the StorageUtil ptr
+    static StorageUtil *getStorageUtilById(ObjectId owner_id);
+    static MemPagePool *getPoolById(ObjectId owner_id);
 
     /// @brief set the owner of the object
     void setOwner(Object *v) { owner_ = v->getId(); }
@@ -292,6 +304,59 @@ T* Object::addr(uint64_t obj_id)
         return pool->getObjectPtr<T>(obj_id);
     } else {
         return nullptr;
+    }
+}
+
+/// @brief createObject create object within memory pool
+/// @return the object created.
+template <class T>
+T* Object::createObject(ObjectType type, ObjectId owner_id) {
+    assert(type > kObjectTypeNone && type < kObjectTypeMax);
+    assert(owner_id != 0);
+    MemPagePool *pool = getPoolById(owner_id);
+
+    if (!pool) {
+        message->issueMsg(kError,
+                          "Cannot create object for type %d because memory "
+                          "pool is null.\n",
+                          type);
+        return nullptr;
+    }
+    T *obj = nullptr;
+    ObjectId id;
+    obj = pool->allocate<T>(type, id);
+    if (!obj) {
+        message->issueMsg(kError, "Pool allocate null object.\n");
+        return nullptr;
+    }
+    obj->setId(id);
+    obj->setObjectType(type);
+    obj->setIsValid(1);
+    obj->setOwner(owner_id);
+
+    return obj;
+}
+
+template <class T>
+void Object::deleteObject(T *obj) {
+    if (!obj) return;
+
+    if (obj->getId()) {
+        ObjectType type = obj->getObjectType();
+        MemPagePool *pool = MemPool::getPagePoolByObjectId(obj->getId());
+
+        if (!pool) {
+            message->issueMsg(kError,
+                              "Cannot delete object for type %d because memory "
+                              "pool is null.\n",
+                              type);
+        }
+
+        obj->setIsValid(0);
+        pool->free<T>(type, obj);
+        obj = nullptr;
+    } else {
+        delete obj;
     }
 }
 

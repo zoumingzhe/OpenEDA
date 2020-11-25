@@ -8,11 +8,6 @@
  * This software may be modified and distributed under the terms
  * of the BSD license.  See the LICENSE file for details.
  */
-/**
- * @file   util.h
- * @date   Apr 2020
- * @brief  Main header for all utilities
- */
 
 #ifndef EDI_UTIL_UTIL_H_
 #define EDI_UTIL_UTIL_H_
@@ -28,10 +23,12 @@
 #include "util/enums.h"
 #include "util/message.h"
 #include "util/point.h"
+#include "util/map_reduce.h"
 #include "util/polygon_table.h"
 #include "util/stream.h"
 #include "util/util_mem.h"
 #include "util/version.h"
+#include "util/monitor.h"
 
 namespace open_edi {
 namespace util {

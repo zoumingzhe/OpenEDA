@@ -13,11 +13,7 @@
 #include "db/core/cell.h"
 
 #include <vector>
-
 #include "db/core/db.h"
-#include "db/timing/timinglib/analysis_corner.h"
-#include "db/timing/timinglib/analysis_mode.h"
-#include "db/timing/timinglib/analysis_view.h"
 #include "db/util/array.h"
 
 namespace open_edi {
@@ -107,11 +103,8 @@ int Density::getDensityLayerNum() const {
 
 // HierData
 void HierData::__init() {
-    pool_ = nullptr;
-    symtbl_ = nullptr;
-    polytbl_ = nullptr;
-
-    tech_lib_ = 0;
+    storage_util_ = nullptr;
+    // tech_lib_ = 0;
     fills_ = 0;
     scan_chains_ = 0;
     cells_ = 0;
@@ -128,29 +121,33 @@ void HierData::__init() {
     regions_ = 0;
 }
 
+StorageUtil* HierData::getStorageUtil() const { return storage_util_; }
+
+void HierData::setStorageUtil(StorageUtil *v) { storage_util_ = v; }
+
 /// @brief setPool set memory pool to a cell
-void HierData::setPool(MemPagePool *p) { pool_ = p; }
+void HierData::setPool(MemPagePool *p) { storage_util_->setPool(p); }
 
 /// @brief getPool get memory pool of a cell
-MemPagePool *HierData::getPool() { return pool_; }
+MemPagePool *HierData::getPool() { return storage_util_->getPool(); }
 
 /// @brief getSymbolTable
 ///
 /// @return
-SymbolTable *HierData::getSymbolTable() { return symtbl_; }
+SymbolTable *HierData::getSymbolTable() { return storage_util_->getSymbolTable(); }
 
 /// @brief setSymbolTable
 ///
 /// @param stb
-void HierData::setSymbolTable(SymbolTable *stb) { symtbl_ = stb; }
+void HierData::setSymbolTable(SymbolTable *stb) { storage_util_->setSymbolTable(stb); }
 
-PolygonTable *HierData::getPolygonTable() { return polytbl_; }
+PolygonTable *HierData::getPolygonTable() { return storage_util_->getPolygonTable(); }
 
-void HierData::setPolygonTable(PolygonTable *pt) { polytbl_ = pt; }
+void HierData::setPolygonTable(PolygonTable *pt) { storage_util_->setPolygonTable(pt); }
 
-void HierData::setTechLibId(ObjectId v) { tech_lib_ = v; }
-
-ObjectId HierData::getTechLibId() const { return tech_lib_; }
+// TODO (ly): remove: 
+// void HierData::setTechLibId(ObjectId v) { tech_lib_ = v; }
+// ObjectId HierData::getTechLibId() const { return tech_lib_; }
 
 void HierData::setFloorplanId(ObjectId v) { floor_plan_ = v; }
 
@@ -226,23 +223,24 @@ void Cell::__init() {
     has_90_symmetry_ = 0;
     has_site_name_ = 0;
     is_fixed_mask_ = 0;
-    // timing lib:
-    analysis_modes_ = 0;
-    analysis_corners_ = 0;
-    analysis_views_ = 0;
-    active_setup_views_ = 0;
-    active_hold_views_ = 0;
 }
 
 /// @brief Cell default constructor
-Cell::Cell() : Cell::BaseType() { __init(); }
+Cell::Cell() : Cell::BaseType() {
+    __init();
+}
 
 /// @brief Cell constructor with owner and id, once id is given, assume pool is
 /// already there.
 Cell::Cell(Object *owner, ObjectId id) : Cell::BaseType(owner, id) { __init(); }
 
 /// @brief ~Cell default deconstructor
-Cell::~Cell() {}
+Cell::~Cell() {
+    HierData *hier_data = __getHierData();
+    if (hier_data != nullptr) {
+        delete hier_data->getStorageUtil();
+    }
+}
 
 /// @brief true if this is a hierarchical cell.
 bool Cell::isHierCell() const {
@@ -266,20 +264,57 @@ HierData *Cell::__getHierData() {
     return addr<HierData>(hier_data_id_);
 }
 
-void Cell::__initHierData() {
-    if (!isHierCell() || hier_data_id_ != 0) {
+void Cell::initHierData() {
+    if (hier_data_id_ != 0) {
         return;
     }
     MemPagePool *pool = MemPool::getPagePoolByObjectId(this->getId());
     ediAssert(pool != nullptr);
-    (void)pool->allocate<HierData>(kObjecTypeHierData, hier_data_id_);
+    HierData *hier_data = pool->allocate<HierData>(
+                  kObjecTypeHierData, hier_data_id_);
+    hier_data->setStorageUtil(new StorageUtil(this->getId()));
+    setCellType(CellType::kHierCell);
 }
 
 /// @brief setCellType set  a cell
 void Cell::setCellType(CellType const &v) {
     cell_type_ = v;
-    if (isHierCell()) {
-        __initHierData();
+}
+
+/// @brief Initialize HierData in the cell with the specified storageUtil
+//          and set cell type to kHierCell.
+void Cell::initHierData(StorageUtil *v) {
+    if (hier_data_id_ != 0 || v == nullptr) {
+        return;
+    }
+    MemPagePool *pool = v->getPool();
+    ediAssert(pool != nullptr);
+    HierData *hier_data = pool->allocate<HierData>(
+                  kObjecTypeHierData, hier_data_id_);
+    hier_data->setStorageUtil(v);
+    setCellType(CellType::kHierCell);
+}
+
+/// @brief get storage_util of a cell
+StorageUtil *Cell::getStorageUtil() {
+    if (getOwnerId() == this->getId()) {// this is a top cell:
+        ediAssert(__getHierData() != nullptr);
+        return __getHierData()->getStorageUtil();
+    }
+    // when a cell is a leaf cell, it doesn't have HierData
+    // fetch the data from its owner cell
+    if (__getConstHierData() == nullptr) {
+        StorageUtil *storage_util = getStorageUtilById(getOwnerId());
+        return storage_util;
+    }
+    return __getHierData()->getStorageUtil();
+}
+
+/// @brief set storage_util to a cell
+void Cell::setStorageUtil(StorageUtil *v) {
+    HierData * hier_data = __getHierData();
+    if (hier_data) {
+        hier_data->setStorageUtil(v);
     }
 }
 
@@ -293,17 +328,22 @@ void Cell::setPool(MemPagePool *pool) {
 
 /// @brief getPool get memory pool of a cell
 MemPagePool *Cell::getPool() {
-  // when a cell is a leaf cell, it doesn't have HierData
-  // fetch the data from its owner cell
-  if (__getConstHierData() == nullptr) {
-      Cell *owner_cell = addr<Cell>(getOwnerId());
-      if (owner_cell) {
-          return owner_cell->getPool();
-      } else {
-          return nullptr;
-      }
-  }
-  return __getHierData()->getPool();
+    if (getOwnerId() == this->getId()) {// this is a top cell:
+        ediAssert(__getHierData() != nullptr);
+        return __getHierData()->getPool();
+    }
+    // when a cell is a leaf cell, it doesn't have HierData
+    // fetch the data from its owner cell
+    if (__getConstHierData() == nullptr) {
+        StorageUtil *storage_util = getStorageUtilById(getOwnerId());
+        if (storage_util) {
+            return storage_util->getPool();
+        } else {
+            return nullptr;
+        }
+    }
+
+    return __getHierData()->getPool();
 }
 
 /// @brief setPolygonTable set polygon table to a cell
@@ -316,27 +356,35 @@ void Cell::setPolygonTable(PolygonTable *pt) {
 
 /// @brief getPolygonTable get polygon table of a cell
 PolygonTable *Cell::getPolygonTable() {
-  // when a cell is a leaf cell, it doesn't have HierData
-  // fetch the data from its owner cell
-  if (__getConstHierData() == nullptr) {
-      Cell *owner_cell = addr<Cell>(getOwnerId());
-      if (owner_cell) {
-          return owner_cell->getPolygonTable();
-      } else {
-          return nullptr;
-      }
-  }
-  return __getHierData()->getPolygonTable();
+    if (getOwnerId() == this->getId()) {// this is a top cell:
+        ediAssert(__getHierData() != nullptr);
+        return __getHierData()->getPolygonTable();
+    }
+    // when a cell is a leaf cell, it doesn't have HierData
+    // fetch the data from its owner cell
+    if (__getConstHierData() == nullptr) {
+        StorageUtil *storage_util = getStorageUtilById(getOwnerId());
+        if (storage_util) {
+            return storage_util->getPolygonTable();
+        } else {
+            return nullptr;
+        }
+    }
+
+    return __getHierData()->getPolygonTable();
 }
 
 /// @brief getParentOrTopSymbolTable
 SymbolTable *Cell::getParentOrTopSymbolTable() {
-    Cell *owner_cell = addr<Cell>(getOwnerId());
-    if (owner_cell) {
-        return owner_cell->getSymbolTable();
-    } else {  // this is a top cell:
-        return getSymbolTable();
+    if (getOwnerId() == this->getId()) {// this is a top cell:
+        ediAssert(__getHierData() != nullptr);
+        return __getHierData()->getSymbolTable();
     }
+    StorageUtil *storage_util = getStorageUtilById(getOwnerId());
+    if (storage_util) {
+        return storage_util->getSymbolTable();
+    }
+    return nullptr;
 }
 
 /// @brief setSymbolTable
@@ -349,17 +397,21 @@ void Cell::setSymbolTable(SymbolTable *stb) {
 
 /// @brief getSymbolTable
 SymbolTable *Cell::getSymbolTable() {
-  // when a cell is a leaf cell, it doesn't have HierData
-  // fetch the data from its owner cell
-  if (__getConstHierData() == nullptr) {
-      Cell *owner_cell = addr<Cell>(getOwnerId());
-      if (owner_cell) {
-          return owner_cell->getSymbolTable();
-      } else {
-          return nullptr;
-      }
-  }
-  return __getHierData()->getSymbolTable();
+    if (getOwnerId() == this->getId()) {// this is a top cell:
+        ediAssert(__getHierData() != nullptr);
+        return __getHierData()->getSymbolTable();
+    }
+    // when a cell is a leaf cell, it doesn't have HierData
+    // fetch the data from its owner cell
+    if (__getConstHierData() == nullptr) {
+        StorageUtil *storage_util = getStorageUtilById(getOwnerId());
+        if (storage_util) {
+            return storage_util->getSymbolTable();
+        } else {
+            return nullptr;
+        }
+    }
+    return __getHierData()->getSymbolTable();
 }
 
 /// @brief getOrCreateSymbol
@@ -415,8 +467,10 @@ std::string const &Cell::getName() {
 ///
 /// @param v
 void Cell::setName(std::string &v) {
+    // TODO (luoying): whether to use parent cell?
     // We need to use the parent Cell's symboltable for Cell's name.
     SymbolTable *sym_table = getParentOrTopSymbolTable();
+    // SymbolTable *sym_table = getSymbolTable();
     ediAssert(sym_table != nullptr);
     name_index_ = sym_table->getOrCreateSymbol(v.c_str());
     if (name_index_ != kInvalidSymbolIndex) {
@@ -424,6 +478,7 @@ void Cell::setName(std::string &v) {
     }
 }
 
+#if 0
 /// @brief setTechLib
 ///
 /// @param t
@@ -432,11 +487,13 @@ void Cell::setTechLib(Tech *t) {
         __getHierData()->setTechLibId(t->getId());
     }
 }
+#endif
 
 /// @brief getTechLib
 ///
 /// @return
 Tech *Cell::getTechLib() {
+#if 0
     // when a cell is a leaf cell, it doesn't have HierData
     // fetch the data from its owner cell
     if (__getConstHierData() == nullptr) {
@@ -449,6 +506,8 @@ Tech *Cell::getTechLib() {
     }
     ObjectId id = __getHierData()->getTechLibId();
     return addr<Tech>(id);
+#endif
+    return getRoot()->getTechLib();
 }
 
 Layer *Cell::getLayerByLayerId(Int32 id) {
@@ -534,7 +593,9 @@ Cell *Cell::createCell(std::string &name, bool isHier) {
     }
 
     if (isHier) {
+        cell->initHierData();
         cell->setCellType(CellType::kHierCell);
+#if 0
         MemPagePool *page_pool = MemPool::newPagePool(cell->getId());
         SymbolTable *st = new SymbolTable;
         PolygonTable *pt = new PolygonTable();
@@ -548,6 +609,7 @@ Cell *Cell::createCell(std::string &name, bool isHier) {
         cell->setSymbolTable(st);
         cell->setPolygonTable(pt);
         MemPool::insertPagePool(cell->getId(), page_pool);
+#endif
     } else {
         // TODO(ly): consolidate enum CellType with macro-class
         cell->setCellType(CellType::kCell);
@@ -611,6 +673,7 @@ Term *Cell::createTerm(std::string &name) {
         return nullptr;
     }
     term->setName(name);
+    term->setCellId(this->getId());
     addTerm(term->getId());
     return term;
 }
@@ -932,13 +995,6 @@ uint64_t Cell::getNumOfSpecialNets() const {
     return obj_vector->getSize();
 }
 
-uint64_t Cell::getNumOfAnalysisViews() const {
-    if (analysis_views_ == UNINIT_OBJECT_ID) return 0;
-    ArrayObject<ObjectId> *p = addr<ArrayObject<ObjectId>>(analysis_views_);
-    if (p == nullptr) return 0;
-    return p->getSize();
-}
-
 ObjectId Cell::getCells() const {
     if (__getConstHierData() == nullptr) {
         return 0;
@@ -1004,20 +1060,37 @@ ObjectId Cell::getScanChains() const {
     return __getConstHierData()->getScanChains();
 }
 
-Cell *Cell::getCell(std::string name) {
-    if (getCells() == 0) return nullptr;
-    SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
+Cell *Cell::getCellFromTechLib(std::string name) {
+    SymbolIndex symbol_index = getTechLib()->getOrCreateSymbol(name.c_str());
     if (symbol_index == kInvalidSymbolIndex) return nullptr;
 
     std::vector<ObjectId> object_vector =
-        this->getSymbolTable()->getReferences(symbol_index);
+          getTechLib()->getSymbolTable()->getReferences(symbol_index);
     for (auto iter = object_vector.begin(); iter != object_vector.end();
-         iter++) {
+        iter++) {
         Cell *target = addr<Cell>(*iter);
         if (target && (target->getObjectType() == kObjectTypeCell))
             return target;
     }
     return nullptr;
+}
+
+Cell *Cell::getCell(std::string name) {
+    if (getCells() != 0) {
+        SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
+        if (symbol_index == kInvalidSymbolIndex) return nullptr;
+
+        std::vector<ObjectId> object_vector =
+              this->getSymbolTable()->getReferences(symbol_index);
+        for (auto iter = object_vector.begin(); iter != object_vector.end();
+            iter++) {
+            Cell *target = addr<Cell>(*iter);
+            if (target && (target->getObjectType() == kObjectTypeCell))
+                return target;
+        }
+    }
+
+    return getCellFromTechLib(name);
 }
 
 ArrayObject<ObjectId> *Cell::getCellArray() const {
@@ -1091,17 +1164,21 @@ ArrayObject<ObjectId> *Cell::getGroupArray() const {
 }
 
 Term *Cell::getTerm(std::string name) {
-    if (getTerms() == 0) return nullptr;
-    SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
-    if (symbol_index == kInvalidSymbolIndex) return nullptr;
+    if (getTerms() != 0) {
+        SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
+        if (symbol_index == kInvalidSymbolIndex) return nullptr;
 
-    std::vector<ObjectId> &object_vector =
-        this->getSymbolTable()->getReferences(symbol_index);
-    for (auto iter = object_vector.begin(); iter != object_vector.end();
-         iter++) {
-        Term *target = addr<Term>(*iter);
-        if (target && (target->getObjectType() == kObjectTypeTerm))
-            return target;
+        std::vector<ObjectId> &object_vector =
+            this->getSymbolTable()->getReferences(symbol_index);
+        for (auto iter = object_vector.begin(); iter != object_vector.end();
+             iter++) {
+            Term *target = addr<Term>(*iter);
+            if (target && (target->getObjectType() == kObjectTypeTerm)) {
+                if (target->getCellId() == this->getId()) {
+                    return target;
+                }
+            }
+        }
     }
     return nullptr;
 }
@@ -1357,60 +1434,6 @@ ScanChain *Cell::getScanChain(size_t idx) const {
     return (addr<ScanChain>(sc_id));
 }
 
-AnalysisMode *Cell::createAnalysisMode(std::string &name) {
-    AnalysisMode *analysis_mode =
-        createObject<AnalysisMode>(kObjectTypeAnalysisMode);
-    if (analysis_mode == nullptr) return nullptr;
-    analysis_mode->set_name(name);
-    if (analysis_modes_ == 0) {
-        ArrayObject<ObjectId> *am_vector =
-            createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-        analysis_modes_ = am_vector->getId();
-        am_vector->setPool(getPool());
-        am_vector->reserve(32);
-    }
-    ArrayObject<ObjectId> *am_vector =
-        addr<ArrayObject<ObjectId>>(analysis_modes_);
-    am_vector->pushBack(analysis_mode->getId());
-    return analysis_mode;
-}
-
-AnalysisCorner *Cell::createAnalysisCorner(std::string &name) {
-    AnalysisCorner *analysis_corner =
-        createObject<AnalysisCorner>(kObjectTypeAnalysisCorner);
-    if (analysis_corner == nullptr) return nullptr;
-    analysis_corner->set_name(name);
-    if (analysis_corners_ == 0) {
-        ArrayObject<ObjectId> *ac_vector =
-            createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-        analysis_corners_ = ac_vector->getId();
-        ac_vector->setPool(getPool());
-        ac_vector->reserve(32);
-    }
-    ArrayObject<ObjectId> *ac_vector =
-        addr<ArrayObject<ObjectId>>(analysis_corners_);
-    ac_vector->pushBack(analysis_corner->getId());
-    return analysis_corner;
-}
-
-AnalysisView *Cell::createAnalysisView(std::string &name) {
-    AnalysisView *analysis_view =
-        createObject<AnalysisView>(kObjectTypeAnalysisView);
-    if (analysis_view == nullptr) return nullptr;
-    analysis_view->set_name(name);
-    if (analysis_views_ == 0) {
-        ArrayObject<ObjectId> *av_vector =
-            createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-        analysis_views_ = av_vector->getId();
-        av_vector->setPool(getPool());
-        av_vector->reserve(32);
-    }
-    ArrayObject<ObjectId> *av_vector =
-        addr<ArrayObject<ObjectId>>(analysis_views_);
-    av_vector->pushBack(analysis_view->getId());
-    return analysis_view;
-}
-
 void Cell::resetTerms(const std::vector<Term *> &terms) {
     if (terms.empty() && terms_ == UNINIT_OBJECT_ID) return;
     ArrayObject<ObjectId> *p = nullptr;
@@ -1451,84 +1474,9 @@ void Cell::resetTerms(const std::vector<Term *> &terms) {
     }
 }
 
-AnalysisMode *Cell::getAnalysisMode(std::string name) {
-    if (analysis_modes_ == 0 || name == "") return nullptr;
-    ArrayObject<ObjectId> *object_vector =
-        addr<ArrayObject<ObjectId>>(analysis_modes_);
-    if (object_vector == nullptr) return nullptr;
-    for (auto iter = object_vector->begin(); iter != object_vector->end();
-         iter++) {
-        AnalysisMode *target = addr<AnalysisMode>(*iter);
-        if (target && target->get_name() == name) return target;
-    }
-    return nullptr;
-}
-
-AnalysisCorner *Cell::getAnalysisCorner(std::string name) {
-    if (analysis_corners_ == 0 || name == "") return nullptr;
-    ArrayObject<ObjectId> *object_vector =
-        addr<ArrayObject<ObjectId>>(analysis_corners_);
-    if (object_vector == nullptr) return nullptr;
-    for (auto iter = object_vector->begin(); iter != object_vector->end();
-         iter++) {
-        AnalysisCorner *target = addr<AnalysisCorner>(*iter);
-        if (target && target->get_name() == name) return target;
-    }
-    return nullptr;
-}
-
-AnalysisView *Cell::getAnalysisView(std::string name) {
-    if (analysis_views_ == 0 || name == "") return nullptr;
-    ArrayObject<ObjectId> *object_vector =
-        addr<ArrayObject<ObjectId>>(analysis_views_);
-    if (object_vector == nullptr) return nullptr;
-    for (auto iter = object_vector->begin(); iter != object_vector->end();
-         iter++) {
-        AnalysisView *target = addr<AnalysisView>(*iter);
-        if (target && target->get_name() == name) return target;
-    }
-    return nullptr;
-}
-
-AnalysisView *Cell::getAnalysisView(size_t idx) const {
-    if (analysis_views_ == 0) return nullptr;
-    ArrayObject<ObjectId> *object_vector =
-        addr<ArrayObject<ObjectId>>(analysis_views_);
-    if (object_vector == nullptr) return nullptr;
-    ObjectId id = (*object_vector)[idx];
-    return addr<AnalysisView>(id);
-}
-
-void Cell::addActiveSetupView(ObjectId id) {
-    if (id == 0) return;
-    if (active_setup_views_ == 0) {
-        ArrayObject<ObjectId> *asv_vector =
-            createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-        active_setup_views_ = asv_vector->getId();
-        asv_vector->setPool(getPool());
-        asv_vector->reserve(32);
-    }
-    ArrayObject<ObjectId> *asv_vector =
-        addr<ArrayObject<ObjectId>>(active_setup_views_);
-    asv_vector->pushBack(id);
-}
-
-void Cell::addActiveHoldView(ObjectId id) {
-    if (id == 0) return;
-    if (active_hold_views_ == 0) {
-        ArrayObject<ObjectId> *ahv_vector =
-            createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-        active_hold_views_ = ahv_vector->getId();
-        ahv_vector->setPool(getPool());
-        ahv_vector->reserve(32);
-    }
-    ArrayObject<ObjectId> *ahv_vector =
-        addr<ArrayObject<ObjectId>>(active_hold_views_);
-    ahv_vector->pushBack(id);
-}
-
 std::string const &Cell::getClass() {
-    return getSymbolTable()->getSymbolByIndex(class_index_);
+    return getSymbolByIndex(class_index_);
+    // return getSymbolTable()->getSymbolByIndex(class_index_);
 }
 
 void Cell::setClass(const char *v) {
@@ -1540,6 +1488,7 @@ void Cell::setClass(const char *v) {
 
 std::string const &Cell::getEEQ() {
     return getSymbolTable()->getSymbolByIndex(eeq_index_);
+    // return getSymbolTable()->getSymbolByIndex(eeq_index_);
 }
 
 void Cell::setEEQ(const char *v) {

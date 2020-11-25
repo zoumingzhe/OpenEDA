@@ -10,14 +10,14 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 
-#include "util_mem.h"
+#include "string.h"
 
 #include <unistd.h>
-
 #include <fstream>
 #include <iostream>
 
-#include "string.h"
+#include "util/util_mem.h"
+#include "util/message.h"
 
 namespace open_edi {
 namespace util {
@@ -475,8 +475,15 @@ bool MemPool::destroyMemPool() {
 MemPagePool *MemPool::newPagePool() {
     std::lock_guard<std::mutex> sg(mutex_);
 
-    if (!initialized_) return nullptr;
-    if (pool_no_ == MEM_POOL_MAX) return nullptr;
+    if (!initialized_) {
+        message->issueMsg(kError, "Cannot new Page pool when Memory pool"
+                                  "is not initialized.\n");
+        return nullptr;
+    }
+    if (pool_no_ == MEM_POOL_MAX) {
+        message->issueMsg(kError, "page pool is full. %d\n", pool_no_);
+        return nullptr;
+    }
 
     MemPagePool *p = new MemPagePool;
     p->setPoolNo(pool_no_);
@@ -494,8 +501,15 @@ MemPagePool *MemPool::newPagePool() {
 MemPagePool *MemPool::newPagePool(uint64_t cell_id) {
     std::lock_guard<std::mutex> sg(mutex_);
 
-    if (!initialized_) return nullptr;
-    if (pool_no_ == MEM_POOL_MAX) return nullptr;
+    if (!initialized_) {
+        message->issueMsg(kError, "Cannot new Page pool when Memory pool"
+                                  "is not initialized.\n");
+        return nullptr;
+    }
+    if (pool_no_ == MEM_POOL_MAX) {
+        message->issueMsg(kError, "page pool is full. %d\n", pool_no_);
+        return nullptr;
+    }
 
     MemPagePool *p = new MemPagePool;
     insertPagePool(cell_id, p);

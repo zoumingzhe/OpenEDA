@@ -16,6 +16,7 @@
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 // Class NonDefaultRuleLayer
 NonDefaultRuleLayer::NonDefaultRuleLayer() {
@@ -81,7 +82,7 @@ UInt32 NonDefaultRuleLayer::memory() const {
 
 // Get:
 const char *NonDefaultRuleLayer::getName() const {
-    return getTopCell()->getSymbolByIndex(name_index_).c_str();
+    return getTechLib()->getSymbolByIndex(name_index_).c_str();
 }
 
 SymbolIndex NonDefaultRuleLayer::getNameIndex() const { return name_index_; }
@@ -128,11 +129,11 @@ bool NonDefaultRuleLayer::hasEdgeCapacitance() const {
 
 // Set:
 void NonDefaultRuleLayer::setName(const char *v) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(v);
     if (index == kInvalidSymbolIndex) return;
 
     name_index_ = index;
-    getTopCell()->addSymbolReference(name_index_, this->getId());
+    getTechLib()->addSymbolReference(name_index_, this->getId());
 }
 
 void NonDefaultRuleLayer::setWidth(UInt32 v) {
@@ -209,7 +210,7 @@ void NonDefaultRuleLayer::move(NonDefaultRuleLayer &&rhs) {
 }
 
 void NonDefaultRuleLayer::printLEF(std::ofstream &ofs) const {
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getTechLib();
     ofs << "   LAYER " << getName() << "\n";
     if (hasWidth())
         ofs << "      WIDTH " << (lib->dbuToMicrons(getWidth())) << " ;\n";
@@ -232,7 +233,7 @@ void NonDefaultRuleLayer::printLEF(std::ofstream &ofs) const {
 }
 
 void NonDefaultRuleLayer::printDEF(FILE *fp) const {  // DEF out style print
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getTechLib();
     fprintf(fp, "\n  + LAYER %s", getName());
     if (hasWidth())
         fprintf(fp, "\n      WIDTH %g", (lib->dbuToMicrons(getWidth())));
@@ -326,7 +327,7 @@ UInt32 NonDefaultRuleMinCuts::memory() const {
 
 // Get:
 const char *NonDefaultRuleMinCuts::getName() const {
-    return getTopCell()->getSymbolByIndex(name_index_).c_str();
+    return getTechLib()->getSymbolByIndex(name_index_).c_str();
 }
 
 SymbolIndex NonDefaultRuleMinCuts::getNameIndex() const { return name_index_; }
@@ -335,11 +336,11 @@ uint32_t NonDefaultRuleMinCuts::getNumCuts() const { return num_cuts_; }
 
 // Set:
 void NonDefaultRuleMinCuts::setName(const char *v) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(v);
     if (index == kInvalidSymbolIndex) return;
 
     name_index_ = index;
-    getTopCell()->addSymbolReference(name_index_, this->getId());
+    getTechLib()->addSymbolReference(name_index_, this->getId());
 }
 
 void NonDefaultRuleMinCuts::setNumCuts(uint32_t v) { num_cuts_ = v; }
@@ -462,7 +463,7 @@ UInt32 NonDefaultRule::memory() const {
 }
 
 const char *NonDefaultRule::getName() const {
-    return getTopCell()->getSymbolByIndex(name_index_).c_str();
+    return getTechLib()->getSymbolByIndex(name_index_).c_str();
 }
 
 SymbolIndex NonDefaultRule::getNameIndex() const { return name_index_; }
@@ -522,103 +523,82 @@ ObjectId NonDefaultRule::getPropertiesId() const { return properties_; }
 
 // Set:
 void NonDefaultRule::setName(const char *v) {
-    SymbolIndex index = getTopCell()->getOrCreateSymbol(v);
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(v);
     if (index == kInvalidSymbolIndex) return;
 
     name_index_ = index;
-    getTopCell()->addSymbolReference(name_index_, this->getId());
-}
-
-ObjectId NonDefaultRule::__createObjectArray(int64_t size) {
-    if (size <= 0) return 0;
-    if (!owner_) return 0;
-    Cell *owner_cell = addr<Cell>(owner_);
-    ediAssert(owner_cell != nullptr);
-    ArrayObject<ObjectId> *vobj = 
-      owner_cell->createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
-    ediAssert(vobj != nullptr);
-    vobj->setPool(owner_cell->getPool());
-    vobj->reserve(size);      
-    return (vobj->getId());
-}
-
-void NonDefaultRule::__deleteObjectArray(ObjectId array_id) {
-    if (!owner_ || !array_id) return;
-    Cell *owner_cell = addr<Cell>(owner_);
-    ArrayObject<ObjectId> *vobj = addr< ArrayObject<ObjectId> >(array_id);
-    ediAssert(owner_cell != nullptr && vobj != nullptr);
-    owner_cell->deleteObject(vobj);
+    getTechLib()->addSymbolReference(name_index_, this->getId());
 }
 
 void NonDefaultRule::setLayerSize(uint64_t v) {
     if (v == 0) {
         if (layers_) {
-            __deleteObjectArray(layers_);
+            __deleteObjectIdArray(layers_);
         }
         return;
     }
     if (!layers_) {
-        layers_ = __createObjectArray(16);
+        layers_ = __createObjectIdArray(16);
     }
 }
 
 void NonDefaultRule::setMinCutsSize(uint64_t v) {
     if (v == 0) {
         if (min_cuts_) {
-            __deleteObjectArray(min_cuts_);
+            __deleteObjectIdArray(min_cuts_);
         }
         return;
     }
     if (!min_cuts_) {
-        min_cuts_ = __createObjectArray(16);
+        min_cuts_ = __createObjectIdArray(16);
     }
 }
 
 void NonDefaultRule::setViaSize(uint64_t v) {
     if (v == 0) {
         if (vias_) {
-            __deleteObjectArray(vias_);
+            __deleteObjectIdArray(vias_);
         }
         return;
     }
     if (!vias_) {
-        vias_ = __createObjectArray(8);
+        vias_ = __createObjectIdArray(8);
     }
 }
 
 void NonDefaultRule::setUseViaSize(uint64_t v) {
     if (v == 0) {
         if (use_vias_) {
-            __deleteObjectArray(use_vias_);
+            __deleteObjectIdArray(use_vias_);
         }
         return;
     }
     if (!use_vias_) {
-        use_vias_ = __createObjectArray(16);
+        use_vias_ = __createObjectIdArray(16);
     }
 }
 
 void NonDefaultRule::setUseViaRuleSize(uint64_t v) {
     if (v == 0) {
         if (use_via_rules_) {
-            __deleteObjectArray(use_via_rules_);
+            __deleteObjectIdArray(use_via_rules_);
         }
         return;
     }
     if (!use_via_rules_) {
-        use_via_rules_ = __createObjectArray(16);
+        use_via_rules_ = __createObjectIdArray(16);
     }
 }
 
 void NonDefaultRule::setPropertySize(uint64_t v) {
     if (v == 0) {
         if (properties_) {
-            __deleteObjectArray(properties_);
+            __deleteObjectIdArray(properties_);
         }
         return;
     }
     if (!properties_) {
-        properties_ = __createObjectArray(16);
+        properties_ = __createObjectIdArray(16);
     }
 }
 
@@ -626,7 +606,7 @@ void NonDefaultRule::addLayer(ObjectId obj_id) {
     if (obj_id == 0) return;
     ArrayObject<ObjectId> *vobj = nullptr;
     if (layers_ == 0) {
-        layers_ = __createObjectArray(16);
+        layers_ = __createObjectIdArray(16);
     }
     vobj = addr< ArrayObject<ObjectId> >(layers_);
     ediAssert(vobj != nullptr);
@@ -637,7 +617,7 @@ void NonDefaultRule::addMinCuts(ObjectId obj_id) {
     if (obj_id == 0) return;
     ArrayObject<ObjectId> *vobj = nullptr;
     if (min_cuts_ == 0) {
-        min_cuts_ = __createObjectArray(16);
+        min_cuts_ = __createObjectIdArray(16);
     }
     vobj = addr< ArrayObject<ObjectId> >(min_cuts_);
     ediAssert(vobj != nullptr);
@@ -648,7 +628,7 @@ void NonDefaultRule::addVia(ObjectId obj_id) {
     if (obj_id == 0) return;
     ArrayObject<ObjectId> *vobj = nullptr;
     if (vias_ == 0) {
-        vias_ = __createObjectArray(8);
+        vias_ = __createObjectIdArray(8);
     }
     vobj = addr< ArrayObject<ObjectId> >(vias_);
     ediAssert(vobj != nullptr);
@@ -659,7 +639,7 @@ void NonDefaultRule::addUseVia(ObjectId obj_id) {
     if (obj_id == 0) return;
     ArrayObject<ObjectId> *vobj = nullptr;
     if (use_vias_ == 0) {
-        use_vias_ = __createObjectArray(16);
+        use_vias_ = __createObjectIdArray(16);
     }
     vobj = addr< ArrayObject<ObjectId> >(use_vias_);
     ediAssert(vobj != nullptr);
@@ -670,7 +650,7 @@ void NonDefaultRule::addUseViaRule(ObjectId obj_id) {
     if (obj_id == 0) return;
     ArrayObject<ObjectId> *vobj = nullptr;
     if (use_via_rules_ == 0) {
-        use_via_rules_ = __createObjectArray(16);
+        use_via_rules_ = __createObjectIdArray(16);
     }
     vobj = addr< ArrayObject<ObjectId> >(use_via_rules_);
     ediAssert(vobj != nullptr);
@@ -681,7 +661,7 @@ void NonDefaultRule::addProperty(ObjectId obj_id) {
     if (obj_id == 0) return;
     ArrayObject<ObjectId> *vobj = nullptr;
     if (properties_ == 0) {
-        properties_ = __createObjectArray(16);
+        properties_ = __createObjectIdArray(16);
     }
     vobj = addr< ArrayObject<ObjectId> >(properties_);
     ediAssert(vobj != nullptr);

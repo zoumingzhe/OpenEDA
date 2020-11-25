@@ -146,10 +146,10 @@ TimingTable1::TimingTable1()
 
 TimingTable1::~TimingTable1() {
 #if 0
-    Cell* topCell = getTopCell();
-    if (topCell && axis1_ != UNINIT_OBJECT_ID) {
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib && axis1_ != UNINIT_OBJECT_ID) {
         TableAxis* t = addr<TableAxis>(axis1_);
-        if (t) topCell->deleteObject<TableAxis>(t);
+        if (t) timing_lib->deleteObject<TableAxis>(t);
     }
 #endif
 }
@@ -205,12 +205,13 @@ TimingTable1::IndexType TimingTable1::memory() const {
 void TimingTable1::add_value(float f) {
     ArrayObject<float>* p = nullptr;
     if (values_ == UNINIT_OBJECT_ID) {
-        Cell* topCell = getTopCell();
-        if (topCell != nullptr) {
-            p = topCell->createObject<ArrayObject<float>>(kObjectTypeArray);
+        Timing* timing_lib = getTimingLib();
+        if (timing_lib != nullptr) {
+            p = Object::createObject<ArrayObject<float>>(
+                  kObjectTypeArray, timing_lib->getId());
             if (p != nullptr) {
                 values_ = p->getId();
-                p->setPool(topCell->getPool());
+                p->setPool(timing_lib->getPool());
                 p->reserve(32);
             }
         }
@@ -289,14 +290,14 @@ TimingTable2::TimingTable2()
 
 TimingTable2::~TimingTable2() {
 #if 0
-    Cell* topCell = getTopCell();
-    if (topCell && axis1_ != UNINIT_OBJECT_ID) {
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib && axis1_ != UNINIT_OBJECT_ID) {
         TableAxis* t = addr<TableAxis>(axis1_);
-        if (t) topCell->deleteObject<TableAxis>(t);
+        if (t) timing_lib->deleteObject<TableAxis>(t);
     }
-    if (topCell && axis2_ != UNINIT_OBJECT_ID) {
+    if (timing_lib && axis2_ != UNINIT_OBJECT_ID) {
         TableAxis* t = addr<TableAxis>(axis2_);
-        if (t) topCell->deleteObject<TableAxis>(t);
+        if (t) timing_lib->deleteObject<TableAxis>(t);
     }
 #endif
 }
@@ -356,12 +357,13 @@ TimingTable2::IndexType TimingTable2::memory() const {
 void TimingTable2::add_value(float f) {
     ArrayObject<float>* p = nullptr;
     if (values_ == UNINIT_OBJECT_ID) {
-        Cell* topCell = getTopCell();
-        if (topCell != nullptr) {
-            p = topCell->createObject<ArrayObject<float>>(kObjectTypeArray);
+        Timing* timing_lib = getTimingLib();
+        if (timing_lib != nullptr) {
+            p = Object::createObject<ArrayObject<float>>(
+                  kObjectTypeArray, timing_lib->getId());
             if (p != nullptr) {
                 values_ = p->getId();
-                p->setPool(topCell->getPool());
+                p->setPool(timing_lib->getPool());
                 p->reserve(32);
             }
         }
@@ -451,10 +453,10 @@ TimingTable3::TimingTable3()
 
 TimingTable3::~TimingTable3() {
 #if 0
-    Cell* topCell = getTopCell();
-    if (topCell && axis3_ != UNINIT_OBJECT_ID) {
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib && axis3_ != UNINIT_OBJECT_ID) {
         TableAxis* t = addr<TableAxis>(axis3_);
-        if (t) topCell->deleteObject<TableAxis>(t);
+        if (t) timing_lib->deleteObject<TableAxis>(t);
     }
 #endif
 }

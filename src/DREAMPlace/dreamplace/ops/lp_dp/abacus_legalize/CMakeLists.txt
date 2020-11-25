@@ -2,10 +2,11 @@ project(place_abacus_legalize)
 
 file(GLOB SOURCES 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cu"
     )
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../..")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../.."
+                    "${CMAKE_CURRENT_SOURCE_DIR}/../../../../..")
 include_directories(${LIMBO_SOURCE_DIR})
 include_directories(${Boost_INCLUDE_DIRS})
 
