@@ -208,31 +208,28 @@ void MemPagePool::printUsage() {
 void MemPagePool::__writeChunkSizeInfo(std::ofstream &outfile, bool debug) {
     if (debug) cout << "RWDBGINFO: write size " << num_chunks_ << endl;
     outfile.write((char *)&(num_chunks_), sizeof(uint64_t));
+    outfile.write((char *)&(chunk_size_), sizeof(uint64_t));
+    /*
     int i = 0;
     for (auto &mem_chunk : chunks_) {
         uint64_t size = mem_chunk->getSize();
         if (debug) cout << "RWDBGINFO: write chunk_size " << size << endl;
         outfile.write((char *)&size, sizeof(uint64_t));
     }
+    */
 }
 
 void MemPagePool::__readChunkSizeInfo(std::ifstream &infile, bool debug) {
-    uint64_t size = 0;
-    infile.read((char *)(&size), sizeof(uint64_t));
-    if (debug) cout << "RWDBGINFO: read size " << size << endl;
+    infile.read((char *)(&num_chunks_), sizeof(uint64_t));
+    infile.read((char *)(&chunk_size_), sizeof(uint64_t));
+    if (debug) cout << "RWDBGINFO: read num_chunks " << num_chunks_ << endl;
+    if (debug) cout << "RWDBGINFO: read chunk_size " << chunk_size_ << endl;
 
-    uint64_t *buffer = new uint64_t[size];
-
-    infile.read((char *)buffer, sizeof(uint64_t) * size);
-    num_chunks_ = size;
-    chunk_size_ = buffer[size - 1];
     chunks_.resize(num_chunks_, nullptr);
-    for (int i = 0; i < size; ++i) {
-        if (debug) cout << "RWDBGINFO: read chunk_size " << buffer[i] << endl;
-        MemChunk *mem_chunk = new MemChunk(buffer[i]);
+    for (int i = 0; i < num_chunks_; ++i) {
+        MemChunk *mem_chunk = new MemChunk(chunk_size_);
         chunks_[i] = mem_chunk;
     }
-    delete[] buffer;
 }
 
 void MemPagePool::__writePageInfo(std::ofstream &outfile, bool debug) {
@@ -427,6 +424,7 @@ void MemPagePool::__writeChunks(std::ofstream &outfile, bool debug) {
     compressor.run(1, num_last_chunks - i, 1);
     for (int k = 0; k < num_last_chunks; ++k) {
         if (compressed_sizes[k] > 0) {
+            outfile.write((char*)&(compressed_sizes[k]), sizeof(int));
             outfile.write((char*)dst_chunks[k]->getChunk(),
                                                       compressed_sizes[k]);
         } else {
@@ -448,6 +446,20 @@ void MemPagePool::__writeChunks(std::ofstream &outfile, bool debug) {
 }
 
 void MemPagePool::__readChunks(std::ifstream &infile, bool debug) {
+    size_t src_buffer_size = LZ4F_compressFrameBound(chunk_size_, NULL);
+    char *src_buffer = new char[src_buffer_size];
+    int   compressed_chunk_size = 0;
+    char *dst_buffer = new char[chunk_size_];
+    for (uint64_t i = 0; i < num_chunks_; ++i) {
+        MemChunk *chunk = chunks_[i];
+        infile.read((char *)&compressed_chunk_size, sizeof(int));
+        infile.read((char *)src_buffer, compressed_chunk_size);
+        chunk->setSize(LZ4_decompress_safe(src_buffer, (char*)chunk->getChunk(),
+                       compressed_chunk_size, chunk_size_));
+    }
+
+    delete [] src_buffer;
+    delete [] dst_buffer;
 }
 
 /// @brief write header to a file
@@ -535,7 +547,6 @@ bool MemPool::destroyMemPool() {
 
     indexed_page_pools_.fill(nullptr);
     page_pools_.clear();
-    initMemPool();
     return true;
 }
 

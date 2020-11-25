@@ -61,6 +61,7 @@ void Monitor::reset() {
 
 MonitorManager::MonitorManager() {
     id_ = kInvalidMonitorId + 1;
+    unused_num_id_ = kMaxNumMonitorId;
 }
 
 MonitorManager::~MonitorManager() {
