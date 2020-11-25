@@ -35,14 +35,14 @@ class Polygon {
 
     uint32_t getNumPoints() const { return pts_.size(); }
     void addPoint(Point *value);
-    void addPoint(Point value) { pts_.emplace_back(std::move(value)); }
-    Point getPoint(int index) const { return pts_[index]; }
+
+    Point getPoint(int index) const { return *pts_[index]; }
 
     void writeToFile(std::ofstream &outfile, bool debug);
     void readFromFile(std::ifstream &infile, bool debug);
 
   private:
-    std::vector<Point> pts_;
+    std::vector<Point *> pts_;
 };
 
 class PolygonTable {
