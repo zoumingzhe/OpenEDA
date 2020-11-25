@@ -13,7 +13,10 @@
  */
 
 #include "db/core/db.h"
+#include "db/core/timing.h"
 #include "util/stream.h"
+
+#include <iostream>
 
 #include "db/timing/spef/spef_reader.h"
 
@@ -77,19 +80,22 @@ void SpefReader::setCell(const char *designName) {
 }
 
 void SpefReader::addDesignNetsParasitics() {
-    if (cell_ != nullptr) {
-        netsParasitics_ = cell_->createObject<NetsParasitics>(kObjectTypeNetsParasitics);
+    Timing *timingdb = getTimingLib();
+    if (timingdb != nullptr) {
+        netsParasitics_ = timingdb->createObject<NetsParasitics>(kObjectTypeNetsParasitics, timingdb->getId());
         if (netsParasitics_ == nullptr) {
             open_edi::util::message->issueMsg(open_edi::util::kError,
                                               "Creating NetsParasitics failed.\n");
             return;
         }
-        netsParasitics_->setCellId(cell_->getId());
-        SymbolIndex spefFileIdx = cell_->getOrCreateSymbol(spefFileName_.c_str());
-	if (designParasitics_ && cell_) {
-            designParasitics_->addSpefMap(cell_->getId(), spefFileIdx);
-	    designParasitics_->addParasiticsMap(cell_->getId(), netsParasitics_->getId());
-	}	 
+        if (cell_) {
+            netsParasitics_->setCellId(cell_->getId());
+            SymbolIndex spefFileIdx = timingdb->getOrCreateSymbol(spefFileName_.c_str());
+	    if (designParasitics_ && cell_) {
+                designParasitics_->addSpefMap(cell_->getId(), spefFileIdx);
+	        designParasitics_->addParasiticsMap(cell_->getId(), netsParasitics_->getId());
+	    }	 
+	}
     }
 }
 
@@ -224,7 +230,7 @@ void SpefReader::addPinNode(char *pinName) {
         std::string pinStr = pinName;
         stringDelete(pinName);
         ObjectId pinNodeId = getParasiticNode(pinStr);
-        dnetParasitics_->addPinNode(pinNodeId, cell_->getId());
+        dnetParasitics_->addPinNode(pinNodeId);
     }
 }
 
@@ -232,11 +238,11 @@ ObjectId SpefReader::getParasiticNode(std::string nodeName) {
     ObjectId paraNodeId = UNINIT_OBJECT_ID;
     if (netsParasitics_ && dnetParasitics_) {
 	if (netNodeMap_.find(nodeName) == netNodeMap_.end()) {
-            paraNodeId = netsParasitics_->addNode(dnetParasitics_, nodeName.c_str());
-            if (paraNodeId != UNINIT_OBJECT_ID)
-                netNodeMap_[nodeName] = paraNodeId;
-        } else
+            paraNodeId = netsParasitics_->createParaNode(dnetParasitics_, nodeName.c_str());
+            netNodeMap_[nodeName] = paraNodeId;
+        } else {
             paraNodeId = netNodeMap_[nodeName];
+        }
     }
     return paraNodeId;
      
@@ -249,7 +255,7 @@ void SpefReader::addGroundCap(char *nodeName) {
         stringDelete(nodeName);
 	ObjectId paraNodeId = getParasiticNode(nodeStr);
         if (paraNodeId != UNINIT_OBJECT_ID)
-            dnetParasitics_->addGroundCap(paraNodeId, cell_->getId(), parValue_);
+            dnetParasitics_->addGroundCap(paraNodeId, parValue_);
     }
 }
 
@@ -259,10 +265,10 @@ void SpefReader::addCouplingCap(char *nodeName1, char *nodeName2) {
         std::string node2Str = nodeName2;
         stringDelete(nodeName1);
 	stringDelete(nodeName2);
-	ObjectId paraNode1Id = getParasiticNode(nodeName1);
-        ObjectId paraNode2Id = getParasiticNode(nodeName2);
+	ObjectId paraNode1Id = getParasiticNode(node1Str);
+        ObjectId paraNode2Id = getParasiticNode(node2Str);
 	if (paraNode1Id != UNINIT_OBJECT_ID && paraNode2Id != UNINIT_OBJECT_ID)
-	    dnetParasitics_->addCouplingCap(paraNode1Id, paraNode2Id, cell_->getId(), parValue_);
+	    dnetParasitics_->addCouplingCap(paraNode1Id, paraNode2Id, parValue_);
     }
 }
 
@@ -272,10 +278,10 @@ void SpefReader::addResistor(char *nodeName1, char *nodeName2) {
 	std::string node2Str = nodeName2;
 	stringDelete(nodeName1);
 	stringDelete(nodeName2);
-	ObjectId paraNode1Id = getParasiticNode(nodeName1);
-        ObjectId paraNode2Id = getParasiticNode(nodeName2);
+	ObjectId paraNode1Id = getParasiticNode(node1Str);
+        ObjectId paraNode2Id = getParasiticNode(node2Str);
         if (paraNode1Id != UNINIT_OBJECT_ID && paraNode2Id != UNINIT_OBJECT_ID)
-            dnetParasitics_->addResistor(paraNode1Id, paraNode2Id, cell_->getId(), parValue_);
+            dnetParasitics_->addResistor(paraNode1Id, paraNode2Id, parValue_);
     }
 }
 

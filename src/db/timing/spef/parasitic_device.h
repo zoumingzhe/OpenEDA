@@ -35,9 +35,9 @@ class ParasiticNode : public Object {
     ParasiticNode();
     ~ParasiticNode() {}
 
-    virtual bool isIntNode() const { return false; }
-    virtual bool isPinNode() const { return false; }
-    virtual bool isExtNode() const { return false; }
+    //virtual bool isIntNode() const { return false; }
+    //virtual bool isPinNode() const { return false; }
+    //virtual bool isExtNode() const { return false; }
 };
 
 class ParasiticIntNode : public ParasiticNode {
@@ -45,7 +45,7 @@ class ParasiticIntNode : public ParasiticNode {
     ParasiticIntNode();
     ~ParasiticIntNode() {}
 
-    virtual bool isIntNode() const { return true; } 
+    //virtual bool isIntNode() const { return true; } 
     void setIntNodeId(uint32_t nodeId) { nodeId_ = nodeId; }
     uint32_t getIntNodeId() const { return nodeId_; }
 
@@ -58,7 +58,7 @@ class ParasiticPinNode : public ParasiticNode {
     ParasiticPinNode();
     ~ParasiticPinNode() {}
  
-    virtual bool isPinNode() const { return true; }
+    //virtual bool isPinNode() const { return true; }
     void setPinId(ObjectId pinId) { pinId_ = pinId; }
     ObjectId getPinId() const { return pinId_; }
 
@@ -71,7 +71,7 @@ class ParasiticExtNode : public ParasiticNode {
     ParasiticExtNode();
     ~ParasiticExtNode() {}
 
-    virtual bool isExtNode() const { return true; }
+    //virtual bool isExtNode() const { return true; }
     void setExtNetId(ObjectId nodeNetId) { nodeNetId_ = nodeNetId; }
     ObjectId getExtNetId() const { return nodeNetId_; }
     void setExtNodeId(uint32_t nodeId) { nodeId_ = nodeId; }
@@ -89,9 +89,9 @@ class ParasiticDevice : public Object {
     ParasiticDevice();
     ~ParasiticDevice() {}
 
-    virtual bool isResistor() const { return false; }
-    virtual bool isGroundCap() const { return false; }
-    virtual bool isXCap() const { return false; }
+    //virtual bool isResistor() const { return false; }
+    //virtual bool isGroundCap() const { return false; }
+    //virtual bool isXCap() const { return false; }
     void setNode1Id(ObjectId node1Id) { node1Id_ = node1Id; }
     ObjectId getNode1Id() const { return node1Id_; }
 
@@ -104,7 +104,7 @@ class ParasiticResistor : public ParasiticDevice {
     ParasiticResistor();
     ~ParasiticResistor();
 
-    virtual bool isResistor() const { return true; }
+    //virtual bool isResistor() const { return true; }
     void setResistance(float resValue) { resistance_ = resValue; }
     float getResistance() const { return resistance_; }
     void setNode2Id(ObjectId node2Id) { node2Id_ = node2Id; }
@@ -120,7 +120,7 @@ class ParasiticXCap : public ParasiticDevice {
     ParasiticXCap();
     ~ParasiticXCap();
 
-    virtual bool isXCap() const { return true; }
+    //virtual bool isXCap() const { return true; }
     void setCapacitance(float capValue) { capacitance_ = capValue; }
     float getCapacitance() const { return capacitance_; }
     void setNode2Id(ObjectId node2Id) { node2Id_ = node2Id; }
@@ -136,7 +136,7 @@ class ParasiticCap : public ParasiticDevice {
     ParasiticCap();
     ~ParasiticCap();
 
-    virtual bool isGroundCap() const { return true; }
+    //virtual bool isGroundCap() const { return true; }
     void setCapacitance(float capValue) { capacitance_ = capValue; }
     float getCapacitance() const { return capacitance_; }
 

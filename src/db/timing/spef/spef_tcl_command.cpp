@@ -15,6 +15,7 @@
 #include "db/timing/spef/spef_tcl_command.h"
 #include "db/core/cell.h"
 #include "db/core/db.h"
+#include "db/core/timing.h"
 #include "db/timing/timinglib/analysis_corner.h"
 #include "db/timing/timinglib/analysis_mode.h"
 #include "db/timing/timinglib/analysis_view.h"
@@ -72,8 +73,8 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 open_edi::util::kError, "Please specify at least one SPEF file.");
             return TCL_ERROR;
         }
-        Cell *topCell = getTopCell();
-        if (topCell == nullptr) {
+        Timing *timingdb = getTimingLib();
+        if (timingdb == nullptr) {
             open_edi::util::message->issueMsg(
                 open_edi::util::kError,
                 "Cannot find top cell when reading SPEF file.");
@@ -82,21 +83,21 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
         AnalysisCorner *corner = nullptr;
         if (cornerName == "") {
             std::string default_name = "default";
-            auto view = topCell->getAnalysisView(default_name);
+            auto view = timingdb->getAnalysisView(default_name);
             if (view == nullptr) {
-                auto mode = topCell->createAnalysisMode(default_name);
+                auto mode = timingdb->createAnalysisMode(default_name);
                 if (mode == nullptr) {
                     open_edi::util::message->issueMsg(
                         open_edi::util::kError, "Create default mode failed.");
                     return TCL_ERROR;
                 }
-                corner = topCell->createAnalysisCorner(default_name);
+                corner = timingdb->createAnalysisCorner(default_name);
                 if (corner == nullptr) {
                     open_edi::util::message->issueMsg(
                         open_edi::util::kError, "Create default corner failed.");
                     return TCL_ERROR;
                 }
-                view = topCell->createAnalysisView(default_name);
+                view = timingdb->createAnalysisView(default_name);
                 if (view == nullptr) {
                     open_edi::util::message->issueMsg(
                         open_edi::util::kError, "Create default view failed.");
@@ -108,12 +109,12 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 view->set_active(true);
                 view->set_setup(true);
                 view->set_hold(true);
-                topCell->addActiveSetupView(view->getId());
-                topCell->addActiveHoldView(view->getId());
+                timingdb->addActiveSetupView(view->getId());
+                timingdb->addActiveHoldView(view->getId());
             } else {
                 corner = view->get_analysis_corner();
                 if (corner == nullptr) {
-                    corner = topCell->createAnalysisCorner(default_name);
+                    corner = timingdb->createAnalysisCorner(default_name);
                     if (corner == nullptr) {
                         open_edi::util::message->issueMsg(
                             open_edi::util::kError, "Create default view failed.");
@@ -122,7 +123,7 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 }
             }
         } else {
-            corner = topCell->getAnalysisCorner(cornerName);
+            corner = timingdb->getAnalysisCorner(cornerName);
             if (corner == nullptr) {
                 open_edi::util::message->issueMsg(
                     open_edi::util::kError,
@@ -130,20 +131,20 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 return TCL_ERROR;
             }
         }
-        DesignParasitics *dsgParasitics = corner->get_design_parasitics();
-        if (dsgParasitics == nullptr) {
-	    dsgParasitics = topCell->createObject<DesignParasitics>(kObjectTypeDesignParasitics);
-            if (dsgParasitics == nullptr) {
+        DesignParasitics *dsnParasitics = corner->get_design_parasitics();
+        if (dsnParasitics == nullptr) {
+	    dsnParasitics = timingdb->createObject<DesignParasitics>(kObjectTypeDesignParasitics, timingdb->getId());
+            if (dsnParasitics == nullptr) {
                 open_edi::util::message->issueMsg(
                     open_edi::util::kError,
                     "Create spef database failed.");
                 return TCL_ERROR;
 	    }
-            corner->set_design_parasitics(dsgParasitics->getId());
+            corner->set_design_parasitics(dsnParasitics->getId());
         }
         open_edi::util::message->info("\nReading SPEF file\n");
         for (auto spefFile : spefFiles) {
-            if ( parseSpefFile(spefFile, dsgParasitics) == TCL_ERROR ) {
+            if ( parseSpefFile(spefFile, dsnParasitics) == TCL_ERROR ) {
                 std::string errMsg = "Failed to parse SPEF file: " + spefFile;       
                 open_edi::util::message->issueMsg(
                     open_edi::util::kError,
@@ -201,8 +202,8 @@ int writeSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 open_edi::util::kError, "Only one file is allowed.");
 	    return TCL_ERROR;
         }
-        Cell *topCell = getTopCell();
-        if (topCell == nullptr) {
+        Timing *timingdb = getTimingLib();
+        if (timingdb == nullptr) {
             open_edi::util::message->issueMsg(
                 open_edi::util::kError,
                 "Cannot find top cell when writing SPEF file.");
@@ -211,14 +212,14 @@ int writeSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
         AnalysisCorner *corner = nullptr;
         if (cornerName == "") {
             std::string default_name = "default";
-            corner = topCell->getAnalysisCorner(default_name);
+            corner = timingdb->getAnalysisCorner(default_name);
 	    if (corner == nullptr) {
                 open_edi::util::message->issueMsg(
                         open_edi::util::kError, "Create default corner failed.");
                 return TCL_ERROR;
             }
 	} else {
-            corner = topCell->getAnalysisCorner(cornerName);
+            corner = timingdb->getAnalysisCorner(cornerName);
 	    if (corner == nullptr) {
                 open_edi::util::message->issueMsg(
                         open_edi::util::kError, "Can't find specified corner in design.");

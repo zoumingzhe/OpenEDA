@@ -86,7 +86,7 @@ class NetsParasitics : public Object {
     bool isDigits(const char *str);
     Net* findNet(const char *netName);
     Pin* findPin(const char *pinName);
-    ObjectId addNode(DNetParasitics *netParasitics, const char *nodeName);
+    ObjectId createParaNode(DNetParasitics *netParasitics, const char *nodeName);
     DNetParasitics* addDNetParasitics(ObjectId netId, float totCap);
     void addGroundCap(ObjectId netId, char *nodeName, float capValue);
     void addCouplingCap(ObjectId netId, char *nodeName1, char *nodeName2, float xCapValue);

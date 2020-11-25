@@ -484,7 +484,6 @@ conn_sec:
 ;
 
 conn_defs:
-	/* empty */
 |	conn_defs conn_def
 ;
 

@@ -38,7 +38,7 @@ class NetParasitics : public Object {
     NetParasitics();
     /// @brief destructor
     ~NetParasitics();
-    virtual bool isReduced() const { return false; }
+    //virtual bool isReduced() const { return false; }
     ObjectId getNetId() const { return netId_; }
     void setNetId(ObjectId netId) { netId_ = netId; } 
     float getNetTotalCap() const { return totalCap_; }
@@ -58,12 +58,13 @@ class DNetParasitics : public NetParasitics {
     ObjectId getCouplingCapVecId() const { return xCapVecId_; }
     ObjectId getResistorVecId() const { return resVecId_; } 
 
-    ObjectId addPinNode(ObjectId pinId, ObjectId cellId, bool isExtPin = false);
-    ObjectId addIntNode(ObjectId cellId, uint32_t intNodeId);
-    ObjectId addExtNode(ObjectId netId, ObjectId cellId, uint32_t extNodeId);
-    void addGroundCap(ObjectId nodeId, ObjectId cellId, float capValue);
-    void addCouplingCap(ObjectId node1Id, ObjectId node2Id, ObjectId cellId, float capValue);
-    void addResistor(ObjectId node1Id, ObjectId node2Id, ObjectId cellId, float resValue);
+    ObjectId createPinNode(ObjectId pinId);
+    ObjectId createIntNode(uint32_t intNodeId);
+    ObjectId createExtNode(ObjectId netId, uint32_t extNodeId);
+    void addPinNode(ObjectId pinNodeId);
+    void addGroundCap(ObjectId nodeId, float capValue);
+    void addCouplingCap(ObjectId node1Id, ObjectId node2Id, float capValue);
+    void addResistor(ObjectId node1Id, ObjectId node2Id, float resValue);
     
 
   protected:
@@ -85,7 +86,7 @@ class RNetParasitics : public NetParasitics {
   public:
     RNetParasitics();
     ~RNetParasitics();
-     virtual bool isReduced() const { return true; }
+     //virtual bool isReduced() const { return true; }
      void setDriverPinId(ObjectId drvrPinId) { drvrPinId_ = drvrPinId; }
      ObjectId getDriverPinId() const { return drvrPinId_; }
      void setC2(float c2) { c2_ = c2; }
