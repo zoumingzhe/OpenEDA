@@ -147,6 +147,7 @@ class MemChunk {
 
     ~MemChunk();
     
+    void setSize(size_t size) { size_ = size; }
     size_t getSize() const { return size_;}
     void *getChunk() const { return chunk_;}
 
