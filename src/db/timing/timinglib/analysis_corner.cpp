@@ -91,22 +91,22 @@ AnalysisCorner::IndexType AnalysisCorner::memory() const {
 
 /// set
 void AnalysisCorner::set_name(const std::string& name) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
         if (idx != kInvalidSymbolIndex) {
             name_ = idx;
-            topCell->addSymbolReference(name_, this->getId());
+            timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
 void AnalysisCorner::set_rc_tech_file(const std::string& file) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex idx = topCell->getOrCreateSymbol(file.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(file.c_str());
         if (idx != kInvalidSymbolIndex) {
             rc_tech_file_ = idx;
-            topCell->addSymbolReference(rc_tech_file_, this->getId());
+            timing_lib->addSymbolReference(rc_tech_file_, this->getId());
         }
     }
 }
@@ -118,16 +118,16 @@ SymbolIndex AnalysisCorner::get_rc_tech_file_index(void) {
     return rc_tech_file_;
 }
 std::string AnalysisCorner::get_name(void) const {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(name_);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
 std::string AnalysisCorner::get_rc_tech_file(void) const {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(rc_tech_file_);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(rc_tech_file_);
     }
     return "";
 }

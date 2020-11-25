@@ -25,6 +25,7 @@
 namespace open_edi {
 
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 Yosys::RTLIL::Design *yosys_design = NULL;
 bool kFirstRunReadVerilog = false;
 std::map<Inst*, std::string> kInstMasterMap;
@@ -458,11 +459,11 @@ static void findMasterForInst() {
         inst->setMaster(cell->getId());
 
         ObjectId pins = inst->getPins();
-        VectorObject8 *pins_vector = cell->addr<VectorObject8>(pins);
-        VectorObject8 *pgpin_vector = nullptr;
-        for (int i = 0; i < pins_vector->totalSize(); i++) {
+        IdArray *pins_vector = Object::addr<IdArray>(pins);
+        IdArray *pgpin_vector = nullptr;
+        for (int i = 0; i < pins_vector->getSize(); i++) {
             ObjectId pin_id = (*pins_vector)[i];
-            Pin *pin = cell->addr<Pin>(pin_id);
+            Pin *pin = Object::addr<Pin>(pin_id);
             Term *term = cell->getTerm(pin->getName());
             if (!term) {
                 message->issueMsg(kError,

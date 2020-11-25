@@ -95,12 +95,12 @@ WireLoadTable::IndexType WireLoadTable::memory() const {
 
 /// set
 void WireLoadTable::set_name(const std::string& name) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
         if (index != kInvalidSymbolIndex) {
             name_ = index;
-            topCell->addSymbolReference(name_, this->getId());
+            timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
@@ -127,9 +127,9 @@ void WireLoadTable::set_fanout_area(int n, float f) {
 
 /// get
 std::string WireLoadTable::get_name(void) const {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(name_);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
@@ -261,12 +261,12 @@ WireLoad::IndexType WireLoad::memory() const {
 
 /// set
 void WireLoad::set_name(const std::string& name) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
         if (index != kInvalidSymbolIndex) {
             name_ = index;
-            topCell->addSymbolReference(name_, this->getId());
+            timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
@@ -277,12 +277,12 @@ void WireLoad::set_slope(float f) { slope_ = f; }
 void WireLoad::add_fanout_length(int n, float f) {
     ArrayObject<FanoutPair>* p = nullptr;
     if (fanout_lengths_ == UNINIT_OBJECT_ID) {
-        Cell* topCell = getTopCell();
-        if (topCell) {
-            p = topCell->createObject<ArrayObject<FanoutPair>>(
-                kObjectTypeArray);
+        Timing* timing_lib = getTimingLib();
+        if (timing_lib) {
+            p = Object::createObject<ArrayObject<FanoutPair>>(
+                kObjectTypeArray, timing_lib->getId());
             if (p != nullptr) {
-                p->setPool(topCell->getPool());
+                p->setPool(timing_lib->getPool());
                 p->reserve(32);
                 fanout_lengths_ = p->getId();
             }
@@ -301,9 +301,9 @@ void WireLoad::add_fanout_length(int n, float f) {
 
 /// get
 std::string WireLoad::get_name(void) const {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(name_);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
@@ -364,8 +364,8 @@ WireLoadForArea::~WireLoadForArea() {
     if (wireload_ != UNINIT_OBJECT_ID) {
         WireLoad* wl = addr<WireLoad>(wireload_);
         if (wl) {
-            Cell* topCell = getTopCell();
-            if (topCell) topCell->deleteObject<WireLoad>(wl);
+            Timing* timing_lib = getTimingLib();
+            if (timing_lib) timing_lib->deleteObject<WireLoad>(wl);
         }
     }
 }
@@ -519,12 +519,12 @@ WireLoadSelection::IndexType WireLoadSelection::memory() const {
 
 /// set
 void WireLoadSelection::set_name(const std::string& name) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex index = topCell->getOrCreateSymbol(name.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
         if (index != kInvalidSymbolIndex) {
             name_ = index;
-            topCell->addSymbolReference(name_, this->getId());
+            timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
@@ -532,13 +532,13 @@ void WireLoadSelection::add_wire_load_for_area(ObjectId id) {
     if (id != UNINIT_OBJECT_ID) {
         ArrayObject<ObjectId>* object_array = nullptr;
         if (wireloads_ == UNINIT_OBJECT_ID) {
-            Cell* topCell = getTopCell();
-            if (topCell != nullptr) {
-                object_array = topCell->createObject<ArrayObject<ObjectId>>(
-                    kObjectTypeArray);
+            Timing* timing_lib = getTimingLib();
+            if (timing_lib != nullptr) {
+                object_array = Object::createObject<ArrayObject<ObjectId>>(
+                    kObjectTypeArray, timing_lib->getId());
                 if (object_array != nullptr) {
                     wireloads_ = object_array->getId();
-                    object_array->setPool(topCell->getPool());
+                    object_array->setPool(timing_lib->getPool());
                     object_array->reserve(32);
                 }
             }
@@ -552,9 +552,9 @@ void WireLoadSelection::add_wire_load_for_area(ObjectId id) {
 
 /// get
 std::string WireLoadSelection::get_name(void) const {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(name_);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }

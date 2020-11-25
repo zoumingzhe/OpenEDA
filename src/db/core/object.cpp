@@ -141,6 +141,41 @@ void Object::setIsMarked(int v) {is_marked_ = v;}
 /// @return 
 int Object::getIsMarked() {return is_marked_;}
 
+StorageUtil *Object::getStorageUtilById(ObjectId owner_id) {
+    Object *owner_ptr = addr<Object>(owner_id);
+    StorageUtil *storage_util = nullptr;
+    switch (owner_ptr->getObjectType()) {
+        case kObjectTypeCell:
+        {
+            Cell *cell = addr<Cell>(owner_id);
+            storage_util = cell->getStorageUtil();
+            break;
+        }
+        case kObjectTypeTiming:
+        {
+            Timing *timing = addr<Timing>(owner_id);
+            storage_util = timing->getStorageUtil();
+            break;
+        }
+        case kObjectTypeTech:
+        {
+            Tech *tech = addr<Tech>(owner_id);
+            storage_util = tech->getStorageUtil();
+            break;
+        }
+        default:
+            break;
+    }
+    return storage_util;
+}
+
+MemPagePool *Object::getPoolById(ObjectId owner_id) {
+    StorageUtil *storage_util = getStorageUtilById(owner_id);
+    assert(storage_util != nullptr);
+    MemPagePool *pool = storage_util->getPool();
+    return pool;
+}
+
 Cell *Object::getOwnerCell() const {
     if (owner_ != 0) {
         Cell *owner_cell = addr<Cell>(owner_);
@@ -156,22 +191,21 @@ Cell *Object::getOwnerCell() const {
 ObjectId Object::__createObjectIdArray(int64_t size) {
     if (size <= 0) return 0;
     if (!owner_) return 0;
-    Cell *owner_cell = addr<Cell>(owner_);
-    ediAssert(owner_cell != nullptr);
     IdArray *id_array_ptr =
-      owner_cell->createObject<IdArray>(kObjectTypeArray);
+      Object::createObject<IdArray>(kObjectTypeArray, owner_);
     ediAssert(id_array_ptr != nullptr);
-    id_array_ptr->setPool(owner_cell->getPool());
+    StorageUtil *storage_util = getStorageUtilById(owner_);
+    assert(storage_util != nullptr);
+    id_array_ptr->setPool(storage_util->getPool());
     id_array_ptr->reserve(size);
     return (id_array_ptr->getId());
 }
 
 void Object::__deleteObjectIdArray(ObjectId array_id) {
-    if (!owner_ || !array_id) return;
-    Cell *owner_cell = addr<Cell>(owner_);
+    if (!array_id) return;
     IdArray *id_array_ptr = addr<IdArray>(array_id);
-    ediAssert(owner_cell != nullptr && id_array_ptr != nullptr);
-    owner_cell->deleteObject(id_array_ptr);
+    ediAssert(id_array_ptr != nullptr);
+    Object::deleteObject(id_array_ptr);
 }
 
 /// @brief operator<< 
