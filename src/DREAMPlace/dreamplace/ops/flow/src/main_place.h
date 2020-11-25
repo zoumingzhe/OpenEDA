@@ -11,6 +11,7 @@
 #include <vector>
 #include <limits>
 #include "flow/src/common_place_DB.h"
+#include "flow/src/global_place.h"
 #include "flow/src/lpdp_place.h"
 #include "lp_dp/greedy_legalize/src/greedy_legalize.h"
 #include "lp_dp/macro_legalize/src/macro_legalize.h"
