@@ -32,7 +32,7 @@ void spef_error(yyscan_t scanner, SpefReader::SpefReader *spefReader, const char
 
 %union {
   char ch;
-  char *string;
+  const char *string;
   int integer;
   float value;
   SpefReader::StringVec *stringVec;

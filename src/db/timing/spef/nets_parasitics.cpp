@@ -134,6 +134,20 @@ bool NetsParasitics::isDigits(const char *str)
   return true;
 }
 
+Net* NetsParasitics::getNetBySymbol(SymbolIndex index) {
+    Cell *cell = Object::addr<Cell>(cellId_);
+    if (cell) {
+        std::vector<ObjectId> objectVec = cell->getSymbolTable()->getReferences(index);
+        for (auto obj : objectVec) {
+            Net *net = Object::addr<Net>(obj);
+            if (net && net->getObjectType() == kObjectTypeNet) {
+                return net;
+            }
+        }
+    }
+    return nullptr;
+}   
+
 Net* NetsParasitics::findNet(const char *netName) {
     //Cell *topCell = getTopCell();   //Need to use current cell in future
     Cell *cell = Object::addr<Cell>(cellId_);
@@ -143,8 +157,7 @@ Net* NetsParasitics::findNet(const char *netName) {
 	if (netName[0] == '*') {
 	    uint32_t idx = strtoul(netName+1, NULL, 0);
 	    if (nameMap_.find(idx) != nameMap_.end()) {
-	        netStr = cell->getSymbolByIndex(nameMap_[idx]);
-		net = cell->getNet(netStr);
+		return getNetBySymbol(nameMap_[idx]);
             } 
         } else 
 	    net = cell->getNet(netStr); 
@@ -156,8 +169,35 @@ Net* NetsParasitics::findNet(const char *netName) {
     return net;
 }
 
+Pin* NetsParasitics::getPinBySymbol(SymbolIndex index, const std::string& pinName) {
+    Cell *cell = Object::addr<Cell>(cellId_);
+    if (cell) {
+        std::vector<ObjectId> objectVec = cell->getSymbolTable()->getReferences(index);
+	for (auto obj : objectVec) {
+	    Inst *inst = Object::addr<Inst>(obj);
+            if (inst && inst->getObjectType() == kObjectTypeInst) {
+		return inst->getPin(pinName);	
+	    }
+	}
+    }
+    return nullptr;
+}
+
+Pin* NetsParasitics::getPortBySymbol(SymbolIndex index) {
+    Cell *cell = Object::addr<Cell>(cellId_);
+    if (cell) {
+        std::vector<ObjectId> objectVec = cell->getSymbolTable()->getReferences(index);
+        for (auto obj : objectVec) {
+            Pin *pin = Object::addr<Pin>(obj);
+            if (pin && pin->getObjectType() == kObjectTypePin) {
+                return pin;
+            }
+        }
+    }
+    return nullptr;
+}
+
 Pin* NetsParasitics::findPin(const char *pinName) {
-    //Cell *topCell = getTopCell();   //Need to use current cell in future
     Cell *cell = Object::addr<Cell>(cellId_);
     if (cell && pinName) {
         std::string pinStr = pinName;
@@ -165,12 +205,8 @@ Pin* NetsParasitics::findPin(const char *pinName) {
 	if (found != std::string::npos) {
             if (pinName[0] == '*') {
                 uint32_t idx = strtoul(pinStr.substr(1, found).c_str(), NULL, 0);
-                if (nameMap_.find(idx) != nameMap_.end()) {
-		    std::string instStr = cell->getSymbolByIndex(nameMap_[idx]);
-		    Inst *inst = cell->getInstance(instStr);
-                    if (inst) 
-			return inst->getPin(pinStr.substr(found+1));
-                }
+                if (nameMap_.find(idx) != nameMap_.end()) 
+		    return getPinBySymbol(nameMap_[idx], pinStr.substr(found+1));
             } else {  //Name map doesn't exist
 		Inst *inst = cell->getInstance(pinStr.substr(0, found));
 		if (inst)
@@ -180,8 +216,7 @@ Pin* NetsParasitics::findPin(const char *pinName) {
             if (pinName[0] == '*') {
 		uint32_t idx = strtoul(pinName+1, NULL, 0);
 		if (nameMap_.find(idx) != nameMap_.end()) {
-		    std::string ioPinStr = cell->getSymbolByIndex(nameMap_[idx]);
-		    return cell->getIOPin(ioPinStr);
+		    return getPortBySymbol(nameMap_[idx]);
                 } 
 	    } else 
                 return cell->getIOPin(pinStr); 
@@ -212,21 +247,13 @@ ObjectId  NetsParasitics::createParaNode(DNetParasitics *netParasitics, const ch
 		}
             } else { //Pin node
 		pin = findPin(nodeName);
-		if (pin != nullptr) {
-		    //if (pin->getNet()->getId() != netParasitics->getNetId()) //Add External pin node
-			return netParasitics->createPinNode(pin->getId()); 
-                    //else
-                    //    return netParasitics->createPinNode(cellId_, pin->getId(), false); 
-		} 
+		if (pin != nullptr) 
+		    return netParasitics->createPinNode(pin->getId()); 
 	    }
         } else { //To handle IO pin
 	    pin = findPin(nodeName);
-            if (pin != nullptr) {
-                //if (pin->getNet()->getId() != netParasitics->getNetId()) //Add External pin node
-                    return netParasitics->createPinNode(pin->getId());
-		//else
-		//    return netParasitics->addPinNode(cellId_, pin->getId(), false);
-            } 
+            if (pin != nullptr) 
+                return netParasitics->createPinNode(pin->getId());
 	}
     }
     return UNINIT_OBJECT_ID;

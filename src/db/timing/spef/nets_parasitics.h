@@ -84,7 +84,10 @@ class NetsParasitics : public Object {
     //void addPowerNet(ObjectId sNetId) { pwrNetVec_.push_back(sNetId); }
     //void addGroundNet(ObjectId sNetId) { gndNetVec_.push_back(sNetId); }
     bool isDigits(const char *str);
+    Net* getNetBySymbol(SymbolIndex index);
     Net* findNet(const char *netName);
+    Pin* getPinBySymbol(SymbolIndex index, const std::string& pinName);
+    Pin* getPortBySymbol(SymbolIndex index);
     Pin* findPin(const char *pinName);
     ObjectId createParaNode(DNetParasitics *netParasitics, const char *nodeName);
     DNetParasitics* addDNetParasitics(ObjectId netId, float totCap);
