@@ -107,9 +107,9 @@ CommonDB::__init()
         flat_node2pin_start_map_[idx] = pinIdx;
         forEachInstPin(inst) {
           flat_node2pin_map_[pinIdx] = pinId;
-          pin2node_map_[pinId] = idx;
-          pin_offset_x_[pinId] = getPinLocX(pin);
-          pin_offset_y_[pinId] = getPinLocY(pin);
+          pin2node_map_[static_cast<PlInt>(pinId)] = idx;
+          pin_offset_x_[static_cast<PlInt>(pinId)] = getPinLocX(pin);
+          pin_offset_y_[static_cast<PlInt>(pinId)] = getPinLocY(pin);
           pinIdx++;
         } endForEachInstPin
       }
@@ -132,9 +132,9 @@ CommonDB::__init()
         flat_node2pin_start_map_[idx] = pinIdx;
         forEachInstPin(inst) {
           flat_node2pin_map_[pinIdx] = pinId;
-          pin2node_map_[pinId] = idx;
-          pin_offset_x_[pinId] = getPinLocX(pin);
-          pin_offset_y_[pinId] = getPinLocY(pin);
+          pin2node_map_[static_cast<PlInt>(pinId)] = idx;
+          pin_offset_x_[static_cast<PlInt>(pinId)] = getPinLocX(pin);
+          pin_offset_y_[static_cast<PlInt>(pinId)] = getPinLocY(pin);
           pinIdx++;
         } endForEachInstPin
       }
@@ -152,7 +152,7 @@ CommonDB::__init()
       if (getNetPinArray(net) == nullptr) continue;
       forEachNetPin(net) {
         flat_net2pin_map_[pinIdx] = pinId;
-        pin2net_map_[pinId] = netIdx;
+        pin2net_map_[static_cast<PlInt>(pinId)] = netIdx;
         pinIdx++; 
       } endForEachNetPin
       netIdx++;
@@ -160,52 +160,54 @@ CommonDB::__init()
   }
 
   // collect fence num and fence box num for new memory
-  int numBox = 0;
-  forEachGruop() {
-    PlConstraint* con = getRegion(group);
-    if (con && isRegionFence(con)) {
-      num_fences_++;
-      forEachRegionBox(con) {
-        numBox += 4;
-      } endForEachRegionBox
-    }
-  } endForEachGroup
-
-  // inst(node) to fence
-  if (num_fences_ > 0) {
-    // init fence
-    flat_fence_boxes_ = new int[numBox];
-    flat_fence_boxes_start_ = new int[num_fences_];
-    node2fence_map_ = new int[num_movable_nodes_];
-
-    std::unordered_map<PlConstraint*, int> regionId;
-    idx = 0;
-    int bIdx = 0;
+  if(getNumOfGroups() > 0) {
+    int numBox = 0;
     forEachGruop() {
       PlConstraint* con = getRegion(group);
       if (con && isRegionFence(con)) {
-        flat_fence_boxes_start_[idx] = bIdx;
-        regionId.insert(std::make_pair(con, idx));
+        num_fences_++;
         forEachRegionBox(con) {
-          flat_fence_boxes_[bIdx++] = getBoxLLX(*box); 
-          flat_fence_boxes_[bIdx++] = getBoxLLY(*box); 
-          flat_fence_boxes_[bIdx++] = getBoxURX(*box); 
-          flat_fence_boxes_[bIdx++] = getBoxURY(*box); 
+          numBox += 4;
         } endForEachRegionBox
-        idx++;
       }
     } endForEachGroup
-    idx = 0;
-    forEachInst() {
-      if (isInstMoveable(inst)) {
-        PlConstraint* con = getInstRegion(inst);
-        const auto& iter = regionId.find(con);
-        if (iter != regionId.end()) {
-          node2fence_map_[idx] = regionId[con];
+
+    // inst(node) to fence
+    if (numBox > 0) {
+      // init fence
+      flat_fence_boxes_ = new int[numBox];
+      flat_fence_boxes_start_ = new int[num_fences_];
+      node2fence_map_ = new int[num_movable_nodes_];
+
+      std::unordered_map<PlConstraint*, int> regionId;
+      idx = 0;
+      int bIdx = 0;
+      forEachGruop() {
+        PlConstraint* con = getRegion(group);
+        if (con && isRegionFence(con)) {
+          flat_fence_boxes_start_[idx] = bIdx;
+          regionId.insert(std::make_pair(con, idx));
+          forEachRegionBox(con) {
+            flat_fence_boxes_[bIdx++] = getBoxLLX(*box); 
+            flat_fence_boxes_[bIdx++] = getBoxLLY(*box); 
+            flat_fence_boxes_[bIdx++] = getBoxURX(*box); 
+            flat_fence_boxes_[bIdx++] = getBoxURY(*box); 
+          } endForEachRegionBox
+          idx++;
         }
-        idx++; 
-      }
-    } endForEachInst
+      } endForEachGroup
+      idx = 0;
+      forEachInst() {
+        if (isInstMoveable(inst)) {
+          PlConstraint* con = getInstRegion(inst);
+          const auto& iter = regionId.find(con);
+          if (iter != regionId.end()) {
+            node2fence_map_[idx] = regionId[con];
+          }
+          idx++; 
+        }
+      } endForEachInst
+    }
   }
 
   dreamplacePrint(kINFO, "Total %d instance%c, %d moveable instance%c, %d cell%c, %d net%c, %d  pin%c, %d io pin%c \n", 
@@ -221,6 +223,7 @@ CommonDB::__init()
   dreamplacePrint(kINFO, "DB inilization is completed\n");
   return;
 }
+
 
 void
 CommonDB::__free()

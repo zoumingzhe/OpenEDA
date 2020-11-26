@@ -1,4 +1,4 @@
-project(wire_length)
+project(place_wire_length)
 
 file(GLOB SOURCES 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"

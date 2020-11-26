@@ -10,9 +10,9 @@
 
 #include <vector>
 #include <limits>
-#include "db.h"
 #include "utility/src/Msg.h"
 #include "utility/src/DetailedPlaceDB.h"
+#include "db.h"
 
 DREAMPLACE_BEGIN_NAMESPACE
 
@@ -23,7 +23,7 @@ struct plLoc
   Coord y;
 };
 
-// LP and DP flow steps
+// GP, LP and DP flow steps
 const int kNone           = 0;
 const int kMacroLegalize  = 1;
 const int kGreedLegalize  = 1 << 1;
@@ -33,6 +33,7 @@ const int kIndependentSM  = 1 << 4;
 const int kGlobalSwap     = 1 << 5;
 const int kKReorder2      = 1 << 6;
 const int kLegalityCheck  = 1 << 7;
+const int kGlobalplace    = 1 << 8;
 
 /// @brief a wrapper class of box
 class CBox
@@ -87,6 +88,10 @@ class Para
     box_(areaBox), num_bins_x_(bins_x), num_bins_y_(bins_y), 
     flow_steps_(flows), save_db_(saveDB) 
     {}
+    Para(int bins_x, int bins_y, int flows, bool saveDB, bool gpu, std::string file) :
+    num_bins_x_(bins_x), num_bins_y_(bins_y), flow_steps_(flows),
+    save_db_(saveDB), gpu_(gpu), json_file_(file)
+    {}
     ~Para() = default;
     CBox    getBox() 		const { return box_; }
     int    getNumBinsX()        const { return num_bins_y_; }
@@ -103,6 +108,7 @@ class Para
     int    num_threads_    = 8;
     bool   save_db_        = false;  // option to save intermediate DBs
     bool   gpu_            = true;
+    std::string json_file_ = nullptr;
 };
 
 typedef std::vector<plLoc> LocVec;
