@@ -89,7 +89,7 @@ void Root::reset() {
 }
 
 void Root::setTechLib(Tech *v) {
-    if (v != nullptr && tech_ != nullptr) {
+    if (tech_ != nullptr) {
         Object::deleteObject<Tech>(tech_);
     }
     tech_ = v;
@@ -100,7 +100,7 @@ Tech* Root::getTechLib() const {
 }
 
 void Root::setTimingLib(Timing *v) {
-    if (v != nullptr && timing_ != nullptr) {
+    if (timing_ != nullptr) {
         Object::deleteObject<Timing>(timing_);
     }
     timing_ = v;
@@ -111,7 +111,7 @@ Timing* Root::getTimingLib() const {
 }
 
 void Root::setTopCell(Cell *v) {
-    if (v != nullptr && top_cell_ != nullptr) {
+    if (top_cell_ != nullptr) {
         Object::deleteObject<Cell>(top_cell_);
     }
     top_cell_ = v;
