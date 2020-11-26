@@ -74,6 +74,7 @@ static int writeVerilogCommand(ClientData cld, Tcl_Interp *itp, int argc, const 
 enum readWriteDBArgument { kRWDBDBFile = 1, kRWDBDebug = 2, kRWDBUnknown };
 
 static int readDBCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
+    MonitorId monitor_id = createMonitor();
     std::string cell_name;
     bool debug = false;
 
@@ -93,7 +94,12 @@ static int readDBCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *
 
     ReadDesign read_design(cell_name);
     read_design.setDebug(debug);
-    return read_design.run();
+    int result = read_design.run();
+
+    outputMonitor(monitor_id, kElapsedTime, "read_design ");
+    destroyMonitor(monitor_id);
+
+    return result;
 }
 // end of read_design
 
@@ -136,7 +142,7 @@ static int writeDBCommand(ClientData cld, Tcl_Interp *itp, int argc, const char 
     write_design.run();
     //ProfilerStop();
 
-    outputMonitor(monitor_id, kElapsedTime, "writeDBCommand ");
+    outputMonitor(monitor_id, kElapsedTime, "write_design ");
     destroyMonitor(monitor_id);
     return 0;
 }

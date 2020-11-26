@@ -111,7 +111,6 @@ bool ReadDesign::__readDBFile() {
 }
 
 bool ReadDesign::__setCurrentTopCell() {
-    return true; // haoqs test
     // set top cell and its tables.
     setTopCell(top_cell_id_);
     Cell *top_cell = getTopCell();
