@@ -14,7 +14,6 @@
 
 #include "db/timing/spef/nets_parasitics.h"
 
-#include <iostream>
 #include <stdio.h>
 #include <time.h>
 #include "stdlib.h"
@@ -153,19 +152,20 @@ Net* NetsParasitics::findNet(const char *netName) {
     Cell *cell = Object::addr<Cell>(cellId_);
     Net *net = nullptr;
     std::string netStr = netName;
+
     if (cell && netName) {
 	if (netName[0] == '*') {
 	    uint32_t idx = strtoul(netName+1, NULL, 0);
 	    if (nameMap_.find(idx) != nameMap_.end()) {
-		return getNetBySymbol(nameMap_[idx]);
+		net = getNetBySymbol(nameMap_[idx]);
             } 
         } else 
 	    net = cell->getNet(netStr); 
     }
-    if (net == nullptr) {
+    /*if (net == nullptr) {
         std::string errMsg = "Can't find net " + netStr + " in the design and its parasitics will be ignored.\n";
         open_edi::util::message->issueMsg(open_edi::util::kError, errMsg.c_str());
-    }
+    }*/
     return net;
 }
 
@@ -247,13 +247,23 @@ ObjectId  NetsParasitics::createParaNode(DNetParasitics *netParasitics, const ch
 		}
             } else { //Pin node
 		pin = findPin(nodeName);
-		if (pin != nullptr) 
-		    return netParasitics->createPinNode(pin->getId()); 
+		if (pin != nullptr) {
+		    ObjectId pinNodeId = netParasitics->createPinNode(pin->getId());
+                    /*if (pin->getNet()->getId() == netParasitics->getNetId()) { //Add internal pin node
+                        netParasitics->addPinNode(pinNodeId);
+		    }*/
+                    return pinNodeId;
+		}
 	    }
         } else { //To handle IO pin
 	    pin = findPin(nodeName);
-            if (pin != nullptr) 
-                return netParasitics->createPinNode(pin->getId());
+            if (pin != nullptr) {
+		ObjectId pinNodeId = netParasitics->createPinNode(pin->getId());
+                /*if (pin->getNet()->getId() == netParasitics->getNetId()) { //Add internal pin node
+                    netParasitics->addPinNode(pinNodeId);
+                }*/
+		return pinNodeId;
+	    } 
 	}
     }
     return UNINIT_OBJECT_ID;
@@ -372,7 +382,7 @@ std::string NetsParasitics::getNodeDumpName(Net *net, ObjectId objId) {
     return dumpName;
 }
 
-void NetsParasitics::dumpSpefHeader(OStreamBase& os) {
+void NetsParasitics::dumpSpefHeader(std::ofstream& os) {
     os << ("*SPEF \"IEEE 1481-2009\"\n");
 
     Cell *cell = Object::addr<Cell>(cellId_);
@@ -406,7 +416,7 @@ void NetsParasitics::dumpSpefHeader(OStreamBase& os) {
     os << ("*L_UNIT ") << (std::to_string(getInductScale())) << (" HENRY\n\n");
 }
 
-void NetsParasitics::dumpNameMap(OStreamBase& os) {
+void NetsParasitics::dumpNameMap(std::ofstream& os) {
      if (!nameMap_.empty()) {
         Cell *cell = Object::addr<Cell>(cellId_);
         os << ("*NAME_MAP\n\n");
@@ -420,7 +430,7 @@ void NetsParasitics::dumpNameMap(OStreamBase& os) {
     }
 }
 
-void NetsParasitics::dumpPorts(OStreamBase& os) {
+void NetsParasitics::dumpPorts(std::ofstream& os) {
     if (!portsVec_.empty()) {
         os << ("*PORTS\n\n");
         for (auto obj : portsVec_) {
@@ -438,7 +448,7 @@ void NetsParasitics::dumpPorts(OStreamBase& os) {
     }
 }
 
-void NetsParasitics::dumpDNetConn(OStreamBase& os, DNetParasitics *dNetPara) {
+void NetsParasitics::dumpDNetConn(std::ofstream& os, DNetParasitics *dNetPara) {
     os << ("*CONN\n");
     ObjectId pinNodeVecId = dNetPara->getPinNodeVecId(); 
     if (pinNodeVecId != UNINIT_OBJECT_ID) {
@@ -463,7 +473,7 @@ void NetsParasitics::dumpDNetConn(OStreamBase& os, DNetParasitics *dNetPara) {
     os << ("\n");
 }
 
-void NetsParasitics::dumpDNetCap(OStreamBase& os, DNetParasitics *dNetPara) {
+void NetsParasitics::dumpDNetCap(std::ofstream& os, DNetParasitics *dNetPara) {
     Net *net = Object::addr<Net>(dNetPara->getNetId());
     os << ("*CAP\n\n");
     uint32_t capNo = 0;
@@ -494,7 +504,7 @@ void NetsParasitics::dumpDNetCap(OStreamBase& os, DNetParasitics *dNetPara) {
     os << ("\n"); 
 }
 
-void NetsParasitics::dumpDNetRes(OStreamBase& os, DNetParasitics *dNetPara) {
+void NetsParasitics::dumpDNetRes(std::ofstream& os, DNetParasitics *dNetPara) {
     Net *net = Object::addr<Net>(dNetPara->getNetId());
     os << ("*RES\n\n");
     uint32_t resNo = 0;
@@ -513,10 +523,10 @@ void NetsParasitics::dumpDNetRes(OStreamBase& os, DNetParasitics *dNetPara) {
     os << ("\n");
 }
 
-void NetsParasitics::dumpDNet(OStreamBase& os, DNetParasitics *dNetPara) {
+void NetsParasitics::dumpDNet(std::ofstream& os, DNetParasitics *dNetPara) {
     Net *net = Object::addr<Net>(dNetPara->getNetId());
     std::string netName = getNetDumpName(net);
-    os << ("*D_NET ") << (netName);
+    os << ("*D_NET ") << (netName) << (" ");
     os << (std::to_string(dNetPara->getNetTotalCap())) << ("\n\n"); 
 
     dumpDNetConn(os, dNetPara);
@@ -525,7 +535,7 @@ void NetsParasitics::dumpDNet(OStreamBase& os, DNetParasitics *dNetPara) {
     os << ("*END\n\n");
 }
 
-void NetsParasitics::dumpRNet(OStreamBase& os, RNetParasitics *rNetPara) {
+void NetsParasitics::dumpRNet(std::ofstream& os, RNetParasitics *rNetPara) {
     Net *net = Object::addr<Net>(rNetPara->getNetId());
     std::string netName = getNetDumpName(net);
     os << ("*R_NET ") << (netName);
@@ -543,7 +553,7 @@ void NetsParasitics::dumpRNet(OStreamBase& os, RNetParasitics *rNetPara) {
     os << ("*END\n\n");
 }
 
-void NetsParasitics::dumpNets(OStreamBase& os) {
+void NetsParasitics::dumpNets(std::ofstream& os) {
     for (auto obj : netParasiticsMap_) {
         Net *net = Object::addr<Net>(obj.first);
         NetParasitics *unObj = Object::addr<NetParasitics>(obj.second);  //Need to check further
@@ -557,7 +567,7 @@ void NetsParasitics::dumpNets(OStreamBase& os) {
     }
 }
 
-OStreamBase& operator<<(OStreamBase& os, NetsParasitics &rhs) {
+std::ofstream& operator<<(std::ofstream& os, NetsParasitics &rhs) {
  
     rhs.dumpSpefHeader(os);
    

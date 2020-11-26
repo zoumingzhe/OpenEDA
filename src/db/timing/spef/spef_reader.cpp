@@ -17,6 +17,8 @@
 #include "util/stream.h"
 
 #include <iostream>
+#include <sys/time.h>
+#include <time.h>
 
 #include "db/timing/spef/spef_reader.h"
 
@@ -34,8 +36,7 @@ SpefReader::SpefReader(std::string fileName, DesignParasitics *designParasitics)
       rnetParasitics_(nullptr),
       lineNo_(1),
       netNodeMap_(),
-      scanner_(nullptr),
-      tempStr_("") {
+      scanner_(nullptr) {
     spefField_ = designParasitics->getSpefField();
     //addDesignNetsParasitics();
 }
@@ -59,11 +60,11 @@ const char* SpefReader::stringCopy(const char *str) {
 }
 
 bool SpefReader::isDigits(const char *str) {
-  for (const char *s = str; *s; s++) {
-    if (!isdigit(*s))
-      return false;
-  }
-  return true;
+    for (const char *s = str; *s; s++) {
+        if (!isdigit(*s))
+            return false;
+    }
+    return true;
 }
 
 void SpefReader::setCell(const char *designName) {
@@ -236,11 +237,11 @@ void SpefReader::addDNetEnd() {
 
 void SpefReader::addPinNode(const char *pinName) {
     if (pinName) {
-        /*if (dnetParasitics_) {
+        if (dnetParasitics_) {
             std::string pinStr = pinName;
             ObjectId pinNodeId = getParasiticNode(pinStr);
             dnetParasitics_->addPinNode(pinNodeId);
-        }*/
+        }
         stringDelete(pinName);
     }
 }
@@ -256,32 +257,31 @@ ObjectId SpefReader::getParasiticNode(std::string nodeName) {
         }
     }
     return paraNodeId;
-     
 }
 
 void SpefReader::addGroundCap(const char *nodeName) {
     //For gound cap only need to handle internal node as pin node handled in CONN section
     if (nodeName) {
-        /*if (dnetParasitics_) {
+        if (dnetParasitics_) {
             std::string nodeStr = nodeName;
 	    ObjectId paraNodeId = getParasiticNode(nodeStr);
             if (paraNodeId != UNINIT_OBJECT_ID)
                 dnetParasitics_->addGroundCap(paraNodeId, parValue_);
-        }*/
+        }
         stringDelete(nodeName);
     }
 }
 
 void SpefReader::addCouplingCap(const char *nodeName1, const char *nodeName2) {
     if (nodeName1 && nodeName2) {
-        /*if (dnetParasitics_) {
+        if (dnetParasitics_) {
             std::string node1Str = nodeName1;
             std::string node2Str = nodeName2;
 	    ObjectId paraNode1Id = getParasiticNode(node1Str);
             ObjectId paraNode2Id = getParasiticNode(node2Str);
 	    if (paraNode1Id != UNINIT_OBJECT_ID && paraNode2Id != UNINIT_OBJECT_ID)
 	        dnetParasitics_->addCouplingCap(paraNode1Id, paraNode2Id, parValue_);
-	}*/
+	}
         stringDelete(nodeName1);
         stringDelete(nodeName2);
     }
@@ -289,14 +289,14 @@ void SpefReader::addCouplingCap(const char *nodeName1, const char *nodeName2) {
 
 void SpefReader::addResistor(const char *nodeName1, const char *nodeName2) {
     if (nodeName1 && nodeName2 && dnetParasitics_) {
-        /*if (dnetParasitics_) {
+        if (dnetParasitics_) {
             std::string node1Str = nodeName1;
 	    std::string node2Str = nodeName2;
 	    ObjectId paraNode1Id = getParasiticNode(node1Str);
             ObjectId paraNode2Id = getParasiticNode(node2Str);
             if (paraNode1Id != UNINIT_OBJECT_ID && paraNode2Id != UNINIT_OBJECT_ID)
                 dnetParasitics_->addResistor(paraNode1Id, paraNode2Id, parValue_);
-	}*/
+	}
 	stringDelete(nodeName1);
 	stringDelete(nodeName2);
     }

@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <string>
 #include <unordered_map>
+#include <map>
 #include <utility>
 #include <vector>
 #include <ctype.h>
@@ -105,10 +106,8 @@ class SpefReader {
     RNetParasitics *rnetParasitics_;
     uint8_t spefField_;
     uint32_t lineNo_;
-    std::unordered_map<std::string, ObjectId> netNodeMap_; //use to check if node created for net
+    std::map<std::string, ObjectId> netNodeMap_; //use to check if node created for net
     void *scanner_;
-    //for test
-    std::string tempStr_; 
 };
 
 }  // namespace SpefReader
