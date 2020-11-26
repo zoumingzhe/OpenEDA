@@ -9,17 +9,23 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 /*************************************************************************/                         
-#include "wire_length.h"
+#include "wire_length/src/wire_length.h"
 #include "utility/src/DetailedPlaceDB.h"
 
 DREAMPLACE_BEGIN_NAMESPACE
 
+double WireLength::calcHPWLInGPU()
+{
+  double wl = 0.0;
+  return wl;
+}
 
 double WireLength::calcHPWLInCPU() 
 {
   double wl = 0.0;
   return wl;
 }
+
 double WireLength::calcHPWL() 
 {
   if (isGPU()) {
@@ -28,6 +34,7 @@ double WireLength::calcHPWL()
     return calcHPWLInCPU();
   } 
 }
+
 double WireLength::calcMST() 
 {
   

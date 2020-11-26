@@ -20,12 +20,13 @@ os.environ["CUDA_HOME"] = "${CUDA_TOOLKIT_ROOT_DIR}"
 limbo_source_dir = "${LIMBO_SOURCE_DIR}"
 limbo_binary_dir = "${LIMBO_BINARY_DIR}"
 ops_dir = "${OPS_DIR}"
+src_dir = "${OPS_DIR}/../../.."
 cub_dir = "${CUB_DIR}"
 cuda_flags = '${CMAKE_CUDA_FLAGS}'.split(';')
 print("cuda_flags = %s" % (' '.join(cuda_flags)))
 #lib_dirs = ['${UTILITY_LIBRARY_DIRS}', '${UTILITY_LIBRARY_DIRS}/../macro_legalize', '${UTILITY_LIBRARY_DIRS}/../greedy_legalize', '${UTILITY_LIBRARY_DIRS}/../legality_check', '${UTILITY_LIBRARY_DIRS}/../abacus_legalize', '${UTILITY_LIBRARY_DIRS}/../independent_set_matching', '${UTILITY_LIBRARY_DIRS}/../k_reorder', '${UTILITY_LIBRARY_DIRS}/../global_swap']
 #libs = ['utility', 'macro_legalize', 'greedy_legalize', 'legality_check', 'abacus_legalize', 'independent_set_matching', 'k_reorder', 'global_swap'] 
-include_dirs = [ops_dir, os.path.abspath(limbo_source_dir), cub_dir, '${Boost_INCLUDE_DIRS}', '${MUNKRES_CPP_INCLUDE_DIRS}'] 
+include_dirs = [src_dir, ops_dir, os.path.abspath(limbo_source_dir), cub_dir, '${Boost_INCLUDE_DIRS}', '${MUNKRES_CPP_INCLUDE_DIRS}'] 
 lib_dirs = ['${UTILITY_LIBRARY_DIRS}',
             '${MUNKRES_CPP_LINK_DIRS}', '${LEMON_LINK_DIRS}', '${CMAKE_CURRENT_BINARY_DIR}',
             os.path.join(os.path.abspath(limbo_binary_dir), 'limbo/thirdparty/lemon'),
