@@ -22,34 +22,24 @@
 namespace open_edi {
 namespace db {
 // Class Root (runtime object):
-Root::Root() {
+Root::Root() : tech_(nullptr), timing_(nullptr), top_cell_(nullptr) {}
+
+Root::~Root() {
+    if (top_cell_ != nullptr) {
+        Object::deleteObject<Cell>(top_cell_);
+    }
+    if (timing_ != nullptr) {
+        Object::deleteObject<Timing>(timing_);
+    }
+    if (tech_ != nullptr) {
+        Object::deleteObject<Tech>(tech_);
+    }
+}
+
+void Root::initTopCell() {
     MemPool::initMemPool();
-    // Tech:
-    StorageUtil *tech_lib_storage = new StorageUtil;
-    MemPagePool *tech_lib_pool = tech_lib_storage->getPool();
-    if (tech_lib_pool == nullptr) return;
-    ObjectId tech_id;
-    tech_ = tech_lib_pool->allocate<Tech>(kObjectTypeTech, tech_id);
-    tech_->setId(tech_id);
-    tech_->setOwner(tech_id);
-    tech_->setObjectType(kObjectTypeTech);
-    tech_->setStorageUtil(tech_lib_storage);
-    // MemPool::insertPagePool(tech_id, tech_lib_pool);
-
-    // Timing:
-    StorageUtil *timing_lib_storage = new StorageUtil;
-    MemPagePool *timing_lib_pool = timing_lib_storage->getPool();
-    if (timing_lib_pool == nullptr) return;
-    ObjectId timing_id;
-    timing_ = timing_lib_pool->allocate<Timing>(kObjectTypeTiming, timing_id);
-    timing_->setId(timing_id);
-    timing_->setOwner(timing_id);
-    timing_->setObjectType(kObjectTypeTiming);
-    timing_->setStorageUtil(timing_lib_storage);
-    // MemPool::insertPagePool(timing_id, timing_lib_pool);
-
     // Top cell:
-    StorageUtil *top_cell_storage = new StorageUtil;
+    StorageUtil *top_cell_storage = new StorageUtil(0);
     MemPagePool *top_cell_pool = top_cell_storage->getPool();
     if (top_cell_pool == nullptr) return;
     ObjectId cell_id = 0;
@@ -59,19 +49,48 @@ Root::Root() {
     top_cell_->setObjectType(kObjectTypeCell);
     top_cell_->initHierData(top_cell_storage);
     top_cell_->setCellType(CellType::kHierCell);
-    // MemPool::insertPagePool(cell_id, top_cell_pool);
+    MemPool::insertPagePool(cell_id, top_cell_pool);
 }
 
-Root::~Root() {
-    Object::deleteObject<Cell>(top_cell_);
-    Object::deleteObject<Timing>(timing_);
-    Object::deleteObject<Tech>(tech_);
+void Root::initTechLib() {
+    MemPool::initMemPool();
+    // Tech:
+    StorageUtil *tech_lib_storage = new StorageUtil(0);
+    MemPagePool *tech_lib_pool = tech_lib_storage->getPool();
+    if (tech_lib_pool == nullptr) return;
+    ObjectId tech_id;
+    tech_ = tech_lib_pool->allocate<Tech>(kObjectTypeTech, tech_id);
+    tech_->setId(tech_id);
+    tech_->setOwner(tech_id);
+    tech_->setObjectType(kObjectTypeTech);
+    tech_->setStorageUtil(tech_lib_storage);
+    MemPool::insertPagePool(tech_id, tech_lib_pool);
+}
+
+void Root::initTimingLib() {
+    MemPool::initMemPool();
+    // Timing:
+    StorageUtil *timing_lib_storage = new StorageUtil(0);
+    MemPagePool *timing_lib_pool = timing_lib_storage->getPool();
+    if (timing_lib_pool == nullptr) return;
+    ObjectId timing_id;
+    timing_ = timing_lib_pool->allocate<Timing>(kObjectTypeTiming, timing_id);
+    timing_->setId(timing_id);
+    timing_->setOwner(timing_id);
+    timing_->setObjectType(kObjectTypeTiming);
+    timing_->setStorageUtil(timing_lib_storage);
+    MemPool::insertPagePool(timing_id, timing_lib_pool);
+}
+
+void Root::reset() {
+    setTimingLib(nullptr);
+    setTechLib(nullptr);
+    setTopCell(nullptr);
 }
 
 void Root::setTechLib(Tech *v) {
-    ediAssert(v != nullptr);
-    if (tech_ != nullptr) {
-        delete tech_;
+    if (v != nullptr && tech_ != nullptr) {
+        Object::deleteObject<Tech>(tech_);
     }
     tech_ = v;
 }
@@ -81,9 +100,8 @@ Tech* Root::getTechLib() const {
 }
 
 void Root::setTimingLib(Timing *v) {
-    ediAssert(v != nullptr);
-    if (timing_ != nullptr) {
-        delete timing_;
+    if (v != nullptr && timing_ != nullptr) {
+        Object::deleteObject<Timing>(timing_);
     }
     timing_ = v;
 }
@@ -93,11 +111,10 @@ Timing* Root::getTimingLib() const {
 }
 
 void Root::setTopCell(Cell *v) {
-    ediAssert(v != nullptr);
-    if (top_cell_ != nullptr) {
-        delete top_cell_;
+    if (v != nullptr && top_cell_ != nullptr) {
+        Object::deleteObject<Cell>(top_cell_);
     }
-    top_cell_ = v;  
+    top_cell_ = v;
 }
 
 Cell* Root::getTopCell() const {
@@ -105,26 +122,45 @@ Cell* Root::getTopCell() const {
 }
 
 // Class StorageUtil (runtime object):
-StorageUtil::StorageUtil() {
-    pool_ = MemPool::newPagePool();
-    symtbl_ = new SymbolTable;
-    polytbl_ = new PolygonTable();
-}
+StorageUtil::StorageUtil() : 
+  pool_(nullptr), symtbl_(nullptr), polytbl_(nullptr) {}
 
 StorageUtil::StorageUtil(uint64_t cell_id) {
-    pool_ = MemPool::newPagePool(cell_id);
-    symtbl_ = new SymbolTable;
-    polytbl_ = new PolygonTable();
+    initPool(cell_id);
+    initSymbolTable();
+    initPolygonTable();
 }
 
 StorageUtil::~StorageUtil() {
+    if (polytbl_ != nullptr) {
+        delete polytbl_;
+    }
+    if (symtbl_ != nullptr) {
+        delete symtbl_;
+    }
     // TODO (ly): pool_ ?
-    delete symtbl_;
-    delete polytbl_;
 }
 
-// TODO: delete it before set.
+void StorageUtil::initPool(uint64_t cell_id) {
+    if (cell_id == 0) {
+        pool_ = MemPool::newPagePool();
+    } else {
+        pool_ = MemPool::newPagePool(cell_id);
+    }
+}
+
+void StorageUtil::initSymbolTable() {
+    symtbl_ = new SymbolTable;
+}
+
+void StorageUtil::initPolygonTable() {
+    polytbl_ = new PolygonTable();
+}
+
 void StorageUtil::setSymbolTable(SymbolTable *stb) {
+    if (stb != nullptr && symtbl_ != nullptr) {
+        delete symtbl_;
+    }
     symtbl_ = stb;
 }
 
@@ -133,6 +169,9 @@ SymbolTable *StorageUtil::getSymbolTable() const {
 }
 
 void StorageUtil::setPolygonTable(PolygonTable *pt) {
+    if (pt != nullptr && polytbl_ != nullptr) {
+        delete polytbl_;
+    }
     polytbl_ = pt;
 }
 
@@ -141,6 +180,9 @@ PolygonTable *StorageUtil::getPolygonTable() const {
 }
 
 void StorageUtil::setPool(MemPagePool *p) {
+    if (p != nullptr && pool_ != nullptr) {
+        // TODO (ly) free a memory pool?
+    }
     pool_ = p;
 }
 

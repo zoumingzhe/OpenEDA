@@ -76,12 +76,13 @@ bool ReadDesign::__readDBFile() {
     in_dbfile.read(reinterpret_cast<char *>(&(top_cell_id_)), sizeof(ObjectId));
     Cell *top_cell = getTopCell();
     if (top_cell) {
+        resetTopCell();
         MemPool::destroyMemPool();  // here, we need to set the right mempool
                                     // for the new db.
-        resetTopCell();
     }
     MemPool::initMemPool();
     pool_ = MemPool::newPagePool();
+    MemPool::insertPagePool(top_cell_id_, pool_);
     pool_->readFromFile(in_dbfile, getDebug());
     if (getDebug()) {
         pool_->printUsage();
@@ -113,10 +114,13 @@ bool ReadDesign::__readDBFile() {
 bool ReadDesign::__setCurrentTopCell() {
     // set top cell and its tables.
     setTopCell(top_cell_id_);
+    StorageUtil *storage_util = new StorageUtil;
+    storage_util->setPool(pool_);
+    storage_util->setSymbolTable(symbol_table_);
+    storage_util->setPolygonTable(polygon_table_);
     Cell *top_cell = getTopCell();
-    top_cell->setPool(pool_);
-    top_cell->setSymbolTable(symbol_table_);
-    top_cell->setPolygonTable(polygon_table_);
+    top_cell->setStorageUtil(storage_util);
+
     setCurrentVersion(v_);
     if (getDebug()) {
         std::cout << "DEBUGINFO: read_design top cell name "
