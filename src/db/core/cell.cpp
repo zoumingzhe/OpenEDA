@@ -264,18 +264,6 @@ HierData *Cell::__getHierData() {
     return addr<HierData>(hier_data_id_);
 }
 
-void Cell::initHierData() {
-    if (hier_data_id_ != 0) {
-        return;
-    }
-    MemPagePool *pool = MemPool::getPagePoolByObjectId(this->getId());
-    ediAssert(pool != nullptr);
-    HierData *hier_data = pool->allocate<HierData>(
-                  kObjecTypeHierData, hier_data_id_);
-    hier_data->setStorageUtil(new StorageUtil(this->getId()));
-    setCellType(CellType::kHierCell);
-}
-
 /// @brief setCellType set  a cell
 void Cell::setCellType(CellType const &v) {
     cell_type_ = v;
@@ -288,6 +276,12 @@ void Cell::initHierData(StorageUtil *v) {
         return;
     }
     MemPagePool *pool = v->getPool();
+    // Temporarily set the pool to parent Cell's pool.
+    if (pool == nullptr) {
+        pool = MemPool::getPagePoolByObjectId(this->getId());
+        // Cell *parent = getOwnerCell();
+        // pool = parent->getPool();
+    }
     ediAssert(pool != nullptr);
     HierData *hier_data = pool->allocate<HierData>(
                   kObjecTypeHierData, hier_data_id_);
@@ -478,35 +472,10 @@ void Cell::setName(std::string &v) {
     }
 }
 
-#if 0
-/// @brief setTechLib
-///
-/// @param t
-void Cell::setTechLib(Tech *t) {
-    if (isHierCell()) {
-        __getHierData()->setTechLibId(t->getId());
-    }
-}
-#endif
-
 /// @brief getTechLib
 ///
 /// @return
 Tech *Cell::getTechLib() {
-#if 0
-    // when a cell is a leaf cell, it doesn't have HierData
-    // fetch the data from its owner cell
-    if (__getConstHierData() == nullptr) {
-        Cell *owner_cell = addr<Cell>(getOwnerId());
-        if (owner_cell) {
-            return owner_cell->getTechLib();
-        } else {
-            return nullptr;
-        }
-    }
-    ObjectId id = __getHierData()->getTechLibId();
-    return addr<Tech>(id);
-#endif
     return getRoot()->getTechLib();
 }
 
@@ -593,23 +562,9 @@ Cell *Cell::createCell(std::string &name, bool isHier) {
     }
 
     if (isHier) {
-        cell->initHierData();
+        StorageUtil *storage_util = new StorageUtil(cell->getId());
+        cell->initHierData(storage_util);
         cell->setCellType(CellType::kHierCell);
-#if 0
-        MemPagePool *page_pool = MemPool::newPagePool(cell->getId());
-        SymbolTable *st = new SymbolTable;
-        PolygonTable *pt = new PolygonTable();
-        if (page_pool == nullptr || st == nullptr || pt == nullptr) {
-            message->issueMsg(kError,
-            "Fail in creating hier-cell %s due to table initialization.\n",
-            name.c_str());
-            return nullptr;
-        }
-        cell->setPool(page_pool);
-        cell->setSymbolTable(st);
-        cell->setPolygonTable(pt);
-        MemPool::insertPagePool(cell->getId(), page_pool);
-#endif
     } else {
         // TODO(ly): consolidate enum CellType with macro-class
         cell->setCellType(CellType::kCell);
