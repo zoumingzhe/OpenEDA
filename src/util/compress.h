@@ -22,13 +22,13 @@ namespace open_edi {
 namespace util {
 
 enum CompressType {
-    kLz4,
-    kGz,
-    kZip
+    kCompressLz4,
+    kCompressGz,
+    kCompressZip
 };
 
 class CompressInput : public MTAppInput {
- public:
+  public:
     CompressInput(std::vector<MemChunk*> *src_chunks,
                   std::vector<MemChunk*> *dst_chunks,
                   std::vector<int>       *compressed_sizes) {
@@ -36,24 +36,33 @@ class CompressInput : public MTAppInput {
         dst_chunks_ = dst_chunks;
         compressed_sizes_ = compressed_sizes;
     }
+    void setSrcChunks(std::vector<MemChunk*> *src_chunks) {
+        src_chunks_ = src_chunks;
+    }
     std::vector<MemChunk*> *getSrcChunks() {
         return src_chunks_;
     }
+    void setDstChunks(std::vector<MemChunk*> *dst_chunks) {
+        dst_chunks_ = dst_chunks;
+    }
     std::vector<MemChunk*> *getDstChunks() {
         return dst_chunks_;
+    }
+    void setCompressedSizes(std::vector<int> *compressed_sizes) {
+        compressed_sizes_ = compressed_sizes;
     }
     std::vector<int> *getCompressedSizes() {
         return compressed_sizes_;
     }
 
- private:
+  private:
     std::vector<MemChunk*> *src_chunks_;
     std::vector<MemChunk*> *dst_chunks_;
     std::vector<int>       *compressed_sizes_;
 };
 
 class CompressTask : public MTTask {
- public:
+  public:
     CompressTask(MemChunk *src_chunk, MemChunk *dst_chunk,
             int *compressed_size) {
         ediAssert(src_chunk != nullptr);
@@ -80,14 +89,14 @@ class CompressTask : public MTTask {
     int32_t* getCompressedSize() {
         return compressed_size_;
     }
- private:
+  private:
     MemChunk *src_chunk_;
     MemChunk *dst_chunk_;
     int32_t* compressed_size_;
 };  // class CompressTask
 
 class Compressor : public MTMRApp {
- public:
+  public:
     
     ~Compressor();
 
@@ -103,7 +112,7 @@ class Compressor : public MTMRApp {
 
     virtual void preRun();
     virtual void postRun();
- private:
+  private:
     CompressType  compress_type_;
     virtual void* runMapper();
     virtual void* runWorker();
@@ -113,7 +122,7 @@ class Compressor : public MTMRApp {
 };
 
 class FileManager {
- public:
+  public:
 };
 
 

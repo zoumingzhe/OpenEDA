@@ -35,7 +35,7 @@ enum ResourceType : uint32_t {
 };
 
 class MonitorInformation {
- public:
+  public:
     MonitorInformation() {}
     ~MonitorInformation() {}
 
@@ -52,7 +52,7 @@ class MonitorInformation {
     void setVmRss(uint64_t vmRss) { vmRss_ = vmRss; }
     uint64_t getVmRss() { return vmRss_; }
 
- private:
+  private:
     double elapsed_time_;  // μs, duration time
     double cpu_time_;      // μs, real cpu time
     uint64_t vmPeak_;  // kB, Peak virtual memory size.
@@ -62,7 +62,7 @@ class MonitorInformation {
 };
 
 class Monitor {
- public:
+  public:
      Monitor();
 
      struct timeval getStartTime() {return start_time_;}
@@ -78,7 +78,7 @@ class Monitor {
          kUnknown
      };
 
- private:
+  private:
      MonitorState   state_;
      struct timeval start_time_;
      MonitorInformation start_info_;
@@ -86,7 +86,7 @@ class Monitor {
 };
 
 class MonitorManager {
- public:
+  public:
      MonitorManager();
      ~MonitorManager();
      MonitorId createMonitor();
@@ -106,7 +106,7 @@ class MonitorManager {
      bool resetMonitor(MonitorId monitor_id);
      bool destroyMonitor(MonitorId monitor_id);
 
- private:
+  private:
      MonitorId id_;
      MonitorId unused_num_id_;
      std::unordered_map<MonitorId, Monitor*> monitor_map_;

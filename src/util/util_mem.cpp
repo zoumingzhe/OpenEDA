@@ -21,6 +21,7 @@
 #include "util/util_mem.h"
 #include "util/message.h"
 #include "util/compress.h"
+#include "util/decompress.h"
 
 namespace open_edi {
 namespace util {
@@ -393,7 +394,7 @@ void MemPagePool::__writeChunks(std::ofstream &outfile, bool debug) {
     compressed_sizes.resize(num_thread, 0);
 
     Compressor compressor;
-    compressor.setCompressType(kLz4);
+    compressor.setCompressType(kCompressLz4);
 
     for (i = 0; i + num_thread < num_chunks_; i += num_thread) {
         for (int j = 0; j < num_thread; ++j) {
@@ -447,20 +448,68 @@ void MemPagePool::__writeChunks(std::ofstream &outfile, bool debug) {
 }
 
 void MemPagePool::__readChunks(std::ifstream &infile, bool debug) {
-    size_t src_buffer_size = LZ4F_compressFrameBound(chunk_size_, NULL);
-    char *src_buffer = new char[src_buffer_size];
-    int   compressed_chunk_size = 0;
-    char *dst_buffer = new char[chunk_size_];
-    for (uint64_t i = 0; i < num_chunks_; ++i) {
-        MemChunk *chunk = chunks_[i];
-        infile.read((char *)&compressed_chunk_size, sizeof(int));
-        infile.read((char *)src_buffer, compressed_chunk_size);
-        chunk->setSize(LZ4_decompress_safe(src_buffer, (char*)chunk->getChunk(),
-                       compressed_chunk_size, chunk_size_));
+    int num_thread = calcThreadNumber(num_chunks_);
+    size_t src_size = LZ4F_compressFrameBound(chunk_size_, NULL);
+    std::vector<MemChunk*> src_chunks;
+    std::vector<MemChunk*> dst_chunks;
+    for (int j = 0; j < num_thread; ++j) {
+        MemChunk *new_chunk = new MemChunk(src_size);
+        src_chunks.push_back(new_chunk);
     }
 
-    delete [] src_buffer;
-    delete [] dst_buffer;
+    std::vector<int> decompressed_sizes;
+    decompressed_sizes.resize(num_thread, 0);
+
+    Decompressor decompressor;
+    decompressor.setDecompressType(kDecompressLz4);
+
+    int i = 0;
+    for (i = 0; i + num_thread < num_chunks_; i += num_thread) {
+        for (int j = 0; j < num_thread; ++j) {
+            int size;
+            MemChunk *mem_chunk = src_chunks[j];
+            infile.read((char *)&(size), sizeof(int));
+            infile.read((char *)(mem_chunk->getChunk()), size);
+            mem_chunk->setSize(size);
+
+            dst_chunks.push_back(chunks_[i]);
+        }
+        DecompressInput input(&src_chunks, &dst_chunks, &decompressed_sizes);
+        decompressor.setInput(&input);
+        decompressor.run(1, num_thread, 1);
+        for (int k = 0; k < num_thread; ++k) {
+            if (decompressed_sizes[k] < 0) {
+                cout << "Lz4 decompress chunk failed, return code is "
+                        << decompressed_sizes[k] << endl;
+                return;
+            }
+        }
+        decompressed_sizes.resize(num_thread, 0);
+    }
+    int num_last_chunks = num_chunks_ - i;
+    for (int j = 0; j < num_last_chunks; ++j) {
+        int size;
+        MemChunk *mem_chunk = src_chunks[j];
+        infile.read((char *)&(size), sizeof(int));
+        infile.read((char *)(mem_chunk->getChunk()), size);
+        mem_chunk->setSize(size);
+
+        dst_chunks.push_back(chunks_[i + j]);
+    }
+    DecompressInput input(&src_chunks, &dst_chunks, &decompressed_sizes);
+    decompressor.setInput(&input);
+    decompressor.run(1, num_last_chunks - i, 1);
+    for (int k = 0; k < num_last_chunks; ++k) {
+        if (decompressed_sizes[k] < 0) {
+            cout << "Lz4 decompress chunk failed, return code is "
+                    << decompressed_sizes[k] << endl;
+            return;
+        }
+    }
+
+    for (auto mem_chunk : src_chunks) {
+        delete mem_chunk;
+    }
 }
 
 /// @brief write header to a file

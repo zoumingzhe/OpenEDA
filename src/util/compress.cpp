@@ -48,7 +48,7 @@ void* Compressor::runWorker() {
         MemChunk *dst_chunk = task->getDstChunk();
 
         switch (compress_type_) {
-            case kLz4:
+            case kCompressLz4:
                 task->setCompressedSize(LZ4_compress_default(
                                                 (char *)src_chunk->getChunk(),
                                                 (char *)dst_chunk->getChunk(),
