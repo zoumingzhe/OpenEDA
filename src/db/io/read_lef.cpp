@@ -153,7 +153,7 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                 for (j = 0; j < path->numPoints; j++) {
                     Point *p = new Point(lib->micronsToDBU(path->x[j]),
                                          lib->micronsToDBU(path->y[j]));
-                    geoPath->addPoint(*p);
+                    geoPath->addPoint(p);
                 }
                 base->setPathID(current_lg->CreatePolygon(geoPath));
                 base->setType(GeometryType::kPath);
@@ -182,7 +182,7 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                                                   i * pathIter->xStep),
                                 lib->micronsToDBU(pathIter->y[j] +
                                                   j * pathIter->yStep));
-                            geoPath->addPoint(*p);
+                            geoPath->addPoint(p);
                         }
                         base->setPathID(current_lg->CreatePolygon(geoPath));
                         base->setType(GeometryType::kPath);
@@ -254,7 +254,7 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                 for (j = 0; j < polygon->numPoints; j++) {
                     Point *p = new Point(lib->micronsToDBU(polygon->x[j]),
                                          lib->micronsToDBU(polygon->y[j]));
-                    geoPoly->addPoint(*p);
+                    geoPoly->addPoint(p);
                 }
                 base->setPolygonID(current_lg->CreatePolygon(geoPoly));
                 base->setType(GeometryType::kPolygon);
@@ -281,7 +281,7 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                                                   i * polygonIter->xStep),
                                 lib->micronsToDBU(polygonIter->y[j] +
                                                   j * polygonIter->yStep));
-                            geoPoly->addPoint(*p);
+                            geoPoly->addPoint(p);
                         }
                         base->setPolygonID(current_lg->CreatePolygon(geoPoly));
                         base->setType(GeometryType::kPolygon);

@@ -26,14 +26,14 @@ Polygon::Polygon() {
 ///
 /// @return
 Polygon::~Polygon() {
-    for (auto &pt : pts_) {
-        delete &pt;
+    for (auto pt : pts_) {
+        delete pt;
     }
     pts_.clear();
 }
 
 void Polygon::addPoint(Point* value) {
-    pts_.push_back(*value);
+    pts_.push_back(value);
 }
 
 /// @brief
@@ -49,9 +49,9 @@ void Polygon::writeToFile(std::ofstream &outfile, bool debug) {
     if (debug) { std::cout << "RWDBGINFO: points count " << size << std::endl; }
 
     //  2. write points one by one:
-    for (auto &pt : pts_) {
-        outfile.write((char *)&(pt), sizeof(Point));
-        if (debug) { std::cout << "RWDBGINFO: point {" << pt.getX() << " "<< pt.getY() << "}" << std::endl; }
+    for (auto pt : pts_) {
+        outfile.write((char *)(pt), sizeof(Point));
+        if (debug) { std::cout << "RWDBGINFO: point {" << pt->getX() << " "<< pt->getY() << "}" << std::endl; }
     }
 }
 
@@ -69,7 +69,7 @@ void Polygon::readFromFile(std::ifstream &infile, bool debug) {
     for (uint32_t i = 0; i < num_pts; ++i) {
         Point *pt = new Point;
         infile.read((char *)pt, sizeof(Point));
-        addPoint(*pt);
+        addPoint(pt);
         if (debug) { std::cout << "RWDBGINFO: point {" << pt->getX() << " "<< pt->getY() << "}" << std::endl; }
     }
 }

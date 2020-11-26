@@ -23,6 +23,7 @@
 #include "db/io/write_lef.h"
 #include "db/io/write_verilog.h"
 #include "db/timing/timinglib/timinglib_tcl_command.h"
+#include "db/timing/spef/spef_tcl_command.h"
 #include "util/util.h"
 #include "infra/command_manager.h"
 
@@ -435,6 +436,8 @@ void registerDatabaseTclCommands(Tcl_Interp *itp) {
     Tcl_CreateCommand(itp, "create_analysis_mode", createAnalysisModeCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "create_analysis_corner", createAnalysisCornerCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "set_analysis_view_status", setAnalysisViewStatusCommand, NULL, NULL);
+    Tcl_CreateCommand(itp, "read_spef", readSpefCommand, NULL, NULL);
+    Tcl_CreateCommand(itp, "write_spef", writeSpefCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "read_design", readDBCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "write_design", writeDBCommand, NULL, NULL);
     // testing commands. TODO: remove them.

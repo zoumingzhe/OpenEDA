@@ -75,9 +75,10 @@ TTerm::IndexType TTerm::memory() const {
 void TTerm::set_related_power_pin(ObjectId id) { related_power_pin_ = id; }
 void TTerm::set_related_ground_pin(ObjectId id) { related_ground_pin_ = id; }
 TFunction *TTerm::set_function(const std::string &str) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        auto p = topCell->createObject<TFunction>(kObjectTypeTFunction);
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        auto p = Object::createObject<TFunction>(
+                kObjectTypeTFunction, timing_lib->getId());
         if (p) {
             p->setOwner(this);
             function_ = p->getId();
@@ -100,13 +101,13 @@ void TTerm::add_member_pin(ObjectId id) {
         if (pin->getAttr()) {
             ArrayObject<ObjectId> *p = nullptr;
             if (member_pins_ == UNINIT_OBJECT_ID) {
-                Cell *topCell = getTopCell();
-                if (topCell != nullptr) {
-                    p = topCell->createObject<ArrayObject<ObjectId>>(
-                        kObjectTypeArray);
+                Timing *timing_lib = getTimingLib();
+                if (timing_lib != nullptr) {
+                    p = Object::createObject<ArrayObject<ObjectId>>(
+                        kObjectTypeArray, timing_lib->getId());
                     if (p != nullptr) {
                         member_pins_ = p->getId();
-                        p->setPool(topCell->getPool());
+                        p->setPool(timing_lib->getPool());
                         p->reserve(32);
                     }
                 }
@@ -123,12 +124,13 @@ void TTerm::add_member_pin(ObjectId id) {
 void TTerm::add_timingarc(ObjectId id) {
     ArrayObject<ObjectId> *p = nullptr;
     if (timing_arcs_ == UNINIT_OBJECT_ID) {
-        Cell *topCell = getTopCell();
-        if (topCell != nullptr) {
-            p = topCell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        Timing *timing_lib = getTimingLib();
+        if (timing_lib != nullptr) {
+            p = Object::createObject<ArrayObject<ObjectId>>(
+                    kObjectTypeArray, timing_lib->getId());
             if (p != nullptr) {
                 timing_arcs_ = p->getId();
-                p->setPool(topCell->getPool());
+                p->setPool(timing_lib->getPool());
                 p->reserve(32);
             }
         }

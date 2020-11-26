@@ -24,7 +24,8 @@ AnalysisCorner::AnalysisCorner()
     : AnalysisCorner::BaseType(),
       name_(0),
       rc_tech_file_(0),
-      libset_(UNINIT_OBJECT_ID) {
+      libset_(UNINIT_OBJECT_ID),
+      design_parasitics_(UNINIT_OBJECT_ID) {
     setObjectType(ObjectType::kObjectTypeAnalysisCorner);
 }
 
@@ -41,7 +42,8 @@ AnalysisCorner::AnalysisCorner(Object* owner, AnalysisCorner::IndexType id)
     : AnalysisCorner::BaseType(owner, id),
       name_(0),
       rc_tech_file_(0),
-      libset_(UNINIT_OBJECT_ID) {
+      libset_(UNINIT_OBJECT_ID),
+      design_parasitics_(UNINIT_OBJECT_ID) {
     setObjectType(ObjectType::kObjectTypeAnalysisCorner);
 }
 
@@ -70,6 +72,7 @@ void AnalysisCorner::copy(AnalysisCorner const& rhs) {
     name_ = rhs.name_;
     rc_tech_file_ = rhs.rc_tech_file_;
     libset_ = rhs.libset_;
+    design_parasitics_ = rhs.design_parasitics_;
 }
 
 void AnalysisCorner::move(AnalysisCorner&& rhs) {
@@ -77,6 +80,7 @@ void AnalysisCorner::move(AnalysisCorner&& rhs) {
     name_ = std::move(rhs.name_);
     rc_tech_file_ = std::move(rhs.rc_tech_file_);
     libset_ = std::move(rhs.libset_);
+    design_parasitics_ = std::move(rhs.design_parasitics_);
 }
 
 AnalysisCorner::IndexType AnalysisCorner::memory() const {
@@ -85,32 +89,34 @@ AnalysisCorner::IndexType AnalysisCorner::memory() const {
     ret += sizeof(name_);
     ret += sizeof(rc_tech_file_);
     ret += sizeof(libset_);
+    ret += sizeof(design_parasitics_);
 
     return ret;
 }
 
 /// set
 void AnalysisCorner::set_name(const std::string& name) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex idx = topCell->getOrCreateSymbol(name.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
         if (idx != kInvalidSymbolIndex) {
             name_ = idx;
-            topCell->addSymbolReference(name_, this->getId());
+            timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
 void AnalysisCorner::set_rc_tech_file(const std::string& file) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        SymbolIndex idx = topCell->getOrCreateSymbol(file.c_str());
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(file.c_str());
         if (idx != kInvalidSymbolIndex) {
             rc_tech_file_ = idx;
-            topCell->addSymbolReference(rc_tech_file_, this->getId());
+            timing_lib->addSymbolReference(rc_tech_file_, this->getId());
         }
     }
 }
 void AnalysisCorner::set_libset(ObjectId id) { libset_ = id; }
+void AnalysisCorner::set_design_parasitics(ObjectId id) { design_parasitics_ = id; }
 
 /// get
 SymbolIndex AnalysisCorner::get_name_index(void) { return name_; }
@@ -118,16 +124,16 @@ SymbolIndex AnalysisCorner::get_rc_tech_file_index(void) {
     return rc_tech_file_;
 }
 std::string AnalysisCorner::get_name(void) const {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(name_);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
 std::string AnalysisCorner::get_rc_tech_file(void) const {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(rc_tech_file_);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(rc_tech_file_);
     }
     return "";
 }
@@ -136,6 +142,12 @@ LibSet* AnalysisCorner::get_libset(void) {
         return Object::addr<LibSet>(libset_);
     else
         return nullptr;
+}
+DesignParasitics* AnalysisCorner::get_design_parasitics(void) {
+    if (design_parasitics_ != UNINIT_OBJECT_ID)
+	return Object::addr<DesignParasitics>(design_parasitics_);
+    else
+	return nullptr;
 }
 
 OStreamBase& operator<<(OStreamBase& os, AnalysisCorner const& rhs) {
@@ -158,6 +170,9 @@ OStreamBase& operator<<(OStreamBase& os, AnalysisCorner const& rhs) {
         if (libset) os << *libset;
     }
     os << DataEnd("]");
+
+    os << DataFieldName("design_parasitics_") << rhs.design_parasitics_
+       << DataDelimiter();
 
     os << DataEnd(")");
     return os;
