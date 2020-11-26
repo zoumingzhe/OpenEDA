@@ -158,7 +158,7 @@ void StorageUtil::initPolygonTable() {
 }
 
 void StorageUtil::setSymbolTable(SymbolTable *stb) {
-    if (stb != nullptr && symtbl_ != nullptr) {
+    if (symtbl_ != nullptr) {
         delete symtbl_;
     }
     symtbl_ = stb;
@@ -169,7 +169,7 @@ SymbolTable *StorageUtil::getSymbolTable() const {
 }
 
 void StorageUtil::setPolygonTable(PolygonTable *pt) {
-    if (pt != nullptr && polytbl_ != nullptr) {
+    if (polytbl_ != nullptr) {
         delete polytbl_;
     }
     polytbl_ = pt;
@@ -180,7 +180,7 @@ PolygonTable *StorageUtil::getPolygonTable() const {
 }
 
 void StorageUtil::setPool(MemPagePool *p) {
-    if (p != nullptr && pool_ != nullptr) {
+    if (pool_ != nullptr) {
         // TODO (ly) free a memory pool?
     }
     pool_ = p;
