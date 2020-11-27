@@ -10,7 +10,7 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 
-#include <gperftools/profiler.h>
+//#include <gperftools/profiler.h>
 #include "flow/src/main_place.h"
 #include "tcl_command/src/place_tcl_command.h"
 #include "infra/command_manager.h"
@@ -70,11 +70,11 @@ static int placeDesignCommand(ClientData cld, Tcl_Interp *itp, int argc, const c
 static void registerPlaceDesignManager()
 {
   CommandManager* cmd_manager = CommandManager::getCommandManager();
-  Command* command = cmd_manager->createCommand("place_design", "Placement full flow", 
-                        *(new Option("-detail_place", OptionDataType::kBool, false, "turn on detail place\n"))
-                      + *(new Option("-global_place", OptionDataType::kBool, false, "turn on global place\n"))
-                      + *(new Option("-json_file", OptionDataType::kString, false, "specify jason file\n"))
-                     );
+//  Command* command = cmd_manager->createCommand("place_design", "Placement full flow", 
+//                        *(new Option("-detail_place", OptionDataType::kBool, false, "turn on detail place\n"))
+//                      + *(new Option("-global_place", OptionDataType::kBool, false, "turn on global place\n"))
+//                      + *(new Option("-json_file", OptionDataType::kString, false, "specify jason file\n"))
+//                     );
 }
 
 static int calcWLCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[])
