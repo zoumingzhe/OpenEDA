@@ -32,7 +32,7 @@ void spef_error(yyscan_t scanner, SpefReader::SpefReader *spefReader, const char
 
 %union {
   char ch;
-  char *string;
+  const char *string;
   int integer;
   float value;
   SpefReader::StringVec *stringVec;
@@ -489,9 +489,9 @@ conn_defs:
 
 conn_def:
 	PPORT external_connection direction conn_attrs
-        { spefReader->addPinNode($2); }
+        { spefReader->addPinNode($2); /*spefReader->stringDelete($2);*/ }
 |	PINT internal_connection direction conn_attrs
-        { spefReader->addPinNode($2); }
+        { spefReader->addPinNode($2); /*spefReader->stringDelete($2);*/ }
 ;
 
 external_connection:

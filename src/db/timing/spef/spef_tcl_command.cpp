@@ -161,7 +161,6 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
     }
 
     return TCL_OK;
-
 }
 
 void printWriteSpefCommandHelp() {
@@ -231,7 +230,7 @@ int writeSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
 	    open_edi::util::message->info("Write spef file %s...\n", outFiles[0].c_str()); 
             
 	    std::ios_base::openmode mode = std::ios::out | std::ios::trunc;
-            OStream<std::ofstream> os(outFiles[0].c_str(), mode);
+            std::ofstream os(outFiles[0].c_str(), mode);
             os << *dsgPara;
             os.close();
 

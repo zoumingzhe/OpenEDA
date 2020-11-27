@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <string>
 #include <unordered_map>
+#include <map>
 #include <utility>
 #include <vector>
 #include <ctype.h>
@@ -48,39 +49,38 @@ class SpefReader {
     ~SpefReader();
 
     void stringDelete(const char *str);
-    void recordChar(char ch) { recordStr_ += ch; }
-    char* getRecordStr() { return stringCopy(recordStr_.c_str()); }
+    void recordChar(const char ch) { recordStr_ += ch; }
+    const char* getRecordStr() { return stringCopy(recordStr_.c_str()); }
     void clearRecordStr() { recordStr_.clear(); }
-    char* stringCopy(const char *str);
+    const char* stringCopy(const char *str);
     bool isDigits(const char *str);
     Cell* getCell() const { return cell_; }
     void setCell(const char *designName);
     void addDesignNetsParasitics();
-    void setDivider(char divider) { if (netsParasitics_) netsParasitics_->setDivider(divider); }
-    void setDelimiter(char delimiter) { if (netsParasitics_) netsParasitics_->setDelimiter(delimiter); }
-    void setPreBusDel(char prebusdel) { if (netsParasitics_) netsParasitics_->setPreBusDel(prebusdel); }
-    void setSufBusDel(char sufbusdel) { if (netsParasitics_) netsParasitics_->setSufBusDel(sufbusdel); }
-    void setCellId() { if (netsParasitics_ && cell_) netsParasitics_->setCellId(cell_->getId()); }
-    void setDesignFlow(StringVec *dsgFlow) { for (auto str : *dsgFlow) netsParasitics_->addDesignFlow(std::string(str)); }
+    void setDivider(const char divider) { if (netsParasitics_) netsParasitics_->setDivider(divider); }
+    void setDelimiter(const char delimiter) { if (netsParasitics_) netsParasitics_->setDelimiter(delimiter); }
+    void setPreBusDel(const char prebusdel) { if (netsParasitics_) netsParasitics_->setPreBusDel(prebusdel); }
+    void setSufBusDel(const char sufbusdel) { if (netsParasitics_) netsParasitics_->setSufBusDel(sufbusdel); }
     void setTimeScale(float digits, const char *unit);
     void setCapScale(float digits, const char *unit);
     void setResScale(float digits, const char *unit);
     void setInductScale(float digits, const char *unit);
-    void addNameMap(char *index, char *name);
-    void addPort(char *name);
+    void setDesignFlow(StringVec *dsgFlow);
+    void addNameMap(const char *index, const char *name);
+    void addPort(const char *name);
     float addParValue(float value1) { parValue_ = value1; return parValue_; }
     float addParValue(float value1, float value2, float value3);
-    Net* findNet(char *name);
-    Pin* findPin(char *name);
+    Net* findNet(const char *name);
+    Pin* findPin(const char *name);
     void addDNetBegin(Net *net);
     void addDNetEnd();
-    void addPinNode(char *pinName);
+    void addPinNode(const char *pinName);
     ObjectId getParasiticNode(std::string nodeName);
-    void addGroundCap(char *nodeName);
-    void addCouplingCap(char *nodeName1, char *nodeName2);
-    void addResistor(char *nodeName1, char *nodeName2);
+    void addGroundCap(const char *nodeName);
+    void addCouplingCap(const char *nodeName1, const char *nodeName2);
+    void addResistor(const char *nodeName1, const char *nodeName2);
     void addRNetBegin(Net *net);
-    void addRNetDrvr(char *pinName);
+    void addRNetDrvr(const char *pinName);
     void addPiModel(float c2, float r1, float c1); 
     void addRNetEnd() { net_ = nullptr; rnetParasitics_ = nullptr; netNodeMap_.clear(); }
     void setSpefField(uint8_t spefFiled) { spefField_ = spefFiled; }
@@ -106,8 +106,8 @@ class SpefReader {
     RNetParasitics *rnetParasitics_;
     uint8_t spefField_;
     uint32_t lineNo_;
-    std::unordered_map<std::string, ObjectId> netNodeMap_; //use to check if node created for net
-    void *scanner_; 
+    std::map<std::string, ObjectId> netNodeMap_; //use to check if node created for net
+    void *scanner_;
 };
 
 }  // namespace SpefReader

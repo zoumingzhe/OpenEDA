@@ -79,7 +79,7 @@ void DesignParasitics::move(DesignParasitics&& rhs) {
     rhs.parasitics_map_.clear();
 }
 
-OStreamBase &operator<<(OStreamBase &os, DesignParasitics const &rhs) {
+std::ofstream &operator<<(std::ofstream &os, DesignParasitics const &rhs) {
    for (auto obj : rhs.getParasiticsMap()) {
        NetsParasitics *netsParasitics = Object::addr<NetsParasitics>(obj.second);
        os << *netsParasitics;

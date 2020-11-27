@@ -64,7 +64,8 @@ class DesignParasitics : public Object {
     void setSpefField(unsigned spefField) { spefField_ = spefField; }
     uint8_t getSpefField() const { return spefField_; }
 
-    std::unordered_map<ObjectId, ObjectId> getParasiticsMap() const { return parasitics_map_; }
+    const std::unordered_map<ObjectId, SymbolIndex>& getSpefMap() const { return spef_map_; }
+    const std::unordered_map<ObjectId, ObjectId>& getParasiticsMap() const { return parasitics_map_; }
 
   protected:
     /// @brief copy object
@@ -72,7 +73,7 @@ class DesignParasitics : public Object {
     /// @brief move object
     void move(DesignParasitics &&rhs);
     /// @brief overload output stream
-    friend OStreamBase &operator<<(OStreamBase &os, DesignParasitics const &rhs);
+    friend std::ofstream &operator<<(std::ofstream &os, DesignParasitics const &rhs);
 
   private:
     /// SPEF Design Name ObjectId and file path map
