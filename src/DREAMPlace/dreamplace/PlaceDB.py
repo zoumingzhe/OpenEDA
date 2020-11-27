@@ -605,7 +605,7 @@ class PlaceDB (object):
             self.net2pin_map[i] = np.array(self.net2pin_map[i], dtype=np.int32)
         self.net2pin_map = np.array(self.net2pin_map)
 
-    def __call__(self, params, from_open_edi=false):
+    def __call__(self, params, from_open_edi=False):
         """
         @brief top API to read placement files 
         @param params parameters 
@@ -837,7 +837,7 @@ row height = %g, site width = %g
             f.write(content)
         logging.info("write_nets takes %.3f seconds" % (time.time()-tt))
 
-    def apply(self, params, node_x, node_y, for_open_edi=false):
+    def apply(self, params, node_x, node_y, for_open_edi=False):
         """
         @brief apply placement solution and update database 
         """
