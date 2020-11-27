@@ -365,7 +365,7 @@ static uint32_t calcThreadNumber(uint64_t num_tasks) {
     } else if (num_tasks > max_num_thread * 2) {
         return (max_num_thread + 7) / 8;
     } else {
-        return (max_num_thread + 15) / 16;
+        return (num_tasks + 3) / 4;
     }
 }
 
@@ -471,7 +471,7 @@ void MemPagePool::__readChunks(std::ifstream &infile, bool debug) {
             infile.read((char *)(mem_chunk->getChunk()), size);
             mem_chunk->setSize(size);
 
-            dst_chunks.push_back(chunks_[i]);
+            dst_chunks.push_back(chunks_[i + j]);
         }
         DecompressInput input(&src_chunks, &dst_chunks, &decompressed_sizes);
         decompressor.setInput(&input);
