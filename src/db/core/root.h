@@ -14,7 +14,6 @@
 
 #include <string>
 #include <vector>
-
 #include "db/core/cell.h"
 #include "db/tech/tech.h"
 #include "db/core/timing.h"
@@ -25,36 +24,8 @@
 
 namespace open_edi {
 namespace db {
-#if 0
+
 class Timing;
-class Cell;
-class Tech;
-class ObjectId;
-class SymbolTable;
-class PolygonTable;
-class MemPagePool;
-#endif
-class Timing;
-
-class StorageUtil {
-  public:
-    StorageUtil();
-    StorageUtil(ObjectId id);
-
-    ~StorageUtil();
-
-    void setSymbolTable(SymbolTable *stb);
-    SymbolTable *getSymbolTable() const;
-    void setPolygonTable(PolygonTable *pt);
-    PolygonTable *getPolygonTable() const;
-    void setPool(MemPagePool *p);
-    MemPagePool *getPool() const;
-
-  private:
-    MemPagePool *pool_;  ///< use the memory pool to allocate object
-    SymbolTable *symtbl_;
-    PolygonTable *polytbl_;
-};
 
 /// @brief root class: runtime
 class Root {
@@ -63,6 +34,10 @@ class Root {
         static Root root_inst;
         return root_inst;
     }
+    void initTechLib();
+    void initTimingLib();
+    void initTopCell();
+    void reset();
     void setTechLib(Tech *v);
     Tech* getTechLib() const;
     void setTimingLib(Timing *v);
@@ -77,6 +52,29 @@ class Root {
     Tech *tech_;
     Timing *timing_;
     Cell *top_cell_;
+};
+
+class StorageUtil {
+  public:
+    StorageUtil();
+    StorageUtil(uint64_t cell_id);
+    ~StorageUtil();
+
+    void initPool(uint64_t cell_id);
+    void initSymbolTable();
+    void initPolygonTable();
+
+    void setSymbolTable(SymbolTable *stb);
+    SymbolTable *getSymbolTable() const;
+    void setPolygonTable(PolygonTable *pt);
+    PolygonTable *getPolygonTable() const;
+    void setPool(MemPagePool *p);
+    MemPagePool *getPool() const;
+
+  private:
+    MemPagePool *pool_;  ///< use the memory pool to allocate object
+    SymbolTable *symtbl_;
+    PolygonTable *polytbl_;
 };
 
 }  // namespace db

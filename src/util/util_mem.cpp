@@ -465,7 +465,8 @@ bool MemPool::destroyMemPool() {
 
     indexed_page_pools_.fill(nullptr);
     page_pools_.clear();
-    initMemPool();
+    initialized_ = 0;
+    //initMemPool();
     return true;
 }
 
