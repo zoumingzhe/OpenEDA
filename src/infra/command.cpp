@@ -212,6 +212,23 @@ bool Command::getOptionValue(const char * name, db::Box** value) {
     }
 }
 
+bool Command::getOptionValue(const char * name, std::vector<std::string>** value) {
+    if (option_names_.find(name) != option_names_.end()) {
+        Option* op = getOption(option_names_.find(name)->second);
+        if ( op->getType() != OptionDataType::kStringList) {
+            message->issueMsg("INFRA", kOptionDataTypeError, kError, name);
+            return false;
+        }
+	std::vector<std::string>* op_data = (std::vector<std::string>* )op->getData();
+	for (int i = 0; i < op_data->size(); i++)
+            (*value)->push_back(op_data->at(i));
+        return true;
+    } else {
+        message->issueMsg("INFRA", kInvalidOption, kError, name);
+        return false;
+    }
+}
+
 int Command::preParse() {
     for (int i = 0; i <getOptionNum(); i++) {
         Option *opt = getOption(i);

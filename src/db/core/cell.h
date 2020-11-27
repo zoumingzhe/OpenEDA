@@ -250,7 +250,7 @@ class Cell : public Object {
     StorageUtil *getStorageUtil();
     void setStorageUtil(StorageUtil *v);
     void initHierData(StorageUtil *v);
-    void initHierData();
+    // void initHierData();
 
     // Get object vector size:
     uint64_t getNumOfCells() const;

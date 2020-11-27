@@ -76,8 +76,9 @@ void Version::readFromFile(std::ifstream & infile, bool debug)
     }
     if (size == 0) return; //shouldn't happen
 
-    char *version = new char [size];
+    char *version = new char [size + 1];
     infile.read(version, size);
+    version[size] = '\0';
     stringstream sstream(version);
     char header;
     char delimiter;
