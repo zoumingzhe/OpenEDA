@@ -15,8 +15,10 @@
 #ifndef EDI_DB_TIMING_SPEF_NETS_PARASITICS_H_
 #define EDI_DB_TIMING_SPEF_NETS_PARASITICS_H_
 
+#include <iostream>
 #include <algorithm>
 #include <string>
+#include <map>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -84,7 +86,10 @@ class NetsParasitics : public Object {
     //void addPowerNet(ObjectId sNetId) { pwrNetVec_.push_back(sNetId); }
     //void addGroundNet(ObjectId sNetId) { gndNetVec_.push_back(sNetId); }
     bool isDigits(const char *str);
+    Net* getNetBySymbol(SymbolIndex index);
     Net* findNet(const char *netName);
+    Pin* getPinBySymbol(SymbolIndex index, const std::string& pinName);
+    Pin* getPortBySymbol(SymbolIndex index);
     Pin* findPin(const char *pinName);
     ObjectId createParaNode(DNetParasitics *netParasitics, const char *nodeName);
     DNetParasitics* addDNetParasitics(ObjectId netId, float totCap);
@@ -100,15 +105,15 @@ class NetsParasitics : public Object {
     std::string getTermDirDumpName(Pin *pin);
     std::string getExtNodeDumpName(ParasiticExtNode *extNode);
     std::string getNodeDumpName(Net *net, ObjectId objId);
-    void dumpSpefHeader(OStreamBase& os);
-    void dumpNameMap(OStreamBase& os);
-    void dumpPorts(OStreamBase& os);
-    void dumpDNetConn(OStreamBase& os, DNetParasitics *dNetPara);
-    void dumpDNetCap(OStreamBase& os, DNetParasitics *dNetPara);
-    void dumpDNetRes(OStreamBase& os, DNetParasitics *dNetPara);
-    void dumpDNet(OStreamBase& os, DNetParasitics *dNetPara);
-    void dumpRNet(OStreamBase& os, RNetParasitics *rNetPara);
-    void dumpNets(OStreamBase& os);
+    void dumpSpefHeader(std::ofstream& os);
+    void dumpNameMap(std::ofstream& os);
+    void dumpPorts(std::ofstream& os);
+    void dumpDNetConn(std::ofstream& os, DNetParasitics *dNetPara);
+    void dumpDNetCap(std::ofstream& os, DNetParasitics *dNetPara);
+    void dumpDNetRes(std::ofstream& os, DNetParasitics *dNetPara);
+    void dumpDNet(std::ofstream& os, DNetParasitics *dNetPara);
+    void dumpRNet(std::ofstream& os, RNetParasitics *rNetPara);
+    void dumpNets(std::ofstream& os);
 
   protected:
     /// @brief copy object
@@ -116,7 +121,7 @@ class NetsParasitics : public Object {
     /// @brief move object
     void move(NetsParasitics &&rhs);
     /// @brief overload output stream
-    friend OStreamBase &operator<<(OStreamBase &os, NetsParasitics &rhs);
+    friend std::ofstream &operator<<(std::ofstream &os, NetsParasitics &rhs);
 
   private:
     /// Net ObjectId and NetParasitics ObjectId Map
