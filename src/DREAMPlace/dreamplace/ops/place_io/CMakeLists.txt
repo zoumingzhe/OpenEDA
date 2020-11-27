@@ -4,6 +4,9 @@ if (NOT CMAKE_CUDA_FLAGS)
     set(CMAKE_CUDA_FLAGS "-gencode=arch=compute_60,code=sm_60")
 endif()
 
+get_filename_component(COMMON_DB_LIBRARY_DIRS ${CMAKE_CURRENT_BINARY_DIR}/../flow ABSOLUTE)
+message(STATUS "COMMON_DB_LIBRARY_DIRS ${COMMON_DB_LIBRARY_DIRS}")
+
 if (PYTHON)
     set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
     set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")

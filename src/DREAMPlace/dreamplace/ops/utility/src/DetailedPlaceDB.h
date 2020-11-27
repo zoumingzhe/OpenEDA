@@ -119,7 +119,7 @@ struct DetailedPlaceDB
         by = std::min(by, num_bins_y-1); 
         return by; 
     }
-    inline void shift_box_to_layout(Box<T>& box) const  
+    inline void shift_box_to_layout(UBox<T>& box) const  
     {
         box.xl = std::max(box.xl, xl);
         box.xl = std::min(box.xl, xh);
@@ -130,10 +130,10 @@ struct DetailedPlaceDB
         box.yh = std::max(box.yh, yl);
         box.yh = std::min(box.yh, yh);
     }
-    inline Box<int> box2sitebox(const Box<T>& box) const  
+    inline UBox<int> box2sitebox(const UBox<T>& box) const  
     {
         // xh, yh are exclusive 
-        Box<int> sitebox (
+        UBox<int> sitebox (
                 pos2site_x(box.xl), 
                 pos2site_y(box.yl), 
                 pos2site_ub_x(box.xh), 
@@ -142,9 +142,9 @@ struct DetailedPlaceDB
 
         return sitebox; 
     }
-    inline Box<int> box2binbox(const Box<T>& box) const
+    inline UBox<int> box2binbox(const UBox<T>& box) const
     {
-        Box<int> binbox (
+        UBox<int> binbox (
                 pos2bin_x(box.xl), 
                 pos2bin_y(box.yl),  
                 pos2bin_x(box.xh), 
@@ -171,9 +171,9 @@ struct DetailedPlaceDB
     /// If we want to consider the pin offsets, there may not be feasible box for the optimal region. 
     /// Thus, this is just an approximate optimal region. 
     /// When using the optimal region, one needs to refer to the center of the cell to the region, or the region completely covers the entire cell. 
-    Box<T> compute_optimal_region(int node_id) const
+    UBox<T> compute_optimal_region(int node_id) const
     {
-        Box<T> box (
+        UBox<T> box (
                 std::numeric_limits<T>::max(),
                 std::numeric_limits<T>::max(),
                 -std::numeric_limits<T>::max(),
@@ -206,7 +206,7 @@ struct DetailedPlaceDB
     /// @brief compute HPWL for a net 
     T compute_net_hpwl(int net_id) const
     {
-        Box<T> box (
+        UBox<T> box (
                 std::numeric_limits<T>::max(),
                 std::numeric_limits<T>::max(),
                 -std::numeric_limits<T>::max(),

@@ -93,6 +93,7 @@ struct PyPlaceDB
 
     PyPlaceDB()
     {
+        set();
     }
 
     PyPlaceDB(PlaceDB const& db)
@@ -101,6 +102,7 @@ struct PyPlaceDB
     }
 
     void set(PlaceDB const& db);
+    void set();
 };
 
 DREAMPLACE_END_NAMESPACE

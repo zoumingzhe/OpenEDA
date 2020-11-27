@@ -41,6 +41,14 @@ class PlaceIOFunction(Function):
         """
         return place_io_cpp.pydb(raw_db)
 
+    @staticmethod
+    def pydb():
+        """
+        @brief convert common db to python db
+        @param none
+        """
+        return place_io_cpp.pydb()
+
     @staticmethod 
     def write(raw_db, filename, sol_file_format, node_x, node_y):
         """
@@ -62,3 +70,13 @@ class PlaceIOFunction(Function):
         @param node_y y coordinates of cells, only need movable cells
         """
         return place_io_cpp.apply(raw_db, node_x, node_y)
+
+    @staticmethod
+    def apply(node_x, node_y):
+        """
+        @brief apply solution to common db
+        @param node_x x coordinates of cells, only need movable cells
+        @param node_y y coordinates of cells, only need movable cells
+        """
+        return place_io_cpp.apply(node_x, node_y)
+
