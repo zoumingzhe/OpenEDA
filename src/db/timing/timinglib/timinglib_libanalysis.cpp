@@ -912,30 +912,31 @@ si2drVoidT LibAnalysis::__si2drDefaultMessageHandler(si2drSeverityT sev,
         case kSI2DR_SEVERITY_NOTE:
             sevstr = const_cast<char *>("INFO");
             str = string_format("%s: %s\n", sevstr, auxText);
-            // open_edi::util::message->info("%s\n", auxText);
+            // open_edi::util::message->issueMsg("TIMINGLIB", 14,
+            // open_edi::util::kInfo, auxText);
             break;
         case kSI2DR_SEVERITY_WARN:
             sevstr = const_cast<char *>("WARNING");
             str = string_format("%s: %s\n", sevstr, auxText);
-            // open_edi::util::message->issueMsg(open_edi::util::kWarn, "%s\n",
-            //                                  auxText);
+            // open_edi::util::message->issueMsg("TIMINGLIB", 14,
+            // open_edi::util::kWarn, auxText);
             break;
         case kSI2DR_SEVERITY_ERR:
             sevstr = const_cast<char *>("ERROR");
             if (auxText) {
                 if (!strcmp(errt, "")) {
                     str = string_format("%s: %s\n", sevstr, auxText);
-                    open_edi::util::message->issueMsg(open_edi::util::kError,
-                                                      "%s\n", auxText);
+                    open_edi::util::message->issueMsg(
+                        "TIMINGLIB", 14, open_edi::util::kError, auxText);
                 } else {
                     str = string_format("%s: %s (%s)\n", sevstr, auxText, errt);
                     open_edi::util::message->issueMsg(
-                        open_edi::util::kError, "%s (%s)\n", auxText, errt);
+                        "TIMINGLIB", 15, open_edi::util::kError, auxText, errt);
                 }
             } else {
                 str = string_format("%s: %s\n", sevstr, errt);
-                open_edi::util::message->issueMsg(open_edi::util::kError,
-                                                  "%s\n", errt);
+                open_edi::util::message->issueMsg("TIMINGLIB", 14,
+                                                  open_edi::util::kError, errt);
             }
             break;
     }

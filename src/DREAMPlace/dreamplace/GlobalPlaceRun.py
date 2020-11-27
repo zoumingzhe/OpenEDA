@@ -10,6 +10,8 @@ import os
 import sys
 import logging
 import torch
+import matplotlib 
+matplotlib.use('Agg')
 import numpy as np 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if root_dir not in sys.path:
@@ -24,7 +26,7 @@ def global_placer_run(json_file):
     @brief Top function to run global placement.
     @json json_file for user settings.
     """
-    
+
     logging.root.name = 'DREAMPlace'
     logging.basicConfig(level=logging.INFO, format='[%(levelname)-7s] %(name)s - %(message)s', stream=sys.stdout)
     params = Params.Params()

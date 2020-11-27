@@ -24,21 +24,18 @@ enum WLType
   kDEFAULT = 0,
   kHPWL = 1,
   kMST = 2,
+  kFLUTE = 3,
 };
 
-std::string kWLTypeName[3] = {"none", "HPWL", "MST"};
+static std::string kWLTypeName[4] = {"none", "HPWL", "MST", "FLUTE"};
 
 class WireLength
 {
   public:
     WireLength(bool gpu) : gpu_(gpu)
-    {
-      db_ = CommonPlaceDB::getPlaceDBInstance();
-    }
+    {}
     ~WireLength()
-    {
-      CommonPlaceDB::freePlaceDBInstance();
-    }
+    {}
     WireLength(const WireLength&)            = delete; // no copy
     WireLength &operator=(const WireLength&) = delete; // no copy
 
