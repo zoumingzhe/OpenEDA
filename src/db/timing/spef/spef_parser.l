@@ -19,8 +19,6 @@
 #include "util/message.h"
 #include "spef_parser.yacc.hh"
 
-#define YY_NO_INPUT
-
 #undef  YY_DECL
 #define YY_DECL int spef_lex(SPEF_STYPE *yylval_param, yyscan_t yyscanner, SpefReader::SpefReader *spefReader)
 #define YYSTYPE SPEF_STYPE
@@ -155,6 +153,7 @@ yylval = yylval_param;
 
 "//".*\n        { spefReader->incrLineNo(); }
 [ \t\r]*\n      { spefReader->incrLineNo(); }
+[ \t\r]         {}
 "\""            { BEGIN(QUOTE); spefReader->clearRecordStr(); }
 <QUOTE>\r?\n    { spefReader->incrLineNo(); }
 <QUOTE>"\\".    { spefReader->recordChar(yytext[1]); }
@@ -179,8 +178,6 @@ yylval = yylval_param;
 {INDEX} { yylval->string = spefReader->stringCopy(yytext); return INDEX; }
 
 {HCHAR} { char ch = yytext[0]; return ((int) ch); }
-
-[ \t\r]  ;
 
 .       { return ((int) yytext[0]); }
 
