@@ -28,40 +28,8 @@
 #include "util/stream.h"
 #include "util/util.h"
 
-//for test
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-
 namespace open_edi {
 namespace db {
-
-size_t memoryUsage() {
-  std::string proc_filename = "/proc/" + std::to_string(getpid()) + "/status";
-  //stringPrint(proc_filename, "/proc/%d/status", getpid());
-  size_t memory = 0;
-  FILE *status = fopen(proc_filename.c_str(), "r");
-  if (status) {
-    const size_t line_length = 128;
-    char line[line_length];
-    while (fgets(line, line_length, status) != nullptr) {
-      char *field = strtok(line, " \t");
-      if (strcmp(field, "VmRSS:") == 0) {
-        char *size = strtok(nullptr, " \t");
-        if (size) {
-          char *ignore;
-          memory = strtol(size, &ignore, 10) * 1000;
-          break;
-        }
-      }
-    }
-    fclose(status);
-  }
-  return memory;
-}
-
 
 void printReadSpefCommandHelp() {
     open_edi::util::message->info("read_spef:\n");
@@ -85,12 +53,6 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
         printReadSpefCommandHelp();
         return TCL_OK;
     }
-
-    //for test
-    struct timeval starttime, endtime;
-    struct timezone tz;
-    gettimeofday(&starttime, &tz);
-    double memory_begin = static_cast<double> (memoryUsage());
 
     if (argc > 1) {
         std::vector<std::string> spefFiles;
@@ -198,15 +160,7 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
         return TCL_ERROR;
     }
 
-    //for test
-    gettimeofday(&endtime, &tz);
-    double memory_end = static_cast<double> (memoryUsage());
-    std::cout << "Read SPEF Total Run time: "  << 
-                 endtime.tv_sec - starttime.tv_sec + (endtime.tv_usec - starttime.tv_usec) * 1E-6 << "S" << std::endl;
-    std::cout << "Total memory used: " << (memory_end - memory_begin) * 1e-6 << "MB" << std::endl;
-
     return TCL_OK;
-
 }
 
 void printWriteSpefCommandHelp() {
