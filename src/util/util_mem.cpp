@@ -418,12 +418,12 @@ void MemPagePool::__writeChunks(std::ofstream &outfile, bool debug) {
         compressed_sizes.resize(num_thread, 0);
     }
     int num_last_chunks = num_chunks_ - i;
-    for (int j = 0; j < num_last_chunks - i; ++j) {
+    for (int j = 0; j < num_last_chunks; ++j) {
         copy_src_chunks.push_back(chunks_[i + j]);
     }
     CompressInput input(&copy_src_chunks, &dst_chunks, &compressed_sizes);
     compressor.setInput(&input);
-    compressor.run(1, num_last_chunks - i, 1);
+    compressor.run(1, num_last_chunks, 1);
     for (int k = 0; k < num_last_chunks; ++k) {
         if (compressed_sizes[k] > 0) {
             outfile.write((char*)&(compressed_sizes[k]), sizeof(int));
@@ -481,10 +481,14 @@ void MemPagePool::__readChunks(std::ifstream &infile, bool debug) {
             if (decompressed_sizes[k] < 0) {
                 cout << "Lz4 decompress chunk failed, return code is "
                         << decompressed_sizes[k] << endl;
+                for (auto mem_chunk : src_chunks) {
+                    delete mem_chunk;
+                }
                 return;
             }
         }
         decompressed_sizes.resize(num_thread, 0);
+        dst_chunks.clear();
     }
     int num_last_chunks = num_chunks_ - i;
     for (int j = 0; j < num_last_chunks; ++j) {
@@ -498,11 +502,14 @@ void MemPagePool::__readChunks(std::ifstream &infile, bool debug) {
     }
     DecompressInput input(&src_chunks, &dst_chunks, &decompressed_sizes);
     decompressor.setInput(&input);
-    decompressor.run(1, num_last_chunks - i, 1);
+    decompressor.run(1, num_last_chunks, 1);
     for (int k = 0; k < num_last_chunks; ++k) {
         if (decompressed_sizes[k] < 0) {
             cout << "Lz4 decompress chunk failed, return code is "
                     << decompressed_sizes[k] << endl;
+            for (auto mem_chunk : src_chunks) {
+                delete mem_chunk;
+            }
             return;
         }
     }
