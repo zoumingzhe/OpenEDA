@@ -92,6 +92,7 @@ static int readDBCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *
     }
 
     ReadDesign read_design(cell_name);
+    read_design.setTop();
     read_design.setDebug(debug);
     return read_design.run();
 }

@@ -63,7 +63,7 @@ class MemPage {
     uint64_t    getPageNo() {return page_no_;}
     float       printPageUsage(bool display = false);
     bool        isFree() {return size_avail_ == size_total_;} 
-
+    void        adjustFree() {free_ += size_total_ - size_avail_;}
     template<class T> T* allocate(uint32_t &offset);
     template<class T> T* allocate(uint64_t num, uint32_t &offset);
 
