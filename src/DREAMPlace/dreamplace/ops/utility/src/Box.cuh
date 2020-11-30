@@ -1,5 +1,5 @@
 /**
- * @file   Box.cuh
+ * @file   UBox.cuh
  * @author Yibo Lin
  * @date   Jan 2019
  */
@@ -13,7 +13,7 @@
 DREAMPLACE_BEGIN_NAMESPACE
 
 template <typename T>
-struct Box 
+struct UBox 
 {
     T xl;
     T yl; 
@@ -21,7 +21,7 @@ struct Box
     T yh; 
 
     /// @brief default constructor 
-    __host__ __device__ Box()
+    __host__ __device__ UBox()
     {
         invalidate();
     }
@@ -31,7 +31,7 @@ struct Box
     /// @param yyl yl 
     /// @param xxh xh 
     /// @param yyh yh 
-    __host__ __device__ Box(T xxl, T yyl, T xxh, T yyh)
+    __host__ __device__ UBox(T xxl, T yyl, T xxh, T yyh)
         : xl(xxl)
         , yl(yyl)
         , xh(xxh)
@@ -108,7 +108,7 @@ struct Box
     /// @return y coordinate of the center of the box 
     __host__ __device__ T center_y() const {return (yl+yh)/2;}
     /// @return center manhattan distance to another box 
-    __host__ __device__ T center_distance(const Box& rhs) const 
+    __host__ __device__ T center_distance(const UBox& rhs) const 
     {
         return fabs(rhs.center_x()-center_x()) + fabs(rhs.center_y()-center_y());
     }

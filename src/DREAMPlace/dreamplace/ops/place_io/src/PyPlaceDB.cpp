@@ -7,6 +7,7 @@
 
 #include "PyPlaceDB.h"
 #include <boost/polygon/polygon.hpp>
+#include "flow/src/common_place_DB.h"
 
 DREAMPLACE_BEGIN_NAMESPACE
 
@@ -152,6 +153,13 @@ bool readBookshelf(PlaceDB& db)
     else dreamplacePrint(kWARN, "no additional Bookshelf .pl file specified\n");
 
     return true;
+}
+
+void PyPlaceDB::set() 
+{
+    CommonPlaceDB* db = CommonPlaceDB::getPlaceDBInstance();
+    //setup from common db.
+    //to be implemented.
 }
 
 void PyPlaceDB::set(PlaceDB const& db) 
