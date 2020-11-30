@@ -83,15 +83,6 @@ void AntennaModel::release(std::vector<std::pair<float, float>>*& ptr, UInt32 is
  * it means, if isSet() is true before last one, the existing model must be reset
  */
 void AntennaModel::reset() {
-    release(diff_area_ratio_pwl_, is_diff_area_ratio_pwl_);
-    release(cum_diff_area_ratio_pwl_, is_cum_diff_area_ratio_pwl_);
-    release(gate_plus_diff_pwl_, is_gate_plus_diff_pwl_);
-    release(area_diff_reduce_pwl_, true);
-    release(diff_gate_pwl_, true);
-    release(gate_pwl_, true);
-    release(diff_side_area_ratio_pwl_, is_diff_side_area_ratio_pwl_);
-    release(cum_diff_side_area_ratio_pwl_, is_cum_diff_side_area_ratio_pwl_);
-    memset(static_cast<void*>(this), 0, sizeof(AntennaModel));
     area_factor_ = 1.0f;
 }
 
@@ -459,9 +450,20 @@ void AntennaModel::setDiffAreaRatio(float diff_ratio) {
  *
  * @return
  */
-std::pair<float, float>* AntennaModel::getDiffAreaRatioPWL(UInt32 index) const {
-    if (is_diff_area_ratio_pwl_ && diff_area_ratio_pwl_ && index < diff_area_ratio_pwl_->size())
-        return &diff_area_ratio_pwl_->at(index);
+FloatPair* AntennaModel::getDiffAreaRatioPWL(UInt32 index) const {
+    if (!is_diff_area_ratio_pwl_ || index >= getDiffAreaRatioPWLSize())
+        return nullptr;
+
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (diff_area_ratio_pwl_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(diff_area_ratio_pwl_);
+    }
+    if (vct) {
+        FloatPair obj_data = (*vct)[index];
+        return &obj_data;
+    }
     return nullptr;
 }
 
@@ -473,9 +475,18 @@ std::pair<float, float>* AntennaModel::getDiffAreaRatioPWL(UInt32 index) const {
  * @param r
  */
 void AntennaModel::addDiffAreaRatioPWL(float d, float r) {
-    if (!is_diff_area_ratio_pwl_)
-        is_diff_area_ratio_pwl_ = 1;
-    pushBackPair(diff_area_ratio_pwl_, d, r);
+    FloatPair fp{d,r};
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (diff_area_ratio_pwl_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<FloatPair>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        diff_area_ratio_pwl_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(diff_area_ratio_pwl_);
+    }
+    if (vct) vct->pushBack(fp);
 }
 
 /**
@@ -485,7 +496,16 @@ void AntennaModel::addDiffAreaRatioPWL(float d, float r) {
  * @return
  */
 UInt32 AntennaModel::getDiffAreaRatioPWLSize() const {
-    return diff_area_ratio_pwl_ ? diff_area_ratio_pwl_->size() : 0;
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (diff_area_ratio_pwl_ == 0) {
+        return 0;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(diff_area_ratio_pwl_);
+    }
+    if (vct) {
+        return vct->getSize();
+    }
+    return 0;
 }
 
 /**
@@ -516,9 +536,20 @@ void AntennaModel::setCumDiffAreaRatio(float r) {
  *
  * @return
  */
-std::pair<float, float>* AntennaModel::getCumDiffAreaRatioPWL(UInt32 index) const {
-    if (is_cum_diff_area_ratio_pwl_ && cum_diff_area_ratio_pwl_ && index < cum_diff_area_ratio_pwl_->size())
-        return &cum_diff_area_ratio_pwl_->at(index);
+FloatPair* AntennaModel::getCumDiffAreaRatioPWL(UInt32 index) const {
+    if (!is_cum_diff_area_ratio_pwl_ || index >= getCumDiffAreaRatioPWLSize())
+        return nullptr;
+
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (cum_diff_area_ratio_pwl_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(cum_diff_area_ratio_pwl_);
+    }
+    if (vct) {
+        FloatPair obj_data = (*vct)[index];
+        return &obj_data;
+    }
     return nullptr;
 }
 
@@ -529,7 +560,19 @@ std::pair<float, float>* AntennaModel::getCumDiffAreaRatioPWL(UInt32 index) cons
  * @return
  */
 UInt32 AntennaModel::getCumDiffAreaRatioPWLSize() const {
-    return is_cum_diff_area_ratio_pwl_ ? cum_diff_area_ratio_pwl_->size() : 0;
+    if (!is_cum_diff_area_ratio_pwl_)
+    return 0;
+
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (cum_diff_area_ratio_pwl_ == 0) {
+        return 0;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(cum_diff_area_ratio_pwl_);
+    }
+    if (vct) {
+        return vct->getSize();
+    }
+    return 0;
 }
 
 /**
@@ -540,9 +583,19 @@ UInt32 AntennaModel::getCumDiffAreaRatioPWLSize() const {
  * @param r
  */
 void AntennaModel::addCumDiffAreaRatioPWL(float d, float r) {
-    if (!is_cum_diff_area_ratio_pwl_)
-        is_cum_diff_area_ratio_pwl_ = 1;
-    pushBackPair(cum_diff_area_ratio_pwl_, d, r);
+
+    FloatPair fp{d,r};
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (cum_diff_area_ratio_pwl_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<FloatPair>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        cum_diff_area_ratio_pwl_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(cum_diff_area_ratio_pwl_);
+    }
+    if (vct) vct->pushBack(fp);
 }
 
 /**
@@ -593,9 +646,20 @@ void AntennaModel::setGatePlusDiff(float d) {
  *
  * @return
  */
-std::pair<float, float>* AntennaModel::getGatePlusDiffPWL(UInt32 index) const {
-    if (is_gate_plus_diff_pwl_ && gate_plus_diff_pwl_ && index < gate_plus_diff_pwl_->size())
-        return &gate_plus_diff_pwl_->at(index);
+FloatPair* AntennaModel::getGatePlusDiffPWL(UInt32 index) const {
+    if (!is_gate_plus_diff_pwl_ || index >= getGatePlusDiffPWLSize())
+        return nullptr;
+
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (gate_plus_diff_pwl_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(gate_plus_diff_pwl_);
+    }
+    if (vct) {
+        FloatPair obj_data = (*vct)[index];
+        return &obj_data;
+    }
     return nullptr;
 }
 
@@ -606,7 +670,19 @@ std::pair<float, float>* AntennaModel::getGatePlusDiffPWL(UInt32 index) const {
  * @return
  */
 UInt32 AntennaModel::getGatePlusDiffPWLSize() const {
-    return is_gate_plus_diff_pwl_ ? gate_plus_diff_pwl_->size() : 0;
+    if (!is_gate_plus_diff_pwl_)
+        return 0;
+
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (gate_plus_diff_pwl_ == 0) {
+        return 0;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(gate_plus_diff_pwl_);
+    }
+    if (vct) {
+        return vct->getSize();
+    }
+    return 0;
 }
 
 /**
@@ -618,8 +694,19 @@ UInt32 AntennaModel::getGatePlusDiffPWLSize() const {
  */
 void AntennaModel::addGatePlusDiffPWL(float d, float p) {
     if (!is_gate_plus_diff_pwl_)
-        is_gate_plus_diff_pwl_ = 1;
-    pushBackPair(gate_plus_diff_pwl_, d, p);
+         is_gate_plus_diff_pwl_ = 1;
+    FloatPair fp{d,p};
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (gate_plus_diff_pwl_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<FloatPair>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        gate_plus_diff_pwl_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(gate_plus_diff_pwl_);
+    }
+    if (vct) vct->pushBack(fp);
 }
 
 /**
@@ -630,9 +717,20 @@ void AntennaModel::addGatePlusDiffPWL(float d, float p) {
  *
  * @return
  */
-std::pair<float, float>* AntennaModel::getAreaDiffReducePWL(UInt32 index) const {
-    if (area_diff_reduce_pwl_ && index < area_diff_reduce_pwl_->size())
-        return &area_diff_reduce_pwl_->at(index);
+FloatPair* AntennaModel::getAreaDiffReducePWL(UInt32 index) const {
+    if ( index >= getAreaDiffReducePWLSize())
+        return nullptr;
+
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (area_diff_reduce_pwl_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(area_diff_reduce_pwl_);
+    }
+    if (vct) {
+        FloatPair obj_data = (*vct)[index];
+        return &obj_data;
+    }
     return nullptr;
 }
 
@@ -644,7 +742,18 @@ std::pair<float, float>* AntennaModel::getAreaDiffReducePWL(UInt32 index) const 
  * @param d
  */
 void AntennaModel::addAreaDiffReducePWL(float f, float d) {
-    pushBackPair(area_diff_reduce_pwl_, f, d);
+    FloatPair fp{f,d};
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (area_diff_reduce_pwl_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<FloatPair>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        area_diff_reduce_pwl_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(area_diff_reduce_pwl_);
+    }
+    if (vct) vct->pushBack(fp);
 }
 
 /**
@@ -654,7 +763,19 @@ void AntennaModel::addAreaDiffReducePWL(float f, float d) {
  * @return
  */
 UInt32 AntennaModel::getAreaDiffReducePWLSize() const {
-    return area_diff_reduce_pwl_ ? area_diff_reduce_pwl_->size() : 0;
+    if (!area_diff_reduce_pwl_)
+        return 0;
+
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (area_diff_reduce_pwl_ == 0) {
+        return 0;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(area_diff_reduce_pwl_);
+    }
+    if (vct) {
+        return vct->getSize();
+    }
+    return 0;
 }
 
 /**
@@ -685,10 +806,22 @@ void AntennaModel::setDiffGatePWLId(UInt32 index) {
  *
  * @return
  */
-std::pair<float, float>* AntennaModel::getDiffGatePWL(UInt32 index) const {
-    if (diff_gate_pwl_ && index < diff_gate_pwl_->size())
-        return &diff_gate_pwl_->at(index);
+FloatPair* AntennaModel::getDiffGatePWL(UInt32 index) const {
+    if ( index >= getDiffGatePWLSize())
+        return nullptr;
+
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (diff_gate_pwl_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(diff_gate_pwl_);
+    }
+    if (vct) {
+        FloatPair obj_data = (*vct)[index];
+        return &obj_data;
+    }
     return nullptr;
+
 }
 
 /**
@@ -698,7 +831,19 @@ std::pair<float, float>* AntennaModel::getDiffGatePWL(UInt32 index) const {
  * @return
  */
 UInt32 AntennaModel::getDiffGatePWLSize() const {
-    return diff_gate_pwl_ ? diff_gate_pwl_->size() : 0;
+    if (!diff_gate_pwl_)
+        return 0;
+
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (diff_gate_pwl_ == 0) {
+        return 0;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(diff_gate_pwl_);
+    }
+    if (vct) {
+        return vct->getSize();
+    }
+    return 0;
 }
 
 /**
@@ -709,7 +854,18 @@ UInt32 AntennaModel::getDiffGatePWLSize() const {
  * @param effective_gate_area
  */
 void AntennaModel::addDiffGatePWL(float gate_area, float effective_gate_area) {
-    pushBackPair(diff_gate_pwl_, gate_area, effective_gate_area);
+    FloatPair fp{gate_area,effective_gate_area};
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (diff_gate_pwl_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<FloatPair>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        diff_gate_pwl_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(diff_gate_pwl_);
+    }
+    if (vct) vct->pushBack(fp);
 }
 
 /**
@@ -740,9 +896,20 @@ void AntennaModel::setGatePWLId(UInt32 index) {
  *
  * @return
  */
-std::pair<float, float>* AntennaModel::getGatePWL(UInt32 index) const {
-    if (gate_pwl_ && index < gate_pwl_->size())
-        return &gate_pwl_->at(index);
+FloatPair* AntennaModel::getGatePWL(UInt32 index) const {
+    if ( index >= getGatePWLSize())
+        return nullptr;
+
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (gate_pwl_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(gate_pwl_);
+    }
+    if (vct) {
+        FloatPair obj_data = (*vct)[index];
+        return &obj_data;
+    }
     return nullptr;
 }
 
@@ -753,7 +920,19 @@ std::pair<float, float>* AntennaModel::getGatePWL(UInt32 index) const {
  * @return
  */
 UInt32 AntennaModel::getGatePWLSize() const {
-    return gate_pwl_ ? gate_pwl_->size() : 0;
+    if (!gate_pwl_)
+        return 0;
+
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (gate_pwl_ == 0) {
+        return 0;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(gate_pwl_);
+    }
+    if (vct) {
+        return vct->getSize();
+    }
+    return 0;
 }
 
 /**
@@ -764,7 +943,18 @@ UInt32 AntennaModel::getGatePWLSize() const {
  * @param effective_gate_area
  */
 void AntennaModel::addGatePWL(float gate_area, float effective_gate_area) {
-    pushBackPair(gate_pwl_, gate_area, effective_gate_area);
+    FloatPair fp{gate_area,effective_gate_area};
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (gate_pwl_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<FloatPair>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        gate_pwl_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(gate_pwl_);
+    }
+    if (vct) vct->pushBack(fp);
 }
 
 /**
@@ -795,9 +985,20 @@ void AntennaModel::setDiffSideAreaRatio(float ratio) {
  *
  * @return
  */
-std::pair<float, float>* AntennaModel::getDiffSideAreaRatioPWL(UInt32 index) const {
-    if (is_diff_side_area_ratio_pwl_ && diff_side_area_ratio_pwl_ && index < diff_side_area_ratio_pwl_->size())
-        return &diff_side_area_ratio_pwl_->at(index);
+FloatPair* AntennaModel::getDiffSideAreaRatioPWL(UInt32 index) const {
+    if (!is_diff_side_area_ratio_pwl_ || index >= getDiffSideAreaRatioPWLSize())
+        return nullptr;
+
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (diff_side_area_ratio_pwl_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(diff_side_area_ratio_pwl_);
+    }
+    if (vct) {
+        FloatPair obj_data = (*vct)[index];
+        return &obj_data;
+    }
     return nullptr;
 }
 
@@ -808,7 +1009,19 @@ std::pair<float, float>* AntennaModel::getDiffSideAreaRatioPWL(UInt32 index) con
  * @return
  */
 UInt32 AntennaModel::getDiffSideAreaRatioPWLSize() const {
-    return (is_diff_side_area_ratio_pwl_ && diff_side_area_ratio_pwl_) ? diff_side_area_ratio_pwl_->size() : 0;
+    if (!is_diff_side_area_ratio_pwl_)
+        return 0;
+
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (diff_side_area_ratio_pwl_ == 0) {
+        return 0;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(diff_side_area_ratio_pwl_);
+    }
+    if (vct) {
+        return vct->getSize();
+    }
+    return 0;
 }
 
 /**
@@ -820,8 +1033,19 @@ UInt32 AntennaModel::getDiffSideAreaRatioPWLSize() const {
  */
 void AntennaModel::addDiffSideAreaRatioPWL(float d, float r) {
     if (!is_diff_side_area_ratio_pwl_)
-        is_diff_side_area_ratio_pwl_ = 1;
-    pushBackPair(diff_side_area_ratio_pwl_, d, r);
+        is_diff_side_area_ratio_pwl_ = 1;    
+    FloatPair fp{d,r};
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (diff_side_area_ratio_pwl_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<FloatPair>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        diff_side_area_ratio_pwl_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(diff_side_area_ratio_pwl_);
+    }
+    if (vct) vct->pushBack(fp);
 }
 
 /**
@@ -852,9 +1076,20 @@ void AntennaModel::setCumDiffSideAreaRatio(float v) {
  *
  * @return
  */
-std::pair<float, float>* AntennaModel::getCumDiffSideAreaRatioPWL(UInt32 index) const {
-    if (is_cum_diff_side_area_ratio_pwl_ && cum_diff_side_area_ratio_pwl_ && index < cum_diff_side_area_ratio_pwl_->size())
-        return &cum_diff_side_area_ratio_pwl_->at(index);
+FloatPair* AntennaModel::getCumDiffSideAreaRatioPWL(UInt32 index) const {
+    if (!is_cum_diff_side_area_ratio_pwl_ || index >= getCumDiffSideAreaRatioPWLSize())
+        return nullptr;
+
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (cum_diff_side_area_ratio_pwl_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(cum_diff_side_area_ratio_pwl_);
+    }
+    if (vct) {
+        FloatPair obj_data = (*vct)[index];
+        return &obj_data;
+    }
     return nullptr;
 }
 
@@ -865,7 +1100,19 @@ std::pair<float, float>* AntennaModel::getCumDiffSideAreaRatioPWL(UInt32 index) 
  * @return
  */
 UInt32 AntennaModel::getCumDiffSideAreaRatioPWLSize() const {
-    return is_cum_diff_side_area_ratio_pwl_ ? cum_diff_side_area_ratio_pwl_->size() : 0;
+    if (!is_cum_diff_side_area_ratio_pwl_)
+        return 0;
+
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (cum_diff_side_area_ratio_pwl_ == 0) {
+        return 0;
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(cum_diff_side_area_ratio_pwl_);
+    }
+    if (vct) {
+        return vct->getSize();
+    }
+    return 0;
 }
 
 /**
@@ -877,17 +1124,28 @@ UInt32 AntennaModel::getCumDiffSideAreaRatioPWLSize() const {
  */
 void AntennaModel::addCumDiffSideAreaRatioPWL(float d, float r) {
     if (!is_cum_diff_side_area_ratio_pwl_)
-        is_cum_diff_side_area_ratio_pwl_ = 1;
-    pushBackPair(cum_diff_side_area_ratio_pwl_, d, r);
+        is_cum_diff_side_area_ratio_pwl_ = 1;   
+    FloatPair fp{d,r};
+    ArrayObject<FloatPair> *vct = nullptr;
+    if (cum_diff_side_area_ratio_pwl_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<FloatPair>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        cum_diff_side_area_ratio_pwl_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<FloatPair>>(cum_diff_side_area_ratio_pwl_);
+    }
+    if (vct) vct->pushBack(fp);
 }
 
 void CurrentDen::reset() {
-    if (frequencies_)
-        free(frequencies_);
-    if (table_entries_)
-        free(table_entries_);
-    if (widths_)
-        free(widths_);
+    // if (frequencies_)
+    //     free(frequencies_);
+    // if (table_entries_)
+    //     free(table_entries_);
+    // if (widths_)
+    //     free(widths_);
 
     memset(static_cast<void*>(this), 0, sizeof(CurrentDen));
 }
@@ -1057,8 +1315,14 @@ void CurrentDen::setCurrentDen(float den) {
  *
  * @return
  */
-float* CurrentDen::getFrequencies() const {
-    return frequencies_;
+ArrayObject<float>* CurrentDen::getFrequencies() const {
+    //return frequencies_;
+    if (frequencies_ != 0) {
+        ArrayObject<float> *array = addr<ArrayObject<float>>(frequencies_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -1070,9 +1334,21 @@ float* CurrentDen::getFrequencies() const {
  */
 void CurrentDen::setFrequecies(float* frequencies, UInt32 freq_num) {
     setFrequenciesNum(freq_num);
-    if (frequencies_) {
-        for (int ii = 0; ii < freq_num; ++ii) {
-            frequencies_[ii] = frequencies[ii];
+
+    ArrayObject<float> *array_ptr = nullptr;
+    if (frequencies_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<float>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        frequencies_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<float> >(frequencies_);
+    }
+
+    if (array_ptr) {
+         for (int ii = 0; ii < freq_num; ++ii) {
+            array_ptr->pushBack(frequencies[ii]);
         }
     }
 }
@@ -1086,7 +1362,13 @@ void CurrentDen::setFrequecies(float* frequencies, UInt32 freq_num) {
  * @return
  */
 float CurrentDen::getFrequency(UInt32 index) const {
-    return index < freq_num_ ? frequencies_[index] : 0;
+    if (frequencies_ == 0) 
+        return -1;
+    ArrayObject<float> *array_ptr = addr< ArrayObject<float> >(frequencies_);
+    if (array_ptr == nullptr)
+        return -1;
+
+    return (*array_ptr)[index];
 }
 
 /**
@@ -1096,9 +1378,20 @@ float CurrentDen::getFrequency(UInt32 index) const {
  * @param frequency
  * @param index
  */
-void CurrentDen::setFrequency(float frequency, UInt32 index) {
-    if (index < freq_num_) {
-        frequencies_[index] = frequency;
+void CurrentDen::addFrequency(float frequency) {
+    ArrayObject<float> *array_ptr = nullptr;
+    if (frequencies_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<float>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        frequencies_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<float> >(frequencies_);
+    }
+
+    if (array_ptr) {
+        array_ptr->pushBack(frequency);
     }
 }
 
@@ -1119,14 +1412,14 @@ UInt32 CurrentDen::getFrequenciesNum() const {
  * @param freq_num
  */
 void CurrentDen::setFrequenciesNum(UInt32 freq_num) {
-    if (frequencies_) {
-        free(frequencies_);
-        frequencies_ = nullptr;
-        freq_num_ = 0;
-    }
+    // if (frequencies_) {
+    //     free(frequencies_);
+    //     frequencies_ = nullptr;
+    //     freq_num_ = 0;
+    // }
     if (freq_num) {
         freq_num_ = freq_num;
-        frequencies_ = (float*)calloc(freq_num_, sizeof(float));
+        //frequencies_ = (float*)calloc(freq_num_, sizeof(float));
     }
 }
 
@@ -1148,14 +1441,28 @@ UInt32 CurrentDen::getTempPWLPairNum() const {
  */
 void CurrentDen::setTempPWLPairNum(UInt32 num) {
     if (temp_pwl_) {
-        free(temp_pwl_);
-        temp_pwl_ = nullptr;
         temp_pwl_pair_num_ = 0;
     }
     if (num) {
         temp_pwl_pair_num_ = num;
         // * 2 to reserve temp & temp multiplier
-        temp_pwl_ = (float*)calloc(temp_pwl_pair_num_ * 2, sizeof(float));
+        ArrayObject<float> *array_ptr = nullptr;
+        if (temp_pwl_ == 0) {
+            array_ptr = getOwnerCell()->createObject<ArrayObject<float>>(kObjectTypeArray);
+            if (array_ptr == nullptr)
+                return;
+            array_ptr->setPool(getOwnerCell()->getPool());
+            array_ptr->reserve(16);
+            temp_pwl_ = array_ptr->getId();
+        } else {
+            array_ptr = addr<ArrayObject<float>>(temp_pwl_);
+        }
+
+        if (array_ptr) {
+            for (int i = 0; i < temp_pwl_pair_num_ * 2; i++)
+                array_ptr->pushBack(0);
+        }
+        //temp_pwl_ = (float*)calloc(temp_pwl_pair_num_ * 2, sizeof(float));
         is_valid_ = 1;
     }
 }
@@ -1169,10 +1476,18 @@ void CurrentDen::setTempPWLPairNum(UInt32 num) {
  * @return 
  */
 float CurrentDen::getTempPWLTemp(UInt32 index) const {
-    if (is_pwl_) {
-        return index <= temp_pwl_pair_num_ ? temp_pwl_[index << 1] : 0;
+    if (!is_pwl_ || index > temp_pwl_pair_num_) {
+            return 0;
+        //return index <= temp_pwl_pair_num_ ? temp_pwl_[index << 1] : 0;
     }
-    return 0;
+
+    if (temp_pwl_ == 0) 
+        return -1;
+    ArrayObject<float> *array_ptr = addr< ArrayObject<float> >(temp_pwl_);
+    if (array_ptr == nullptr)
+        return -1;
+
+    return (*array_ptr)[index << 1];
 }
 
 /**
@@ -1185,7 +1500,14 @@ float CurrentDen::getTempPWLTemp(UInt32 index) const {
 void CurrentDen::setTempPWLTemp(float t, UInt32 index) {
     if (index >= temp_pwl_pair_num_)
         return;
-    temp_pwl_[index << 1] = t;
+    //temp_pwl_[index << 1] = t;
+    if (temp_pwl_ == 0) 
+        return;
+    ArrayObject<float> *array_ptr = addr< ArrayObject<float> >(temp_pwl_);
+    if (array_ptr == nullptr)
+        return;
+
+    (*array_ptr)[index << 1] = t;
 }
 
 /**
@@ -1197,8 +1519,14 @@ void CurrentDen::setTempPWLTemp(float t, UInt32 index) {
  * @return 
  */
 float CurrentDen::getTempPWLMultiplier(UInt32 index) const {
+    if (temp_pwl_ == 0) 
+        return 0;
+    ArrayObject<float> *array_ptr = addr< ArrayObject<float> >(temp_pwl_);
+    if (array_ptr == nullptr)
+        return 0;
+
     if (is_pwl_) {
-        return (index <= temp_pwl_pair_num_) ? temp_pwl_[(index << 1) + 1] : 0;
+        return (index <= temp_pwl_pair_num_) ? (*array_ptr)[(index << 1) + 1] : 0;
     }
     return 0;
 }
@@ -1213,7 +1541,14 @@ float CurrentDen::getTempPWLMultiplier(UInt32 index) const {
 void CurrentDen::setTempPWLMultiplier(float m, UInt32 index) {
     if (index >= temp_pwl_pair_num_)
         return;
-    temp_pwl_[(index << 1) + 1] = m;
+    //temp_pwl_[(index << 1) + 1] = m;
+    if (temp_pwl_ == 0) 
+        return;
+    ArrayObject<float> *array_ptr = addr< ArrayObject<float> >(temp_pwl_);
+    if (array_ptr == nullptr)
+        return;
+
+    (*array_ptr)[(index << 1) + 1] = m;
 }
 
 /**
@@ -1227,8 +1562,16 @@ void CurrentDen::setTempPWLMultiplier(float m, UInt32 index) {
 void CurrentDen::setTempPWL(float t, float m, UInt32 index) {
     if (index >= temp_pwl_pair_num_)
         return;
-    temp_pwl_[index << 1] = t;
-    temp_pwl_[(index << 1) + 1] = m;
+    //temp_pwl_[index << 1] = t;
+    //temp_pwl_[(index << 1) + 1] = m;
+    if (temp_pwl_ == 0) 
+        return;
+    ArrayObject<float> *array_ptr = addr< ArrayObject<float> >(temp_pwl_);
+    if (array_ptr == nullptr)
+        return;
+
+    (*array_ptr)[index << 1] = t;
+    (*array_ptr)[(index << 1) + 1] = m;
 }
 
 /**
@@ -1249,14 +1592,25 @@ UInt32 CurrentDen::getHoursPWLPairNum() const {
  */
 void CurrentDen::setHoursPWLPairNum(UInt32 num) {
     if (hours_pwl_) {
-        free(hours_pwl_);
-        hours_pwl_ = nullptr;
         hours_pwl_pair_num_ = 0;
     }
     if (num) {
         hours_pwl_pair_num_ = num;
         // * 2 to reserve hours & temp multiplier
-        hours_pwl_ = (float*)calloc(hours_pwl_pair_num_ * 2, sizeof(float));
+        ArrayObject<float> *array_ptr = nullptr;
+        array_ptr = getOwnerCell()->createObject<ArrayObject<float>>(kObjectTypeArray);
+        if (array_ptr == nullptr)
+            return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);
+        hours_pwl_ = array_ptr->getId();
+
+        if (array_ptr) {
+            for (int i = 0; i < hours_pwl_pair_num_ * 2; i++) {
+                array_ptr->pushBack(0);
+            }
+        }
+        //hours_pwl_ = (float*)calloc(hours_pwl_pair_num_ * 2, sizeof(float));
         is_valid_ = 1;
     }
 }
@@ -1270,10 +1624,18 @@ void CurrentDen::setHoursPWLPairNum(UInt32 num) {
  * @return 
  */
 float CurrentDen::getHoursPWLHours(UInt32 index) const {
-    if (is_pwl_) {
-        return index <= hours_pwl_pair_num_ ? hours_pwl_[index << 1] : 0;
+    if (!is_pwl_ || index > hours_pwl_pair_num_) {
+        return 0;
     }
-    return 0;
+    
+    if (hours_pwl_ == 0) 
+        return 0;
+    ArrayObject<float> *array_ptr = addr< ArrayObject<float> >(hours_pwl_);
+    if (array_ptr == nullptr)
+        return 0;
+
+    return (*array_ptr)[index << 1];
+
 }
 
 /**
@@ -1286,7 +1648,15 @@ float CurrentDen::getHoursPWLHours(UInt32 index) const {
 void CurrentDen::setHoursPWLHours(float h, UInt32 index) {
     if (index >= hours_pwl_pair_num_)
         return;
-    hours_pwl_[index << 1] = h;
+    //hours_pwl_[index << 1] = h;
+
+    if (hours_pwl_ == 0) 
+        return;
+    ArrayObject<float> *array_ptr = addr< ArrayObject<float> >(hours_pwl_);
+    if (array_ptr == nullptr)
+        return;
+
+    (*array_ptr)[index << 1] = h;
 }
 
 /**
@@ -1299,7 +1669,14 @@ void CurrentDen::setHoursPWLHours(float h, UInt32 index) {
 void CurrentDen::setHoursPWLMultiplier(float m, UInt32 index) {
     if (index >= hours_pwl_pair_num_)
         return;
-    hours_pwl_[(index << 1) + 1] = m;
+    //hours_pwl_[(index << 1) + 1] = m;
+    if (hours_pwl_ == 0) 
+        return;
+    ArrayObject<float> *array_ptr = addr< ArrayObject<float> >(hours_pwl_);
+    if (array_ptr == nullptr)
+        return;
+
+    (*array_ptr)[(index << 1) + 1] = m;
 }
 
 /**
@@ -1313,8 +1690,16 @@ void CurrentDen::setHoursPWLMultiplier(float m, UInt32 index) {
 void CurrentDen::setHoursPWL(float h, float m, UInt32 index) {
     if (index >= hours_pwl_pair_num_)
         return;
-    hours_pwl_[index << 1] = h;
-    hours_pwl_[(index << 1) + 1] = m;
+    //hours_pwl_[index << 1] = h;
+    //hours_pwl_[(index << 1) + 1] = m;
+    if (hours_pwl_ == 0) 
+        return;
+    ArrayObject<float> *array_ptr = addr< ArrayObject<float> >(hours_pwl_);
+    if (array_ptr == nullptr)
+        return;
+
+    (*array_ptr)[index << 1] = h;
+    (*array_ptr)[(index << 1) + 1] = m;
 }
 
 
@@ -1324,8 +1709,13 @@ void CurrentDen::setHoursPWL(float h, float m, UInt32 index) {
  *
  * @return
  */
-UInt32* CurrentDen::getWidths() const {
-    return widths_;
+ArrayObject<UInt32> *CurrentDen::getWidths() const {
+    if (widths_ != 0) {
+        ArrayObject<UInt32> *array = addr<ArrayObject<UInt32>>(widths_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -1337,7 +1727,17 @@ UInt32* CurrentDen::getWidths() const {
  * @return
  */
 UInt32 CurrentDen::getWidth(UInt32 index) const {
-    return index < widths_num_ ? widths_[index] : 0;
+    if (index >= widths_num_) {
+        return 0;
+    }
+    
+    if (widths_ == 0) 
+        return 0;
+    ArrayObject<UInt32> *array_ptr = addr< ArrayObject<UInt32> >(widths_);
+    if (array_ptr == nullptr)
+        return 0;
+
+    return (*array_ptr)[index];
 }
 
 /**
@@ -1347,10 +1747,19 @@ UInt32 CurrentDen::getWidth(UInt32 index) const {
  * @param width
  * @param index
  */
-void CurrentDen::setWidth(UInt32 width, UInt32 index) {
-    if (index < widths_num_) {
-        widths_[index] = width;
+void CurrentDen::addWidth(UInt32 width) {
+    ArrayObject<UInt32> *array_ptr = nullptr;
+    if (widths_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<UInt32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        widths_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<UInt32> >(widths_);
     }
+
+    if (array_ptr) array_ptr->pushBack(width);
 }
 
 /**
@@ -1371,13 +1780,13 @@ UInt32 CurrentDen::getWidthsNum() const {
  */
 void CurrentDen::setWidthsNum(UInt32 widths_num) {
     if (widths_) {
-        free(widths_);
-        widths_ = nullptr;
+        //free(widths_);
+        //widths_ = nullptr;
         widths_num_ = 0;
     }
     if (widths_num) {
         widths_num_ = widths_num;
-        widths_ = (UInt32*)calloc(widths_num_, sizeof(UInt32));
+        //widths_ = (UInt32*)calloc(widths_num_, sizeof(UInt32));
     }
 }
 
@@ -1387,8 +1796,13 @@ void CurrentDen::setWidthsNum(UInt32 widths_num) {
  *
  * @return
  */
-float* CurrentDen::getCutAreas() const {
-    return cut_areas_;
+ArrayObject<float> *CurrentDen::getCutAreas() const {
+    if (cut_areas_ != 0) {
+        ArrayObject<float> *array = addr<ArrayObject<float>>(cut_areas_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -1400,7 +1814,17 @@ float* CurrentDen::getCutAreas() const {
  * @return
  */
 float CurrentDen::getCutArea(UInt32 index) const {
-    return index < cut_areas_num_ ? cut_areas_[index] : 0;
+    if (index >= cut_areas_num_) {
+        return 0;
+    }
+    
+    if (cut_areas_ == 0) 
+        return 0;
+    ArrayObject<float> *array_ptr = addr< ArrayObject<float> >(cut_areas_);
+    if (array_ptr == nullptr)
+        return 0;
+
+    return (*array_ptr)[index];
 }
 
 /**
@@ -1421,13 +1845,11 @@ UInt32 CurrentDen::getCutAreasNum() const {
  */
 void CurrentDen::setCutAreasNum(UInt32 cut_areas_num) {
     if (cut_areas_) {
-        free(cut_areas_);
-        cut_areas_ = nullptr;
         cut_areas_num_ = 0;
     }
     if (cut_areas_num) {
         cut_areas_num_ = cut_areas_num;
-        cut_areas_ = (float*)calloc(cut_areas_num_, sizeof(float));
+        //cut_areas_ = (float*)calloc(cut_areas_num_, sizeof(float));
     }
 }
 
@@ -1438,10 +1860,19 @@ void CurrentDen::setCutAreasNum(UInt32 cut_areas_num) {
  * @param cut_area
  * @param index
  */
-void CurrentDen::setCutArea(float cut_area, UInt32 index) {
-    if (index < cut_areas_num_) {
-        cut_areas_[index] = cut_area;
+void CurrentDen::addCutArea(float cut_area) {
+    ArrayObject<float> *array_ptr = nullptr;
+    if (cut_areas_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<float>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        cut_areas_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<float> >(cut_areas_);
     }
+
+    if (array_ptr) array_ptr->pushBack(cut_area);
 }
 
 /**
@@ -1455,7 +1886,14 @@ void CurrentDen::setCutArea(float cut_area, UInt32 index) {
  */
 float CurrentDen::getTableElem(UInt32 row_idx, UInt32 col_idx) const {
     int idx = row_idx * widths_num_ + col_idx;
-    return idx < table_entries_num_ ? table_entries_[idx] : 0;
+    
+    if (table_entries_ == 0) 
+        return -1;
+    ArrayObject<float> *array_ptr = addr< ArrayObject<float> >(table_entries_);
+    if (array_ptr == nullptr)
+        return -1;
+
+    return idx < table_entries_num_ ? (*array_ptr)[idx] : 0;
 }
 
 /**
@@ -1467,15 +1905,30 @@ float CurrentDen::getTableElem(UInt32 row_idx, UInt32 col_idx) const {
  * @param col_idx
  */
 void CurrentDen::setTableElem(float value, UInt32 row_idx, UInt32 col_idx) {
+    ArrayObject<float> *array_ptr = nullptr;
     if (!table_entries_) {
         table_entries_num_ = (freq_num_ ? freq_num_ : 1) * (widths_num_ ? widths_num_ : 1);
-        table_entries_ = (float*)calloc(table_entries_num_, sizeof(float));
+        //table_entries_ = (float*)calloc(table_entries_num_, sizeof(float));
+        array_ptr = getOwnerCell()->createObject<ArrayObject<float>>(kObjectTypeArray);
+        if (array_ptr == nullptr)
+            return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);
+        table_entries_ = array_ptr->getId();
+        if (array_ptr) {
+            for (int i = 0; i < table_entries_num_; i++) {
+                array_ptr->pushBack(0);
+            }
+        }
+
         is_valid_ = 1;
+    } else {
+        array_ptr = addr< ArrayObject<float> >(table_entries_);
     }
 
     int idx = row_idx * widths_num_ + col_idx;
-    if (idx < table_entries_num_) {
-        table_entries_[idx] = value;
+    if (idx < table_entries_num_ && array_ptr) {
+        (*array_ptr)[idx] = value;
     }
 }
 
@@ -1499,6 +1952,24 @@ void CurrentDen::setIsValid(bool v) {
     is_valid_ = v ? 1 : 0;
 }
 
+CurrentDenContainer::CurrentDenContainer() {
+    //memset(static_cast<void*>(this), 0, sizeof(CurrentDenContainer));
+    //current_dens_ = new CurrentDen[kCurrentMax];
+    ArrayObject<ObjectId> *vct = nullptr;
+    vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+    if (vct == nullptr) return;
+    current_dens_ = vct->getId();
+    vct->setPool(getOwnerCell()->getPool());
+    vct->reserve(16);
+
+    Cell *current_top_cell = getTopCell();
+    if (!current_top_cell) return;
+    for (int i = 0; i < kCurrentMax; i++) {
+        CurrentDen *den = current_top_cell->createObject<CurrentDen>(kObjectTypeCurrentDen);
+        if (vct) vct->pushBack(den->getId());
+    }
+}
+
 /**
  * @brief
  * get ACCURRENTDENSITY PEAK
@@ -1506,8 +1977,21 @@ void CurrentDen::setIsValid(bool v) {
  * @return
  */
 ACCurrentDen* CurrentDenContainer::getACPeak() const {
-    ACCurrentDen* den =  current_dens_ + CurrentDenContainer::kCurrentPeak;
-    return den->isValid() ? den : nullptr;
+    //ACCurrentDen* den =  current_dens_ + CurrentDenContainer::kCurrentPeak;
+    //return den->isValid() ? den : nullptr;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (current_dens_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(current_dens_);
+    }
+    if (vct) {
+        ACCurrentDen *obj_data = addr<ACCurrentDen>((*vct)[kCurrentPeak]);
+        if (obj_data) {
+            return obj_data->isValid() ? obj_data : nullptr;
+        }
+    }
+    return nullptr;
 }
 
 /**
@@ -1517,8 +2001,19 @@ ACCurrentDen* CurrentDenContainer::getACPeak() const {
  * @return
  */
 ACCurrentDen* CurrentDenContainer::getACAverage() const {
-    ACCurrentDen* den =  current_dens_ + CurrentDenContainer::kCurrentAverage;
-    return den->isValid() ? den : nullptr;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (current_dens_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(current_dens_);
+    }
+    if (vct) {
+        ACCurrentDen *obj_data = addr<ACCurrentDen>((*vct)[kCurrentAverage]);
+        if (obj_data) {
+            return obj_data->isValid() ? obj_data : nullptr;
+        }
+    }
+    return nullptr;
 }
 
 /**
@@ -1528,8 +2023,19 @@ ACCurrentDen* CurrentDenContainer::getACAverage() const {
  * @return
  */
 ACCurrentDen* CurrentDenContainer::getACRMS() const {
-    ACCurrentDen* den =  current_dens_ + CurrentDenContainer::kCurrentRMS;
-    return den->isValid() ? den : nullptr;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (current_dens_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(current_dens_);
+    }
+    if (vct) {
+        ACCurrentDen *obj_data = addr<ACCurrentDen>((*vct)[kCurrentRMS]);
+        if (obj_data) {
+            return obj_data->isValid() ? obj_data : nullptr;
+        }
+    }
+    return nullptr;
 }
 
 /**
@@ -1569,8 +2075,19 @@ ACCurrentDen* CurrentDenContainer::getACRMSPWL() const {
  * @return
  */
 DCCurrentDen* CurrentDenContainer::getDCAverage() const {
-    DCCurrentDen* den =  current_dens_ + CurrentDenContainer::kCurrentAverage;
-    return den->isValid() ? den : nullptr;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (current_dens_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(current_dens_);
+    }
+    if (vct) {
+        DCCurrentDen *obj_data = addr<DCCurrentDen>((*vct)[kCurrentAverage]);
+        if (obj_data) {
+            return obj_data->isValid() ? obj_data : nullptr;
+        }
+    }
+    return nullptr;
 }
 
 /**
@@ -1581,7 +2098,19 @@ DCCurrentDen* CurrentDenContainer::getDCAverage() const {
  * @return
  */
 ACCurrentDen* CurrentDenContainer::getInitACPeak() const {
-    return current_dens_ + CurrentDenContainer::kCurrentPeak;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (current_dens_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(current_dens_);
+    }
+    if (vct) {
+        ACCurrentDen *obj_data = addr<ACCurrentDen>((*vct)[kCurrentPeak]);
+        if (obj_data) {
+            return obj_data->isValid() ? obj_data : nullptr;
+        }
+    }
+    return nullptr;
 }
 
 /**
@@ -1601,7 +2130,19 @@ ACCurrentDen* CurrentDenContainer::getInitACPeakPWL() const {
  * @return
  */
 ACCurrentDen* CurrentDenContainer::getInitACAverage() const {
-    return current_dens_ + CurrentDenContainer::kCurrentAverage;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (current_dens_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(current_dens_);
+    }
+    if (vct) {
+        ACCurrentDen *obj_data = addr<ACCurrentDen>((*vct)[kCurrentAverage]);
+        if (obj_data) {
+            return obj_data->isValid() ? obj_data : nullptr;
+        }
+    }
+    return nullptr;
 }
 
 /**
@@ -1621,7 +2162,19 @@ ACCurrentDen* CurrentDenContainer::getInitACAveragePWL() const {
  * @return
  */
 ACCurrentDen* CurrentDenContainer::getInitACRMS() const {
-    return current_dens_ + CurrentDenContainer::kCurrentRMS;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (current_dens_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(current_dens_);
+    }
+    if (vct) {
+        ACCurrentDen *obj_data = addr<ACCurrentDen>((*vct)[kCurrentRMS]);
+        if (obj_data) {
+            return obj_data->isValid() ? obj_data : nullptr;
+        }
+    }
+    return nullptr;
 }
 
 /**
@@ -1641,7 +2194,19 @@ ACCurrentDen* CurrentDenContainer::getInitACRMSPWL() const {
  * @return
  */
 DCCurrentDen* CurrentDenContainer::getInitDCAverage() const {
-    return current_dens_ + CurrentDenContainer::kCurrentAverage;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (current_dens_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(current_dens_);
+    }
+    if (vct) {
+        DCCurrentDen *obj_data = addr<DCCurrentDen>((*vct)[kCurrentAverage]);
+        if (obj_data) {
+            return obj_data->isValid() ? obj_data : nullptr;
+        }
+    }
+    return nullptr;
 }
 
 /**
@@ -1858,16 +2423,21 @@ void MinArea::setIsExceptMinSize(bool v) {
     is_except_min_size_ = v ? 1 : 0;
 }
 
-/**
- * @brief
- * get the n-th minsize pair
- *
- * @param index
- *
- * @return
- */
-std::pair<UInt32, UInt32>* MinArea::getExceptMinSizePair(UInt32 index) {
-    return (is_except_min_size_ && (index < except_min_size_.size())) ? &except_min_size_[index] : nullptr;
+UintPair* MinArea::getExceptMinSizePair(UInt32 index) {
+    if (!is_except_min_size_ || index >= getExceptMinSizeSize())
+        return nullptr;
+
+    ArrayObject<UintPair> *vct = nullptr;
+    if (except_min_size_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<UintPair>>(except_min_size_);
+    }
+    if (vct) {
+        UintPair obj_data = (*vct)[index];
+        return &obj_data;
+    }
+    return nullptr;
 }
 
 /**
@@ -1879,7 +2449,18 @@ std::pair<UInt32, UInt32>* MinArea::getExceptMinSizePair(UInt32 index) {
  */
 void MinArea::appendExceptMinSizePair(UInt32 min_width, UInt32 min_len) {
     is_except_min_size_ = 1;
-    except_min_size_.push_back({min_width, min_len});
+    UintPair ip{min_width,min_len};
+    ArrayObject<UintPair> *vct = nullptr;
+    if (except_min_size_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<UintPair>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        except_min_size_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<UintPair>>(except_min_size_);
+    }
+    if (vct) vct->pushBack(ip);
 }
 
 /**
@@ -1889,7 +2470,16 @@ void MinArea::appendExceptMinSizePair(UInt32 min_width, UInt32 min_len) {
  * @return
  */
 UInt32 MinArea::getExceptMinSizeSize() const {
-    return except_min_size_.size();
+    ArrayObject<UintPair> *vct = nullptr;
+    if (except_min_size_ == 0) {
+        return 0;
+    } else {
+        vct = addr<ArrayObject<UintPair>>(except_min_size_);
+    }
+    if (vct) {
+        return vct->getSize();
+    }
+    return 0;
 }
 
 /**
@@ -2028,7 +2618,7 @@ bool MinArea::isLayer() const {
  *
  * @param l
  */
-void MinArea::setLayer(Layer* l) {
+void MinArea::setLayer(ObjectId l) {
     is_layer_ = 1;
     layer_ = l;
 }
@@ -2064,6 +2654,23 @@ void Layer::initializeCell_()
 Layer::Layer()
 {
     initializeCell_();
+
+    ArrayObject<ObjectId> *vct = nullptr;
+    vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+    if (vct == nullptr)
+        return;
+    antenna_ = vct->getId();
+    vct->setPool(getOwnerCell()->getPool());
+    vct->reserve(16);
+    // init antenna model first
+    Cell *current_top_cell = getTopCell();
+    if (!current_top_cell)
+        return;
+    for (int i = 0; i < kMaxOxideNum; i++)
+    {
+        AntennaModel *am = current_top_cell->createObject<AntennaModel>(kObjectTypeAntennaModel);
+        vct->pushBack(am->getId());
+    }
 }
 
 /**
@@ -2073,32 +2680,13 @@ Layer::Layer()
  * @return Layer
  */
 Layer* MinArea::getLayer() const {
-    return layer_;
+    return addr<Layer>(layer_);
+
 }
 
 /// @brief ~Layer 
 Layer::~Layer() {
-    if (isImplant()) {
-        delete layer_rule_.implant_;
-    }
-    if (isRouting()) {
-        delete layer_rule_.routing_;
-    }
-    if (isCut()) {
-        delete layer_rule_.cut_;
-    }
-    if (isTrimMetal()) {
-        delete layer_rule_.trim_;
-    }
-    if (isMEOL()) {
-        delete layer_rule_.meol_;
-    }
-    if (ac_dens_) {
-        delete ac_dens_;
-    }
-    if (dc_dens_) {
-        delete dc_dens_;
-    }
+
 }
 
 /// @brief getCell_ 
@@ -2635,7 +3223,7 @@ ObjectId Layer::getMinAreaRuleId() const {
  * @return
  */
 Layer* Layer::getRegionLayer() const {
-    return (isRegionRouting() || isRegionCut() || isRegionTrimMetal()) ? region_layer_ : nullptr;
+    return (isRegionRouting() || isRegionCut() || isRegionTrimMetal()) ? addr<Layer>(region_layer_) : nullptr;
 }
 
 /**
@@ -2644,7 +3232,7 @@ Layer* Layer::getRegionLayer() const {
  *
  * @param l
  */
-void Layer::setRegionLayer(Layer* l) {
+void Layer::setRegionLayer(ObjectId l) {
     region_layer_ = l;
 }
 
@@ -2655,7 +3243,7 @@ void Layer::setRegionLayer(Layer* l) {
  * @return
  */
 Layer* Layer::getRegionBaseLayer() const {
-    return (isRegionRouting() || isRegionCut() || isRegionTrimMetal()) ? base_layer_ : nullptr;
+    return (isRegionRouting() || isRegionCut() || isRegionTrimMetal()) ? addr<Layer>(base_layer_) : nullptr;
 }
 
 /**
@@ -2664,7 +3252,7 @@ Layer* Layer::getRegionBaseLayer() const {
  *
  * @param l
  */
-void Layer::setRegionBaseLayer(Layer* l) {
+void Layer::setRegionBaseLayer(ObjectId l) {
     base_layer_ = l;
 }
 
@@ -2675,10 +3263,21 @@ void Layer::setRegionBaseLayer(Layer* l) {
  * @return
  */
 const AntennaModel* Layer::getAntennaModel(UInt32 index) const {
-    if (index > 0 && index < kMaxOxideNum) {
-        return antenna_[index].isSet() ? &antenna_[index] : nullptr;
+    if (index < 0 || index >= kMaxOxideNum) {
+        return nullptr;
+    }
+
+    ArrayObject<ObjectId> *vct = nullptr;
+    vct = addr<ArrayObject<ObjectId>>(antenna_);
+
+    if (vct) {
+        AntennaModel *obj_data = addr<AntennaModel>((*vct)[index]);
+        if (obj_data) {
+            return obj_data->isSet() ? obj_data : nullptr;;
+        }
     }
     return nullptr;
+
 }
 
 /**
@@ -2690,8 +3289,18 @@ const AntennaModel* Layer::getAntennaModel(UInt32 index) const {
  * @return
  */
 AntennaModel* Layer::getInitAntennaModel(UInt32 index) {
-    if (index > 0 && index < kMaxOxideNum) {
-        return &antenna_[index];
+    if (index < 0 || index >= kMaxOxideNum) {
+        return nullptr;
+    }
+
+    ArrayObject<ObjectId> *vct = nullptr;
+    vct = addr<ArrayObject<ObjectId>>(antenna_);
+
+    if (vct) {
+        AntennaModel *obj_data = addr<AntennaModel>((*vct)[index]);
+        if (obj_data) {
+            return obj_data;
+        }
     }
     return nullptr;
 }
@@ -2703,7 +3312,7 @@ AntennaModel* Layer::getInitAntennaModel(UInt32 index) {
  * @return
  */
 CurrentDenContainer* Layer::getACCurrentDenContainer() const {
-    return ac_dens_;
+    return addr<CurrentDenContainer>(ac_dens_);
 }
 
 /**
@@ -2712,7 +3321,7 @@ CurrentDenContainer* Layer::getACCurrentDenContainer() const {
  *
  * @param den
  */
-void Layer::setACCurrentDenContainer(CurrentDenContainer* den) {
+void Layer::setACCurrentDenContainer(ObjectId den) {
     ac_dens_ = den;
 }
 
@@ -2723,7 +3332,7 @@ void Layer::setACCurrentDenContainer(CurrentDenContainer* den) {
  * @return
  */
 CurrentDenContainer* Layer::getDCCurrentDenContainer() const {
-    return dc_dens_;
+    return addr<CurrentDenContainer>(dc_dens_);
 }
 
 /**
@@ -2732,7 +3341,7 @@ CurrentDenContainer* Layer::getDCCurrentDenContainer() const {
  *
  * @param den
  */
-void Layer::setDCCurrentDenContainer(CurrentDenContainer* den) {
+void Layer::setDCCurrentDenContainer(ObjectId den) {
     dc_dens_ = den;
 }
 
@@ -2763,7 +3372,7 @@ bool Layer::isGeneralCutLayer_() const {
  * @return
  */
 ImplantLayerRule* Layer::getImplantLayerRule() const {
-    return isImplant() ? layer_rule_.implant_ : nullptr;
+    return isImplant() ? addr<ImplantLayerRule>(layer_rule_) : nullptr;
 }
 
 /**
@@ -2772,8 +3381,8 @@ ImplantLayerRule* Layer::getImplantLayerRule() const {
  *
  * @param r
  */
-void Layer::setImplantLayerRule(ImplantLayerRule* r) {
-    layer_rule_.implant_ = r;
+void Layer::setImplantLayerRule(ObjectId r) {
+    layer_rule_ = r;
 }
 
 /**
@@ -2783,7 +3392,7 @@ void Layer::setImplantLayerRule(ImplantLayerRule* r) {
  * @return
  */
 RoutingLayerRule* Layer::getRoutingLayerRule() const {
-    return isGeneralRoutingLayer_() ? layer_rule_.routing_ : nullptr;
+    return isGeneralRoutingLayer_() ? addr<RoutingLayerRule>(layer_rule_) : nullptr;
 }
 
 /**
@@ -2792,8 +3401,8 @@ RoutingLayerRule* Layer::getRoutingLayerRule() const {
  *
  * @param r
  */
-void Layer::setRoutingLayerRule(RoutingLayerRule* r) {
-    layer_rule_.routing_ = r;
+void Layer::setRoutingLayerRule(ObjectId r) {
+    layer_rule_ = r;
 }
 
 /**
@@ -2803,7 +3412,7 @@ void Layer::setRoutingLayerRule(RoutingLayerRule* r) {
  * @return
  */
 CutLayerRule* Layer::getCutLayerRule() const {
-    return isGeneralCutLayer_() ? layer_rule_.cut_ : nullptr;
+    return isGeneralCutLayer_() ? addr<CutLayerRule>(layer_rule_) : nullptr;
 }
 
 /**
@@ -2812,8 +3421,8 @@ CutLayerRule* Layer::getCutLayerRule() const {
  *
  * @param r
  */
-void Layer::setCutLayerRule(CutLayerRule* r) {
-    layer_rule_.cut_ = r;
+void Layer::setCutLayerRule(ObjectId r) {
+    layer_rule_ = r;
 }
 
 
@@ -2824,7 +3433,7 @@ void Layer::setCutLayerRule(CutLayerRule* r) {
  * @return TrimLayerRule
  */
 TrimLayerRule* Layer::getTrimLayerRule() const {
-    return (isTrimMetal() || isRegionTrimMetal()) ? layer_rule_.trim_ : nullptr;
+    return (isTrimMetal() || isRegionTrimMetal()) ? addr<TrimLayerRule>(layer_rule_) : nullptr;
 }
 
 /**
@@ -2833,8 +3442,8 @@ TrimLayerRule* Layer::getTrimLayerRule() const {
  *
  * @param r
  */
-void Layer::setTrimLayerRule(TrimLayerRule* r) {
-    layer_rule_.trim_ = r;
+void Layer::setTrimLayerRule(ObjectId r) {
+    layer_rule_ = r;
 }
 
 /**
@@ -2844,7 +3453,7 @@ void Layer::setTrimLayerRule(TrimLayerRule* r) {
  * @return
  */
 MEOLLayerRule* Layer::getMEOLLayerRule() const {
-    return isMEOL() ? layer_rule_.meol_ : nullptr;
+    return isMEOL() ? addr<MEOLLayerRule>(layer_rule_) : nullptr;
 }
 
 /**
@@ -2853,8 +3462,8 @@ MEOLLayerRule* Layer::getMEOLLayerRule() const {
  *
  * @param r
  */
-void Layer::setMEOLLayerRule(MEOLLayerRule* r) {
-    layer_rule_.meol_ = r;
+void Layer::setMEOLLayerRule(ObjectId r) {
+    layer_rule_ = r;
 }
 
 /**

@@ -9,11 +9,14 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 #include "db/tech/routing_layer_rule.h"
+#include "db/core/cell.h"
+#include "db/core/db.h"
+
 
 namespace open_edi {
 namespace db {
 
-std::vector<std::string> EOLKeepout::class_names_;
+ObjectId EOLKeepout::class_names_ = 0;
 
 /**
  * @brief
@@ -240,26 +243,6 @@ bool CornerEOLKeepout::isSpacing() const {
 
 /**
  * @brief
- * get next CORNEREOLKEEPOUT
- *
- * @return
- */
-CornerEOLKeepout* CornerEOLKeepout::getNext() const {
-    return next_;
-}
-
-/**
- * @brief
- * set next CORNEREOLKEEPOUT
- *
- * @param next
- */
-void CornerEOLKeepout::setNext(CornerEOLKeepout* next) {
-    next_ = next;
-}
-
-/**
- * @brief
  * get the spacinf of CORNERFILLSPACING spacing
  *
  * @return
@@ -300,16 +283,6 @@ UInt32 CornerFillSpacing::getEOLWidth() const {
 
 /**
  * @brief
- * set next CORNERFILLSPACING
- *
- * @return
- */
-CornerFillSpacing* CornerFillSpacing::getNext() const {
-    return next_;
-}
-
-/**
- * @brief
  * set vaules of CORNERFILLSPACING
  *
  * @param sp
@@ -324,23 +297,7 @@ void CornerFillSpacing::setCornerFillSpacing(UInt32 sp, UInt32 len1, UInt32 len2
     eol_width_ = eol_w;
 }
 
-/**
- * @brief
- * set next CORNERFILLSPACING
- *
- * @param next
- */
-void CornerFillSpacing::setNext(CornerFillSpacing* next) {
-    next_ = next;
-}
-
 CornerSpacing::~CornerSpacing() {
-    if (widths_)
-        free(widths_);
-    if (horizontal_spacings_)
-        free(horizontal_spacings_);
-    if (vertical_spacings_)
-        free(vertical_spacings_);
 }
 
 /**
@@ -641,9 +598,7 @@ UInt32 CornerSpacing::getNumWidths() const {
  */
 void CornerSpacing::setNumWidths(UInt32 num) {
     widths_num_ = num;
-    widths_ = (UInt32*)calloc(widths_num_, sizeof(UInt32));
-    horizontal_spacings_ = (UInt32*)calloc(widths_num_, sizeof(UInt32));
-    vertical_spacings_ = (UInt32*)calloc(widths_num_, sizeof(UInt32));
+
 }
 
 /**
@@ -655,8 +610,31 @@ void CornerSpacing::setNumWidths(UInt32 num) {
  * @return
  */
 UInt32 CornerSpacing::getWidth(UInt32 index) const {
-    return index < widths_num_ ? widths_[index] : 0;
+    //return index < widths_num_ ? widths_[index] : 0;
+
+    if (index >= widths_num_) {
+        return -1;
+    }
+    
+    if (widths_ == 0) 
+        return -1;
+    ArrayObject<Int32> *array_ptr = addr< ArrayObject<Int32> >(widths_);
+    if (array_ptr == nullptr)
+        return -1;
+
+    return (*array_ptr)[index];
+    
 }
+
+ArrayObject<Int32> *CornerSpacing::getWidths() const{
+    if (widths_ != 0) {
+        ArrayObject<Int32> *width_array = addr<ArrayObject<Int32>>(widths_);
+        return width_array;
+    } else {
+        return nullptr;
+    }
+}
+
 
 /**
  * @brief
@@ -664,9 +642,19 @@ UInt32 CornerSpacing::getWidth(UInt32 index) const {
  *
  * @param w
  */
-void CornerSpacing::setWidth(UInt32 w, UInt32 index) {
-    if (index < widths_num_)
-        widths_[index] = w;
+void CornerSpacing::addWidth(UInt32 w) {
+    ArrayObject<Int32> *array_ptr = nullptr;
+    if (widths_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        widths_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<Int32> >(widths_);
+    }
+
+    if (array_ptr) array_ptr->pushBack(w);
 }
 
 /**
@@ -687,9 +675,19 @@ UInt32 CornerSpacing::getSpacing(UInt32 index) const {
  *
  * @param sp
  */
-void CornerSpacing::setSpacing(UInt32 sp, UInt32 index) {
-    if (index < widths_num_)
-        horizontal_spacings_[index] = sp;
+void CornerSpacing::addSpacing(UInt32 sp) {
+    ArrayObject<Int32> *array_ptr = nullptr;
+    if (horizontal_spacings_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        horizontal_spacings_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<Int32> >(horizontal_spacings_);
+    }
+
+    if (array_ptr) array_ptr->pushBack(sp);
 }
 
 /**
@@ -701,7 +699,26 @@ void CornerSpacing::setSpacing(UInt32 sp, UInt32 index) {
  * @return
  */
 UInt32 CornerSpacing::getHorizontalSpacing(UInt32 index) const {
-    return index < widths_num_ ? horizontal_spacings_[index] : 0;
+    if (index >= widths_num_) {
+        return -1;
+    }
+    
+    if (horizontal_spacings_ == 0) 
+        return -1;
+    ArrayObject<Int32> *array_ptr = addr< ArrayObject<Int32> >(horizontal_spacings_);
+    if (array_ptr == nullptr)
+        return -1;
+
+    return (*array_ptr)[index];
+}
+
+ArrayObject<Int32> *CornerSpacing::getHorizontalSpacings() const{
+    if (horizontal_spacings_ != 0) {
+        ArrayObject<Int32> *hori_array = addr<ArrayObject<Int32>>(horizontal_spacings_);
+        return hori_array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -710,8 +727,19 @@ UInt32 CornerSpacing::getHorizontalSpacing(UInt32 index) const {
  *
  * @param hsp
  */
-void CornerSpacing::setHorizontalSpacing(UInt32 hsp, UInt32 index) {
-    horizontal_spacings_[index] = hsp;
+void CornerSpacing::addHorizontalSpacing(UInt32 hsp) {
+    ArrayObject<Int32> *array_ptr = nullptr;
+    if (horizontal_spacings_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        horizontal_spacings_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<Int32> >(horizontal_spacings_);
+    }
+
+    if (array_ptr) array_ptr->pushBack(hsp);
 }
 
 /**
@@ -723,7 +751,26 @@ void CornerSpacing::setHorizontalSpacing(UInt32 hsp, UInt32 index) {
  * @return
  */
 UInt32 CornerSpacing::getVerticalSpacing(UInt32 index) const {
-    return index < widths_num_ ? vertical_spacings_[index] : 0;
+    if (index >= widths_num_) {
+        return -1;
+    }
+    
+    if (vertical_spacings_ == 0) 
+        return -1;
+    ArrayObject<Int32> *array_ptr = addr< ArrayObject<Int32> >(vertical_spacings_);
+    if (array_ptr == nullptr)
+        return -1;
+
+    return (*array_ptr)[index];
+}
+
+ArrayObject<Int32> *CornerSpacing::getVerticalSpacings() const{
+    if (vertical_spacings_ != 0) {
+        ArrayObject<Int32> *vetical_array = addr<ArrayObject<Int32>>(vertical_spacings_);
+        return vetical_array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -732,28 +779,19 @@ UInt32 CornerSpacing::getVerticalSpacing(UInt32 index) const {
  *
  * @param vsp
  */
-void CornerSpacing::setVertcialSpacing(UInt32 vsp, UInt32 index) {
-    vertical_spacings_[index] = vsp;
-}
+void CornerSpacing::addVertcialSpacing(UInt32 vsp) {
+    ArrayObject<Int32> *array_ptr = nullptr;
+    if (vertical_spacings_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        vertical_spacings_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<Int32> >(vertical_spacings_);
+    }
 
-/**
- * @brief
- * get next CORNERSPACING rule
- *
- * @return
- */
-CornerSpacing* CornerSpacing::getNext() const {
-    return next_;
-}
-
-/**
- * @brief
- * set next CORNERSPACING rule
- *
- * @param next
- */
-void CornerSpacing::setNext(CornerSpacing* next) {
-    next_ = next;
+    if (array_ptr) array_ptr->pushBack(vsp);
 }
 
 /**
@@ -761,8 +799,8 @@ void CornerSpacing::setNext(CornerSpacing* next) {
  * release allocated memory
  */
 DirSpanLengthSpTbl::ExactSLSpacing::~ExactSLSpacing() {
-    if (exact_spacings_)
-        free(exact_spacings_);
+    // if (exact_spacings_)
+    //     free(exact_spacings_);
 }
 
 /**
@@ -843,7 +881,7 @@ UInt32 DirSpanLengthSpTbl::ExactSLSpacing::getNumSpacings() const {
  */
 void DirSpanLengthSpTbl::ExactSLSpacing::setNumSpacings(UInt32 num) {
     spacings_num_ = num;
-    exact_spacings_ = (UInt32*) calloc(spacings_num_, sizeof(UInt32));
+    //exact_spacings_ = (UInt32*) calloc(spacings_num_, sizeof(UInt32));
 }
 
 /**
@@ -854,8 +892,28 @@ void DirSpanLengthSpTbl::ExactSLSpacing::setNumSpacings(UInt32 num) {
  *
  * @return
  */
+
+ArrayObject<Int32> *DirSpanLengthSpTbl::ExactSLSpacing::getSpacings() const { 
+    if (exact_spacings_ != 0) {
+        ArrayObject<Int32> *spacing_array = addr<ArrayObject<Int32>>(exact_spacings_);
+        return spacing_array;
+    } else {
+        return nullptr;
+    }
+}
+
 UInt32 DirSpanLengthSpTbl::ExactSLSpacing::getSpacing(UInt32 idx) const {
-    return idx < spacings_num_ ? exact_spacings_[idx] : 0;
+    if (idx >= spacings_num_) {
+        return -1;
+    }
+    
+    if (exact_spacings_ == 0) 
+        return -1;
+    ArrayObject<Int32> *array_ptr = addr< ArrayObject<Int32> >(exact_spacings_);
+    if (array_ptr == nullptr)
+        return -1;
+
+    return (*array_ptr)[idx];
 }
 
 /**
@@ -864,35 +922,22 @@ UInt32 DirSpanLengthSpTbl::ExactSLSpacing::getSpacing(UInt32 idx) const {
  *
  * @param sp
  */
-void DirSpanLengthSpTbl::ExactSLSpacing::setSpacing(UInt32 sp, UInt32 index) {
-    if (index < spacings_num_)
-        exact_spacings_[index] = sp;
-}
+void DirSpanLengthSpTbl::ExactSLSpacing::addSpacing(UInt32 sp) {
+    ArrayObject<Int32> *array_ptr = nullptr;
+    if (exact_spacings_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        exact_spacings_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<Int32> >(exact_spacings_);
+    }
 
-/**
- * @brief
- * get next EXACTSPANLENGTHSPACING
- *
- * @return
- */
-DirSpanLengthSpTbl::ExactSLSpacing*
-DirSpanLengthSpTbl::ExactSLSpacing::getNext() const {
-    return next_;
-}
-
-/**
- * @brief
- * set next EXACTSPANLENGTHSPACING
- *
- * @param next
- */
-void DirSpanLengthSpTbl::ExactSLSpacing::setNext(DirSpanLengthSpTbl::ExactSLSpacing* next) {
-    next_ = next;
+    if (array_ptr) array_ptr->pushBack(sp);
 }
 
 DirSpanLengthSpTbl::SpanLength::~SpanLength() {
-    if (row_spacings_)
-        free(row_spacings_);
 }
 
 /**
@@ -1115,7 +1160,6 @@ UInt32 DirSpanLengthSpTbl::SpanLength::getNumSpacings() const {
  */
 void DirSpanLengthSpTbl::SpanLength::setNumSpacings(UInt32 num) {
     spacings_num_ = num;
-    row_spacings_ = (UInt32*) calloc(spacings_num_, sizeof(UInt32));
 }
 
 /**
@@ -1126,9 +1170,28 @@ void DirSpanLengthSpTbl::SpanLength::setNumSpacings(UInt32 num) {
  *
  * @return
  */
-UInt32 DirSpanLengthSpTbl::SpanLength::getSpacing(UInt32 col_idx) const {
-    return col_idx < spacings_num_ ? row_spacings_[col_idx] : 0;
+UInt32 DirSpanLengthSpTbl::SpanLength::getSpacing(UInt32 idx) const {
+    if (idx >= spacings_num_) {
+        return -1;
+    }
+    
+    if (row_spacings_ == 0) 
+        return -1;
+    ArrayObject<Int32> *array_ptr = addr< ArrayObject<Int32> >(row_spacings_);
+    if (array_ptr == nullptr)
+        return -1;
+
+    return (*array_ptr)[idx];
 }
+
+ ArrayObject<Int32> *DirSpanLengthSpTbl::SpanLength::getSpacings() const {
+    if (row_spacings_ != 0) {
+        ArrayObject<Int32> *spacing_array = addr<ArrayObject<Int32>>(row_spacings_);
+        return spacing_array;
+    } else {
+        return nullptr;
+    }
+ }
 
 /**
  * @brief
@@ -1136,16 +1199,22 @@ UInt32 DirSpanLengthSpTbl::SpanLength::getSpacing(UInt32 col_idx) const {
  *
  * @param sp
  */
-void DirSpanLengthSpTbl::SpanLength::setSpacing(UInt32 sp, UInt32 index) {
-    if (index < spacings_num_)
-        row_spacings_[index] = sp;
+void DirSpanLengthSpTbl::SpanLength::addSpacing(UInt32 sp) {
+   ArrayObject<Int32> *array_ptr = nullptr;
+    if (row_spacings_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        row_spacings_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<Int32> >(row_spacings_);
+    }
+
+    if (array_ptr) array_ptr->pushBack(sp);
 }
 
 DirSpanLengthSpTbl::~DirSpanLengthSpTbl() {
-    if (prls_)
-        delete[] prls_;
-    if (span_length_rows_)
-        delete[] span_length_rows_;
 }
 
 /**
@@ -1286,7 +1355,6 @@ UInt32 DirSpanLengthSpTbl::getNumPRLs() const {
  */
 void DirSpanLengthSpTbl::setNumPRLs(UInt32 num) {
     prls_num_ = num;
-    prls_ = new UInt32[prls_num_];
 }
 
 /**
@@ -1297,10 +1365,26 @@ void DirSpanLengthSpTbl::setNumPRLs(UInt32 num) {
  *
  * @return
  */
-UInt32 DirSpanLengthSpTbl::getPRL(UInt32 idx) const {
-    if (prls_ && prls_num_)
-        return idx < prls_num_ ? prls_[idx] : prls_[prls_num_ - 1];
-    return 0;
+UInt32 DirSpanLengthSpTbl::getPRL(UInt32 idx) const {   
+    if (prls_ == 0) 
+        return 0;
+    ArrayObject<UInt32> *array_ptr = addr< ArrayObject<UInt32> >(prls_);
+    if (idx >= prls_num_) {
+        return (*array_ptr)[prls_num_ - 1];
+    }
+    if (array_ptr == nullptr)
+        return 0;
+
+    return (*array_ptr)[idx];
+}
+
+ArrayObject<UInt32>* DirSpanLengthSpTbl::getPRLs() const {
+    if (prls_ != 0) {
+        ArrayObject<UInt32> *array = addr<ArrayObject<UInt32>>(prls_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -1309,9 +1393,19 @@ UInt32 DirSpanLengthSpTbl::getPRL(UInt32 idx) const {
  *
  * @param prl
  */
-void DirSpanLengthSpTbl::setPRL(UInt32 prl, UInt32 index) {
-    if (index < prls_num_)
-        prls_[index] = prl;
+void DirSpanLengthSpTbl::addPRL(UInt32 prl) {
+    ArrayObject<UInt32> *array_ptr = nullptr;
+    if (prls_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<UInt32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        prls_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<UInt32> >(prls_);
+    }
+
+    if (array_ptr) array_ptr->pushBack(prls_);
 }
 
 /**
@@ -1332,7 +1426,27 @@ UInt32 DirSpanLengthSpTbl::getNumSpanLengths() const {
  */
 void DirSpanLengthSpTbl::setNumSpanLengths(UInt32 num) {
     span_length_rows_num_ = num;
-    span_length_rows_ = new DirSpanLengthSpTbl::SpanLength[span_length_rows_num_];
+    //span_length_rows_ = new DirSpanLengthSpTbl::SpanLength[span_length_rows_num_];
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (span_length_rows_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr)
+            return;
+        span_length_rows_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(span_length_rows_);
+    }
+
+    Cell *current_top_cell = getTopCell();
+    while(num != 0) {
+        num--;
+        DirSpanLengthSpTbl::SpanLength *sl = current_top_cell->createObject<DirSpanLengthSpTbl::SpanLength>(kObjectTypeSpanLength);
+        if (vct)
+            vct->pushBack(sl->getId());
+    }
+
 }
 
 /**
@@ -1344,7 +1458,19 @@ void DirSpanLengthSpTbl::setNumSpanLengths(UInt32 num) {
  * @return
  */
 UInt32 DirSpanLengthSpTbl::getSpanLength(UInt32 row_idx) const {
-    return row_idx < span_length_rows_num_ ? span_length_rows_[row_idx].getSpanLength() : 0;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (span_length_rows_ == 0) {
+        return 0;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(span_length_rows_);
+    }
+    if (vct) {
+         DirSpanLengthSpTbl::SpanLength *obj_data = addr<DirSpanLengthSpTbl::SpanLength>((*vct)[row_idx]);
+        if (obj_data) {
+            return obj_data->getSpanLength();
+        }
+    }
+    return 0;
 }
 
 /**
@@ -1357,8 +1483,17 @@ UInt32 DirSpanLengthSpTbl::getSpanLength(UInt32 row_idx) const {
  * @return
  */
 UInt32 DirSpanLengthSpTbl::getSpacing(UInt32 row_idx, UInt32 col_idx) const {
-    if (row_idx < span_length_rows_num_) {
-        return span_length_rows_[row_idx].getSpacing(col_idx);
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (span_length_rows_ == 0) {
+        return 0;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(span_length_rows_);
+    }
+    if (vct) {
+         DirSpanLengthSpTbl::SpanLength *obj_data = addr<DirSpanLengthSpTbl::SpanLength>((*vct)[row_idx]);
+        if (obj_data) {
+            return obj_data->getSpacing(col_idx);
+        }
     }
     return 0;
 }
@@ -1371,9 +1506,18 @@ UInt32 DirSpanLengthSpTbl::getSpacing(UInt32 row_idx, UInt32 col_idx) const {
  *
  * @return
  */
-const DirSpanLengthSpTbl::SpanLength* DirSpanLengthSpTbl::getSpanLengthRow(UInt32 row_idx) const {
-    if (row_idx < span_length_rows_num_) {
-        return span_length_rows_ + row_idx;
+ DirSpanLengthSpTbl::SpanLength* DirSpanLengthSpTbl::getSpanLengthRow(UInt32 row_idx) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (span_length_rows_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(span_length_rows_);
+    }
+    if (vct) {
+         DirSpanLengthSpTbl::SpanLength *obj_data = addr<DirSpanLengthSpTbl::SpanLength>((*vct)[row_idx]);
+        if (obj_data) {
+            return obj_data;
+        }
     }
     return nullptr;
 }
@@ -1384,9 +1528,31 @@ const DirSpanLengthSpTbl::SpanLength* DirSpanLengthSpTbl::getSpanLengthRow(UInt3
  *
  * @return
  */
-DirSpanLengthSpTbl::ExactSLSpacing* DirSpanLengthSpTbl::getExactSLSpacingList() const {
-    return exact_sl_spacings_;
+DirSpanLengthSpTbl::ExactSLSpacing* DirSpanLengthSpTbl::getExactSLSpacingList(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (exact_sl_spacings_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(exact_sl_spacings_);
+    }
+    if (vct) {
+        DirSpanLengthSpTbl::ExactSLSpacing *obj_data = addr<DirSpanLengthSpTbl::ExactSLSpacing>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
 }
+
+ArrayObject<ObjectId>* DirSpanLengthSpTbl::getExactSLSpacingLists() const {
+    if (exact_sl_spacings_ != 0) {
+        ArrayObject<ObjectId> *exact_sl_spacings = addr<ArrayObject<ObjectId>>(exact_sl_spacings_);
+        return exact_sl_spacings;
+    } else {
+        return nullptr;
+    }
+}
+
 
 /**
  * @brief
@@ -1394,48 +1560,18 @@ DirSpanLengthSpTbl::ExactSLSpacing* DirSpanLengthSpTbl::getExactSLSpacingList() 
  *
  * @param sl
  */
-void DirSpanLengthSpTbl::setExactSLSpacingList(DirSpanLengthSpTbl::ExactSLSpacing* sl) {
-    exact_sl_spacings_ = sl;
-}
-
-/**
- * @brief
- * get next DIRECTIONALSPANLENGTH
- *
- * @return
- */
-DirSpanLengthSpTbl* DirSpanLengthSpTbl::getNext() const {
-    return next_;
-}
-
-/**
- * @brief
- * set next DIRECTIONALSPANLENGTH
- *
- * @param l
- */
-void DirSpanLengthSpTbl::setNext(DirSpanLengthSpTbl* l) {
-    next_ = l;
-}
-
-/**
- * @brief
- * get next EOLKeepout
- *
- * @return EOLKeepout
- */
-EOLKeepout* EOLKeepout::getNext() const {
-    return next_;
-}
-
-/**
- * @brief
- * set next EOLKeepout
- *
- * @param n
- */
-void EOLKeepout::setNext(EOLKeepout* n) {
-    next_ = n;
+void DirSpanLengthSpTbl::addExactSLSpacingList(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (exact_sl_spacings_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        exact_sl_spacings_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(exact_sl_spacings_);
+    }
+    if (vct) vct->pushBack(id);
 }
 
 /**
@@ -1445,6 +1581,23 @@ void EOLKeepout::setNext(EOLKeepout* n) {
  *
  * @return
  */
+EOLKeepout::EOLKeepout() {
+    //memset(static_cast<void*>(this), 0, sizeof(EOLKeepout));
+    ArrayObject<SymbolIndex> *vct = nullptr;
+    if (class_names_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<SymbolIndex>>(kObjectTypeArray);
+        if (vct == nullptr)
+            return;
+        class_names_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+        if (vct) {
+            vct->pushBack(getTopCell()->getOrCreateSymbol("default_noclass"));
+            class_id_ = 0;
+        }
+    }
+}
+
 UInt32 EOLKeepout::getClassId() const {
     return class_id_;
 }
@@ -1456,7 +1609,20 @@ UInt32 EOLKeepout::getClassId() const {
  * @return
  */
 const char* EOLKeepout::getClassName() {
-    return class_names_.size() > 1 ? class_names_[class_id_].c_str() : nullptr;
+    ArrayObject<SymbolIndex> *vct = nullptr;
+    if (class_names_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<SymbolIndex>>(class_names_);
+    }
+    if (vct) {
+        SymbolIndex sym_index = (*vct)[class_id_];
+        if (sym_index != kInvalidSymbolIndex) {
+            Cell *top_cell = getTopCell();
+            return top_cell->getSymbolTable()->getSymbolByIndex(sym_index).c_str();
+        }
+    }
+    return nullptr;
 }
 
 /**
@@ -1466,16 +1632,28 @@ const char* EOLKeepout::getClassName() {
  * @param name
  */
 void EOLKeepout::setClassName(const char* name) {
-    if (name || name[0] != '\0') {
-        std::vector<std::string>::iterator iter = class_names_.begin();
-        for (; iter != class_names_.end(); ++iter) {
-            if (strcmp(iter->c_str(), name) == 0) {
-                class_id_ = iter - class_names_.begin();
-                return;
+    ArrayObject<SymbolIndex> *vct = nullptr;
+    if (class_names_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<SymbolIndex>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        class_names_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<SymbolIndex>>(class_names_);
+    }
+    if (vct) {
+        if (name || name[0] != '\0') {
+            for (int i = 0; i < vct->getSize(); ++i) {
+                if (strcmp(getTopCell()->getSymbolTable()->getSymbolByIndex((*vct)[i]).c_str(), name) == 0) {
+                    class_id_ = i;
+                    return;
+                }
             }
+
+            vct->pushBack(getTopCell()->getOrCreateSymbol(name));
+            class_id_ = vct->getSize() - 1;
         }
-        class_names_.push_back(name);
-        class_id_ = class_names_.size() - 1;
     }
 }
 
@@ -1976,10 +2154,6 @@ void EOLKeepout::setIsExcetpSameMetal(bool b) {
 }
 
 MinCut::~MinCut() {
-    if (cut_classes_)
-        delete cut_classes_;
-    if (cc_num_cuts_)
-        delete cc_num_cuts_;
 }
 
 /**
@@ -2042,8 +2216,13 @@ void MinCut::setCutWithin(UInt32 dist) {
  *
  * @return
  */
-std::vector<CutClass*>* MinCut::getCutClassArr() {
-    return cut_classes_;
+ArrayObject<ObjectId>* MinCut::getCutClassArr() {
+    if (cut_classes_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(cut_classes_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -2052,8 +2231,13 @@ std::vector<CutClass*>* MinCut::getCutClassArr() {
  *
  * @return
  */
-std::vector<UInt32>* MinCut::getCutClassNumCutsArr() {
-    return cc_num_cuts_;
+ ArrayObject<UInt32>* MinCut::getCutClassNumCutsArr() {
+    if (cc_num_cuts_ != 0) {
+        ArrayObject<UInt32> *array = addr<ArrayObject<UInt32>>(cc_num_cuts_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -2063,14 +2247,38 @@ std::vector<UInt32>* MinCut::getCutClassNumCutsArr() {
  * @param cs
  * @param num
  */
-void MinCut::appendCutClassCuts(CutClass* cs, UInt32 num) {
+void MinCut::appendCutClassCuts(ObjectId cs, UInt32 num) {
     if (cs && num) {
-        if (!cut_classes_)
-            cut_classes_ = new std::vector<CutClass*>;
-        if (!cc_num_cuts_)
-            cc_num_cuts_ = new std::vector<UInt32>;
-        cut_classes_->push_back(cs);
-        cc_num_cuts_->push_back(num);
+        ArrayObject<ObjectId> *vct = nullptr;
+        if (cut_classes_ == 0) {
+            vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+            if (vct == nullptr)
+                return;
+            cut_classes_ = vct->getId();
+            vct->setPool(getOwnerCell()->getPool());
+            vct->reserve(16);
+        }
+        else
+        {
+            vct = addr<ArrayObject<ObjectId>>(cut_classes_);
+        }
+        if (vct)
+            vct->pushBack(cs);
+
+        ArrayObject<UInt32> *array_ptr = nullptr;
+        if (cc_num_cuts_ == 0) {
+            array_ptr = getOwnerCell()->createObject<ArrayObject<UInt32>>(kObjectTypeArray);
+            if (array_ptr == nullptr)
+                return;
+            array_ptr->setPool(getOwnerCell()->getPool());
+            array_ptr->reserve(16);
+            cc_num_cuts_ = array_ptr->getId();
+        } else {
+            array_ptr = addr<ArrayObject<UInt32>>(cc_num_cuts_);
+        }
+
+        if (array_ptr)
+            array_ptr->pushBack(num);
     }
 }
 
@@ -2239,26 +2447,6 @@ void MinCut::setIsFullyEnclosed(bool v) {
 
 /**
  * @brief
- * get next MinCut rule
- *
- * @return
- */
-MinCut* MinCut::getNext() const {
-    return next_;
-}
-
-/**
- * @brief
- * set next MinCut rule
- *
- * @param mc
- */
-void MinCut::setNext(MinCut* mc) {
-    next_ = mc;
-}
-
-/**
- * @brief
  * get the minimum area size of the hole
  *
  * @return
@@ -2299,33 +2487,10 @@ void MinEnclArea::setWidth(UInt32 w) {
 
 /**
  * @brief
- * get next MINENCLOSEDAREA rule
- *
- * @return
- */
-MinEnclArea* MinEnclArea::getNext() const {
-    return next_;
-}
-
-/**
- * @brief
- * set next MINENCLOSEDAREA rule
- *
- * @param next
- */
-void MinEnclArea::setNext(MinEnclArea* next) {
-    next_ = next;
-}
-
-/**
- * @brief
  * deconstructor and release the allocated memory
  */
 MinSize::~MinSize() {
-    if (widths_)
-        free(widths_);
-    if (lengths_)
-        free(lengths_);
+
 }
 
 /**
@@ -2347,13 +2512,10 @@ UInt32 MinSize::getMinSizeNum() const {
  * @return
  */
 void MinSize::setMinSizeNum(UInt32 num) {
-    if (widths_)
-        free(widths_);
-    if (lengths_)
-        free(lengths_);
+
     minsize_num_ = num;
-    widths_ = (UInt32*) calloc(minsize_num_, sizeof(UInt32));
-    lengths_ = (UInt32*) calloc(minsize_num_, sizeof(UInt32));
+    //widths_ = (UInt32*) calloc(minsize_num_, sizeof(UInt32));
+    //lengths_ = (UInt32*) calloc(minsize_num_, sizeof(UInt32));
 }
 
 /**
@@ -2365,7 +2527,13 @@ void MinSize::setMinSizeNum(UInt32 num) {
  * @return
  */
 UInt32 MinSize::getWidth(UInt32 idx) const {
-    return idx < minsize_num_ ? widths_[idx] : 0;
+    if (widths_ == 0) 
+        return -1;
+    ArrayObject<Int32> *array_ptr = addr< ArrayObject<Int32> >(widths_);
+    if (array_ptr == nullptr)
+        return -1;
+
+    return (*array_ptr)[idx];
 }
 
 /**
@@ -2377,7 +2545,17 @@ UInt32 MinSize::getWidth(UInt32 idx) const {
  * @return
  */
 UInt32 MinSize::getLength(UInt32 idx) const {
-    return idx < minsize_num_ ? lengths_[idx] : 0;
+    if (idx >= minsize_num_) {
+        return 0;
+    }
+    
+    if (lengths_ == 0) 
+        return -1;
+    ArrayObject<Int32> *array_ptr = addr< ArrayObject<Int32> >(lengths_);
+    if (array_ptr == nullptr)
+        return -1;
+
+    return (*array_ptr)[idx];
 }
 
 /**
@@ -2412,23 +2590,33 @@ void MinSize::setRectOnly(bool v) {
  *
  * @return
  */
-void MinSize::addWidthLength(UInt32 index, UInt32 width, UInt32 length) {
-    if (index < minsize_num_) {
-        widths_[index] = width;
-        lengths_[index] = length;
+void MinSize::addWidthLength(UInt32 width, UInt32 length) {
+    ArrayObject<Int32> *array_ptr = nullptr;
+    if (widths_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        widths_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<Int32> >(widths_);
     }
+    if (array_ptr) array_ptr->pushBack(width);
+
+    if (lengths_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        lengths_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<Int32> >(lengths_);
+    }
+
+    if (array_ptr) array_ptr->pushBack(length);
+
 }
 
-/**
- * @brief
- * MinSize object has no list.
- * add getNext to free the object by template common function
- *
- * @return
- */
-MinSize* MinSize::getNext() const {
-    return nullptr;
-}
 
 /**
  * @brief
@@ -2945,26 +3133,6 @@ void MinStep::setNoBetweenEOLWidth(UInt32 w) {
 
 /**
  * @brief
- * get next minstep rule
- *
- * @return MinStep
- */
-MinStep* MinStep::getNext() const {
-    return next_;
-}
-
-/**
- * @brief
- * set next minstep rule
- *
- * @param n
- */
-void MinStep::setNext(MinStep* n) {
-    next_ = n;
-}
-
-/**
- * @brief
  * get width2 in PROTRUSIONWIDTH width1 WIDTH width2
  *
  * @return
@@ -3073,7 +3241,7 @@ void ProtrusionRule::ProtrusionWidth::setCutDistance(UInt32 d) {
  *
  * @return
  */
-CutClass* ProtrusionRule::ProtrusionWidth::getCutClass() const {
+ObjectId ProtrusionRule::ProtrusionWidth::getCutClass() const {
     return cut_class_;
 }
 
@@ -3083,7 +3251,7 @@ CutClass* ProtrusionRule::ProtrusionWidth::getCutClass() const {
  *
  * @param cs
  */
-void ProtrusionRule::ProtrusionWidth::setCutClass(CutClass* cs) {
+void ProtrusionRule::ProtrusionWidth::setCutClass(ObjectId cs) {
     cut_class_ = cs;
 }
 
@@ -3247,7 +3415,17 @@ void ProtrusionRule::setIsLength(bool v) {
  * @return
  */
 bool ProtrusionRule::isWidth() const {
-    return is_length_ ? false : protrusion_width_->size();
+    if (is_length_ == true) {
+        return false;
+    }
+    if (protrusion_width_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(protrusion_width_);
+        if (array->getSize() > 0)
+            return true;
+    }
+
+    return false;
+    //return is_length_ ? false : protrusion_width_->size();
 }
 
 /**
@@ -3256,8 +3434,30 @@ bool ProtrusionRule::isWidth() const {
  *
  * @return
  */
-std::vector<ProtrusionRule::ProtrusionWidth*>* ProtrusionRule::getProtrusionWidth() {
-    return protrusion_width_;
+ArrayObject<ObjectId>* ProtrusionRule::getProtrusionWidths() {
+
+    if (protrusion_width_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(protrusion_width_);
+        return array;
+    } else {
+        return nullptr;
+    }
+}
+
+ProtrusionRule::ProtrusionWidth *ProtrusionRule::getProtrusionWidth(int i) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (protrusion_width_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(protrusion_width_);
+    }
+    if (vct) {
+        ProtrusionRule::ProtrusionWidth *obj_data = addr<ProtrusionRule::ProtrusionWidth>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
 }
 
 /**
@@ -3266,41 +3466,21 @@ std::vector<ProtrusionRule::ProtrusionWidth*>* ProtrusionRule::getProtrusionWidt
  *
  * @param pw
  */
-void ProtrusionRule::addProtrusionWidth(ProtrusionRule::ProtrusionWidth* pw) {
-    protrusion_width_->push_back(pw);
-}
-
-/**
- * @brief
- * get next PROTRUSIONWIDTH rule
- *
- * @return
- */
-ProtrusionRule* ProtrusionRule::getNext() const {
-    return next_;
-}
-
-/**
- * @brief
- * set next PROTRUSIONWIDTH rule
- *
- * @param n
- */
-void ProtrusionRule::setNext(ProtrusionRule* n) {
-    next_ = n;
+void ProtrusionRule::addProtrusionWidth(ObjectId pw) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (protrusion_width_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        protrusion_width_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(protrusion_width_);
+    }
+    if (vct) vct->pushBack(pw);
 }
 
 WidthSpTbl::~WidthSpTbl() {
-    if (prls_)
-        free(prls_);
-    if (widths_)
-        free(widths_);
-    if (low_excl_spacing_)
-        free(low_excl_spacing_);
-    if (high_excl_spacing_)
-        free(high_excl_spacing_);
-    if (spacing_elems_)
-        free(spacing_elems_);
 }
 
 /**
@@ -3438,19 +3618,15 @@ UInt32 WidthSpTbl::getWidthDim() const {
  * @param w_dim
  */
 void WidthSpTbl::setWidthDim(UInt32 w_dim) {
-    if (widths_) {
-        free(widths_);
-    }
     width_num_ = w_dim;
-    widths_ = (UInt32*)calloc(width_num_, sizeof(UInt32));
-    if (is_PRL_width_) {
-        if (low_excl_spacing_)
-            free(low_excl_spacing_);
-        if (high_excl_spacing_)
-            free(high_excl_spacing_);
-        low_excl_spacing_ = (UInt32*)calloc(width_num_, sizeof(UInt32));
-        high_excl_spacing_ = (UInt32*)calloc(width_num_, sizeof(UInt32));
-    }
+    // if (is_PRL_width_) {
+    //     if (low_excl_spacing_)
+    //         free(low_excl_spacing_);
+    //     if (high_excl_spacing_)
+    //         free(high_excl_spacing_);
+    //     low_excl_spacing_ = (UInt32*)calloc(width_num_, sizeof(UInt32));
+    //     high_excl_spacing_ = (UInt32*)calloc(width_num_, sizeof(UInt32));
+    // }
 }
 
 /**
@@ -3470,12 +3646,7 @@ UInt32 WidthSpTbl::getPRLDim() const {
  * @param prl_dim
  */
 void WidthSpTbl::setPRLDim(UInt32 prl_dim) {
-    if (prls_) {
-        free(prls_);
-        prls_ = nullptr;
-    }
     prl_num_ = prl_dim;
-    prls_ = (UInt32*)calloc(prl_num_, sizeof(UInt32));
 }
 
 /**
@@ -3487,7 +3658,13 @@ void WidthSpTbl::setPRLDim(UInt32 prl_dim) {
  * @return 
  */
 bool WidthSpTbl::hasWidthPRL(UInt32 index) const {
-    return (prls_ && index < prl_num_ && prls_[index] != INT_MAX);
+    if (prls_ == 0) 
+        return false;
+    ArrayObject<UInt32> *array_ptr = addr< ArrayObject<UInt32> >(prls_);
+    if (array_ptr == nullptr)
+        return false;
+    UInt32 index_value = (*array_ptr)[index];
+    return (prls_ && index < prl_num_ && index_value != INT_MAX);
 }
 
 /**
@@ -3499,7 +3676,17 @@ bool WidthSpTbl::hasWidthPRL(UInt32 index) const {
  * @return
  */
 UInt32 WidthSpTbl::getWidth(UInt32 idx) const {
-    return idx < width_num_ ? widths_[idx] : 0;
+    if (idx >= width_num_) {
+        return 0;
+    }
+    
+    if (widths_ == 0) 
+        return 0;
+    ArrayObject<UInt32> *array_ptr = addr< ArrayObject<UInt32> >(widths_);
+    if (array_ptr == nullptr)
+        return 0;
+
+    return (*array_ptr)[idx];
 }
 
 /**
@@ -3509,10 +3696,19 @@ UInt32 WidthSpTbl::getWidth(UInt32 idx) const {
  * @param row_idx
  * @param w
  */
-void WidthSpTbl::setWidth(UInt32 row_idx, UInt32 w) {
-    if (row_idx < width_num_) {
-        widths_[row_idx] = w;
+void WidthSpTbl::addWidth( UInt32 w) {
+    ArrayObject<UInt32> *array_ptr = nullptr;
+    if (widths_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<UInt32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        widths_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<UInt32> >(widths_);
     }
+
+    if (array_ptr) array_ptr->pushBack(w);
 }
 
 /**
@@ -3525,10 +3721,35 @@ void WidthSpTbl::setWidth(UInt32 row_idx, UInt32 w) {
  */
 void WidthSpTbl::getLoHiExclSpacing(UInt32 row_idx, UInt32* lo_spacing, UInt32* hi_spacing) const {
     if (lo_spacing) {
-        *lo_spacing = row_idx < width_num_ ? low_excl_spacing_[row_idx] : 0;
+        if (row_idx >= width_num_) {
+            *lo_spacing = 0;
+        } else if (low_excl_spacing_ == 0) {
+            *lo_spacing = 0;
+        } else {
+            ArrayObject<UInt32> *array_ptr = addr<ArrayObject<UInt32>>(low_excl_spacing_);
+            if (array_ptr == nullptr) {
+                *lo_spacing = 0;
+            } else {
+                *lo_spacing = row_idx < width_num_ ? (*array_ptr)[row_idx] : 0;
+            }
+        }
+
     }
+    
     if (hi_spacing) {
-        *hi_spacing = row_idx < width_num_ ? high_excl_spacing_[row_idx] : 0;
+        if (row_idx >= width_num_) {
+            *hi_spacing = 0;
+        } else if (high_excl_spacing_ == 0) {
+            *hi_spacing = 0;
+        } else {
+            ArrayObject<UInt32> *array_ptr = addr<ArrayObject<UInt32>>(high_excl_spacing_);
+            if (array_ptr == nullptr) {
+                *hi_spacing = 0;
+            } else {
+                *hi_spacing = row_idx < width_num_ ? (*array_ptr)[row_idx] : 0;
+            }
+        }
+        //*hi_spacing = row_idx < width_num_ ? high_excl_spacing_[row_idx] : 0;
     }
 }
 
@@ -3540,13 +3761,29 @@ void WidthSpTbl::getLoHiExclSpacing(UInt32 row_idx, UInt32* lo_spacing, UInt32* 
  * @param lo_excl_sp
  * @param hi_excl_sp
  */
-void WidthSpTbl::setLoHiExclSpacing(UInt32 row_idx, UInt32 lo_excl_sp, UInt32 hi_excl_sp) {
-    if (row_idx < width_num_) {
-        low_excl_spacing_[row_idx] = lo_excl_sp;
+void WidthSpTbl::addLoHiExclSpacing(UInt32 lo_excl_sp, UInt32 hi_excl_sp) {
+    ArrayObject<UInt32> *array_ptr = nullptr;
+    if (low_excl_spacing_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<UInt32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        low_excl_spacing_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<UInt32> >(low_excl_spacing_);
     }
-    if (row_idx < width_num_) {
-        high_excl_spacing_[row_idx] = hi_excl_sp;
+    if (array_ptr) array_ptr->pushBack(lo_excl_sp);
+
+    if (high_excl_spacing_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<UInt32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        high_excl_spacing_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<UInt32> >(high_excl_spacing_);
     }
+    if (array_ptr) array_ptr->pushBack(hi_excl_sp);
 }
 
 /**
@@ -3558,7 +3795,13 @@ void WidthSpTbl::setLoHiExclSpacing(UInt32 row_idx, UInt32 lo_excl_sp, UInt32 hi
  * @return
  */
 UInt32 WidthSpTbl::getPRL(UInt32 idx) const {
-    return (idx < prl_num_ && prls_[idx] != INT_MAX) ? prls_[idx] : 0;
+    if (prls_ == 0) 
+        return 0;
+    ArrayObject<UInt32> *array_ptr = addr< ArrayObject<UInt32> >(prls_);
+    if (array_ptr == nullptr)
+        return 0;
+
+    return (idx < prl_num_ && (*array_ptr)[idx] != INT_MAX) ? (*array_ptr)[idx] : 0;
 }
 
 /**
@@ -3568,10 +3811,18 @@ UInt32 WidthSpTbl::getPRL(UInt32 idx) const {
  * @param row_col_idx
  * @param prl
  */
-void WidthSpTbl::setPRL(UInt32 row_col_idx, UInt32 prl) {
-    if (row_col_idx < prl_num_) {
-        prls_[row_col_idx] = prl;
+void WidthSpTbl::addPRL(UInt32 prl) {
+    ArrayObject<UInt32> *array_ptr = nullptr;
+    if (prls_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<UInt32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        prls_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<UInt32> >(prls_);
     }
+    if (array_ptr) array_ptr->pushBack(prl);
 }
 
 /**
@@ -3585,7 +3836,15 @@ void WidthSpTbl::setPRL(UInt32 row_col_idx, UInt32 prl) {
  */
 UInt32 WidthSpTbl::getSpacing(UInt32 row_idx, UInt32 col_idx) const {
     UInt32 spacing_index = row_idx * prl_num_ + col_idx;
-    return spacing_index < spacing_num_ ? spacing_elems_[spacing_index] : 0;
+    
+    if (spacing_elems_ == 0) 
+        return 0;
+    ArrayObject<UInt32> *array_ptr = addr< ArrayObject<UInt32> >(spacing_elems_);
+    if (array_ptr == nullptr)
+        return 0;
+
+    return spacing_index < spacing_num_ ? (*array_ptr)[spacing_index] : 0;
+
 }
 
 /**
@@ -3596,14 +3855,37 @@ UInt32 WidthSpTbl::getSpacing(UInt32 row_idx, UInt32 col_idx) const {
  * @param col_idx
  * @param sp
  */
-void WidthSpTbl::setSpacing(UInt32 row_idx, UInt32 col_idx, UInt32 sp) {
-    if (row_idx < width_num_ && col_idx < prl_num_) {
-        if (!spacing_elems_) {
-            spacing_num_ = width_num_ * prl_num_;
-            spacing_elems_ = (UInt32*)calloc(spacing_num_, sizeof(UInt32));
-        }
-        spacing_elems_[row_idx * prl_num_ + col_idx] = sp;
+void WidthSpTbl::setSpacing(UInt32 row_idx, UInt32 col_idx, UInt32 sp) {//handle different as 
+    if (!(row_idx < width_num_ && col_idx < prl_num_)) {
+        return;
     }
+
+    ArrayObject<UInt32> *array_ptr = nullptr;
+    if (spacing_elems_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<UInt32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        spacing_elems_ = array_ptr->getId();
+        if (array_ptr) {
+            //to allocate data first
+            spacing_num_ = width_num_ * prl_num_;
+            for (int i = 0; i < spacing_num_; i++)
+                array_ptr->pushBack(0);
+        }
+    } else {
+        array_ptr = addr< ArrayObject<UInt32> >(spacing_elems_);
+    }
+    (*array_ptr)[row_idx * prl_num_ + col_idx] = sp;
+
+    // if (row_idx < width_num_ && col_idx < prl_num_) {
+    //     if (!spacing_elems_) {
+    //         spacing_num_ = width_num_ * prl_num_;
+    //         spacing_elems_ = (UInt32*)calloc(spacing_num_, sizeof(UInt32));
+    //     }
+    //     spacing_elems_[row_idx * prl_num_ + col_idx] = sp;
+    // }
+
 }
 
 /**
@@ -3648,41 +3930,9 @@ void WidthSpTbl::setMaxSpacing(UInt32 max_sp) {
 
 /**
  * @brief
- * get next PARALLELRUNLENGTH WIDTH or TWOWIDTHS rule
- *
- * @return
- */
-WidthSpTbl* WidthSpTbl::getNext() const {
-    return next_;
-}
-
-/**
- * @brief
- * set next PARALLELRUNLENGTH WIDTH or TWOWIDTHS rule
- *
- * @param n
- */
-void WidthSpTbl::setNext(WidthSpTbl* n) {
-    next_ = n;
-}
-
-/**
- * @brief
  * release allocated memory
  */
 InfluenceSpTbl::~InfluenceSpTbl() {
-    if (widths_) {
-        delete widths_;
-        widths_ = nullptr;
-    }
-    if (withins_) {
-        delete withins_;
-        withins_ = nullptr;
-    }
-    if (spacings_) {
-        delete spacings_;
-        spacings_ = nullptr;
-    }
 }
 
 /**
@@ -3703,11 +3953,11 @@ UInt32 InfluenceSpTbl::getRowNum() const {
  */
 void InfluenceSpTbl::setRowNum(UInt32 num) {
     row_num_ = num;
-    if (num > 0) {
-        widths_ = static_cast<UInt32*>(calloc(row_num_, sizeof(UInt32)));
-        withins_ = static_cast<UInt32*>(calloc(row_num_, sizeof(UInt32)));
-        spacings_ = static_cast<UInt32*>(calloc(row_num_, sizeof(UInt32)));
-    }
+    // if (num > 0) {
+    //     widths_ = static_cast<UInt32*>(calloc(row_num_, sizeof(UInt32)));
+    //     withins_ = static_cast<UInt32*>(calloc(row_num_, sizeof(UInt32)));
+    //     spacings_ = static_cast<UInt32*>(calloc(row_num_, sizeof(UInt32)));
+    // }
 }
 
 /**
@@ -3723,11 +3973,30 @@ void InfluenceSpTbl::setRowNum(UInt32 num) {
  */
 bool InfluenceSpTbl::getRowElems(UInt32 row_idx, UInt32& w, UInt32& d, UInt32& sp) const {
     if (row_idx < row_num_ && widths_) {
-        w = widths_[row_idx];
-        d = withins_[row_idx];
-        sp = spacings_[row_idx];
+        if (widths_ == 0)
+            return false;
+        ArrayObject<UInt32> *array_ptr = addr<ArrayObject<UInt32>>(widths_);
+        if (array_ptr == nullptr)
+            return false;
+        w = (*array_ptr)[row_idx];
+
+        if (withins_ == 0)
+            return false;
+        array_ptr = addr<ArrayObject<UInt32>>(withins_);
+        if (array_ptr == nullptr)
+            return false;
+        d = (*array_ptr)[row_idx];
+
+        if (spacings_ == 0)
+            return false;
+        array_ptr = addr<ArrayObject<UInt32>>(spacings_);
+        if (array_ptr == nullptr)
+            return false;
+        sp = (*array_ptr)[row_idx];
+
         return true;
     }
+
     return false;
 }
 
@@ -3740,12 +4009,47 @@ bool InfluenceSpTbl::getRowElems(UInt32 row_idx, UInt32& w, UInt32& d, UInt32& s
  * @param d
  * @param sp
  */
-void InfluenceSpTbl::setRowElems(UInt32 row_idx, UInt32 w, UInt32 d, UInt32 sp) {
-    if (row_idx < row_num_ && widths_) {
-        widths_[row_idx] = w;
-        withins_[row_idx] = d;
-        spacings_[row_idx] = sp;
+void InfluenceSpTbl::addRowElems(UInt32 w, UInt32 d, UInt32 sp) {
+
+    ArrayObject<UInt32> *array_ptr = nullptr;
+    if (widths_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<UInt32>>(kObjectTypeArray);
+        if (array_ptr == nullptr)
+            return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);
+        widths_ = array_ptr->getId();
+    } else {
+        array_ptr = addr<ArrayObject<UInt32>>(widths_);
     }
+    if (array_ptr)
+        array_ptr->pushBack(w);
+
+    if (withins_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<UInt32>>(kObjectTypeArray);
+        if (array_ptr == nullptr)
+            return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);
+        withins_ = array_ptr->getId();
+    } else {
+        array_ptr = addr<ArrayObject<UInt32>>(withins_);
+    }
+    if (array_ptr)
+        array_ptr->pushBack(d);   
+
+    if (spacings_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<UInt32>>(kObjectTypeArray);
+        if (array_ptr == nullptr)
+            return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);
+        spacings_ = array_ptr->getId();
+    } else {
+        array_ptr = addr<ArrayObject<UInt32>>(spacings_);
+    }
+    if (array_ptr)
+        array_ptr->pushBack(sp);  
 }
 
 /**
@@ -3757,7 +4061,12 @@ void InfluenceSpTbl::setRowElems(UInt32 row_idx, UInt32 w, UInt32 d, UInt32 sp) 
  * @return
  */
 UInt32 InfluenceSpTbl::getWidth(UInt32 row_idx) const {
-    return row_idx < row_num_ ? widths_[row_idx] : 0;
+    if (widths_ == 0)
+        return 0;
+    ArrayObject<UInt32> *array_ptr = addr<ArrayObject<UInt32>>(widths_);
+    if (array_ptr == nullptr)
+        return 0;
+    return (*array_ptr)[row_idx];
 }
 
 /**
@@ -3769,7 +4078,12 @@ UInt32 InfluenceSpTbl::getWidth(UInt32 row_idx) const {
  * @return
  */
 UInt32 InfluenceSpTbl::getWithin(UInt32 row_idx) const {
-    return row_idx < row_num_ ? withins_[row_idx] : 0;
+    if (withins_ == 0)
+        return 0;
+    ArrayObject<UInt32> *array_ptr = addr<ArrayObject<UInt32>>(withins_);
+    if (array_ptr == nullptr)
+        return 0;
+    return (*array_ptr)[row_idx];
 }
 
 /**
@@ -3781,18 +4095,12 @@ UInt32 InfluenceSpTbl::getWithin(UInt32 row_idx) const {
  * @return
  */
 UInt32 InfluenceSpTbl::getSpacing(UInt32 row_idx) const {
-    return row_idx < row_num_ ? spacings_[row_idx] : 0;
-}
-
-/**
- * @brief
- * InfluenceSpTbl object has no list.
- * add getNext to free the object by template common function
- *
- * @return
- */
-InfluenceSpTbl* InfluenceSpTbl::getNext() const {
-    return nullptr;
+    if (spacings_ == 0)
+        return 0;
+    ArrayObject<UInt32> *array_ptr = addr<ArrayObject<UInt32>>(spacings_);
+    if (array_ptr == nullptr)
+        return 0;
+    return (*array_ptr)[row_idx];
 }
 
 /**
@@ -3800,8 +4108,6 @@ InfluenceSpTbl* InfluenceSpTbl::getNext() const {
  * release allocated memory
  */
 ParaSpanLenTbl::~ParaSpanLenTbl() {
-    release(span_lengths_);
-    release(spacings_);
 }
 
 /**
@@ -3835,10 +4141,10 @@ UInt32 ParaSpanLenTbl::getDim() const {
  */
 void ParaSpanLenTbl::setDim(UInt32 dim) {
     dim_ = dim;
-    release(span_lengths_);
-    release(spacings_);
-    span_lengths_ = static_cast<UInt32*>(calloc(dim_, sizeof(UInt32)));
-    spacings_ = static_cast<UInt32*>(calloc(dim_*dim_, sizeof(UInt32)));
+    // release(span_lengths_);
+    // release(spacings_);
+    // span_lengths_ = static_cast<UInt32*>(calloc(dim_, sizeof(UInt32)));
+    // spacings_ = static_cast<UInt32*>(calloc(dim_*dim_, sizeof(UInt32)));
 }
 
 /**
@@ -3870,7 +4176,17 @@ void ParaSpanLenTbl::setPRL(UInt32 prl) {
  * @return
  */
 UInt32 ParaSpanLenTbl::getSpanLength(UInt32 row_idx) const {
-    return row_idx < dim_ ? span_lengths_[row_idx] : 0;
+    if (row_idx >= dim_) {
+        return 0;
+    }
+    
+    if (span_lengths_ == 0) 
+        return 0;
+    ArrayObject<Int32> *array_ptr = addr< ArrayObject<Int32> >(span_lengths_);
+    if (array_ptr == nullptr)
+        return 0;
+
+    return (*array_ptr)[row_idx];
 }
 
 /**
@@ -3880,10 +4196,19 @@ UInt32 ParaSpanLenTbl::getSpanLength(UInt32 row_idx) const {
  * @param row_idx
  * @param span_len
  */
-void ParaSpanLenTbl::setSpanLength(UInt32 row_idx, UInt32 span_len) {
-    if (row_idx < dim_) {
-        span_lengths_[row_idx] = span_len;
+void ParaSpanLenTbl::addSpanLength(UInt32 span_len) {
+    ArrayObject<UInt32> *array_ptr = nullptr;
+    if (span_lengths_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<UInt32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        span_lengths_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<UInt32> >(span_lengths_);
     }
+
+    if (array_ptr) array_ptr->pushBack(span_len);
 }
 
 /**
@@ -3896,7 +4221,13 @@ void ParaSpanLenTbl::setSpanLength(UInt32 row_idx, UInt32 span_len) {
  * @return
  */
 UInt32 ParaSpanLenTbl::getSpacing(UInt32 row_idx, UInt32 col_idx) const {
-    return (row_idx < dim_ && col_idx < dim_) ? spacings_[row_idx * dim_ + col_idx] : 0;
+    if (spacings_ == 0) 
+        return 0;
+    ArrayObject<UInt32> *array_ptr = addr< ArrayObject<UInt32> >(spacings_);
+    if (array_ptr == nullptr)
+        return 0;
+
+    return (row_idx < dim_ && col_idx < dim_) ? (*array_ptr)[row_idx * dim_ + col_idx] : 0;
 }
 
 /**
@@ -3908,20 +4239,23 @@ UInt32 ParaSpanLenTbl::getSpacing(UInt32 row_idx, UInt32 col_idx) const {
  * @param spacing
  */
 void ParaSpanLenTbl::setSpacing(UInt32 row_idx, UInt32 col_idx, UInt32 spacing) {
-    if (row_idx < dim_ && col_idx < dim_) {
-        spacings_[row_idx * dim_ + col_idx] = spacing;
+    ArrayObject<UInt32> *array_ptr = nullptr;
+    if (spacings_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<UInt32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        spacings_ = array_ptr->getId();
+        if (array_ptr) {
+            //to allocate data first
+            int spacing_num_ = dim_*dim_;
+            for (int i = 0; i < spacing_num_; i++)
+                array_ptr->pushBack(0);
+        }
+    } else {
+        array_ptr = addr< ArrayObject<UInt32> >(spacings_);
     }
-}
-
-/**
- * @brief
- * ParaSpanLenTbl object has no list.
- * add getNext to free the object by template common function
- *
- * @return
- */
-ParaSpanLenTbl* ParaSpanLenTbl::getNext() const {
-    return nullptr;
+    (*array_ptr)[row_idx * dim_ + col_idx] = spacing;
 }
 
 /**
@@ -5174,36 +5508,8 @@ void RoutingSpacing::setIsConvexCorners(bool v) {
  *
  * @return
  */
-RoutingSpacing* RoutingSpacing::getNext() const {
-    return next_;
-}
-
-/**
- * @brief
- * set next SPACING rule
- *
- * @param n
- */
-void RoutingSpacing::setNext(RoutingSpacing* n) {
-    next_ = n;
-}
 
 RoutingLayerRule::~RoutingLayerRule() {
-    FreeRuleList(boundary_eol_blk_);
-    FreeRuleList(corner_eol_keepout_list_);
-    FreeRuleList(corner_fill_spacing_list_);
-    FreeRuleList(corner_spacing_list_);
-    FreeRuleList(dsl_list_);
-    FreeRuleList(eol_keepout_list_);
-    FreeRuleList(min_cut_list_);
-    FreeRuleList(min_enclosed_area_list_);
-    FreeRuleList(min_size_);
-    FreeRuleList(min_step_list_);
-    FreeRuleList(protrusion_list_);
-    FreeRuleList(width_sp_tbl_list_);
-    FreeRuleList(influence_sp_tbl_);
-    FreeRuleList(para_span_len_sp_tbl_);
-    FreeRuleList(spacing_list_);
 }
 
 /**
@@ -5954,7 +6260,7 @@ void RoutingLayerRule::setFillMaxDensity(float den) {
  * @return Layer
  */
 Layer* RoutingLayerRule::getTrimLayer() const {
-    return trim_layer_;
+    return addr<Layer>(trim_layer_);
 }
 
 /**
@@ -5963,7 +6269,7 @@ Layer* RoutingLayerRule::getTrimLayer() const {
  *
  * @param layer
  */
-void RoutingLayerRule::setTrimLayer(Layer *layer) {
+void RoutingLayerRule::setTrimLayer(ObjectId layer) {
     trim_layer_ = layer;
 }
 
@@ -5973,18 +6279,49 @@ void RoutingLayerRule::setTrimLayer(Layer *layer) {
  *
  * @return EOLKeepout
  */
-EOLKeepout* RoutingLayerRule::getEOLKeepoutList() const {
-    return eol_keepout_list_;
+EOLKeepout* RoutingLayerRule::getEOLKeepout(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (eol_keepouts_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(eol_keepouts_);
+    }
+    if (vct) {
+        EOLKeepout *obj_data = addr<EOLKeepout>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
 }
 
+ArrayObject<ObjectId> *RoutingLayerRule::getEOLKeepouts() const {
+    //return eol_keepout_list_;
+    if (eol_keepouts_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(eol_keepouts_);
+        return array;
+    } else {
+        return nullptr;
+    }
+}
 /**
  * @brief
  * set EOLKEEPOUT rule
  *
  * @param eolk
  */
-void RoutingLayerRule::setEOLKeepoutList(EOLKeepout* eolk) {
-    eol_keepout_list_ = eolk;
+void RoutingLayerRule::addEOLKeepout(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (eol_keepouts_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        eol_keepouts_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(eol_keepouts_);
+    }
+    if (vct) vct->pushBack(id);
 }
 
 /**
@@ -5993,8 +6330,30 @@ void RoutingLayerRule::setEOLKeepoutList(EOLKeepout* eolk) {
  *
  * @return BoundaryEOLBlockage
  */
-BoundaryEOLBlockage* RoutingLayerRule::getBoundaryEOLBlocakge() const {
-    return boundary_eol_blk_;
+BoundaryEOLBlockage* RoutingLayerRule::getBoundaryEOLBlocakge(int i) const {
+    //return boundary_eol_blks_;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (boundary_eol_blks_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(boundary_eol_blks_);
+    }
+    if (vct) {
+        BoundaryEOLBlockage *obj_data = addr<BoundaryEOLBlockage>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
+
+ArrayObject<ObjectId> *RoutingLayerRule::getBoundaryEOLBlocakges() const {
+    if (boundary_eol_blks_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(boundary_eol_blks_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -6003,8 +6362,18 @@ BoundaryEOLBlockage* RoutingLayerRule::getBoundaryEOLBlocakge() const {
  *
  * @param eol_blkg
  */
-void RoutingLayerRule::setBoundaryEOLBlockage(BoundaryEOLBlockage* eol_blkg) {
-    boundary_eol_blk_ = eol_blkg;
+void RoutingLayerRule::addBoundaryEOLBlockage(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (boundary_eol_blks_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        boundary_eol_blks_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(boundary_eol_blks_);
+    }
+    if (vct) vct->pushBack(id);
 }
 
 /**
@@ -6013,8 +6382,29 @@ void RoutingLayerRule::setBoundaryEOLBlockage(BoundaryEOLBlockage* eol_blkg) {
  *
  * @return CornerEOLKeepout
  */
-CornerEOLKeepout* RoutingLayerRule::getCornerEOLKeepoutList() const {
-    return corner_eol_keepout_list_;
+ArrayObject<ObjectId> *RoutingLayerRule::getCornerEOLKeepouts() const {
+     if (corner_eol_keepouts_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(corner_eol_keepouts_);
+        return array;
+    } else {
+        return nullptr;
+    }
+}
+
+CornerEOLKeepout* RoutingLayerRule::getCornerEOLKeepout(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (corner_eol_keepouts_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(corner_eol_keepouts_);
+    }
+    if (vct) {
+        CornerEOLKeepout *obj_data = addr<CornerEOLKeepout>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
 }
 
 /**
@@ -6023,8 +6413,19 @@ CornerEOLKeepout* RoutingLayerRule::getCornerEOLKeepoutList() const {
  *
  * @param ceolk
  */
-void RoutingLayerRule::setCornerEOLKeepoutList(CornerEOLKeepout* ceolk) {
-    corner_eol_keepout_list_ = ceolk;
+void RoutingLayerRule::addCornerEOLKeepout(ObjectId id) {
+    //corner_eol_keepout_list_ = ceolk;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (corner_eol_keepouts_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        corner_eol_keepouts_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(corner_eol_keepouts_);
+    }
+    if (vct) vct->pushBack(id);
 }
 
 /**
@@ -6033,8 +6434,29 @@ void RoutingLayerRule::setCornerEOLKeepoutList(CornerEOLKeepout* ceolk) {
  *
  * @return CornerFillSpacing
  */
-CornerFillSpacing* RoutingLayerRule::getCornerFillSpacingList() const {
-    return corner_fill_spacing_list_;
+CornerFillSpacing* RoutingLayerRule::getCornerFillSpacing(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (corner_fill_spacings_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(corner_fill_spacings_);
+    }
+    if (vct) {
+        CornerFillSpacing *obj_data = addr<CornerFillSpacing>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
+
+ArrayObject<ObjectId> *RoutingLayerRule::getCornerFillSpacings() const {
+     if (corner_fill_spacings_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(corner_fill_spacings_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -6043,8 +6465,19 @@ CornerFillSpacing* RoutingLayerRule::getCornerFillSpacingList() const {
  *
  * @param cfs
  */
-void RoutingLayerRule::setCornerFillSpacingList(CornerFillSpacing* cfs) {
-    corner_fill_spacing_list_ = cfs;
+void RoutingLayerRule::addCornerFillSpacing(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (corner_fill_spacings_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        corner_fill_spacings_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(corner_fill_spacings_);
+    }
+    if (vct) vct->pushBack(id);
+
 }
 
 /**
@@ -6053,8 +6486,29 @@ void RoutingLayerRule::setCornerFillSpacingList(CornerFillSpacing* cfs) {
  *
  * @return CornerSpacing
  */
-CornerSpacing* RoutingLayerRule::getCornerSpacingList() const {
-    return corner_spacing_list_;
+CornerSpacing* RoutingLayerRule::getCornerSpacing(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (corner_spacings_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(corner_spacings_);
+    }
+    if (vct) {
+        CornerSpacing *obj_data = addr<CornerSpacing>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
+
+ArrayObject<ObjectId> *RoutingLayerRule::getCornerSpacings() const {
+    if (corner_spacings_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(corner_spacings_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -6063,8 +6517,19 @@ CornerSpacing* RoutingLayerRule::getCornerSpacingList() const {
  *
  * @param cs
  */
-void RoutingLayerRule::setCornerSpacingList(CornerSpacing* cs) {
-    corner_spacing_list_ = cs;
+void RoutingLayerRule::addCornerSpacing(ObjectId id) {
+    //corner_spacing_list_ = cs;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (corner_spacings_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        corner_spacings_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(corner_spacings_);
+    }
+    if (vct) vct->pushBack(id);
 }
 
 /**
@@ -6073,8 +6538,30 @@ void RoutingLayerRule::setCornerSpacingList(CornerSpacing* cs) {
  *
  * @return DirSpanLengthSpTbl
  */
-DirSpanLengthSpTbl* RoutingLayerRule::getDirSpanLengthSpTblList() const {
-    return dsl_list_;
+DirSpanLengthSpTbl* RoutingLayerRule::getDirSpanLengthSpTbl(int i) const {
+    //return dsl_list_;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (dsls_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(dsls_);
+    }
+    if (vct) {
+        DirSpanLengthSpTbl *obj_data = addr<DirSpanLengthSpTbl>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
+
+ArrayObject<ObjectId> *RoutingLayerRule::getDirSpanLengthSpTbls() const {
+    if (dsls_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(dsls_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -6083,8 +6570,18 @@ DirSpanLengthSpTbl* RoutingLayerRule::getDirSpanLengthSpTblList() const {
  *
  * @param dsl
  */
-void RoutingLayerRule::setDirSpanLengthSpTblList(DirSpanLengthSpTbl* dsl) {
-    dsl_list_ = dsl;
+void RoutingLayerRule::addDirSpanLengthSpTbl(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (dsls_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        dsls_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(dsls_);
+    }
+    if (vct) vct->pushBack(id);
 }
 
 /**
@@ -6093,17 +6590,48 @@ void RoutingLayerRule::setDirSpanLengthSpTblList(DirSpanLengthSpTbl* dsl) {
  *
  * @return MinCut
  */
-MinCut* RoutingLayerRule::getMinCutList() const {
-    return min_cut_list_;
+MinCut* RoutingLayerRule::getMinCut(int i) const {
+    //return min_cut_list_;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (min_cuts_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(min_cuts_);
+    }
+    if (vct) {
+        MinCut *obj_data = addr<MinCut>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
 }
 
+ArrayObject<ObjectId> *RoutingLayerRule::getMinCuts() const {
+    if (min_cuts_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(min_cuts_);
+        return array;
+    } else {
+        return nullptr;
+    }
+}
 /**
  * @brief set minimumcut rule list
  *
  * @param l
  */
-void RoutingLayerRule::setMinCutList(MinCut* l) {
-    min_cut_list_ = l;
+void RoutingLayerRule::addMinCut(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (min_cuts_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        min_cuts_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(min_cuts_);
+    }
+    if (vct) vct->pushBack(id);
 }
 
 /**
@@ -6112,8 +6640,30 @@ void RoutingLayerRule::setMinCutList(MinCut* l) {
  *
  * @return
  */
-MinEnclArea* RoutingLayerRule::getMinEnclAreaList() const {
-    return min_enclosed_area_list_;
+MinEnclArea* RoutingLayerRule::getMinEnclArea(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (min_enclosed_areas_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(min_enclosed_areas_);
+    }
+    if (vct) {
+        MinEnclArea *obj_data = addr<MinEnclArea>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+
+}
+
+ArrayObject<ObjectId> *RoutingLayerRule::getMinEnclAreas() const {
+    if (min_enclosed_areas_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(min_enclosed_areas_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -6122,8 +6672,18 @@ MinEnclArea* RoutingLayerRule::getMinEnclAreaList() const {
  *
  * @param l
  */
-void RoutingLayerRule::setMinEnclAreaList(MinEnclArea* l) {
-    min_enclosed_area_list_ = l;
+void RoutingLayerRule::addMinEnclArea(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (min_enclosed_areas_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        min_enclosed_areas_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(min_enclosed_areas_);
+    }
+    if (vct) vct->pushBack(id);
 }
 
 /**
@@ -6132,8 +6692,30 @@ void RoutingLayerRule::setMinEnclAreaList(MinEnclArea* l) {
  *
  * @return MinSize
  */
-MinSize* RoutingLayerRule::getMinSize() const {
-    return min_size_;
+MinSize* RoutingLayerRule::getMinSize(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (min_sizes_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(min_sizes_);
+    }
+    if (vct) {
+        MinSize *obj_data = addr<MinSize>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
+
+ArrayObject<ObjectId> *RoutingLayerRule::getMinSizes() const {
+    //return min_size_;
+    if (min_sizes_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(min_sizes_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -6142,8 +6724,18 @@ MinSize* RoutingLayerRule::getMinSize() const {
  *
  * @param l
  */
-void RoutingLayerRule::setMinSize(MinSize* l) {
-    min_size_ = l;
+void RoutingLayerRule::addMinSize(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (min_sizes_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        min_sizes_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(min_sizes_);
+    }
+    if (vct) vct->pushBack(id);
 }
 
 /**
@@ -6152,8 +6744,30 @@ void RoutingLayerRule::setMinSize(MinSize* l) {
  *
  * @return MinStep
  */
-MinStep* RoutingLayerRule::getMinStepList() const {
-    return min_step_list_;
+MinStep* RoutingLayerRule::getMinStep(int i) const {
+    //return min_step_list_;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (min_steps_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(min_steps_);
+    }
+    if (vct) {
+        MinStep *obj_data = addr<MinStep>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
+
+ArrayObject<ObjectId> *RoutingLayerRule::getMinSteps() const {
+   if (min_steps_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(min_steps_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -6162,8 +6776,19 @@ MinStep* RoutingLayerRule::getMinStepList() const {
  *
  * @param l
  */
-void RoutingLayerRule::setMinStepList(MinStep* l) {
-    min_step_list_ = l;
+void RoutingLayerRule::addMinStep(ObjectId id) {
+    //min_step_list_ = l;
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (min_steps_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        min_steps_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(min_steps_);
+    }
+    if (vct) vct->pushBack(id);
 }
 
 /**
@@ -6172,8 +6797,30 @@ void RoutingLayerRule::setMinStepList(MinStep* l) {
  *
  * @return
  */
-ProtrusionRule* RoutingLayerRule::getProtrusionRuleList() const {
-    return protrusion_list_;
+ProtrusionRule* RoutingLayerRule::getProtrusionRule(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (protrusions_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(protrusions_);
+    }
+    if (vct) {
+        ProtrusionRule *obj_data = addr<ProtrusionRule>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
+
+ArrayObject<ObjectId> *RoutingLayerRule::getProtrusionRules() const {
+    if (protrusions_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(protrusions_);
+        return array;
+    } else {
+        return nullptr;
+    }
+
 }
 
 /**
@@ -6182,8 +6829,19 @@ ProtrusionRule* RoutingLayerRule::getProtrusionRuleList() const {
  *
  * @param l
  */
-void RoutingLayerRule::setProtrusionRuleList(ProtrusionRule* l) {
-    protrusion_list_ = l;
+void RoutingLayerRule::addProtrusionRule(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (protrusions_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        protrusions_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(protrusions_);
+    }
+    if (vct) vct->pushBack(id);
+
 }
 
 /**
@@ -6192,18 +6850,49 @@ void RoutingLayerRule::setProtrusionRuleList(ProtrusionRule* l) {
  *
  * @return
  */
-WidthSpTbl* RoutingLayerRule::getWidthSpTbl() const {
-    return width_sp_tbl_list_;
+WidthSpTbl* RoutingLayerRule::getWidthSpTbl(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (width_sp_tbls_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(width_sp_tbls_);
+    }
+    if (vct) {
+        WidthSpTbl *obj_data = addr<WidthSpTbl>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
 }
 
+ArrayObject<ObjectId> *RoutingLayerRule::getWidthSpTbls() const {
+    if (width_sp_tbls_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(width_sp_tbls_);
+        return array;
+    } else {
+        return nullptr;
+    }
+}
 /**
  * @brief
  * set PARALLELRUNLENGTH WIDTH and TWOWIDTHS rules list
  *
  * @param l
  */
-void RoutingLayerRule::setWidthSpTabl(WidthSpTbl* l) {
-    width_sp_tbl_list_ = l;
+void RoutingLayerRule::addWidthSpTabl(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (width_sp_tbls_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        width_sp_tbls_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(width_sp_tbls_);
+    }
+    if (vct) vct->pushBack(id);
+
 }
 
 /**
@@ -6212,9 +6901,31 @@ void RoutingLayerRule::setWidthSpTabl(WidthSpTbl* l) {
  *
  * @return
  */
-InfluenceSpTbl* RoutingLayerRule::getInfluenceSpTbl() const {
-    return influence_sp_tbl_;
+InfluenceSpTbl* RoutingLayerRule::getInfluenceSpTbl(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (influence_sp_tbls_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(influence_sp_tbls_);
+    }
+    if (vct) {
+        InfluenceSpTbl *obj_data = addr<InfluenceSpTbl>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
 }
+
+ArrayObject<ObjectId> *RoutingLayerRule::getInfluenceSpTbls() const {
+    if (influence_sp_tbls_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(influence_sp_tbls_);
+        return array;
+    } else {
+        return nullptr;
+    }
+}
+
 
 /**
  * @brief
@@ -6222,8 +6933,18 @@ InfluenceSpTbl* RoutingLayerRule::getInfluenceSpTbl() const {
  *
  * @param t
  */
-void RoutingLayerRule::setInfluenceSpTbl(InfluenceSpTbl* t) {
-    influence_sp_tbl_ = t;
+void RoutingLayerRule::addInfluenceSpTbl(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (influence_sp_tbls_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        influence_sp_tbls_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(influence_sp_tbls_);
+    }
+    if (vct) vct->pushBack(id);
 }
 
 /**
@@ -6232,8 +6953,29 @@ void RoutingLayerRule::setInfluenceSpTbl(InfluenceSpTbl* t) {
  *
  * @return
  */
-ParaSpanLenTbl* RoutingLayerRule::getParaSpanLenTbl() const {
-    return para_span_len_sp_tbl_;
+ParaSpanLenTbl* RoutingLayerRule::getParaSpanLenTbl(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (para_span_len_sp_tbls_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(para_span_len_sp_tbls_);
+    }
+    if (vct) {
+        ParaSpanLenTbl *obj_data = addr<ParaSpanLenTbl>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
+
+ArrayObject<ObjectId> *RoutingLayerRule::getParaSpanLenTbls() const {
+    if (para_span_len_sp_tbls_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(para_span_len_sp_tbls_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -6242,8 +6984,18 @@ ParaSpanLenTbl* RoutingLayerRule::getParaSpanLenTbl() const {
  *
  * @param t
  */
-void RoutingLayerRule::setParaSpanLenTbl(ParaSpanLenTbl* t) {
-    para_span_len_sp_tbl_ = t;
+void RoutingLayerRule::addParaSpanLenTbl(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (para_span_len_sp_tbls_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        para_span_len_sp_tbls_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(para_span_len_sp_tbls_);
+    }
+    if (vct) vct->pushBack(id);
 }
 
 /**
@@ -6252,8 +7004,29 @@ void RoutingLayerRule::setParaSpanLenTbl(ParaSpanLenTbl* t) {
  *
  * @return
  */
-RoutingSpacing* RoutingLayerRule::getSpacingList() const {
-    return spacing_list_;
+RoutingSpacing* RoutingLayerRule::getSpacing(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (spacings_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(spacings_);
+    }
+    if (vct) {
+        RoutingSpacing *obj_data = addr<RoutingSpacing>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
+
+ArrayObject<ObjectId> *RoutingLayerRule::getSpacings() const {
+    if (spacings_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(spacings_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -6262,8 +7035,18 @@ RoutingSpacing* RoutingLayerRule::getSpacingList() const {
  *
  * @param l
  */
-void RoutingLayerRule::setSpacingList(RoutingSpacing* l) {
-    spacing_list_ = l;
+void RoutingLayerRule::addSpacing(ObjectId id) {
+   ArrayObject<ObjectId> *vct = nullptr;
+    if (spacings_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        spacings_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(spacings_);
+    }
+    if (vct) vct->pushBack(id);    
 }
 
 } // namespace db
