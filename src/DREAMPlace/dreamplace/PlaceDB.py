@@ -629,7 +629,7 @@ class PlaceDB (object):
         # scale 
         # adjust scale_factor if not set 
         if params.scale_factor == 0.0 or self.site_width != 1.0:
-            if params.scale_unit_flag:
+            if False: # disable params.scale_unit_flag, everything scale to site as it was.
                 params.scale_factor = math.pow(2, -(math.ceil(math.log(self.site_width,2))))
             else:
                 params.scale_factor = 1.0 / self.site_width

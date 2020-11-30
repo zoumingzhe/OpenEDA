@@ -39,7 +39,7 @@ def global_placer_run(json_file):
     logging.info('[start reading database at: %s]'%(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
 
     placedb = PlaceDB.PlaceDB()
-    placedb(params, true)  #true for open_edi
+    placedb(params, True)  #True for open_edi
 
     logging.info("[end reading database at:%s, takes %.2f seconds]" % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'),time.time()-tt))
 
@@ -63,7 +63,7 @@ def global_placer_run(json_file):
     logging.info('[start update database at: %s]'%(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
 
     cur_pos = placer.pos[0].data.clone().cpu().numpy()
-    placedb.apply(params, cur_pos[0:placedb.num_movable_nodes], cur_pos[placedb.num_nodes:placedb.num_nodes+placedb.num_movable_nodes], true)  #true for open_edi
+    placedb.apply(params, cur_pos[0:placedb.num_movable_nodes], cur_pos[placedb.num_nodes:placedb.num_nodes+placedb.num_movable_nodes], True)  #True for open_edi
 
     logging.info("[end update database at: %s, elapsed time %.2f seconds]" % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'),time.time()-tt))
 
