@@ -20,11 +20,13 @@
 
 #include "db/core/object.h"
 #include "util/data_traits.h"
+#include "db/timing/spef/design_parasitics.h"
 
 namespace open_edi {
 namespace db {
 
 class LibSet;
+class DesignParasitics;
 
 class AnalysisCorner : public Object {
   public:
@@ -58,6 +60,7 @@ class AnalysisCorner : public Object {
     void set_name(const std::string &name);
     void set_rc_tech_file(const std::string &file);
     void set_libset(ObjectId id);
+    void set_design_parasitics(ObjectId id);
 
     /// get
     SymbolIndex get_name_index(void);
@@ -66,6 +69,7 @@ class AnalysisCorner : public Object {
     std::string get_rc_tech_file(void) const;
 
     LibSet *get_libset(void);
+    DesignParasitics *get_design_parasitics(void);
 
   protected:
     /// @brief copy object
@@ -79,6 +83,7 @@ class AnalysisCorner : public Object {
     SymbolIndex name_;
     SymbolIndex rc_tech_file_;
     ObjectId libset_;
+    ObjectId design_parasitics_;
 };
 
 }  // namespace db

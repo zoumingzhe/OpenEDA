@@ -30,6 +30,7 @@ class GlobalSwap
     GlobalSwap(const GlobalSwap&) = delete;            // no copy
     GlobalSwap &operator=(const GlobalSwap&) = delete; // no copy
 
+    bool           isCommonDBReady()          const { return db_ && db_->isCommonDBReady();   }
     // interface 
     void run();
 

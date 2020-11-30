@@ -133,9 +133,10 @@ void TimingArc::set_disabled(bool b) { is_disabled_ = b; }
 void TimingArc::set_timing_sense(TimingSense ts) { timing_sense_ = ts; }
 void TimingArc::set_timing_type(TimingType tt) {}
 TFunction* TimingArc::set_when(const std::string& str) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        auto p = topCell->createObject<TFunction>(kObjectTypeTFunction);
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        auto p = Object::createObject<TFunction>(
+                  kObjectTypeTFunction, timing_lib->getId());
         if (p) {
             when_ = p->getId();
             p->set_func_str(str);
@@ -146,19 +147,24 @@ TFunction* TimingArc::set_when(const std::string& str) {
     return nullptr;
 }
 TimingTable* TimingArc::create_timing_table(ObjectType type) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
         TimingTable* p = nullptr;
         if (type == kObjectTypeTimingTable)
-            p = topCell->createObject<TimingTable>(kObjectTypeTimingTable);
+            p = Object::createObject<TimingTable>(
+                    kObjectTypeTimingTable, timing_lib->getId());
         else if (type == kObjectTypeTimingTable0)
-            p = topCell->createObject<TimingTable0>(kObjectTypeTimingTable0);
+            p = Object::createObject<TimingTable0>(
+                    kObjectTypeTimingTable0, timing_lib->getId());
         else if (type == kObjectTypeTimingTable1)
-            p = topCell->createObject<TimingTable1>(kObjectTypeTimingTable1);
+            p = Object::createObject<TimingTable1>(
+                    kObjectTypeTimingTable1, timing_lib->getId());
         else if (type == kObjectTypeTimingTable2)
-            p = topCell->createObject<TimingTable2>(kObjectTypeTimingTable2);
+            p = Object::createObject<TimingTable2>(
+                    kObjectTypeTimingTable2, timing_lib->getId());
         else if (type == kObjectTypeTimingTable3)
-            p = topCell->createObject<TimingTable3>(kObjectTypeTimingTable3);
+            p = Object::createObject<TimingTable3>(
+                    kObjectTypeTimingTable3, timing_lib->getId());
         return p;
     }
     return nullptr;
@@ -176,13 +182,13 @@ void TimingArc::add_related_pin(ObjectId id) {
         if (pin->getAttr()) {
             ArrayObject<ObjectId>* p = nullptr;
             if (related_pins_ == UNINIT_OBJECT_ID) {
-                Cell* topCell = getTopCell();
-                if (topCell != nullptr) {
-                    p = topCell->createObject<ArrayObject<ObjectId>>(
-                        kObjectTypeArray);
+                Timing* timing_lib = getTimingLib();
+                if (timing_lib != nullptr) {
+                    p = Object::createObject<ArrayObject<ObjectId>>(
+                        kObjectTypeArray, timing_lib->getId());
                     if (p != nullptr) {
                         related_pins_ = p->getId();
-                        p->setPool(topCell->getPool());
+                        p->setPool(timing_lib->getPool());
                         p->reserve(32);
                     }
                 }
@@ -244,10 +250,10 @@ TimingTable* TimingArc::get_fall_constraint(void) {
         return nullptr;
 }
 TTerm* TimingArc::get_related_pin(const std::string& name) {
-    Cell* topCell = getTopCell();
-    if (topCell) {
-        int64_t id = topCell->getOrCreateSymbol(name.c_str());
-        if (id != -1) {
+    Timing* timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex id = timing_lib->getOrCreateSymbol(name.c_str());
+        if (id != kInvalidSymbolIndex) {
             auto p = related_pins_map_.find(id);
             if (p != related_pins_map_.end()) return get_related_pin(p->second);
         }

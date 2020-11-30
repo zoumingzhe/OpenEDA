@@ -29,6 +29,11 @@ add_subdirectory(nctugr_binary)
 # new place flow operator
 add_subdirectory(lp_dp)
 add_subdirectory(flow)
+if (CMAKE_PLACE)
+    add_subdirectory(tcl_command)
+    # report wire length
+    add_subdirectory(wire_length)
+endif(CMAKE_PLACE)
 
 file(GLOB INSTALL_SRCS "${CMAKE_CURRENT_SOURCE_DIR}/*.py")
 install(

@@ -16,6 +16,7 @@
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 // Class NonDefaultRuleLayer
 NonDefaultRuleLayer::NonDefaultRuleLayer() {
@@ -65,28 +66,23 @@ NonDefaultRuleLayer::NonDefaultRuleLayer(NonDefaultRuleLayer &&rhs) noexcept {
 /// @brief summarize memory usage of the object in bytes
 UInt32 NonDefaultRuleLayer::memory() const {
     UInt32 ret = 0;
+    ret += sizeof(name_index_);
     ret + sizeof(width_);
     ret + sizeof(diag_width_);
     ret + sizeof(spacing_);
     ret += sizeof(wire_ext_);
-    ret += sizeof(has_width_);
-    ret += sizeof(has_diag_width_);
-    ret += sizeof(has_spacing_);
-    ret += sizeof(has_wire_ext_);
-    ret += sizeof(has_resistance_per_square_);
-    ret += sizeof(has_capacitance_per_square_);
-    ret += sizeof(has_edge_capacitance_);
     ret += sizeof(resistance_per_square_);
     ret += sizeof(capacitance_per_square_);
     ret += sizeof(edge_capacitance_);
-    ret += sizeof(name_index_);
+
+    ret += sizeof(uint64_t); //size of multi-bits.
 
     return ret;
 }
 
 // Get:
 const char *NonDefaultRuleLayer::getName() const {
-    return getTopCell()->getSymbolByIndex(name_index_).c_str();
+    return getTechLib()->getSymbolByIndex(name_index_).c_str();
 }
 
 SymbolIndex NonDefaultRuleLayer::getNameIndex() const { return name_index_; }
@@ -133,11 +129,11 @@ bool NonDefaultRuleLayer::hasEdgeCapacitance() const {
 
 // Set:
 void NonDefaultRuleLayer::setName(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     name_index_ = index;
-    getTopCell()->addSymbolReference(name_index_, this->getId());
+    getTechLib()->addSymbolReference(name_index_, this->getId());
 }
 
 void NonDefaultRuleLayer::setWidth(UInt32 v) {
@@ -203,18 +199,18 @@ void NonDefaultRuleLayer::move(NonDefaultRuleLayer &&rhs) {
     resistance_per_square_ = std::move(rhs.resistance_per_square_);
     capacitance_per_square_ = std::move(rhs.capacitance_per_square_);
     edge_capacitance_ = std::move(rhs.edge_capacitance_);
-    has_width_ = std::move(rhs.has_width_);
-    has_diag_width_ = std::move(rhs.has_diag_width_);
-    has_spacing_ = std::move(rhs.has_spacing_);
-    has_wire_ext_ = std::move(rhs.has_wire_ext_);
-    has_resistance_per_square_ = std::move(rhs.has_resistance_per_square_);
-    has_capacitance_per_square_ = std::move(rhs.has_capacitance_per_square_);
-    has_edge_capacitance_ = std::move(rhs.has_edge_capacitance_);
+    has_width_ = rhs.has_width_;
+    has_diag_width_ = rhs.has_diag_width_;
+    has_spacing_ = rhs.has_spacing_;
+    has_wire_ext_ = rhs.has_wire_ext_;
+    has_resistance_per_square_ = rhs.has_resistance_per_square_;
+    has_capacitance_per_square_ = rhs.has_capacitance_per_square_;
+    has_edge_capacitance_ = rhs.has_edge_capacitance_;
     name_index_ = std::move(rhs.name_index_);
 }
 
 void NonDefaultRuleLayer::printLEF(std::ofstream &ofs) const {
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getTechLib();
     ofs << "   LAYER " << getName() << "\n";
     if (hasWidth())
         ofs << "      WIDTH " << (lib->dbuToMicrons(getWidth())) << " ;\n";
@@ -237,7 +233,7 @@ void NonDefaultRuleLayer::printLEF(std::ofstream &ofs) const {
 }
 
 void NonDefaultRuleLayer::printDEF(FILE *fp) const {  // DEF out style print
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getTechLib();
     fprintf(fp, "\n  + LAYER %s", getName());
     if (hasWidth())
         fprintf(fp, "\n      WIDTH %g", (lib->dbuToMicrons(getWidth())));
@@ -331,7 +327,7 @@ UInt32 NonDefaultRuleMinCuts::memory() const {
 
 // Get:
 const char *NonDefaultRuleMinCuts::getName() const {
-    return getTopCell()->getSymbolByIndex(name_index_).c_str();
+    return getTechLib()->getSymbolByIndex(name_index_).c_str();
 }
 
 SymbolIndex NonDefaultRuleMinCuts::getNameIndex() const { return name_index_; }
@@ -340,11 +336,11 @@ uint32_t NonDefaultRuleMinCuts::getNumCuts() const { return num_cuts_; }
 
 // Set:
 void NonDefaultRuleMinCuts::setName(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     name_index_ = index;
-    getTopCell()->addSymbolReference(name_index_, this->getId());
+    getTechLib()->addSymbolReference(name_index_, this->getId());
 }
 
 void NonDefaultRuleMinCuts::setNumCuts(uint32_t v) { num_cuts_ = v; }
@@ -362,7 +358,6 @@ OStreamBase &operator<<(OStreamBase &os, NonDefaultRuleMinCuts const &rhs) {
     os << DataFieldName("name_index_") << rhs.name_index_ << DataDelimiter();
     os << DataFieldName("num_cuts_") << rhs.num_cuts_;
     os << DataEnd(")");
-
     return os;
 }
 
@@ -428,8 +423,8 @@ void NonDefaultRule::copy(NonDefaultRule const &rhs) {
 void NonDefaultRule::move(NonDefaultRule &&rhs) {
     this->BaseType::move(std::move(rhs));
     name_index_ = std::move(rhs.name_index_);
-    hard_spacing_ = std::move(rhs.hard_spacing_);
-    from_def_ = std::move(rhs.from_def_);
+    hard_spacing_ = rhs.hard_spacing_;
+    from_def_ = rhs.from_def_;
     layers_ = std::move(rhs.layers_);
     min_cuts_ = std::move(rhs.min_cuts_);
     properties_ = std::move(rhs.properties_);
@@ -439,26 +434,28 @@ void NonDefaultRule::move(NonDefaultRule &&rhs) {
 
 UInt32 NonDefaultRule::memory() const {
     UInt32 ret = this->BaseType::memory();
-    ret += sizeof(name_index_) + sizeof(hard_spacing_) + sizeof(from_def_);
-    ret += sizeof(ObjectId) *
-           5;  // layers+min_cuts+property+use_vias+use_via_rules.
-    VectorObject16 *vobj = addr<VectorObject16>(use_vias_);
+    ret += sizeof(name_index_);
+    // For Bits-typed data: hard_spacing_ + from_def_.
+    ret += sizeof(uint64_t);
+    // layers+min_cuts+property+use_vias+use_via_rules.
+    ret += sizeof(ObjectId) * 5;
+    ArrayObject<ObjectId> *vobj = addr< ArrayObject<ObjectId> >(use_vias_);
     if (vobj) {
         ret += vobj->memory();
     }
-    vobj = addr<VectorObject16>(use_via_rules_);
+    vobj = addr< ArrayObject<ObjectId> >(use_via_rules_);
     if (vobj) {
         ret += vobj->memory();
     }
-    vobj = addr<VectorObject16>(properties_);
+    vobj = addr< ArrayObject<ObjectId> >(properties_);
     if (vobj) {
         ret += vobj->memory();
     }
-    vobj = addr<VectorObject16>(layers_);
+    vobj = addr< ArrayObject<ObjectId> >(layers_);
     if (vobj) {
         ret += vobj->memory();
     }
-    vobj = addr<VectorObject16>(min_cuts_);
+    vobj = addr< ArrayObject<ObjectId> >(min_cuts_);
     if (vobj) {
         ret += vobj->memory();
     }
@@ -466,7 +463,7 @@ UInt32 NonDefaultRule::memory() const {
 }
 
 const char *NonDefaultRule::getName() const {
-    return getTopCell()->getSymbolByIndex(name_index_).c_str();
+    return getTechLib()->getSymbolByIndex(name_index_).c_str();
 }
 
 SymbolIndex NonDefaultRule::getNameIndex() const { return name_index_; }
@@ -479,37 +476,37 @@ bool NonDefaultRule::getFromDEF() const { return from_def_; }
 uint64_t NonDefaultRule::numLayers() const {
     if (!layers_) return 0;
 
-    return addr<VectorObject16>(layers_)->totalSize();
+    return addr< ArrayObject<ObjectId> >(layers_)->getSize();
 }
 
 uint64_t NonDefaultRule::numMinCuts() const {
     if (!min_cuts_) return 0;
 
-    return addr<VectorObject16>(min_cuts_)->totalSize();
+    return addr< ArrayObject<ObjectId> >(min_cuts_)->getSize();
 }
 
 uint64_t NonDefaultRule::numVias() const {
     if (!vias_) return 0;
 
-    return addr<VectorObject8>(vias_)->totalSize();
+    return addr< ArrayObject<ObjectId> >(vias_)->getSize();
 }
 
 uint64_t NonDefaultRule::numUseVias() const {
     if (!use_vias_) return 0;
 
-    return addr<VectorObject16>(use_vias_)->totalSize();
+    return addr< ArrayObject<ObjectId> >(use_vias_)->getSize();
 }
 
 uint64_t NonDefaultRule::numUseViaRules() const {
     if (!use_via_rules_) return 0;
 
-    return addr<VectorObject16>(use_via_rules_)->totalSize();
+    return addr< ArrayObject<ObjectId> >(use_via_rules_)->getSize();
 }
 
 uint64_t NonDefaultRule::numProperties() const {
     if (!properties_) return 0;
 
-    return addr<VectorObject16>(properties_)->totalSize();
+    return addr< ArrayObject<ObjectId> >(properties_)->getSize();
 }
 
 ObjectId NonDefaultRule::getLayersId() const { return layers_; }
@@ -526,209 +523,149 @@ ObjectId NonDefaultRule::getPropertiesId() const { return properties_; }
 
 // Set:
 void NonDefaultRule::setName(const char *v) {
-    int64_t index = getTopCell()->getOrCreateSymbol(v);
-    if (index == -1) return;
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(v);
+    if (index == kInvalidSymbolIndex) return;
 
     name_index_ = index;
-    getTopCell()->addSymbolReference(name_index_, this->getId());
+    getTechLib()->addSymbolReference(name_index_, this->getId());
 }
 
 void NonDefaultRule::setLayerSize(uint64_t v) {
     if (v == 0) {
         if (layers_) {
-            VectorObject16::deleteDBVectorObjectVar(layers_);
+            __deleteObjectIdArray(layers_);
         }
         return;
     }
     if (!layers_) {
-        VectorObject16 *vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        layers_ = vobj->getId();
+        layers_ = __createObjectIdArray(16);
     }
 }
 
 void NonDefaultRule::setMinCutsSize(uint64_t v) {
     if (v == 0) {
         if (min_cuts_) {
-            VectorObject16::deleteDBVectorObjectVar(min_cuts_);
+            __deleteObjectIdArray(min_cuts_);
         }
         return;
     }
     if (!min_cuts_) {
-        VectorObject16 *vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        min_cuts_ = vobj->getId();
+        min_cuts_ = __createObjectIdArray(16);
     }
 }
 
 void NonDefaultRule::setViaSize(uint64_t v) {
     if (v == 0) {
         if (vias_) {
-            VectorObject16::deleteDBVectorObjectVar(vias_);
+            __deleteObjectIdArray(vias_);
         }
         return;
     }
     if (!vias_) {
-        VectorObject16 *vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        vias_ = vobj->getId();
+        vias_ = __createObjectIdArray(8);
     }
 }
 
 void NonDefaultRule::setUseViaSize(uint64_t v) {
     if (v == 0) {
         if (use_vias_) {
-            VectorObject16::deleteDBVectorObjectVar(use_vias_);
+            __deleteObjectIdArray(use_vias_);
         }
         return;
     }
     if (!use_vias_) {
-        VectorObject16 *vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        use_vias_ = vobj->getId();
+        use_vias_ = __createObjectIdArray(16);
     }
 }
 
 void NonDefaultRule::setUseViaRuleSize(uint64_t v) {
     if (v == 0) {
         if (use_via_rules_) {
-            VectorObject16::deleteDBVectorObjectVar(use_via_rules_);
+            __deleteObjectIdArray(use_via_rules_);
         }
         return;
     }
     if (!use_via_rules_) {
-        VectorObject16 *vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        use_via_rules_ = vobj->getId();
+        use_via_rules_ = __createObjectIdArray(16);
     }
 }
 
 void NonDefaultRule::setPropertySize(uint64_t v) {
     if (v == 0) {
         if (properties_) {
-            VectorObject16::deleteDBVectorObjectVar(properties_);
+            __deleteObjectIdArray(properties_);
         }
         return;
     }
     if (!properties_) {
-        VectorObject16 *vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        properties_ = vobj->getId();
+        properties_ = __createObjectIdArray(16);
     }
 }
 
 void NonDefaultRule::addLayer(ObjectId obj_id) {
-    VectorObject16 *vobj = nullptr;
     if (obj_id == 0) return;
-    NonDefaultRuleLayer *obj_data =
-        addr<NonDefaultRuleLayer>(obj_id);
-    if (obj_data == nullptr) {
-        return;
-    }
-    obj_data->setOwner(this);
-
+    ArrayObject<ObjectId> *vobj = nullptr;
     if (layers_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        layers_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(layers_);
+        layers_ = __createObjectIdArray(16);
     }
+    vobj = addr< ArrayObject<ObjectId> >(layers_);
     ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+    vobj->pushBack(obj_id);
 }
 
 void NonDefaultRule::addMinCuts(ObjectId obj_id) {
-    VectorObject16 *vobj = nullptr;
     if (obj_id == 0) return;
-    NonDefaultRuleMinCuts *obj_data =
-        addr<NonDefaultRuleMinCuts>(obj_id);
-    if (obj_data == nullptr) {
-        return;
-    }
-    obj_data->setOwner(this);
-
+    ArrayObject<ObjectId> *vobj = nullptr;
     if (min_cuts_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        min_cuts_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(min_cuts_);
+        min_cuts_ = __createObjectIdArray(16);
     }
+    vobj = addr< ArrayObject<ObjectId> >(min_cuts_);
     ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+    vobj->pushBack(obj_id);
 }
 
 void NonDefaultRule::addVia(ObjectId obj_id) {
-    VectorObject8 *vobj = nullptr;
     if (obj_id == 0) return;
-
+    ArrayObject<ObjectId> *vobj = nullptr;
     if (vias_ == 0) {
-        vobj = VectorObject8::createDBVectorObjectVar(true /*is_header*/);
-        vias_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject8>(vias_);
+        vias_ = __createObjectIdArray(8);
     }
+    vobj = addr< ArrayObject<ObjectId> >(vias_);
     ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+    vobj->pushBack(obj_id);
 }
 
 void NonDefaultRule::addUseVia(ObjectId obj_id) {
-    VectorObject16 *vobj = nullptr;
     if (obj_id == 0) return;
-
+    ArrayObject<ObjectId> *vobj = nullptr;
     if (use_vias_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        use_vias_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(use_vias_);
+        use_vias_ = __createObjectIdArray(16);
     }
+    vobj = addr< ArrayObject<ObjectId> >(use_vias_);
     ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+    vobj->pushBack(obj_id);
 }
 
 void NonDefaultRule::addUseViaRule(ObjectId obj_id) {
-    VectorObject16 *vobj = nullptr;
     if (obj_id == 0) return;
-
+    ArrayObject<ObjectId> *vobj = nullptr;
     if (use_via_rules_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        use_via_rules_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(use_via_rules_);
+        use_via_rules_ = __createObjectIdArray(16);
     }
+    vobj = addr< ArrayObject<ObjectId> >(use_via_rules_);
     ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+    vobj->pushBack(obj_id);
 }
 
 void NonDefaultRule::addProperty(ObjectId obj_id) {
-    VectorObject16 *vobj = nullptr;
     if (obj_id == 0) return;
-
+    ArrayObject<ObjectId> *vobj = nullptr;
     if (properties_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        properties_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(properties_);
+        properties_ = __createObjectIdArray(16);
     }
+    vobj = addr< ArrayObject<ObjectId> >(properties_);
     ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+    vobj->pushBack(obj_id);
 }
 
 void NonDefaultRule::setHardSpacing(bool v) { hard_spacing_ = v; }
@@ -744,7 +681,7 @@ void NonDefaultRule::printLEF(std::ofstream &ofs) const {
     int i = 0;
 
     if (numLayers() > 0) {
-        VectorObject16 *vobj = addr<VectorObject16>(layers_);
+        ArrayObject<ObjectId> *vobj = addr< ArrayObject<ObjectId> >(layers_);
         for (i = 0; i < numLayers(); i++) {
             ObjectId obj_id = (*vobj)[i];
             NonDefaultRuleLayer *obj_data =
@@ -755,7 +692,7 @@ void NonDefaultRule::printLEF(std::ofstream &ofs) const {
     }
 
     if (numVias() > 0) {
-        VectorObject8 *vobj = addr<VectorObject8>(vias_);
+        ArrayObject<ObjectId> *vobj = addr< ArrayObject<ObjectId> >(vias_);
         for (i = 0; i < numVias(); i++) {
             ObjectId obj_id = (*vobj)[i];
             ViaMaster *obj_data = addr<ViaMaster>(obj_id);
@@ -766,7 +703,7 @@ void NonDefaultRule::printLEF(std::ofstream &ofs) const {
     }
 
     if (numUseVias() > 0) {
-        VectorObject16 *vobj = addr<VectorObject16>(use_vias_);
+        ArrayObject<ObjectId> *vobj = addr< ArrayObject<ObjectId> >(use_vias_);
         for (i = 0; i < numUseVias(); i++) {
             ObjectId obj_id = (*vobj)[i];
             ViaMaster *obj_data = addr<ViaMaster>(obj_id);
@@ -776,8 +713,8 @@ void NonDefaultRule::printLEF(std::ofstream &ofs) const {
     }
 
     if (numUseViaRules() > 0) {
-        VectorObject16 *vobj =
-            addr<VectorObject16>(use_via_rules_);
+        ArrayObject<ObjectId> *vobj =
+            addr< ArrayObject<ObjectId> >(use_via_rules_);
         for (i = 0; i < numUseViaRules(); i++) {
             ObjectId obj_id = (*vobj)[i];
             ViaRule *obj_data = addr<ViaRule>(obj_id);
@@ -787,7 +724,7 @@ void NonDefaultRule::printLEF(std::ofstream &ofs) const {
     }
 
     if (numMinCuts() > 0) {
-        VectorObject16 *vobj = addr<VectorObject16>(min_cuts_);
+        ArrayObject<ObjectId> *vobj = addr< ArrayObject<ObjectId> >(min_cuts_);
         for (i = 0; i < numMinCuts(); i++) {
             ObjectId obj_id = (*vobj)[i];
             NonDefaultRuleMinCuts *obj_data =
@@ -799,8 +736,8 @@ void NonDefaultRule::printLEF(std::ofstream &ofs) const {
 
     if (numProperties() > 0) {
         ofs << "   PROPERTY";
-        VectorObject16 *vobj =
-            addr<VectorObject16>(properties_);
+        ArrayObject<ObjectId> *vobj =
+            addr< ArrayObject<ObjectId> >(properties_);
         for (i = 0; i < numProperties(); i++) {
             ObjectId obj_id = (*vobj)[i];
             Property *obj_data = addr<Property>(obj_id);
@@ -823,7 +760,7 @@ void NonDefaultRule::printDEF(FILE *fp) const {
     int i = 0;
 
     if (numLayers() > 0) {
-        VectorObject16 *vobj = addr<VectorObject16>(layers_);
+        ArrayObject<ObjectId> *vobj = addr< ArrayObject<ObjectId> >(layers_);
         for (i = 0; i < numLayers(); i++) {
             ObjectId obj_id = (*vobj)[i];
             if (!obj_id) continue;
@@ -835,7 +772,7 @@ void NonDefaultRule::printDEF(FILE *fp) const {
     }
 
     if (numUseVias() > 0) {
-        VectorObject16 *vobj = addr<VectorObject16>(use_vias_);
+        ArrayObject<ObjectId> *vobj = addr< ArrayObject<ObjectId> >(use_vias_);
         for (i = 0; i < numUseVias(); i++) {
             ObjectId obj_id = (*vobj)[i];
             if (!obj_id) continue;
@@ -846,8 +783,8 @@ void NonDefaultRule::printDEF(FILE *fp) const {
     }
 
     if (numUseViaRules() > 0) {
-        VectorObject16 *vobj =
-            addr<VectorObject16>(use_via_rules_);
+        ArrayObject<ObjectId> *vobj =
+            addr< ArrayObject<ObjectId> >(use_via_rules_);
         for (i = 0; i < numUseViaRules(); i++) {
             ObjectId obj_id = (*vobj)[i];
             if (!obj_id) continue;
@@ -858,7 +795,7 @@ void NonDefaultRule::printDEF(FILE *fp) const {
     }
 
     if (numMinCuts() > 0) {
-        VectorObject16 *vobj = addr<VectorObject16>(min_cuts_);
+        ArrayObject<ObjectId> *vobj = addr< ArrayObject<ObjectId> >(min_cuts_);
         for (i = 0; i < numMinCuts(); i++) {
             ObjectId obj_id = (*vobj)[i];
             if (!obj_id) continue;
@@ -870,8 +807,8 @@ void NonDefaultRule::printDEF(FILE *fp) const {
     }
 
     if (numProperties() > 0) {
-        VectorObject16 *vobj =
-            addr<VectorObject16>(properties_);
+        ArrayObject<ObjectId> *vobj =
+            addr< ArrayObject<ObjectId> >(properties_);
         for (i = 0; i < numProperties(); i++) {
             ObjectId obj_id = (*vobj)[i];
             if (!obj_id) continue;
@@ -896,14 +833,14 @@ OStreamBase &operator<<(OStreamBase &os, NonDefaultRule const &rhs) {
     auto delimiter = DataDelimiter();
     os << DataFieldName("layers_") << rhs.getLayersId() << DataDelimiter();
     if (rhs.getLayersId()) {
-        VectorObject16 *vobj =
-            Object::addr<VectorObject16>(rhs.getLayersId());
+        ArrayObject<ObjectId> *vobj =
+            Object::addr< ArrayObject<ObjectId> >(rhs.getLayersId());
         if (vobj != nullptr) {
             os << *vobj << DataDelimiter();
             os << DataFieldName("layers_detail") << DataBegin("[");
             // details:
             delimiter = DataDelimiter("");
-            for (VectorObject16::iterator iter = vobj->begin();
+            for (ArrayObject<ObjectId>::iterator iter = vobj->begin();
                  iter != vobj->end(); ++iter) {
                 ObjectId element_id = (*iter);
                 NonDefaultRuleLayer *obj_data =
@@ -916,14 +853,14 @@ OStreamBase &operator<<(OStreamBase &os, NonDefaultRule const &rhs) {
     }
     os << DataFieldName("min_cuts_") << rhs.getMinCutsId() << DataDelimiter();
     if (rhs.getMinCutsId()) {
-        VectorObject16 *vobj =
-            Object::addr<VectorObject16>(rhs.getMinCutsId());
+        ArrayObject<ObjectId> *vobj =
+            Object::addr< ArrayObject<ObjectId> >(rhs.getMinCutsId());
         if (vobj != nullptr) {
             os << *vobj << DataDelimiter();
             os << DataFieldName("min_cuts_detail") << DataBegin("[");
             // details:
             delimiter = DataDelimiter("");
-            for (VectorObject16::iterator iter = vobj->begin();
+            for (ArrayObject<ObjectId>::iterator iter = vobj->begin();
                  iter != vobj->end(); ++iter) {
                 ObjectId element_id = (*iter);
                 NonDefaultRuleMinCuts *obj_data =
@@ -937,16 +874,16 @@ OStreamBase &operator<<(OStreamBase &os, NonDefaultRule const &rhs) {
     os << DataFieldName("properties_") << rhs.getPropertiesId()
        << DataDelimiter();
     if (rhs.getPropertiesId()) {
-        VectorObject16 *vobj =
-            Object::addr<VectorObject16>(rhs.getPropertiesId());
+        ArrayObject<ObjectId> *vobj =
+            Object::addr< ArrayObject<ObjectId> >(rhs.getPropertiesId());
         if (vobj != nullptr) {
             os << *vobj << DataDelimiter();
         }
     }
     os << DataFieldName("use_vias_") << rhs.getUseViasId() << DataDelimiter();
     if (rhs.getUseViasId()) {
-        VectorObject16 *vobj =
-            Object::addr<VectorObject16>(rhs.getUseViasId());
+        ArrayObject<ObjectId> *vobj =
+            Object::addr< ArrayObject<ObjectId> >(rhs.getUseViasId());
         if (vobj != nullptr) {
             os << *vobj << DataDelimiter();
         }
@@ -954,8 +891,8 @@ OStreamBase &operator<<(OStreamBase &os, NonDefaultRule const &rhs) {
     os << DataFieldName("use_via_rules_") << rhs.getUseViaRulesId()
        << DataDelimiter();
     if (rhs.getUseViaRulesId()) {
-        VectorObject16 *vobj =
-            Object::addr<VectorObject16>(rhs.getUseViaRulesId());
+        ArrayObject<ObjectId> *vobj =
+            Object::addr< ArrayObject<ObjectId> >(rhs.getUseViaRulesId());
         if (vobj != nullptr) {
             os << *vobj << DataDelimiter();
         }

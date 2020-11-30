@@ -14,6 +14,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include "util/util.h"
+#include "util/monitor.h"
 
 namespace open_edi {
 namespace util {
@@ -38,7 +39,9 @@ const char* getAppPath() { return app_path.c_str(); }
 const char* getInstallPath() {
     size_t pos = app_path.rfind("open-edi");
     if (pos != std::string::npos) {
-        install_path = app_path.substr(0, pos + 9);
+        std::string from_open = app_path.substr(pos);
+        size_t slash_pos = from_open.find("/");
+        install_path = app_path.substr(0, pos + slash_pos + 1);
     } else {
         size_t pos = app_path.rfind("openeda");
         install_path = app_path.substr(0,pos-4);
@@ -62,6 +65,7 @@ static int MessageInit() {
     std::string path;
     std::string util_msg_path;
     std::string timinglib_msg_path;
+    std::string infra_msg_path;
 
     path = getInstallPath();
 
@@ -75,10 +79,14 @@ static int MessageInit() {
         timinglib_msg_path = path + "/include/src/db/timing/timinglib/timinglib.msg";
     }
 
+    infra_msg_path = path + "src/infra/infra.msg";
+
     message->registerMsgFile(
         util_msg_path.c_str());  // register util message file
     message->registerMsgFile(
         timinglib_msg_path.c_str());  // register timinglib message file
+    message->registerMsgFile(
+        infra_msg_path.c_str());  // register timinglib message file 
     return 0;
 }
 
@@ -87,17 +95,14 @@ int utilInit() {
     return 0;
 }
 
+
 void* processBar(void* arg) {
-    clock_t start, current;
-    uint32_t  duration;
-    start = clock();
+    MonitorId monitor_id = kMonitorManager.createMonitor();
     while (true) {
         sleep(1);
-        current = clock();
-        duration = (uint32_t)(current - start) / CLOCKS_PER_SEC;
-        message->info("Elapsed Time(s): %d                       \r", duration);
-        fflush(stdout);
+        kMonitorManager.outputMonitor(monitor_id, kElapsedTime, "", "\r");
     }
+    kMonitorManager.destroyMonitor(monitor_id);
 }
 
 int runCommandWithProcessBar(command_t command, int argc, const char **argv) {

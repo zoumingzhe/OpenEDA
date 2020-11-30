@@ -106,32 +106,32 @@ void TCellAttr::set_clock_gating_integrated_cell(ClockGateIntegratedType t) {
     clock_gating_integrated_cell_ = t;
 }
 void TCellAttr::set_name(const std::string &name) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(name.c_str());
-        if (index != -1) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
             name_ = index;
-            // topCell->addSymbolReference(name_, this->getId());
+            // timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
 void TCellAttr::set_cell_footprint(const std::string &cf) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(cf.c_str());
-        if (index != -1) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(cf.c_str());
+        if (index != kInvalidSymbolIndex) {
             cell_footprint_ = index;
-            // topCell->addSymbolReference(cell_footprint_, this->getId());
+            // timing_lib->addSymbolReference(cell_footprint_, this->getId());
         }
     }
 }
 void TCellAttr::set_retention_cell(const std::string &rc) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(rc.c_str());
-        if (index != -1) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(rc.c_str());
+        if (index != kInvalidSymbolIndex) {
             retention_cell_ = index;
-            // topCell->addSymbolReference(retention_cell_, this->getId());
+            // timing_lib->addSymbolReference(retention_cell_, this->getId());
         }
     }
 }
@@ -175,24 +175,24 @@ ClockGateIntegratedType TCellAttr::get_clock_gating_integrated_cell(void) {
     return clock_gating_integrated_cell_;
 }
 std::string TCellAttr::get_name(void) const {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(name_);
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
 SymbolIndex TCellAttr::get_name_index(void) { return name_; }
 std::string TCellAttr::get_cell_footprint(void) const {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(cell_footprint_);
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(cell_footprint_);
     }
     return "";
 }
 std::string TCellAttr::get_retention_cell(void) const {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        return topCell->getSymbolByIndex(retention_cell_);
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(retention_cell_);
     }
     return "";
 }

@@ -27,18 +27,15 @@ class Wire;
 class WireGraph;
 
 enum NetType {
-    kNetTypeSignal = 1,
+    kNetTypeAnalog = 1,
     kNetTypeClock = 2,
-    kNetTypeShielding = 3,
-    kNetTypeRdl = 4,
-    kNetTypeUserRoute = 5,
-    kNetTypeAnalog = 6,
-    kNetTypeTieHigh = 7,
-    kNetTypeTieLow = 8,
-    kNetTypePower = 9,
-    kNetTypeGround = 10,
-    kNetTypeScan = 11,
-    kNetTypeTri = 12,     /**< veilog tri */
+    kNetTypeGround = 3,
+    kNetTypePower = 4,
+    kNetTypeReset = 5,
+    kNetTypeScan = 6,
+    kNetTypeSignal = 7,
+    kNetTypeTieOff = 8,
+    kNetTypeTri = 9, /**< veilog tri */
     kNetTypeUnknown
 };
 
@@ -90,9 +87,18 @@ class Net : public Object {
     std::string const& getName();
     bool setName(std::string const& name);
 
+    bool isAnalog();
+    bool isClock();
+    bool isGround();
+    bool isPower();
+    bool isReset();
+    bool isScan();
+    bool isSignal();
+    bool isTieOff();
+
     Bits getFixBump() const;
     Bits getMustJoin() const;
-    Bits getType() const;
+    NetType getType() const;
     Bits getPattern() const;
     Bits getIsSubNet() const;
     bool getIsBusNet() const;
@@ -102,7 +108,7 @@ class Net : public Object {
     AssignType getAssignType() const;
     ObjectId getAssignNet() const;
     int32_t getAssignInt() const;
-    double  getAssignReal() const;
+    double getAssignReal() const;
     const char* getNonDefaultRule() const;
     int getXtalk() const;
     int getFrequency() const;
@@ -115,7 +121,7 @@ class Net : public Object {
 
     void setFixBump(Bits fix_bump);
     void setMustJoin(Bits must_join);
-    void setType(Bits net_type);
+    void setType(NetType net_type);
     void setPattern(Bits pattern);
     void setNonDefaultRule(ObjectId rule);
     void setCell(ObjectId cell);
@@ -142,6 +148,8 @@ class Net : public Object {
     void setIsFromTerm(bool is_from_term);
     void setPropertySize(uint64_t v);
 
+    ArrayObject<ObjectId>* getPinArray() const;
+    
     Net* createSubNet(std::string& name);
     VPin* createVpin(std::string& name);
     Via* createVia(ViaMaster* via_master);
@@ -158,16 +166,16 @@ class Net : public Object {
   private:
     SymbolIndex name_index_; /**< net name id */
 
-    bool is_bus_net_: 1;    /**< the net is a bus */
-    bool is_of_bus_ : 1; /**< the net is belong to a bus*/
+    bool is_bus_net_ : 1;   /**< the net is a bus */
+    bool is_of_bus_ : 1;    /**< the net is belong to a bus*/
     bool is_from_term_ : 1; /**< the net is from module's term*/
     bool is_sub_net_ : 1;
     bool fix_bump_ : 1;
     bool must_jion_ : 1;
     AssignType assign_type_ : 3; /**< the type of right assign statement*/
-    Bits net_type_ : 4; /**< net type */
-    Bits status_ : 4;   /**< net status */
-    Bits source_ : 4;   /**< net status */
+    Bits net_type_ : 4;          /**< net type */
+    Bits status_ : 4;            /**< net status */
+    Bits source_ : 4;            /**< net status */
     Bits pattern_ : 3;
     Bits reserved_ : 8;
     ObjectId cell_;
@@ -180,8 +188,8 @@ class Net : public Object {
     ObjectId sub_nets_;
     union {
         ObjectId assign_net_; /**< assign statement of verilog */
-        int32_t  assign_int_;
-        double   assign_real_;
+        int32_t assign_int_;
+        double assign_real_;
     };
     ObjectId properties_id_;
     int xtalk_;

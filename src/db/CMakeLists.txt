@@ -7,6 +7,7 @@ find_package(FLEX REQUIRED)
 
 set(TIMING_HOME ${PROJECT_SOURCE_DIR}/src/db/timing)
 set(TIMINGLIB_HOME ${TIMING_HOME}/timinglib)
+set(TIMINGSPEF_HOME ${TIMING_HOME}/spef)
 
 BISON_TARGET(timinglib_libparser_parser
              ${TIMINGLIB_HOME}/timinglib_libparser.y
@@ -24,6 +25,14 @@ FLEX_TARGET(timinglib_syntaxparser_lexer
             ${CMAKE_CURRENT_BINARY_DIR}/timinglib_syntaxparser.yy.cc)
 ADD_FLEX_BISON_DEPENDENCY(timinglib_syntaxparser_lexer timinglib_syntaxparser_parser)
 
+BISON_TARGET(spef_parser_parser
+            ${TIMINGSPEF_HOME}/spef_parser.y
+            ${CMAKE_CURRENT_BINARY_DIR}/spef_parser.yacc.cc)
+FLEX_TARGET(spef_parser_lexer
+            ${TIMINGSPEF_HOME}/spef_parser.l
+            ${CMAKE_CURRENT_BINARY_DIR}/spef_parser.lex.cc)
+ADD_FLEX_BISON_DEPENDENCY(spef_parser_lexer spef_parser_parser)
+
 file(GLOB_RECURSE SRCS *.cpp)
 
 # link_directories(${PROJECT_BINARY_DIR}/src/io/def/def)
@@ -35,16 +44,20 @@ add_library(${PROJECT_NAME_LOWERCASE}_db STATIC
 
   ${FLEX_timinglib_syntaxparser_lexer_OUTPUTS}
   ${BISON_timinglib_syntaxparser_parser_OUTPUTS}
+
+  ${FLEX_spef_parser_lexer_OUTPUTS}
+  ${BISON_spef_parser_parser_OUTPUTS}
   
 )
 target_include_directories(${PROJECT_NAME_LOWERCASE}_db PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/.. 
     ${CMAKE_CURRENT_SOURCE_DIR}/../parser/verilog
     ${TCL_DIR}/include 
-    ${Boost_HEADERS} 
+    ${Boost_INCLUDE_DIRS} 
     ${PROFILER_DIR}/include
     ${CMAKE_CURRENT_BINARY_DIR} 
-    ${CMAKE_CURRENT_SOURCE_DIR}/timing/timinglib)
+    ${CMAKE_CURRENT_SOURCE_DIR}/timing/timinglib
+    ${CMAKE_CURRENT_SOURCE_DIR}/timing/spef)
 
 # for yosys parser verilog
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_YOSYS_ -DYOSYS_ENABLE_ZLIB")
@@ -74,3 +87,5 @@ file(GLOB_RECURSE HEADERS5 timing/timinglib/*.msg)
 install(FILES ${HEADERS5} DESTINATION include/src/db/timing/timinglib)
 file(GLOB_RECURSE HEADERS6 util/*.h util/*.hpp)
 install(FILES ${HEADERS6} DESTINATION include/src/db/util)
+file(GLOB_RECURSE HEADERS7 timing/spef/*.msg)
+install(FILES ${HEADERS7} DESTINATION include/src/db/timing/spef)

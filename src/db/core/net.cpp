@@ -13,10 +13,12 @@
 #include "db/core/cell.h"
 #include "db/core/db.h"
 #include "db/core/pin.h"
+#include "db/util/array.h"
 #include "db/util/vector_object_var.h"
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 /**
  * @brief Construct a new VPin::VPin object
@@ -41,7 +43,7 @@ SymbolIndex VPin::getNameIndex() const { return name_index_; }
  * @return std::string const&
  */
 std::string const& VPin::getName() {
-    return getTopCell()->getSymbolByIndex(name_index_);
+    return getOwnerCell()->getSymbolByIndex(name_index_);
 }
 
 /**
@@ -50,11 +52,11 @@ std::string const& VPin::getName() {
  * @param name
  */
 bool VPin::setName(std::string const& name) {
-    int64_t index = getTopCell()->getOrCreateSymbol(name.c_str());
-    if (index == -1) return false;
+    SymbolIndex index = getOwnerCell()->getOrCreateSymbol(name.c_str());
+    if (index == kInvalidSymbolIndex) return false;
 
     name_index_ = index;
-    getTopCell()->addSymbolReference(name_index_, this->getId());
+    getOwnerCell()->addSymbolReference(name_index_, this->getId());
     return true;
 }
 
@@ -161,6 +163,7 @@ Net::Net() {
     weight_ = 0;
     origin_net_ = "";
     assign_net_ = 0;
+    assign_type_ = kAssignTypeUnknown;
     v_pins_ = 0;
     properties_id_ = 0;
 }
@@ -192,12 +195,78 @@ Bits Net::getPattern() const { return pattern_; }
  * @return Bits
  */
 Bits Net::getIsSubNet() const { return is_sub_net_; }
+
+/**
+ * @brief is analog net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isAnalog() {return getType()==kNetTypeAnalog;}
+
+/**
+ * @brief is clock net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isClock() {return getType()==kNetTypeClock;}
+
+/**
+ * @brief is ground net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isGround(){return getType()== kNetTypeGround;}
+
+/**
+ * @brief is power net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isPower(){return getType()==kNetTypePower;}
+
+/**
+ * @brief is reset net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isReset(){return getType()==kNetTypeReset;}
+
+/**
+ * @brief is scan net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isScan() {return getType()==kNetTypeScan;}
+
+/**
+ * @brief is signal net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isSignal(){return getType()==kNetTypeSignal;}
+
+/**
+ * @brief is tie off net
+ *
+ * @return true
+ * @return false
+ */
+bool Net::isTieOff(){return getType()==kNetTypeTieOff;}
+
 /**
  * @brief Get the assign type
  *
  * @return AssignType
  */
 AssignType Net::getAssignType() const { return assign_type_; }
+
 /**
  * @brief Get the assign Net object
  *
@@ -384,7 +453,7 @@ SymbolIndex Net::getNameIndex() const { return name_index_; }
  * @return std::string const&
  */
 std::string const& Net::getName() {
-    return getTopCell()->getSymbolByIndex(name_index_);
+    return getOwnerCell()->getSymbolByIndex(name_index_);
 }
 
 /**
@@ -393,11 +462,11 @@ std::string const& Net::getName() {
  * @param name
  */
 bool Net::setName(std::string const& name) {
-    int64_t index = getTopCell()->getOrCreateSymbol(name.c_str());
-    if (index == -1) return false;
+    SymbolIndex index = getOwnerCell()->getOrCreateSymbol(name.c_str());
+    if (index == kInvalidSymbolIndex) return false;
 
     name_index_ = index;
-    getTopCell()->addSymbolReference(name_index_, this->getId());
+    getOwnerCell()->addSymbolReference(name_index_, this->getId());
     return true;
 }
 
@@ -420,13 +489,15 @@ Cell* Net::getCell() { return addr<Cell>(cell_); }
  *
  * @return Bits
  */
-Bits Net::getType() const { return net_type_; }
+NetType Net::getType() const { return static_cast<NetType>(net_type_); }
+
 /**
  * @brief Set the Type object
  *
  * @param type
  */
-void Net::setType(Bits net_type) { net_type_ = net_type; }
+void Net::setType(NetType net_type) { net_type_ = net_type; }
+
 /**
  * @brief Get the Rule object
  *
@@ -450,13 +521,13 @@ void Net::setNonDefaultRule(ObjectId rule) { rule_ = rule; }
  * @param wire
  */
 void Net::addWire(Wire* wire) {
-    VectorObject64* wire_vector = nullptr;
+    ArrayObject<ObjectId>* wire_vector = nullptr;
     if (wires_ == 0) {
-        wires_ = getTopCell()->createVectorObject<VectorObject64>()->getId();
+        wires_ = __createObjectIdArray(64);
     }
     if (wires_)
-        wire_vector = addr<VectorObject64>(wires_);
-    if (wire_vector) wire_vector->push_back(wire->getId());
+        wire_vector = addr<ArrayObject<ObjectId>>(wires_);
+    if (wire_vector) wire_vector->pushBack(wire->getId());
 }
 
 /**
@@ -472,12 +543,12 @@ void Net::deleteWire(Wire* wire) {}
  * @param via
  */
 void Net::addVia(Via* via) {
-    VectorObject64* via_vector = nullptr;
+    ArrayObject<ObjectId>* via_vector = nullptr;
     if (vias_ == 0) {
-        vias_ = getTopCell()->createVectorObject<VectorObject64>()->getId();
+        vias_ = __createObjectIdArray(64);
     }
-    if (vias_) via_vector = addr<VectorObject64>(vias_);
-    if (via_vector) via_vector->push_back(via->getId());
+    if (vias_) via_vector = addr<ArrayObject<ObjectId>>(vias_);
+    if (via_vector) via_vector->pushBack(via->getId());
 }
 
 /**
@@ -494,9 +565,9 @@ void Net::deleteVia(Via* via) {}
  * @return Net*
  */
 Net* Net::createSubNet(std::string& name) {
-    Net* sub_net = getTopCell()->createObject<Net>(kObjectTypeNet);
+    Net* sub_net = getOwnerCell()->createObject<Net>(kObjectTypeNet);
     sub_net->setName(name);
-    sub_net->setOwner(this);
+    sub_net->setOwner(getOwnerCell());
 
     return sub_net;
 }
@@ -508,9 +579,9 @@ Net* Net::createSubNet(std::string& name) {
  * @return VPin*
  */
 VPin* Net::createVpin(std::string& name) {
-    VPin* v_pin = getTopCell()->createObject<VPin>(kObjectTypePin);
+    VPin* v_pin = getOwnerCell()->createObject<VPin>(kObjectTypePin);
     v_pin->setName(name);
-    v_pin->setOwner(this);
+    v_pin->setOwner(getOwnerCell());
 
     return v_pin;
 }
@@ -521,7 +592,7 @@ VPin* Net::createVpin(std::string& name) {
  * @return WireGraph*
  */
 WireGraph* Net::creatGraph() {
-    WireGraph* graph = getTopCell()->createObject<WireGraph>(kObjectTypeWire);
+    WireGraph* graph = getOwnerCell()->createObject<WireGraph>(kObjectTypeWire);
 
     return graph;
 }
@@ -532,13 +603,13 @@ WireGraph* Net::creatGraph() {
  * @param graph
  */
 void Net::addGraph(WireGraph* graph) {
-    VectorObject256* graph_vector = nullptr;
+    ArrayObject<ObjectId>* graph_vector = nullptr;
     if (graphs_ == 0) {
-        graphs_ = getTopCell()->createVectorObject<VectorObject256>()->getId();
+        graphs_ = __createObjectIdArray(256);
     }
     if (graphs_)
-        graph_vector = addr<VectorObject256>(graphs_);
-    if (graph_vector) graph_vector->push_back(graph->getId());
+        graph_vector = addr<ArrayObject<ObjectId>>(graphs_);
+    if (graph_vector) graph_vector->pushBack(graph->getId());
 }
 
 /**
@@ -548,12 +619,12 @@ void Net::addGraph(WireGraph* graph) {
  * @return int
  */
 int Net::addPin(Pin* pin) {
-    VectorObject64* pin_vector = nullptr;
+    ArrayObject<ObjectId>* pin_vector = nullptr;
     if (pins_ == 0) {
-        pins_ = getTopCell()->createVectorObject<VectorObject64>()->getId();
+        pins_ = __createObjectIdArray(64);
     }
-    if (pins_) pin_vector = addr<VectorObject64>(pins_);
-    if (pin) pin_vector->push_back(pin->getId());
+    if (pins_) pin_vector = addr<ArrayObject<ObjectId>>(pins_);
+    if (pin) pin_vector->pushBack(pin->getId());
 
     return 0;
 }
@@ -565,15 +636,29 @@ int Net::addPin(Pin* pin) {
  * @return int
  */
 int Net::addVPin(VPin* v_pin) {
-    VectorObject64* v_pin_vector = nullptr;
+     ArrayObject<ObjectId>* v_pin_vector = nullptr;
     if (v_pins_ == 0) {
-        v_pins_ = getTopCell()->createVectorObject<VectorObject64>()->getId();
+        v_pins_ = __createObjectIdArray(64);
     }
     if (v_pins_)
-        v_pin_vector = addr<VectorObject64>(v_pins_);
-    if (v_pin) v_pin_vector->push_back(v_pin->getId());
+        v_pin_vector = addr<ArrayObject<ObjectId>>(v_pins_);
+    if (v_pin) v_pin_vector->pushBack(v_pin->getId());
 
     return 0;
+}
+
+/**
+ * @brief Get the Pin Array object
+ *
+ * @return ArrayObject<ObjectId>*
+ */
+ArrayObject<ObjectId>* Net::getPinArray() const {
+    if (pins_ != 0) {
+        ArrayObject<ObjectId>* pin_array = addr<ArrayObject<ObjectId>>(pins_);
+        return pin_array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -582,14 +667,14 @@ int Net::addVPin(VPin* v_pin) {
  * @param sub_net
  */
 void Net::addSubNet(Net* sub_net) {
-    VectorObject64* sub_net_vector = nullptr;
+    ArrayObject<ObjectId>* sub_net_vector = nullptr;
     if (sub_nets_ == 0) {
-        sub_nets_ = getTopCell()->createVectorObject<VectorObject64>()->getId();
+        sub_nets_ = __createObjectIdArray(64);
     }
     if (sub_nets_)
         sub_net_vector =
-            addr<VectorObject64>(sub_nets_);
-    if (sub_net_vector) sub_net_vector->push_back(sub_net->getId());
+            addr<ArrayObject<ObjectId>>(sub_nets_);
+    if (sub_net_vector) sub_net_vector->pushBack(sub_net->getId());
 }
 /**
  * @brief add assign net to net
@@ -635,9 +720,9 @@ void Net::print() {
     if (must_jion_) message->info("MUSTJOIN ");
 
     if (v_pins_) {
-        VectorObject64* v_pin_vector =
-            addr<VectorObject64>(v_pins_);
-        for (VectorObject64::iterator iter = v_pin_vector->begin();
+        ArrayObject<ObjectId>* v_pin_vector =
+            addr<ArrayObject<ObjectId>>(v_pins_);
+        for (ArrayObject<ObjectId>::iterator iter = v_pin_vector->begin();
              iter != v_pin_vector->end(); ++iter) {
             VPin* v_pin = nullptr;
             ObjectId id = (*iter);
@@ -703,9 +788,9 @@ void Net::print() {
 
     // sub net
     if (sub_nets_) {
-        VectorObject64* sub_net_vector =
-            addr<VectorObject64>(sub_nets_);
-        for (VectorObject64::iterator iter = sub_net_vector->begin();
+        ArrayObject<ObjectId>* sub_net_vector =
+            addr<ArrayObject<ObjectId>>(sub_nets_);
+        for (ArrayObject<ObjectId>::iterator iter = sub_net_vector->begin();
              iter != sub_net_vector->end(); ++iter) {
             Net* sub_net = nullptr;
             ObjectId id = (*iter);
@@ -716,9 +801,9 @@ void Net::print() {
     // wire
     // wire
     if (graphs_) {
-        VectorObject64* graph_vector =
-            addr<VectorObject64>(graphs_);
-        for (VectorObject64::iterator iter = graph_vector->begin();
+        ArrayObject<ObjectId>* graph_vector =
+            addr<ArrayObject<ObjectId>>(graphs_);
+        for (ArrayObject<ObjectId>::iterator iter = graph_vector->begin();
              iter != graph_vector->end(); ++iter) {
             WireGraph* graph = nullptr;
             ObjectId id = (*iter);
@@ -827,9 +912,9 @@ void Net::printDEF(FILE* fp) {
     }
 
     if (pins_) {
-        VectorObject64* pin_vector =
-            addr<VectorObject64>(pins_);
-        for (VectorObject64::iterator iter = pin_vector->begin();
+        ArrayObject<ObjectId>* pin_vector =
+            addr<ArrayObject<ObjectId>>(pins_);
+        for (ArrayObject<ObjectId>::iterator iter = pin_vector->begin();
              iter != pin_vector->end(); ++iter) {
             Pin* pin = nullptr;
             ObjectId id = (*iter);
@@ -884,34 +969,14 @@ void Net::printDEF(FILE* fp) {
     if (origin_net_.size())
         fprintf(fp, "\n  + ORIGINAL %s ", origin_net_.c_str());
     if (net_type_) {
-        switch (net_type_) {
-            case 1:
-                fprintf(fp, "\n  + USE ANALOG");
-                break;
-            case 2:
-                fprintf(fp, "\n  + USE CLOCK");
-                break;
-            case 3:
-                fprintf(fp, "\n  + USE GROUND");
-                break;
-            case 4:
-                fprintf(fp, "\n  + USE POWER");
-                break;
-            case 5:
-                fprintf(fp, "\n  + USE RESET");
-                break;
-            case 6:
-                fprintf(fp, "\n  + USE SCAN");
-                break;
-            case 7:
-                fprintf(fp, "\n  + USE SIGNAL");
-                break;
-            case 8:
-                fprintf(fp, "\n  + USE TIEOFF");
-                break;
-            default:
-                break;
-        }
+        if (isAnalog()) fprintf(fp, "\n  + USE ANALOG");
+        if (isClock()) fprintf(fp, "\n  + USE CLOCK");
+        if (isGround()) fprintf(fp, "\n  + USE GROUND");
+        if (isPower()) fprintf(fp, "\n  + USE POWER");
+        if (isReset()) fprintf(fp, "\n  + USE RESET");
+        if (isScan()) fprintf(fp, "\n  + USE SCAN");
+        if (isSignal()) fprintf(fp, "\n  + USE SIGNAL");
+        if (isTieOff()) fprintf(fp, "\n  + USE TIEOFF");
     }
 
     if (pattern_) {
@@ -937,9 +1002,9 @@ void Net::printDEF(FILE* fp) {
     if (weight_) fprintf(fp, "\n  + WEIGHT %d", weight_);
 
     if (v_pins_) {
-        VectorObject64* v_pin_vector =
-            addr<VectorObject64>(v_pins_);
-        for (VectorObject64::iterator iter = v_pin_vector->begin();
+        ArrayObject<ObjectId>* v_pin_vector =
+            addr<ArrayObject<ObjectId>>(v_pins_);
+        for (ArrayObject<ObjectId>::iterator iter = v_pin_vector->begin();
              iter != v_pin_vector->end(); ++iter) {
             VPin* v_pin = nullptr;
             ObjectId id = (*iter);
@@ -1003,9 +1068,9 @@ void Net::printDEF(FILE* fp) {
     }
     // wire
     if (graphs_) {
-        VectorObject64* graph_vector =
-            addr<VectorObject64>(graphs_);
-        for (VectorObject64::iterator iter = graph_vector->begin();
+        ArrayObject<ObjectId>* graph_vector =
+            addr<ArrayObject<ObjectId>>(graphs_);
+        for (ArrayObject<ObjectId>::iterator iter = graph_vector->begin();
              iter != graph_vector->end(); ++iter) {
             WireGraph* graph = nullptr;
             ObjectId id = (*iter);
@@ -1016,9 +1081,9 @@ void Net::printDEF(FILE* fp) {
 
     // sub net
     if (sub_nets_) {
-        VectorObject64* sub_net_vector =
-            addr<VectorObject64>(sub_nets_);
-        for (VectorObject64::iterator iter = sub_net_vector->begin();
+        ArrayObject<ObjectId>* sub_net_vector =
+            addr<ArrayObject<ObjectId>>(sub_nets_);
+        for (ArrayObject<ObjectId>::iterator iter = sub_net_vector->begin();
              iter != sub_net_vector->end(); ++iter) {
             Net* sub_net = nullptr;
             ObjectId id = (*iter);
@@ -1037,39 +1102,32 @@ void Net::printDEF(FILE* fp) {
 void Net::setPropertySize(uint64_t v) {
     if (v == 0) {
         if (properties_id_) {
-            VectorObject16::deleteDBVectorObjectVar(properties_id_);
+            __deleteObjectIdArray(properties_id_);
         }
         return;
     }
     if (!properties_id_) {
-        VectorObject16* vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        properties_id_ = vobj->getId();
-    }
+        properties_id_ = __createObjectIdArray(16);
+    }  
 }
 
 uint64_t Net::getNumProperties() const {
     if (!properties_id_) return 0;
 
-    return addr<VectorObject16>(properties_id_)
-        ->totalSize();
+    return addr<IdArray>(properties_id_)->getSize();  
 }
 
 void Net::addProperty(ObjectId obj_id) {
-    VectorObject16* vobj = nullptr;
+    IdArray *id_array_ptr = nullptr;
     if (obj_id == 0) return;
 
     if (properties_id_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        properties_id_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(properties_id_);
+        properties_id_ = __createObjectIdArray(16);
     }
-    ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+    ediAssert(properties_id_ != 0);
+    id_array_ptr = addr<IdArray>(properties_id_);
+    ediAssert(id_array_ptr != nullptr);
+    id_array_ptr->pushBack(obj_id);  
 }
 
 ObjectId Net::getPropertiesId() const { return properties_id_; }

@@ -796,16 +796,17 @@ void LibBuilder::__build_timing(timinglib_head *h) {
             flag = true;
         }
     }
-    tb_namespace::Cell *topCell = tb_namespace::getTopCell();
+    tb_namespace::Timing *timing_lib = tb_namespace::getTimingLib();
     if (!flag) {
-        if (topCell != nullptr) __get_terms_from_top_stack(&libpins);
+        if (timing_lib != nullptr) __get_terms_from_top_stack(&libpins);
     }
 
     ObjectList *pinList = nullptr;
     ObjectList *l = nullptr;
     for (auto &p : libpins) {
-        auto t = topCell->createObject<tb_namespace::TimingArc>(
-            tb_namespace::ObjectType::kObjectTypeTimingArc);
+        auto t = tb_namespace::Object::createObject<tb_namespace::TimingArc>(
+            tb_namespace::ObjectType::kObjectTypeTimingArc,
+            timing_lib->getId());
         if (t) {
             t->setOwner(p);
             p->add_timingarc(t->getId());
@@ -832,7 +833,7 @@ void LibBuilder::__build_timing(timinglib_head *h) {
     }
 }
 void LibBuilder::__build_cell_rise(timinglib_head *h) {
-    tb_namespace::Cell *topCell = tb_namespace::getTopCell();
+    tb_namespace::Timing *timing_lib = tb_namespace::getTimingLib();
     auto v = h->list;
     if (v && __is_string_type(v)) {
         std::vector<tb_namespace::TimingArc *> timingarcs;
@@ -849,20 +850,23 @@ void LibBuilder::__build_cell_rise(timinglib_head *h) {
         if (tt == nullptr) return;
         auto axis1 = tt->get_axis1();
         if (axis1) {
-            axis_[0] = topCell->createObject<tb_namespace::TableAxis>(
-                tb_namespace::ObjectType::kObjectTypeTableAxis);
+            axis_[0] = tb_namespace::Object::createObject<tb_namespace::TableAxis>(
+                tb_namespace::ObjectType::kObjectTypeTableAxis,
+                timing_lib->getId());
             if (axis_[0]) *(axis_[0]) = *axis1;
         }
         auto axis2 = tt->get_axis2();
         if (axis2) {
-            axis_[1] = topCell->createObject<tb_namespace::TableAxis>(
-                tb_namespace::ObjectType::kObjectTypeTableAxis);
+            axis_[1] = tb_namespace::Object::createObject<tb_namespace::TableAxis>(
+                tb_namespace::ObjectType::kObjectTypeTableAxis,
+                timing_lib->getId());
             if (axis_[1]) *(axis_[1]) = *axis2;
         }
         auto axis3 = tt->get_axis3();
         if (axis3) {
-            axis_[2] = topCell->createObject<tb_namespace::TableAxis>(
-                tb_namespace::ObjectType::kObjectTypeTableAxis);
+            axis_[2] = tb_namespace::Object::createObject<tb_namespace::TableAxis>(
+                tb_namespace::ObjectType::kObjectTypeTableAxis,
+                timing_lib->getId());
             if (axis_[2]) *(axis_[2]) = *axis3;
         }
     }
@@ -2779,8 +2783,8 @@ void LibBuilder::__build_fanout_area(BUILD_PARAM) {
 
 void LibBuilder::__build_wire_load_from_area(BUILD_PARAM) {
     if (v == nullptr || v->next == nullptr || v->next->next == nullptr) return;
-    tb_namespace::Cell *topCell = tb_namespace::getTopCell();
-    if (topCell == nullptr) return;
+    tb_namespace::Timing *timing_lib = tb_namespace::getTimingLib();
+    if (timing_lib == nullptr) return;
     GOBJECTS
     auto p1 = v;
     auto p2 = v->next;
@@ -2800,8 +2804,9 @@ void LibBuilder::__build_wire_load_from_area(BUILD_PARAM) {
                 if (lib == nullptr) continue;
                 auto wire_load = lib->get_wire_load(p3->u.string_val);
                 if (wire_load == nullptr) continue;
-                auto wlr = topCell->createObject<tb_namespace::WireLoadForArea>(
-                    tb_namespace::ObjectType::kObjectTypeWireLoadForArea);
+                auto wlr = tb_namespace::Object::createObject<tb_namespace::WireLoadForArea>(
+                    tb_namespace::ObjectType::kObjectTypeWireLoadForArea,
+                    timing_lib->getId());
                 if (wlr) {
                     wlr->set_min_area(__get_double_value(p1));
                     wlr->set_max_area(__get_double_value(p2));
@@ -2927,8 +2932,8 @@ void LibBuilder::__build_index_3(BUILD_PARAM) {
 }
 
 void LibBuilder::__build_values(BUILD_PARAM) {
-    tb_namespace::Cell *topCell = tb_namespace::getTopCell();
-    if (topCell == nullptr) return;
+    tb_namespace::Timing *timing_lib = tb_namespace::getTimingLib();
+    if (timing_lib == nullptr) return;
     if (groupname_stack_.empty()) return;
 
     std::string groupname = groupname_stack_.top();
@@ -2957,8 +2962,9 @@ void LibBuilder::__build_values(BUILD_PARAM) {
 
             tb_namespace::TimingTable *tt = nullptr;
             if (axis_[0] && axis_[1] && axis_[2]) {
-                auto p = topCell->createObject<tb_namespace::TimingTable3>(
-                    tb_namespace::ObjectType::kObjectTypeTimingTable3);
+                auto p = tb_namespace::Object::createObject<tb_namespace::TimingTable3>(
+                    tb_namespace::ObjectType::kObjectTypeTimingTable3,
+                    timing_lib->getId());
                 if (p) {
                     axis_[0]->setOwner(p);
                     p->set_axis1(axis_[0]->getId());
@@ -2970,8 +2976,9 @@ void LibBuilder::__build_values(BUILD_PARAM) {
                     tt = p;
                 }
             } else if (axis_[0] && axis_[1]) {
-                auto p = topCell->createObject<tb_namespace::TimingTable2>(
-                    tb_namespace::ObjectType::kObjectTypeTimingTable2);
+                auto p = tb_namespace::Object::createObject<tb_namespace::TimingTable2>(
+                    tb_namespace::ObjectType::kObjectTypeTimingTable2,
+                    timing_lib->getId());
                 if (p) {
                     axis_[0]->setOwner(p);
                     p->set_axis1(axis_[0]->getId());
@@ -2981,8 +2988,9 @@ void LibBuilder::__build_values(BUILD_PARAM) {
                     tt = p;
                 }
             } else if (axis_[0]) {
-                auto p = topCell->createObject<tb_namespace::TimingTable1>(
-                    tb_namespace::ObjectType::kObjectTypeTimingTable1);
+                auto p = tb_namespace::Object::createObject<tb_namespace::TimingTable1>(
+                    tb_namespace::ObjectType::kObjectTypeTimingTable1,
+                    timing_lib->getId());
                 if (p) {
                     axis_[0]->setOwner(p);
                     p->set_axis1(axis_[0]->getId());
@@ -2990,8 +2998,9 @@ void LibBuilder::__build_values(BUILD_PARAM) {
                     tt = p;
                 }
             } else {
-                auto p = topCell->createObject<tb_namespace::TimingTable0>(
-                    tb_namespace::ObjectType::kObjectTypeTimingTable0);
+                auto p = tb_namespace::Object::createObject<tb_namespace::TimingTable0>(
+                    tb_namespace::ObjectType::kObjectTypeTimingTable0,
+                    timing_lib->getId());
                 if (p) p->set_value(values[0]);
                 tt = p;
             }

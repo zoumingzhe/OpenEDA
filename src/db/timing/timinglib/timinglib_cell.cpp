@@ -87,10 +87,10 @@ TCell::IndexType TCell::numPgTerms() const {
 }
 
 TTerm *TCell::get_or_create_term(const std::string &name) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto t = term_map_.find(idx);
             if (t != term_map_.end()) {
                 return Object::addr<TTerm>(t->second);
@@ -109,10 +109,10 @@ TTerm *TCell::get_or_create_term(const std::string &name) {
     return nullptr;
 }
 TTerm *TCell::get_term(const std::string &name) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto t = term_map_.find(idx);
             if (t != term_map_.end()) {
                 return Object::addr<TTerm>(t->second);
@@ -132,14 +132,15 @@ std::vector<TTerm *> TCell::get_terms(void) {
 void TCell::reset_terms(const std::vector<TTerm *> &terms) {
     if (terms.empty() && tterms_ == UNINIT_OBJECT_ID) return;
 
-    Cell *topCell = getTopCell();
-    if (topCell) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
         ArrayObject<ObjectId> *p = nullptr;
         if (tterms_ == UNINIT_OBJECT_ID) {
-            p = topCell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+            p = Object::createObject<ArrayObject<ObjectId>>(
+                kObjectTypeArray, timing_lib->getId());
             if (p) {
                 tterms_ = p->getId();
-                p->setPool(topCell->getPool());
+                p->setPool(timing_lib->getPool());
                 p->reserve(32);
             }
         } else {
@@ -183,10 +184,10 @@ void TCell::reset_terms(const std::vector<TTerm *> &terms) {
     }
 }
 TPgTerm *TCell::get_or_create_pgTerm(const std::string &name) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto t = pg_term_map_.find(idx);
             if (t != pg_term_map_.end()) {
                 return Object::addr<TPgTerm>(t->second);
@@ -203,10 +204,10 @@ TPgTerm *TCell::get_or_create_pgTerm(const std::string &name) {
     return nullptr;
 }
 TPgTerm *TCell::get_pgTerm(const std::string &name) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto t = pg_term_map_.find(idx);
             if (t != pg_term_map_.end()) {
                 return Object::addr<TPgTerm>(t->second);
@@ -376,21 +377,23 @@ OStreamBase &operator<<(OStreamBase &os, TCell const &rhs) {
 }
 
 TTerm *TCell::__addTermImpl() {
-    Cell *topCell = getTopCell();
-    if (topCell) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
         ArrayObject<ObjectId> *p = nullptr;
         if (tterms_ == UNINIT_OBJECT_ID) {
-            p = topCell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+            p = Object::createObject<ArrayObject<ObjectId>>(
+                kObjectTypeArray, timing_lib->getId());
             if (p) {
                 tterms_ = p->getId();
-                p->setPool(topCell->getPool());
+                p->setPool(timing_lib->getPool());
                 p->reserve(32);
             }
         } else {
             p = Object::addr<ArrayObject<ObjectId>>(tterms_);
         }
         if (p != nullptr) {
-            auto term = topCell->createObject<TTerm>(kObjectTypeTTerm);
+            auto term = Object::createObject<TTerm>(
+                kObjectTypeTTerm, timing_lib->getId());
             if (term) {
                 term->setOwner(this);
                 ObjectId id = term->getId();
@@ -403,21 +406,23 @@ TTerm *TCell::__addTermImpl() {
 }
 
 TPgTerm *TCell::__addPgTermImpl() {
-    Cell *topCell = getTopCell();
-    if (topCell) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
         ArrayObject<ObjectId> *p = nullptr;
         if (tpg_terms_ == UNINIT_OBJECT_ID) {
-            p = topCell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+            p = Object::createObject<ArrayObject<ObjectId>>(
+                kObjectTypeArray, timing_lib->getId());
             if (p) {
                 tpg_terms_ = p->getId();
-                p->setPool(topCell->getPool());
+                p->setPool(timing_lib->getPool());
                 p->reserve(32);
             }
         } else {
             p = Object::addr<ArrayObject<ObjectId>>(tpg_terms_);
         }
         if (p != nullptr) {
-            auto pg_term = topCell->createObject<TPgTerm>(kObjectTypeTPgTerm);
+            auto pg_term = Object::createObject<TPgTerm>(
+                kObjectTypeTPgTerm, timing_lib->getId());
             if (pg_term) {
                 pg_term->setOwner(this);
                 ObjectId id = pg_term->getId();

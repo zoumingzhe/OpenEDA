@@ -29,11 +29,11 @@ void GlobalSwap::run_cpu()
     db_->initDetailedPlaceDB(db, false); //cpu version.
     if (alg_concurrent_)
     {
-        globalSwapCPULauncher(db, batch_size_, max_iters_, num_threads_);
+        //globalSwapCPULauncher(db, batch_size_, max_iters_, num_threads_);
     }
     else
     {
-        globalSwapCPULauncher(db, max_iters_);
+        //globalSwapCPULauncher(db, max_iters_);
     }
     //update common db_ using db.x, db.y
     //todo: db_->update(db.x, db.y);
@@ -48,7 +48,7 @@ void GlobalSwap::run_gpu()
     DetailedPlaceDB<int> db;
     db_->initDetailedPlaceDB(db, true); //gpu version.
 #ifdef _CUDA_FOUND
-    globalSwapCUDALauncher(db, batch_size_, max_iters_, num_threads_);
+    //globalSwapCUDALauncher(db, batch_size_, max_iters_, num_threads_);
 #endif
     //update common db_ using db.x, db.y
     /*
@@ -68,6 +68,9 @@ void GlobalSwap::run_gpu()
 
 void GlobalSwap::run()
 {
+    if (!isCommonDBReady()) {
+      return;
+    }
     hr_clock_rep total_time_start, total_time_stop;
     total_time_start = get_globaltime(); 
     if (is_gpu_)
