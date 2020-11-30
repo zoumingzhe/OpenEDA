@@ -19,7 +19,9 @@
 namespace open_edi {
 namespace db {
 
-Property::Property() : definition_id_(0) { value_u_.string_value_ = -1; }
+Property::Property() : definition_id_(0) {
+    value_u_.string_value_ = kInvalidSymbolIndex;
+}
 
 Property::Property(Object *owner, UInt32 id) : BaseType(owner, id) {
     Property();
@@ -27,8 +29,9 @@ Property::Property(Object *owner, UInt32 id) : BaseType(owner, id) {
 
 Property::~Property() {
     PropDataType data_type = getDataType();
-    if (data_type == PropDataType::kString && value_u_.string_value_) {
-        SymbolTable *symbol_table = getTopCell()->getSymbolTable();
+    if (data_type == PropDataType::kString && 
+            (value_u_.string_value_ != kInvalidSymbolIndex)) {
+        SymbolTable *symbol_table = getTechLib()->getSymbolTable();
         symbol_table->removeReference(value_u_.string_value_, this->getId());
     }
 }
@@ -62,9 +65,10 @@ void Property::copy(Property const &rhs) {
     this->BaseType::copy(rhs);
     definition_id_ = rhs.definition_id_;
     PropDataType data_type = getDataType();
-    if (data_type == PropDataType::kString && rhs.value_u_.string_value_) {
+    if (data_type == PropDataType::kString && 
+            (rhs.value_u_.string_value_ != kInvalidSymbolIndex)) {
         value_u_ = rhs.value_u_;
-        getTopCell()->addSymbolReference(value_u_.string_value_, this->getId());
+        getTechLib()->addSymbolReference(value_u_.string_value_, this->getId());
     } else {
         value_u_ = rhs.value_u_;
     }
@@ -171,13 +175,13 @@ int Property::getIntValue() const { return value_u_.int_value_; }
 double Property::getRealValue() const { return value_u_.real_value_; }
 
 std::string Property::getStringValue() const {
-    return getTopCell()->getSymbolByIndex(value_u_.string_value_);
+    return getTechLib()->getSymbolByIndex(value_u_.string_value_);
 }
 
 // Set
 void Property::setDefinitionId(PropType type, const std::string &name) {
     ObjectId prop_def =
-        getTopCell()->getTechLib()->getPropertyDefinitionId(type, name.c_str());
+        getTechLib()->getPropertyDefinitionId(type, name.c_str());
     // TODO: warning if the object id is invalid.
     definition_id_ = prop_def;
 }
@@ -221,15 +225,15 @@ void Property::setRealValue(double v) {
 void Property::setStringValue(const std::string &v) {
     PropDataType data_type = getDataType();
     if (data_type == PropDataType::kString) {
-        if (value_u_.string_value_ >= 0) {
-            SymbolTable *symbol_table = getTopCell()->getSymbolTable();
+        if (value_u_.string_value_ != kInvalidSymbolIndex) {
+            SymbolTable *symbol_table = getTechLib()->getSymbolTable();
             symbol_table->removeReference(value_u_.string_value_,
                                           this->getId());
         }
 
         value_u_.string_value_ =
-            getTopCell()->getOrCreateSymbol((std::string &)v);
-        getTopCell()->addSymbolReference(value_u_.string_value_, this->getId());
+            getTechLib()->getOrCreateSymbol((std::string &)v);
+        getTechLib()->addSymbolReference(value_u_.string_value_, this->getId());
     }
 }
 

@@ -14,10 +14,10 @@
 
 #include "db/core/db.h"
 #include "db/tech/tech.h"
-#include "db/util/vector_object_var.h"
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 ExportTechLef::ExportTechLef(const char* tech_name) {
     if (!tech_name) return;
@@ -36,7 +36,7 @@ ExportTechLef::ExportTechLef(const char* tech_name) {
         }
         rename(tech_name, old_tech_name.c_str());
     }
-    tech_lib_ = getTopCell()->getTechLib();
+    tech_lib_ = getTechLib();
     ofs_.open(tech_name, std::ios::out | std::ios::app);
 
     default_precision_ = cur_precision_ = ofs_.precision();
@@ -176,10 +176,10 @@ void ExportTechLef::exportPropertyDefinitions() {
         ObjectId vobj_id =
             tech_lib_->getPropertyDefinitionVectorId(toEnum<PropType, int>(i));
         if (vobj_id == 0) continue;
-        VectorObject32* vobj = Object::addr<VectorObject32>(vobj_id);
-        if (!vobj) continue;
-        for (VectorObject32::iterator iter = vobj->begin(); iter != vobj->end();
-             ++iter) {
+        IdArray* arr_ptr = Object::addr<IdArray>(vobj_id);
+        if (!arr_ptr) continue;
+        for (IdArray::iterator iter = arr_ptr->begin(); 
+                iter != arr_ptr->end(); iter++) {
             ObjectId obj_id = (*iter);
             if (!obj_id) continue;
             PropertyDefinition* obj_data =
@@ -199,11 +199,10 @@ void ExportTechLef::exportMaxViaStack() {}
 void ExportTechLef::exportSite() {
     ObjectId vobj_id = tech_lib_->getSiteVectorId();
     if (vobj_id == 0) return;
-    VectorObject64* vobj = Object::addr<VectorObject64>(vobj_id);
-    if (!vobj) return;
+    IdArray *arr_ptr = Object::addr<IdArray>(vobj_id);
+    if (!arr_ptr) return;
 
-    for (VectorObject64::iterator iter = vobj->begin(); iter != vobj->end();
-         ++iter) {
+    for (IdArray::iterator iter = arr_ptr->begin(); iter != arr_ptr->end(); ++iter) {
         ObjectId obj_id = (*iter);
         if (!obj_id) continue;
         Site* obj_data = Object::addr<Site>(obj_id);
@@ -960,7 +959,7 @@ void ExportTechLef::exportRoutingLayer(Layer* layer) {
     if (r->isXYOffset()) {
         ofs_ << "    OFFSET " << tech_lib_->dbuToMicrons(r->getOffsetX()) << " "
              << tech_lib_->dbuToMicrons(r->getOffsetY()) << " ;\n";
-    } else if (r->getOffset()) {
+    } else {
         ofs_ << "    OFFSET " << tech_lib_->dbuToMicrons(r->getOffset())
              << " ;\n";
     }
@@ -1223,10 +1222,10 @@ void ExportTechLef::exportOverlapLayer(Layer* layer) {
 
 void ExportTechLef::exportLayerProperty(const Layer* layer) {
     if (layer->getPropId()) {
-        VectorObject16* vobj =
-            Object::addr<VectorObject16>(layer->getPropId());
-        if (vobj && vobj->totalSize()) {
-            for (int ii = 0; ii < vobj->totalSize(); ++ii) {
+        IdArray* vobj =
+            Object::addr<IdArray>(layer->getPropId());
+        if (vobj && vobj->getSize()) {
+            for (int ii = 0; ii < vobj->getSize(); ++ii) {
                 Property* prop = Object::addr<Property>((*vobj)[ii]);
                 std::ostringstream oss;
                 std::string header = "    PROPERTY ";
@@ -1282,10 +1281,10 @@ void ExportTechLef::exportAllLayers() {
 void ExportTechLef::exportViaMaster() {
     ObjectId vobj_id = tech_lib_->getViaMasterVectorId();
     if (vobj_id == 0) return;
-    VectorObject64* vobj = Object::addr<VectorObject64>(vobj_id);
-    if (!vobj) return;
+    IdArray* arr_ptr = Object::addr<IdArray>(vobj_id);
+    if (!arr_ptr) return;
 
-    for (VectorObject64::iterator iter = vobj->begin(); iter != vobj->end();
+    for (IdArray::iterator iter = arr_ptr->begin(); iter != arr_ptr->end();
          ++iter) {
         ObjectId obj_id = (*iter);
         if (!obj_id) continue;
@@ -1300,10 +1299,10 @@ void ExportTechLef::exportViaMaster() {
 void ExportTechLef::exportViaRule() {
     ObjectId vobj_id = tech_lib_->getViaRuleVectorId();
     if (vobj_id == 0) return;
-    VectorObject64* vobj = Object::addr<VectorObject64>(vobj_id);
-    if (!vobj) return;
+    IdArray* arr_ptr= Object::addr<IdArray>(vobj_id);
+    if (!arr_ptr) return;
 
-    for (VectorObject64::iterator iter = vobj->begin(); iter != vobj->end();
+    for (IdArray::iterator iter = arr_ptr->begin(); iter != arr_ptr->end();
          ++iter) {
         ObjectId obj_id = (*iter);
         if (!obj_id) continue;
@@ -1317,10 +1316,10 @@ void ExportTechLef::exportViaRule() {
 void ExportTechLef::exportNDR() {
     ObjectId vobj_id = tech_lib_->getNonDefaultRuleVectorId();
     if (vobj_id == 0) return;
-    VectorObject16* vobj = Object::addr<VectorObject16>(vobj_id);
-    if (!vobj) return;
+    IdArray* arr_ptr = Object::addr<IdArray>(vobj_id);
+    if (!arr_ptr) return;
 
-    for (VectorObject16::iterator iter = vobj->begin(); iter != vobj->end();
+    for (IdArray::iterator iter = arr_ptr->begin(); iter != arr_ptr->end();
          ++iter) {
         ObjectId obj_id = (*iter);
         if (!obj_id) continue;
@@ -1333,10 +1332,10 @@ void ExportTechLef::exportNDR() {
 }
 
 void ExportTechLef::exportCells() {
-    Cell* top_cell = getTopCell();
-    if (!top_cell) return;
-    for (uint64_t i = 0; i < top_cell->getNumOfCells(); i++) {
-        Cell* cell = top_cell->getCell(i);
+    Tech* tech_lib = getTechLib();
+    if (!tech_lib) return;
+    for (uint64_t i = 0; i < tech_lib->getNumOfCells(); i++) {
+        Cell* cell = tech_lib->getCell(i);
         if (cell) {
             // message->info("print out %dth macro to topcell\n", test_counttt);
             cell->printLEF(ofs_);

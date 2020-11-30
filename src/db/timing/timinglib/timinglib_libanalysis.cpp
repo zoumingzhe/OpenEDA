@@ -626,7 +626,7 @@ bool LibAnalysis::isLibertySyntaxValid() {
 
     return bOk;
 }
-void LibAnalysis::dumpLibFile(const char *const filename,
+bool LibAnalysis::dumpLibFile(const char *const filename,
                               bool clearFileContent /*=true*/) {
     si2drGroupsIdT groups;
     si2drGroupIdT group;
@@ -642,7 +642,7 @@ void LibAnalysis::dumpLibFile(const char *const filename,
             string_format("Could not open %s for writing.", filename);
         (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_NO_ERROR,
                             si2drStringT(str.c_str()), &err);
-        return;
+        return false;
     }
 
     std::string str = string_format("Write file: %s...", filename);
@@ -669,6 +669,8 @@ void LibAnalysis::dumpLibFile(const char *const filename,
     str = string_format("Write file: %s finished.", filename);
     (this->*si2ErrMsg_)(kSI2DR_SEVERITY_NOTE, kSI2DR_NO_ERROR,
                         si2drStringT(str.c_str()), &err);
+
+    return true;
 }
 void LibAnalysis::clean_file_name(char *dirty, char *clean) {
     /* clean (no quotes, no spaces) the name;
@@ -910,30 +912,31 @@ si2drVoidT LibAnalysis::__si2drDefaultMessageHandler(si2drSeverityT sev,
         case kSI2DR_SEVERITY_NOTE:
             sevstr = const_cast<char *>("INFO");
             str = string_format("%s: %s\n", sevstr, auxText);
-            // open_edi::util::message->info("%s\n", auxText);
+            // open_edi::util::message->issueMsg("TIMINGLIB", 14,
+            // open_edi::util::kInfo, auxText);
             break;
         case kSI2DR_SEVERITY_WARN:
             sevstr = const_cast<char *>("WARNING");
             str = string_format("%s: %s\n", sevstr, auxText);
-            // open_edi::util::message->issueMsg(open_edi::util::kWarn, "%s\n",
-            //                                  auxText);
+            // open_edi::util::message->issueMsg("TIMINGLIB", 14,
+            // open_edi::util::kWarn, auxText);
             break;
         case kSI2DR_SEVERITY_ERR:
             sevstr = const_cast<char *>("ERROR");
             if (auxText) {
                 if (!strcmp(errt, "")) {
                     str = string_format("%s: %s\n", sevstr, auxText);
-                    open_edi::util::message->issueMsg(open_edi::util::kError,
-                                                      "%s\n", auxText);
+                    open_edi::util::message->issueMsg(
+                        "TIMINGLIB", 14, open_edi::util::kError, auxText);
                 } else {
                     str = string_format("%s: %s (%s)\n", sevstr, auxText, errt);
                     open_edi::util::message->issueMsg(
-                        open_edi::util::kError, "%s (%s)\n", auxText, errt);
+                        "TIMINGLIB", 15, open_edi::util::kError, auxText, errt);
                 }
             } else {
                 str = string_format("%s: %s\n", sevstr, errt);
-                open_edi::util::message->issueMsg(open_edi::util::kError,
-                                                  "%s\n", errt);
+                open_edi::util::message->issueMsg("TIMINGLIB", 14,
+                                                  open_edi::util::kError, errt);
             }
             break;
     }

@@ -11,10 +11,11 @@
 #include "db/tech/via_rule.h"
 
 #include "db/core/db.h"
-#include "db/util/vector_object_var.h"
+#include "db/util/array.h"
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 // VIARULE
 ViaRule::ViaRule() {
@@ -41,11 +42,11 @@ SymbolIndex ViaRule::getNameIndex() const { return name_index_; }
  * @param name
  */
 bool ViaRule::setName(std::string const &name) {
-    int64_t index = getTopCell()->getOrCreateSymbol(name.c_str());
-    if (index == -1) return false;
+    SymbolIndex index = getTechLib()->getOrCreateSymbol(name.c_str());
+    if (index == kInvalidSymbolIndex) return false;
 
     name_index_ = index;
-    getTopCell()->addSymbolReference(name_index_, this->getId());
+    getTechLib()->addSymbolReference(name_index_, this->getId());
     return true;
 }
 /**
@@ -54,7 +55,7 @@ bool ViaRule::setName(std::string const &name) {
  * @return const char*
  */
 std::string const &ViaRule::getName() {
-    return getTopCell()->getSymbolByIndex(name_index_);
+    return getTechLib()->getSymbolByIndex(name_index_);
 }
 
 /**
@@ -97,7 +98,7 @@ void ViaRule::setIsDefault(bool flag) { is_default_ = flag; }
 uint64_t ViaRule::numProperties() const {
     if (!properties_) return 0;
 
-    return addr<VectorObject16>(properties_)->totalSize();
+    return addr<IdArray>(properties_)->getSize();
 }
 
 /**
@@ -108,17 +109,12 @@ uint64_t ViaRule::numProperties() const {
 void ViaRule::setPropertySize(uint64_t v) {
     if (v == 0) {
         if (properties_) {
-            VectorObject16::deleteDBVectorObjectVar(properties_);
+            __deleteObjectIdArray(properties_);
         }
         return;
     }
     if (!properties_) {
-        VectorObject16 *vobj =
-            VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        ediAssert(vobj != nullptr);
-        // using push_back to insert...remove reserve().
-        // vobj->reserve(v);
-        properties_ = vobj->getId();
+        properties_ = __createObjectIdArray(16);
     }
 }
 
@@ -128,17 +124,17 @@ void ViaRule::setPropertySize(uint64_t v) {
  * @param obj_id
  */
 void ViaRule::addProperty(ObjectId obj_id) {
-    VectorObject16 *vobj = nullptr;
+    IdArray *vobj = nullptr;
     if (obj_id == 0) return;
 
     if (properties_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
-        properties_ = vobj->getId();
+        properties_ = __createObjectIdArray(16);
+        vobj = addr<IdArray>(properties_);
     } else {
-        vobj = addr<VectorObject16>(properties_);
+        vobj = addr<IdArray>(properties_);
     }
     ediAssert(vobj != nullptr);
-    vobj->push_back(obj_id);
+    vobj->pushBack(obj_id);
 }
 
 ObjectId ViaRule::getPropertiesId() const { return properties_; }
@@ -171,16 +167,16 @@ ViaRuleCutLayer *ViaRule::getViaRuleCutLayer() {
 }
 
 ViaRuleCutLayer *ViaRule::creatViaRuleCutLayer() {
-    ViaRuleCutLayer *cut_layer =
-        getTopCell()->createObject<ViaRuleCutLayer>(kObjectTypeViaMaster);
+    ViaRuleCutLayer *cut_layer = Object::createObject<ViaRuleCutLayer>(
+        kObjectTypeViaMaster, getTechLib()->getId());
     cut_layer_ = cut_layer->getId();
 
     return cut_layer;
 }
 
 ViaRuleMetalLayer *ViaRule::creatViaRuleMetalLayer() {
-    ViaRuleMetalLayer *metal_layer =
-        getTopCell()->createObject<ViaRuleMetalLayer>(kObjectTypeViaMaster);
+    ViaRuleMetalLayer *metal_layer = Object::createObject<ViaRuleMetalLayer>(
+        kObjectTypeViaMaster, getTechLib()->getId());
 
     return metal_layer;
 }
@@ -201,15 +197,14 @@ void ViaRule::setViaRuleCutLayer(ViaRuleCutLayer *via_rule) {
  * @param via_master
  */
 void ViaRule::addViaRuleMetalLayer(ViaRuleMetalLayer *metal_layer) {
-    VectorObject64 *metal_layer_vector = nullptr;
+    IdArray *metal_layer_vector = nullptr;
     if (metal_layers_ == 0) {
-        metal_layers_ =
-            getTopCell()->createVectorObject<VectorObject64>()->getId();
+        metal_layers_ = __createObjectIdArray(64);
     }
     if (metal_layers_)
         metal_layer_vector =
-            addr<VectorObject64>(metal_layers_);
-    if (metal_layer_vector) metal_layer_vector->push_back(metal_layer->getId());
+            addr<IdArray>(metal_layers_);
+    if (metal_layer_vector) metal_layer_vector->pushBack(metal_layer->getId());
 }
 
 /**
@@ -219,14 +214,13 @@ void ViaRule::addViaRuleMetalLayer(ViaRuleMetalLayer *metal_layer) {
  * @param via_master_name
  */
 void ViaRule::addViaMaster(ViaMaster *via_master) {
-    VectorObject64 *via_master_vector = nullptr;
+    IdArray *via_master_vector = nullptr;
     if (via_masters_ == 0) {
-        via_masters_ =
-            getTopCell()->createVectorObject<VectorObject64>()->getId();
+        via_masters_ = __createObjectIdArray(64);
     }
     if (via_masters_)
-        via_master_vector = addr<VectorObject64>(via_masters_);
-    if (via_master_vector) via_master_vector->push_back(via_master->getId());
+        via_master_vector = addr<IdArray>(via_masters_);
+    if (via_master_vector) via_master_vector->pushBack(via_master->getId());
 }
 
 /**
@@ -242,9 +236,9 @@ void ViaRule::print() {
         if (is_default_) message->info(" DEFAULT");
     }
     if (metal_layers_) {
-        VectorObject64 *metal_layer_vector =
-            addr<VectorObject64>(metal_layers_);
-        for (VectorObject64::iterator iter = metal_layer_vector->begin();
+        IdArray *metal_layer_vector =
+            addr<IdArray>(metal_layers_);
+        for (IdArray::iterator iter = metal_layer_vector->begin();
              iter != metal_layer_vector->end(); ++iter) {
             ObjectId id = (*iter);
             ViaRuleMetalLayer *metal_layer =
@@ -260,9 +254,9 @@ void ViaRule::print() {
     }
 
     if (via_masters_) {
-        VectorObject64 *via_master_vector =
-            addr<VectorObject64>(via_masters_);
-        for (VectorObject64::iterator iter = via_master_vector->begin();
+        IdArray *via_master_vector =
+            addr<IdArray>(via_masters_);
+        for (IdArray::iterator iter = via_master_vector->begin();
              iter != via_master_vector->end(); ++iter) {
             ObjectId id = (*iter);
             ViaMaster *via_master = addr<ViaMaster>(id);
@@ -287,9 +281,9 @@ void ViaRule::printLEF(std::ofstream &ofs) {
         if (is_default_) ofs << " DEFAULT";
     }
     if (metal_layers_) {
-        VectorObject64 *metal_layer_vector =
-            addr<VectorObject64>(metal_layers_);
-        for (VectorObject64::iterator iter = metal_layer_vector->begin();
+        IdArray *metal_layer_vector =
+            addr<IdArray>(metal_layers_);
+        for (IdArray::iterator iter = metal_layer_vector->begin();
              iter != metal_layer_vector->end(); ++iter) {
             ObjectId id = (*iter);
             ViaRuleMetalLayer *metal_layer =
@@ -305,9 +299,9 @@ void ViaRule::printLEF(std::ofstream &ofs) {
     }
 
     if (via_masters_) {
-        VectorObject64 *via_master_vector =
-            addr<VectorObject64>(via_masters_);
-        for (VectorObject64::iterator iter = via_master_vector->begin();
+        IdArray *via_master_vector =
+            addr<IdArray>(via_masters_);
+        for (IdArray::iterator iter = via_master_vector->begin();
              iter != via_master_vector->end(); ++iter) {
             ObjectId id = (*iter);
             ViaMaster *via_master = addr<ViaMaster>(id);
@@ -318,8 +312,8 @@ void ViaRule::printLEF(std::ofstream &ofs) {
 
     if (numProperties() > 0) {
         ofs << "\n     PROPERTY";
-        VectorObject16 *vobj =
-            addr<VectorObject16>(properties_);
+        IdArray *vobj =
+            addr<IdArray>(properties_);
         for (int i = 0; i < numProperties(); i++) {
             ObjectId obj_id = (*vobj)[i];
             Property *obj_data = addr<Property>(obj_id);
@@ -491,7 +485,7 @@ Int32 ViaRuleMetalLayer::getLayerId() const { return layer_id_; }
 void ViaRuleMetalLayer::setLayerId(Int32 id) { layer_id_ = id; }
 
 void ViaRuleMetalLayer::print(int is_generate) {
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getTechLib();
     Layer *layer = lib->getLayer(layer_id_);
     if (layer) message->info("\n     LAYER %s ;", layer->getName());
     if (!is_generate) {
@@ -510,7 +504,7 @@ void ViaRuleMetalLayer::print(int is_generate) {
 }
 
 void ViaRuleMetalLayer::printLEF(std::ofstream &ofs, int is_generate) {
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getTechLib();
     Layer *layer = lib->getLayer(layer_id_);
     if (layer)
         ofs << "\n     LAYER"
@@ -648,7 +642,7 @@ void ViaRuleCutLayer::setResistancePerCut(float res) {
 }
 
 void ViaRuleCutLayer::print() {
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getTechLib();
     Layer *layer = lib->getLayer(layer_id_);
     if (layer) message->info("\n     LAYER %s ;", layer->getName());
     message->info("\n        RECT %d %d %d %d ;", rect_.getLLX(),
@@ -659,7 +653,7 @@ void ViaRuleCutLayer::print() {
 }
 
 void ViaRuleCutLayer::printLEF(std::ofstream &ofs) {
-    Tech *lib = getTopCell()->getTechLib();
+    Tech *lib = getTechLib();
     Layer *layer = lib->getLayer(layer_id_);
     if (layer) {
         ofs << "\n     LAYER"

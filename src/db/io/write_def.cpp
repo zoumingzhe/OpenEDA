@@ -26,6 +26,7 @@
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 #define OK (0)
 #define ERROR (1)
@@ -359,9 +360,9 @@ static bool writePropertyDefinitions(FILE *fp) {
         ObjectId vobj_id =
             tech_lib->getPropertyDefinitionVectorId(toEnum<PropType, int>(i));
         if (vobj_id == 0) continue;
-        VectorObject32 *vobj = Object::addr< VectorObject32 >(vobj_id);
-        if (!vobj) continue;
-        for (VectorObject32::iterator iter = vobj->begin(); iter != vobj->end();
+        ArrayObject<ObjectId> *arr_ptr = Object::addr<ArrayObject<ObjectId>>(vobj_id);
+        if (!arr_ptr) continue;
+        for (ArrayObject<ObjectId>::iterator iter = arr_ptr->begin(); iter != arr_ptr->end();
              ++iter) {
             ObjectId obj_id = (*iter);
             if (!obj_id) continue;
@@ -437,13 +438,13 @@ static bool writeRows(FILE *fp) {
     if (0 == rows) {
         return true;
     }
-    VectorObject64 *obj_vector = Object::addr< VectorObject64 >(rows);
+    IdArray *obj_vector = Object::addr< IdArray >(rows);
     if (!obj_vector) {
         message->issueMsg(kError,
                           "Cannot find rows vector when writting DEF file.\n");
         return false;
     }
-    for (int i = 0; i < obj_vector->totalSize(); ++i) {
+    for (int i = 0; i < obj_vector->getSize(); ++i) {
         Row *row = Object::addr<Row>((*obj_vector)[i]);
         if (!row) {
             message->issueMsg(
@@ -479,14 +480,14 @@ static bool writeTracks(FILE *fp) {
     if (0 == tracks) {
         return true;
     }
-    VectorObject64 *obj_vector = Object::addr< VectorObject64 >(tracks);
+    IdArray *obj_vector = Object::addr< IdArray >(tracks);
     if (!obj_vector) {
         message->issueMsg(
             kError, "Cannot find tracks vector when writting DEF file.\n");
         return false;
     }
 
-    for (int i = 0; i < obj_vector->totalSize(); ++i) {
+    for (int i = 0; i < obj_vector->getSize(); ++i) {
         Track *track = Object::addr<Track>((*obj_vector)[i]);
         if (!track) {
             message->issueMsg(
@@ -520,15 +521,15 @@ static bool writeGcellGrid(FILE *fp) {
     if (0 == gcell_grids) {
         return true;
     }
-    VectorObject64 *obj_vector =
-        Object::addr< VectorObject64 >(gcell_grids);
+    IdArray *obj_vector =
+        Object::addr< IdArray >(gcell_grids);
     if (!obj_vector) {
         message->issueMsg(
             kError, "Cannot find gcell grid vector when writting DEF file.\n");
         return false;
     }
 
-    for (int i = 0; i < obj_vector->totalSize(); ++i) {
+    for (int i = 0; i < obj_vector->getSize(); ++i) {
         Grid *gcell_grid = Object::addr<Grid>((*obj_vector)[i]);
         if (!gcell_grid) {
             message->issueMsg(
@@ -544,9 +545,9 @@ static bool writeVias(FILE *fp) {
     Tech *lib = getTopCell()->getTechLib();
     ObjectId vias = lib->getViaMasterVectorId();
     if (vias == 0) return true;
-    VectorObject64 *via_vector = Object::addr< VectorObject64 >(vias);
+    ArrayObject<ObjectId> *via_vector = Object::addr<ArrayObject<ObjectId>>(vias);
     int num_vias = 0;
-    for (int i = 0; i < via_vector->totalSize(); ++i) {
+    for (int i = 0; i < via_vector->getSize(); ++i) {
         ViaMaster *via = Object::addr<ViaMaster>((*via_vector)[i]);
         if (!via) {
             continue;
@@ -555,7 +556,7 @@ static bool writeVias(FILE *fp) {
         ++num_vias;
     }
     fprintf(fp, "\nVIAS %d ;\n", num_vias);
-    for (int i = 0; i < via_vector->totalSize(); ++i) {
+    for (int i = 0; i < via_vector->getSize(); ++i) {
         ViaMaster *via = Object::addr<ViaMaster>((*via_vector)[i]);
         if (!via) {
             message->issueMsg(
@@ -589,12 +590,12 @@ static bool writeNonDefaultRules(FILE *fp) {
 
     ObjectId vobj_id = tech_lib->getNonDefaultRuleVectorId();
     if (vobj_id == 0) return true;
-    VectorObject16 *vobj = Object::addr<VectorObject16>(vobj_id);
-    if (!vobj) return true;
+    ArrayObject<ObjectId> *arr_ptr = Object::addr<ArrayObject<ObjectId>>(vobj_id);
+    if (!arr_ptr) return true;
     int defrule_count = 0;
     int nondefault_count = 0;
 
-    for (VectorObject16::iterator iter = vobj->begin(); iter != vobj->end();
+    for (ArrayObject<ObjectId>::iterator iter = arr_ptr->begin(); iter != arr_ptr->end();
          ++iter) {
         ObjectId obj_id = (*iter);
         if (!obj_id) continue;
@@ -614,7 +615,7 @@ static bool writeNonDefaultRules(FILE *fp) {
 
     fprintf(fp, "NONDEFAULTRULES %d ;\n", nondefault_count);
 
-    for (VectorObject16::iterator iter = vobj->begin(); iter != vobj->end();
+    for (ArrayObject<ObjectId>::iterator iter = arr_ptr->begin(); iter != arr_ptr->end();
          ++iter) {
         ObjectId obj_id = (*iter);
         if (!obj_id) continue;
@@ -654,8 +655,8 @@ static bool writeRegions(FILE *fp) {
             "#############\n");
     fprintf(fp, "REGIONS %d ;\n", region_num);
     ObjectId regions_id = floorplan->getRegions();
-    VectorObject32 *obj_vector =
-        Object::addr< VectorObject32 >(regions_id);
+    IdArray *obj_vector =
+        Object::addr< IdArray >(regions_id);
     for (int i = 0; i < region_num; i++) {
         Constraint *region =
             Object::addr<Constraint>((*obj_vector)[i]);
@@ -778,7 +779,7 @@ static bool writePins(FILE *fp) {
                 AntennaArea *a = term->getAntennaPartialMetalArea(i);
                 fprintf(fp, "      + ANTENNAPINPARTIALMETALAREA %f",
                         a->getArea());
-                if (a->getLayerNameID() >= 0) {
+                if (a->getLayerNameID() != kInvalidSymbolIndex) {
                     fprintf(fp, " LAYER %s\n", a->getLayerName().c_str());
                 } else {
                     fprintf(fp, "\n");
@@ -791,7 +792,7 @@ static bool writePins(FILE *fp) {
                 AntennaArea *a = term->getAntennaPartialMetalSideArea(i);
                 fprintf(fp, "      + ANTENNAPINPARTIALMETALSIDEAREA %f",
                         a->getArea());
-                if (a->getLayerNameID() >= 0) {
+                if (a->getLayerNameID() != kInvalidSymbolIndex) {
                     fprintf(fp, " LAYER %s\n", a->getLayerName().c_str());
                 } else {
                     fprintf(fp, "\n");
@@ -803,7 +804,7 @@ static bool writePins(FILE *fp) {
                 AntennaArea *a = term->getAntennaPartialCutArea(i);
                 fprintf(fp, "      + ANTENNAPINPARTIALCUTAREA %f",
                         a->getArea());
-                if (a->getLayerNameID() >= 0) {
+                if (a->getLayerNameID() != kInvalidSymbolIndex) {
                     fprintf(fp, " LAYER %s\n", a->getLayerName().c_str());
                 } else {
                     fprintf(fp, "\n");
@@ -814,7 +815,7 @@ static bool writePins(FILE *fp) {
             for (int i = 0; i < term->getAntennaDiffAreaNum(); i++) {
                 AntennaArea *a = term->getAntennaDiffArea(i);
                 fprintf(fp, "      + ANTENNAPINDIFFAREA %f", a->getArea());
-                if (a->getLayerNameID() >= 0) {
+                if (a->getLayerNameID() != kInvalidSymbolIndex) {
                     fprintf(fp, " LAYER %s\n", a->getLayerName().c_str());
                 } else {
                     fprintf(fp, "\n");
@@ -830,7 +831,7 @@ static bool writePins(FILE *fp) {
                         AntennaArea *a = am->getAntennaGateArea(i);
                         fprintf(fp, "          + ANTENNAPINGATEAREA %f",
                                 a->getArea());
-                        if (a->getLayerNameID() >= 0) {
+                        if (a->getLayerNameID() != kInvalidSymbolIndex) {
                             fprintf(fp, " LAYER %s\n",
                                     a->getLayerName().c_str());
                         } else {
@@ -843,7 +844,7 @@ static bool writePins(FILE *fp) {
                         AntennaArea *a = am->getAntennaMaxAreaCar(i);
                         fprintf(fp, "          + ANTENNAPINMAXAREACAR %f",
                                 a->getArea());
-                        if (a->getLayerNameID() >= 0) {
+                        if (a->getLayerNameID() != kInvalidSymbolIndex) {
                             fprintf(fp, " LAYER %s\n",
                                     a->getLayerName().c_str());
                         } else {
@@ -857,7 +858,7 @@ static bool writePins(FILE *fp) {
                         AntennaArea *a = am->getAntennaMaxSideAreaCar(i);
                         fprintf(fp, "          + ANTENNAPINMAXSIDEAREACAR %f",
                                 a->getArea());
-                        if (a->getLayerNameID() >= 0) {
+                        if (a->getLayerNameID() != kInvalidSymbolIndex) {
                             fprintf(fp, " LAYER %s\n",
                                     a->getLayerName().c_str());
                         } else {
@@ -870,7 +871,7 @@ static bool writePins(FILE *fp) {
                         AntennaArea *a = am->getAntennaMaxCutCar(i);
                         fprintf(fp, "          + ANTENNAPINMAXCUTCAR %f",
                                 a->getArea());
-                        if (a->getLayerNameID() >= 0) {
+                        if (a->getLayerNameID() != kInvalidSymbolIndex) {
                             fprintf(fp, " LAYER %s\n",
                                     a->getLayerName().c_str());
                         } else {
@@ -1050,9 +1051,9 @@ static bool writeBlockages(FILE *fp) {
     }
 
     ObjectId route_blockages = floorplan->getRouteBlockages();
-    VectorObject32 *route_vector = nullptr;
+    IdArray *route_vector = nullptr;
     if (route_blockages > 0) {
-        route_vector = Object::addr< VectorObject32 >(route_blockages);
+        route_vector = Object::addr< IdArray >(route_blockages);
         if (!route_vector) {
             message->issueMsg(
                 kError,
@@ -1061,9 +1062,9 @@ static bool writeBlockages(FILE *fp) {
         }
     }
     ObjectId place_blockages = floorplan->getPlaceBlockages();
-    VectorObject32 *place_vector = nullptr;
+    IdArray *place_vector = nullptr;
     if (place_blockages > 0) {
-        place_vector = Object::addr< VectorObject32 >(place_blockages);
+        place_vector = Object::addr< IdArray >(place_blockages);
         if (!place_vector) {
             message->issueMsg(
                 kError,
@@ -1100,7 +1101,7 @@ static bool writeBlockages(FILE *fp) {
 
     fprintf(fp, "BLOCKAGES %d ;\n", sum_blockages);
     if (route_vector) {
-        for (int i = 0; i < route_vector->totalSize(); ++i) {
+        for (int i = 0; i < route_vector->getSize(); ++i) {
             Constraint *route_blockage =
                 Object::addr<Constraint>((*route_vector)[i]);
             if (!route_blockage) {
@@ -1114,7 +1115,7 @@ static bool writeBlockages(FILE *fp) {
         }
     }
     if (place_vector) {
-        for (int i = 0; i < place_vector->totalSize(); ++i) {
+        for (int i = 0; i < place_vector->getSize(); ++i) {
             Constraint *place_blockage =
                 Object::addr<Constraint>((*place_vector)[i]);
             if (!place_blockage) {

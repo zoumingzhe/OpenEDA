@@ -125,12 +125,12 @@ TCell *TLib::add_timing_cell(const std::string &name) {
     attr.set_name(name);
     cell->setAttr(&attr);
 
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(name.c_str());
-        if (index != -1) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
             timing_cells_map_[index] = cell->getId();
-            topCell->addSymbolReference(index, cell->getId());
+            timing_lib->addSymbolReference(index, cell->getId());
         }
     }
 
@@ -141,12 +141,12 @@ OperatingConditions *TLib::add_operating_conditions(const std::string &name) {
     auto oc = __addOperatingConditionsImpl();
     oc->set_name(name);
 
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        int64_t index = topCell->getOrCreateSymbol(name.c_str());
-        if (index != -1) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
             operating_conditions_map_[index] = oc->getId();
-            topCell->addSymbolReference(index, oc->getId());
+            timing_lib->addSymbolReference(index, oc->getId());
         }
     }
 
@@ -154,15 +154,16 @@ OperatingConditions *TLib::add_operating_conditions(const std::string &name) {
 }
 
 WireLoad *TLib::add_wire_load(const std::string &name) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
         ArrayObject<ObjectId> *object_array = nullptr;
         if (wire_loads_ == UNINIT_OBJECT_ID) {
             object_array =
-                topCell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+                timing_lib->createObject<ArrayObject<ObjectId>>(
+                    kObjectTypeArray, timing_lib->getId());
             if (object_array != nullptr) {
                 wire_loads_ = object_array->getId();
-                object_array->setPool(topCell->getPool());
+                object_array->setPool(timing_lib->getPool());
                 object_array->reserve(32);
             }
         } else {
@@ -170,7 +171,8 @@ WireLoad *TLib::add_wire_load(const std::string &name) {
                 addr<ArrayObject<ObjectId>>(wire_loads_);
         }
         if (object_array != nullptr) {
-            auto p = topCell->createObject<WireLoad>(kObjectTypeWireLoad);
+            auto p = timing_lib->createObject<WireLoad>(
+                kObjectTypeWireLoad, timing_lib->getId());
             if (p) {
                 p->setOwner(this);
                 p->set_name(name);
@@ -184,15 +186,16 @@ WireLoad *TLib::add_wire_load(const std::string &name) {
     return nullptr;
 }
 WireLoadTable *TLib::add_wire_load_table(const std::string &name) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
         ArrayObject<ObjectId> *object_array = nullptr;
         if (wire_load_tables_ == UNINIT_OBJECT_ID) {
             object_array =
-                topCell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+                timing_lib->createObject<ArrayObject<ObjectId>>(
+                    kObjectTypeArray, timing_lib->getId());
             if (object_array != nullptr) {
                 wire_load_tables_ = object_array->getId();
-                object_array->setPool(topCell->getPool());
+                object_array->setPool(timing_lib->getPool());
                 object_array->reserve(32);
             }
         } else {
@@ -201,7 +204,8 @@ WireLoadTable *TLib::add_wire_load_table(const std::string &name) {
         }
         if (object_array != nullptr) {
             auto p =
-                topCell->createObject<WireLoadTable>(kObjectTypeWireLoadTable);
+                timing_lib->createObject<WireLoadTable>(
+                    kObjectTypeWireLoadTable, timing_lib->getId());
             if (p) {
                 p->setOwner(this);
                 p->set_name(name);
@@ -215,15 +219,16 @@ WireLoadTable *TLib::add_wire_load_table(const std::string &name) {
     return nullptr;
 }
 WireLoadSelection *TLib::add_wire_load_selection(const std::string &name) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
         ArrayObject<ObjectId> *object_array = nullptr;
         if (wire_load_selections_ == UNINIT_OBJECT_ID) {
             object_array =
-                topCell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+                timing_lib->createObject<ArrayObject<ObjectId>>(
+                    kObjectTypeArray, timing_lib->getId());
             if (object_array != nullptr) {
                 wire_load_selections_ = object_array->getId();
-                object_array->setPool(topCell->getPool());
+                object_array->setPool(timing_lib->getPool());
                 object_array->reserve(32);
             }
         } else {
@@ -231,8 +236,8 @@ WireLoadSelection *TLib::add_wire_load_selection(const std::string &name) {
                 wire_load_selections_);
         }
         if (object_array != nullptr) {
-            auto p = topCell->createObject<WireLoadSelection>(
-                kObjectTypeWireLoadSelection);
+            auto p = timing_lib->createObject<WireLoadSelection>(
+                kObjectTypeWireLoadSelection, timing_lib->getId());
             if (p) {
                 p->setOwner(this);
                 p->set_name(name);
@@ -246,15 +251,16 @@ WireLoadSelection *TLib::add_wire_load_selection(const std::string &name) {
     return nullptr;
 }
 TableTemplate *TLib::add_table_template(const std::string &name) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
         ArrayObject<ObjectId> *object_array = nullptr;
         if (table_templates_ == UNINIT_OBJECT_ID) {
             object_array =
-                topCell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+                timing_lib->createObject<ArrayObject<ObjectId>>(
+                    kObjectTypeArray, timing_lib->getId());
             if (object_array != nullptr) {
                 table_templates_ = object_array->getId();
-                object_array->setPool(topCell->getPool());
+                object_array->setPool(timing_lib->getPool());
                 object_array->reserve(32);
             }
         } else {
@@ -263,7 +269,8 @@ TableTemplate *TLib::add_table_template(const std::string &name) {
         }
         if (object_array != nullptr) {
             auto p =
-                topCell->createObject<TableTemplate>(kObjectTypeTableTemplate);
+                timing_lib->createObject<TableTemplate>(
+                    kObjectTypeTableTemplate, timing_lib->getId());
             if (p) {
                 p->setOwner(this);
                 p->set_name(name);
@@ -284,8 +291,9 @@ ScaleFactors *TLib::get_or_create_scaling_factors(const std::string &name) {
     if (scaling_factors_ != UNINIT_OBJECT_ID) {
         return addr<ScaleFactors>(scaling_factors_);
     } else {
-        Cell *topCell = getTopCell();
-        auto p = topCell->createObject<ScaleFactors>(kObjectTypeScaleFactors);
+        Timing *timing_lib = getTimingLib();
+        auto p = timing_lib->createObject<ScaleFactors>(
+                  kObjectTypeScaleFactors, timing_lib->getId());
         if (p) {
             p->setOwner(this);
             p->set_name(name);
@@ -299,8 +307,9 @@ TUnits *TLib::get_or_create_units() {
     if (units_ != UNINIT_OBJECT_ID) {
         return addr<TUnits>(units_);
     } else {
-        Cell *topCell = getTopCell();
-        auto p = topCell->createObject<TUnits>(kObjectTypeTUnits);
+        Timing *timing_lib = getTimingLib();
+        auto p = timing_lib->createObject<TUnits>(
+                  kObjectTypeTUnits, timing_lib->getId());
         if (p) {
             p->setOwner(this);
             units_ = p->getId();
@@ -348,10 +357,10 @@ WireLoadSelection *TLib::get_default_wire_load_selection(void) const {
 }
 OperatingConditions *TLib::get_operating_conditions(
     const std::string &name) const {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto it = operating_conditions_map_.find(idx);
             if (it != operating_conditions_map_.end())
                 return addr<OperatingConditions>(it->second);
@@ -360,10 +369,10 @@ OperatingConditions *TLib::get_operating_conditions(
     return nullptr;
 }
 WireLoad *TLib::get_wire_load(const std::string &name) const {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto it = wire_loads_map_.find(idx);
             if (it != wire_loads_map_.end())
                 return addr<WireLoad>(it->second);
@@ -372,10 +381,10 @@ WireLoad *TLib::get_wire_load(const std::string &name) const {
     return nullptr;
 }
 WireLoadTable *TLib::get_wire_load_table(const std::string &name) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto it = wire_load_tables_map_.find(idx);
             if (it != wire_load_tables_map_.end())
                 return addr<WireLoadTable>(it->second);
@@ -385,10 +394,10 @@ WireLoadTable *TLib::get_wire_load_table(const std::string &name) {
 }
 WireLoadSelection *TLib::get_wire_load_selection(
     const std::string &name) const {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto it = wire_load_selections_map_.find(idx);
             if (it != wire_load_selections_map_.end())
                 return addr<WireLoadSelection>(it->second);
@@ -397,10 +406,10 @@ WireLoadSelection *TLib::get_wire_load_selection(
     return nullptr;
 }
 TableTemplate *TLib::get_table_template(const std::string &name) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto it = table_templates_map_.find(idx);
             if (it != table_templates_map_.end())
                 return addr<TableTemplate>(it->second);
@@ -409,10 +418,10 @@ TableTemplate *TLib::get_table_template(const std::string &name) {
     return nullptr;
 }
 TCell *TLib::get_timing_cell(const std::string &name) {
-    Cell *topCell = getTopCell();
-    if (topCell) {
-        int64_t idx = topCell->getOrCreateSymbol(name.c_str());
-        if (idx != -1) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
+        if (idx != kInvalidSymbolIndex) {
             auto it = timing_cells_map_.find(idx);
             if (it != timing_cells_map_.end())
                 return addr<TCell>(it->second);
@@ -536,10 +545,10 @@ void TLib::move(TLib &&rhs) {
 template <typename T>
 void output_map(const std::unordered_map<SymbolIndex, ObjectId> &origmap,
                 OStreamBase *os) {
-    Cell *topCell = getTopCell();
+    Timing *timing_lib = getTimingLib();
     std::map<std::string, T *> sorted_map;
     for (auto &v : origmap) {
-        std::string str = topCell->getSymbolByIndex(v.first);
+        std::string str = timing_lib->getSymbolByIndex(v.first);
         auto p = Object::addr<T>(v.second);
         if (str != "" && p != nullptr) sorted_map[str] = p;
     }
@@ -658,21 +667,23 @@ OStreamBase &operator<<(OStreamBase &os, TLib const &rhs) {
 }
 
 TCell *TLib::__addTCellImpl() {
-    Cell *topCell = getTopCell();
-    if (topCell) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
         ArrayObject<ObjectId> *p = nullptr;
         if (timing_cells_ == UNINIT_OBJECT_ID) {
-            p = topCell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+            p = Object::createObject<ArrayObject<ObjectId>>(
+                kObjectTypeArray, timing_lib->getId());
             if (p != nullptr) {
                 timing_cells_ = p->getId();
-                p->setPool(topCell->getPool());
+                p->setPool(timing_lib->getPool());
                 p->reserve(32);
             }
         } else {
             p = addr<ArrayObject<ObjectId>>(timing_cells_);
         }
         if (p != nullptr) {
-            auto c = topCell->createObject<TCell>(kObjectTypeTCell);
+            auto c = Object::createObject<TCell>(
+                      kObjectTypeTCell, timing_lib->getId());
             if (c) {
                 c->setOwner(this);
                 ObjectId id = c->getId();
@@ -685,15 +696,15 @@ TCell *TLib::__addTCellImpl() {
 }
 
 OperatingConditions *TLib::__addOperatingConditionsImpl() {
-    Cell *topCell = getTopCell();
-    if (topCell) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
         ArrayObject<ObjectId> *object_array = nullptr;
         if (operating_conditions_ == UNINIT_OBJECT_ID) {
             object_array =
-                topCell->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+                Object::createObject<ArrayObject<ObjectId>>(kObjectTypeArray, timing_lib->getId());
             if (object_array != nullptr) {
                 operating_conditions_ = object_array->getId();
-                object_array->setPool(topCell->getPool());
+                object_array->setPool(timing_lib->getPool());
                 object_array->reserve(32);
             }
         } else {
@@ -701,8 +712,8 @@ OperatingConditions *TLib::__addOperatingConditionsImpl() {
                 operating_conditions_);
         }
         if (object_array != nullptr) {
-            auto c = topCell->createObject<OperatingConditions>(
-                kObjectTypeOperatingConditions);
+            auto c = timing_lib->createObject<OperatingConditions>(
+                kObjectTypeOperatingConditions, timing_lib->getId());
             if (c) {
                 c->setOwner(this);
                 ObjectId id = c->getId();

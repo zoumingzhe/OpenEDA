@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.8.2)
 
 project(DREAMPlace)
-
-if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  
+if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT AND (NOT CMAKE_PLACE))
     set (CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/install" CACHE PATH "Prefix prepended to install directories" FORCE )
 endif()
 message(STATUS "CMAKE_INSTALL_PREFIX: ${CMAKE_INSTALL_PREFIX}")
@@ -24,9 +24,11 @@ add_definitions(-D_GLIBCXX_USE_CXX11_ABI=${CMAKE_CXX_ABI})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 find_program(PYTHON "python" REQUIRED)
+find_package(Python 3.5 REQUIRED COMPONENTS Interpreter Development)
+
 find_package(ZLIB REQUIRED)
 set(Boost_NO_BOOST_CMAKE TRUE)
 find_package(Boost 1.55.0 REQUIRED)
@@ -105,3 +107,68 @@ install(
 install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/dreamplace/configure.py DESTINATION dreamplace
     )
+
+# new added for open-edi
+if (CMAKE_PLACE)
+    if (FALSE AND CUDA_FOUND)
+        file(GLOB CUDA_SOURCES
+            "${CMAKE_CURRENT_SOURCE_DIR}/dreamplace/ops/flow/src/*.cu"
+            )
+        set(CUDA_LINKED ${PROJECT_NAME}_cuda_linked)
+        set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+        set(CUDA_SEPARABLE_COMPILATION TRUE)
+        list(APPEND CUDA_NVCC_FLAGS
+            -O3 -std=c++14 ${CMAKE_CUDA_FLAGS} 
+            )
+        list(APPEND CUDA_NVCC_FLAGS --compiler-options -fPIC)
+    
+        cuda_add_library(
+            ${CUDA_LINKED} STATIC 
+            ${CUDA_SOURCES}
+            )
+        set_target_properties( ${CUDA_LINKED}
+            PROPERTIES CUDA_SEPARABLE_COMPILATION ON
+            )
+    endif(FALSE AND CUDA_FOUND)
+    
+    file(GLOB_RECURSE SRCS
+        ${CMAKE_CURRENT_SOURCE_DIR}/dreamplace/ops/utility/*.cpp
+        )
+    link_directories(
+        ${PROJECT_BINARY_DIR}/src/db
+        ${PROJECT_BINARY_DIR}/src/parser
+        ${PROJECT_BINARY_DIR}/src/util
+        ${PROJECT_BINARY_DIR}/src/gui
+        ${PROJECT_BINARY_DIR}/src/console
+        ${PROJECT_BINARY_DIR}/src/infra
+        ${TCL_DIR}/lib
+        ${Boost_LIBRARY_DIRS}
+        ${PROFILER_DIR}/lib
+        ${LIMBO_BINARY_DIR}
+        ${MUNKRES_CPP_LINK_DIRS}
+        ${LEMON_INCLUDE_DIRS}
+        )
+        
+    add_library(${PROJECT_NAME_LOWERCASE}_DREAMPlace STATIC 
+        ${SRCS}
+        )
+    target_link_libraries(${PROJECT_NAME_LOWERCASE}_DREAMPlace PUBLIC
+        place_tcl_command place_flow place_abacus_legalize place_global_swap place_greedy_legalize
+        place_independent_set_matching place_k_reorder place_legality_check
+        place_macro_legalize place_wire_length
+        )
+    target_include_directories(${PROJECT_NAME_LOWERCASE}_DREAMPlace PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/..
+        ${CMAKE_CURRENT_SOURCE_DIR}/dreamplace/ops
+        ${LIMBO_SOURCE_DIR}
+        ${PROFILER_DIR}/include
+        ${TCL_DIR}/include
+        ${CUDA_LINKED} PUBLIC
+        ${CUB_DIR}
+        ${Boost_INCLUDE_DIRS}
+        ${MUNKRES_CPP_INCLUDE_DIRS}
+        ${LEMON_INCLUDE_DIRS}
+        )
+endif(CMAKE_PLACE)
+# end of open-edi

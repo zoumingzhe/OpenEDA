@@ -63,7 +63,7 @@ class GeometryVia: public Object{
     GeometryVia() {}
     ~GeometryVia() {}
     SymbolTable* getSymbolTable();
-    int64_t getOrCreateSymbol(const char *name);
+    SymbolIndex getOrCreateSymbol(const char *name);
     void setName(const char *value) { name_index_ = getOrCreateSymbol(value); }
     std::string getName();
     void setPoint(Point value) { p_ = value; }
@@ -88,7 +88,7 @@ class LayerGeometry: public Object{
      LayerGeometry();
      ~LayerGeometry();
      SymbolTable* getSymbolTable();
-    int64_t getOrCreateSymbol(const char *name);
+    SymbolIndex getOrCreateSymbol(const char *name);
     GeometryType getType() const { return type_; }
     void setType(GeometryType t) { type_ = t; }
     void addGeometry(ObjectId id);

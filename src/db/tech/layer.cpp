@@ -9,12 +9,12 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 #include "db/core/cell.h"
-#include "db/util/vector_object_var.h"
 #include "db/tech/layer.h"
 #include "db/core/db.h"
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 /**
  * @brief
@@ -2053,17 +2053,10 @@ void MinArea::setOverlap(UInt32 ol) {
     layer_overlap_ = (ol & 0x3); // layer_overlap_ occupies 2 Bits
 }
 
-/// @brief initializeCell_ 
-void Layer::initializeCell_()
-{
-    setObjectType(kObjectTypeLayer);
-    cell_ = nullptr;
-}
-
 /// @brief Layer 
 Layer::Layer()
 {
-    initializeCell_();
+    
 }
 
 /**
@@ -2101,14 +2094,14 @@ Layer::~Layer() {
     }
 }
 
-/// @brief getCell_ 
+/// @brief getTech_ 
 ///
 /// @return 
-Cell *Layer::getCell_()
+Tech *Layer::getTech_()
 {
-    if (nullptr != cell_) return cell_;
-    cell_ = addr<Cell>(getOwnerId());
-    return cell_;
+    if (nullptr != tech_) return tech_;
+    tech_ = addr<Tech>(getOwnerId());
+    return tech_;
 }
 
 /// @brief getNameId 
@@ -2122,8 +2115,7 @@ uint64_t Layer::getNameId() const {
 ///
 /// @return 
 const char* Layer::getName() {
-    std::string name = getCell_()->getSymbolByIndex(nameId_);
-    return name.c_str();
+    return getTech_()->getSymbolByIndex(nameId_).c_str();
 }
 
 /**
@@ -2141,8 +2133,8 @@ void Layer::setNameId(uint64_t id) {
 ///
 /// @return 
 bool Layer::setName(const char *name) {
-    SymbolIndex sym_id = getCell_()->getOrCreateSymbol(name);
-    if (sym_id >= 0) {
+    SymbolIndex sym_id = getTech_()->getOrCreateSymbol(name);
+    if (sym_id != kInvalidSymbolIndex) {
         setNameId(sym_id);
         return true;
     }
@@ -2599,22 +2591,22 @@ void Layer::setWidth(UInt32 w) {
 
 /**
  * @brief 
- * create and reserve minarea to VectorObject, and return the created minarea
+ * create and reserve minarea to array object, and return the created minarea
  *
  * @return MinArea
  */
 MinArea* Layer::createMinArea() {
-    MinArea* ma = getTopCell()->createObject<MinArea>(kObjectTypeLayerMinArea);
+    MinArea* ma = Object::createObject<MinArea>(
+          kObjectTypeLayerMinArea, getTechLib()->getId());
     if (!ma)
       return nullptr;
-    MinAreaVectorBucket *ma_vector = nullptr;
+    IdArray *ma_vector = nullptr;
     if (min_area_id_ == 0) {
-      ma_vector = createVectorObject<MinAreaVectorBucket>();
-      min_area_id_ = ma_vector->getId();
-    } else {
-      ma_vector = addr<MinAreaVectorBucket>(min_area_id_);
+      min_area_id_ = __createObjectIdArray(8);
     }
-    ma_vector->push_back(ma->getId());
+    ma_vector = addr<IdArray>(min_area_id_);
+    ediAssert(ma_vector != nullptr);
+    ma_vector->pushBack(ma->getId());
     return ma;
 }
 
@@ -2912,15 +2904,14 @@ void Layer::setDirection(UInt32 v) {
 
 void Layer::addProp(ObjectId obj_id) {
     if (obj_id == 0) return;
-    VectorObject16 *vobj = nullptr;
+    IdArray *vobj = nullptr;
 
     if (properties_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true/*is_header*/);
-        properties_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(properties_);
+        properties_ = __createObjectIdArray(16);
     }
-    vobj->push_back(obj_id);
+    vobj = addr<IdArray>(properties_);
+    ediAssert(vobj != nullptr);
+    vobj->pushBack(obj_id);
 }
 
 ObjectId Layer::getPropId() const {

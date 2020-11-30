@@ -170,7 +170,7 @@ class LibAnalysis {
                                                libsynt_attr_type type,
                                                void *constraint_ptr);
     bool isLibertySyntaxValid();
-    void dumpLibFile(const char *const filename, bool clearFileContent = true);
+    bool dumpLibFile(const char *const filename, bool clearFileContent = true);
 
     void clean_file_name(char *dirty, char *clean);
     si2drValueTypeT convert_vt(char *type);
