@@ -117,19 +117,19 @@ Box Inst::getBox() {
     // size_y += origin_y;
 
     if (getOrient() == Orient::kN || getOrient() == Orient::kS ||
-        getOrient() == Orient::kW || getOrient() == Orient::kE) {
+        getOrient() == Orient::kFN || getOrient() == Orient::kFS) {
         llx = getLocation().getX();
         lly = getLocation().getY();
         urx = llx + size_x;
         ury = lly + size_y;
     }
 
-    if (getOrient() == Orient::kFN || getOrient() == Orient::kFS ||
+    if (getOrient() == Orient::kW || getOrient() == Orient::kE ||
         getOrient() == Orient::kFW || getOrient() == Orient::kFE) {
-        llx = getLocation().getX() - size_x;
+        llx = getLocation().getX();
         lly = getLocation().getY();
-        urx = getLocation().getX();
-        ury = getLocation().getY() + size_y;
+        urx = llx + size_y;
+        ury = lly + size_x;
     }
 
     Box bbox(llx, lly, urx, ury);
