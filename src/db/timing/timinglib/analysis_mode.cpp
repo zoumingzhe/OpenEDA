@@ -113,6 +113,18 @@ void AnalysisMode::add_constraint_file(const std::string& file) {
     }
 }
 
+void AnalysisMode::create_sdc(void) {
+    sdc_ = std::make_shared<Sdc>();
+    assert(sdc_);
+    if (sdc_ == nullptr) {
+        //TODO messages
+    }
+}
+
+void AnalysisMode::set_sdc(SdcPtr sdc) {
+    sdc_ = sdc;
+}
+
 /// get
 SymbolIndex AnalysisMode::get_name_index(void) { return name_; }
 std::string AnalysisMode::get_name(void) const {
@@ -146,6 +158,9 @@ std::string AnalysisMode::get_constraint_file(SymbolIndex index) const {
     }
     return "";
 }
+
+SdcPtr AnalysisMode::get_sdc(void) const { return sdc_; }
+
 int AnalysisMode::num_contraint_files(void) const {
     if (constraint_files_ != UNINIT_OBJECT_ID) {
         auto p =

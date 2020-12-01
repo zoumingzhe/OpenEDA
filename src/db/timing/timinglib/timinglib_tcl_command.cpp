@@ -619,6 +619,7 @@ int createAnalysisModeCommand(ClientData cld, Tcl_Interp *itp, int argc,
             return TCL_ERROR;
         }
         mode->add_constraint_file(args.constraint_file);
+        mode->create_sdc();
 
         open_edi::util::message->info("Creating mode %s successfully.\n",
                                       args.name.c_str());

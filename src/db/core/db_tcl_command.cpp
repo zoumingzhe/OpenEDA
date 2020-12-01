@@ -23,6 +23,7 @@
 #include "db/io/write_lef.h"
 #include "db/io/write_verilog.h"
 #include "db/timing/timinglib/timinglib_tcl_command.h"
+#include "db/timing/sdc/register_sdc_commands.h"
 #include "db/timing/spef/spef_tcl_command.h"
 #include "util/util.h"
 #include "infra/command_manager.h"
@@ -453,6 +454,8 @@ void registerDatabaseTclCommands(Tcl_Interp *itp) {
     // testing commands. TODO: remove them.
     Tcl_CreateCommand(itp, "__create_cell", createCellCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "__report_cell", reportCellCommand, NULL, NULL);
+    // sdc tcl commands
+    registerSdcCommands(itp);
 }
 
 } // namespace db
