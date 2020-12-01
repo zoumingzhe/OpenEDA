@@ -28,12 +28,25 @@ const char kDBFilePostFix[] = ".db";
 const char kSymFilePostFix[] = ".sym";
 const char kPolyFilePostFix[] = ".poly";
 const char kPropFilePostFix[] = ".prop";
-const char kTopDirName[] = "top_cell_name";
-const char kLibSubDirName[] = "top_cell_name/Libs";
+const char kLibSubDirName[] = "/Libs";
 const char kTechLibName[] =  "lef";
 const char kTimingLibName[] =  "liberty";
 const int OK = 0;     // equals to TCL_OK
 const int ERROR = 1;  // equals to TCL_ERROR
+
+const char kMsgCategoryDB[] = "DB";
+enum readWriteDesignMsgId {
+    ReadDesignOk = 100,
+    WriteDesignOk = 101,
+    OpenFileError = 102,
+    CheckSumError = 103,
+    CheckSumOk = 104,
+    ReadDesignOkVerbose = 105,
+    ReadDesignInitError = 106,
+    CreateDirError = 107,
+    WriteFileError = 108,
+    RenameCellVerbose = 109
+};
 
 class ReadDesign {
  public:
