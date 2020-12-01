@@ -13,6 +13,8 @@
 #include "db/core/root.h"
 #include "db/util/symbol_table.h"
 #include "util/polygon_table.h"
+#include "db/core/object.h"
+#include "db/util/array.h"
 
 namespace open_edi {
 namespace db {
