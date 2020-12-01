@@ -2809,7 +2809,7 @@ int readPin(defiPin* def_pin) {
     pin->setNet(top_cell->getNet(net_name));
     pin->setInst(0);  // IO pin has no instance
     if (def_pin->hasSpecial()) {
-        pin->setHasSpecial(true);
+        pin->setIsSpecial(true);
     }
     // set term attributes for IO pin, reuse term definition
     if (def_pin->hasDirection()) {
