@@ -57,7 +57,8 @@ target_include_directories(${PROJECT_NAME_LOWERCASE}_db PUBLIC
     ${PROFILER_DIR}/include
     ${CMAKE_CURRENT_BINARY_DIR} 
     ${CMAKE_CURRENT_SOURCE_DIR}/timing/timinglib
-    ${CMAKE_CURRENT_SOURCE_DIR}/timing/spef)
+    ${CMAKE_CURRENT_SOURCE_DIR}/timing/spef
+    ${CMAKE_CURRENT_SOURCE_DIR}/timing/sdc)
 
 # for yosys parser verilog
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_YOSYS_ -DYOSYS_ENABLE_ZLIB")
@@ -89,3 +90,5 @@ file(GLOB_RECURSE HEADERS6 util/*.h util/*.hpp)
 install(FILES ${HEADERS6} DESTINATION include/src/db/util)
 file(GLOB_RECURSE HEADERS7 timing/spef/*.msg)
 install(FILES ${HEADERS7} DESTINATION include/src/db/timing/spef)
+file(GLOB_RECURSE HEADERS8 timing/sdc/*.h timing/sdc/*.hpp)
+install(FILES ${HEADERS8} DESTINATION include/src/db/timing/sdc)
