@@ -29,7 +29,9 @@ CaseAnalysisValue SdcCaseAnalysisContainer::getPinValue(const ObjectId &pin_id) 
     if (found != pin_to_case_analysis_.end()) {
         auto case_analysis_ptr = found->second;
         assert(case_analysis_ptr);
-        return case_analysis_ptr->getValue(); 
+        if (case_analysis_ptr != nullptr) {
+            return case_analysis_ptr->getValue(); 
+        }
     }
     return CaseAnalysisValue::kUnknown;
 }
@@ -39,7 +41,9 @@ void SdcCaseAnalysisContainer::resetPinValue(const ObjectId &pin_id, const CaseA
     if (found != pin_to_case_analysis_.end()) {
         auto case_analysis_ptr = found->second;
         assert(case_analysis_ptr);
-        case_analysis_ptr->setValue(value); 
+        if (case_analysis_ptr != nullptr) {
+            case_analysis_ptr->setValue(value); 
+        }
     }
 }
 
