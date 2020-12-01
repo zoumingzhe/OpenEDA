@@ -73,7 +73,7 @@ int parseSdcSetCaseAnalysis(ClientData cld, Tcl_Interp *itp, int argc, const cha
             return TCL_ERROR;
         }
         case_analysis_ptr->setValue(value);
-        //message->info("get first value %s \n", value.c_str());
+        message->info("get first value %s \n", value.c_str());
     }
     if (cmd->isOptionSet("port_or_pin_list")) {
         StringVectorPtr port_or_pin_list = std::make_shared<StringVector>();
@@ -99,7 +99,7 @@ int parseSdcSetCaseAnalysis(ClientData cld, Tcl_Interp *itp, int argc, const cha
             //}
             //ObjectId pin_id = pin->getId();
             container_ptr->add(pin_id, case_analysis_ptr);
-            //message->info("get second value %s \n", pin_name.c_str());
+            message->info("get second value %s \n", pin_name.c_str());
         }
     }
     return TCL_OK;
