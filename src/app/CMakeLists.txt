@@ -13,6 +13,7 @@ if (CMAKE_PLACE)
       ${PROJECT_BINARY_DIR}/src/parser
       ${PROJECT_BINARY_DIR}/src/util
       ${PROJECT_BINARY_DIR}/src/gui
+      ${PROJECT_BINARY_DIR}/src/opt
       ${PROJECT_BINARY_DIR}/src/console
       ${TCL_DIR}/lib
       ${Boost_LIBRARY_DIRS}
@@ -26,6 +27,7 @@ else (CMAKE_PLACE)
       ${PROJECT_BINARY_DIR}/src/parser
       ${PROJECT_BINARY_DIR}/src/util
       ${PROJECT_BINARY_DIR}/src/gui
+      ${PROJECT_BINARY_DIR}/src/opt
       ${PROJECT_BINARY_DIR}/src/console
       ${TCL_DIR}/lib
       ${Boost_LIBRARY_DIRS}
@@ -49,7 +51,7 @@ if (CMAKE_PLACE)
   target_link_libraries(${_SUBBINNAME} PUBLIC 
       openedi_tcl openedi_db openedi_util z boost_system boost_filesystem openedi_parser
       openedi_lefrw openedi_lef openedi_defrw openedi_def openedi_tcl openedi_verilog
-      tcl8.6 profiler tcmalloc pthread openedi_gui openedi_DREAMPlace openedi_infra)
+      tcl8.6 profiler tcmalloc pthread openedi_gui openedi_opt openedi_DREAMPlace openedi_infra)
   
   target_include_directories(${_SUBBINNAME} PUBLIC
       ${CMAKE_CURRENT_SOURCE_DIR}/.
@@ -61,7 +63,7 @@ else (CMAKE_PLACE)
   target_link_libraries(${_SUBBINNAME} PUBLIC 
       openedi_tcl openedi_db openedi_util z boost_system boost_filesystem openedi_parser
       openedi_lefrw openedi_lef openedi_defrw openedi_def openedi_tcl openedi_verilog
-      tcl8.6 profiler tcmalloc pthread openedi_gui openedi_infra)
+      tcl8.6 profiler tcmalloc pthread openedi_gui openedi_opt openedi_infra)
   
   target_include_directories(${_SUBBINNAME} PUBLIC
       ${CMAKE_CURRENT_SOURCE_DIR}/.

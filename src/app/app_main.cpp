@@ -17,6 +17,7 @@
 #include "db/core/db_tcl_command.h"
 #include "tcl/test_app.h"
 #include "gui/gui_tcl_command.h"
+#include "opt/opt_tcl_command.h"
 #ifdef _MAKE_PLACE
 #include "DREAMPlace/dreamplace/ops/tcl_command/src/place_tcl_command.h"
 #endif //end of MAKE_PLACE
@@ -40,6 +41,8 @@ static void registerSystemCommands(Tcl_Interp *itp)
 #endif //end of MAKE_PLACE
 
     open_edi::gui::registerGuiTclCommands(itp);
+
+    open_edi::opt::registerOptTclCommands(itp);
 
 }
 /************************************

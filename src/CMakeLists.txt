@@ -24,5 +24,7 @@ add_subdirectory(infra)
 if (CMAKE_PLACE)
   add_subdirectory(DREAMPlace)
 endif(CMAKE_PLACE)
+# opt
+add_subdirectory(opt)
 # app main
 add_subdirectory(app)
