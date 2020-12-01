@@ -68,32 +68,30 @@ UInt32 TUnits::memory() const {
 }
 
 /// Access APIs:
-TUnit &TUnits::get_time_unit(void) { return time_unit_; }
-TUnit &TUnits::get_capacitance_unit(void) { return capacitance_unit_; }
-TUnit &TUnits::get_volatge_unit(void) { return volatge_unit_; }
-TUnit &TUnits::get_resistance_unit(void) { return resistance_unit_; }
-TUnit &TUnits::get_pulling_resistance_unit(void) {
+TUnit &TUnits::getTimeUnit(void) { return time_unit_; }
+TUnit &TUnits::getCapacitanceUnit(void) { return capacitance_unit_; }
+TUnit &TUnits::getVolatgeUnit(void) { return volatge_unit_; }
+TUnit &TUnits::getResistanceUnit(void) { return resistance_unit_; }
+TUnit &TUnits::getPullingResistanceUnit(void) {
     return pulling_resistance_unit_;
 }
-TUnit &TUnits::get_current_unit(void) { return current_unit_; }
-TUnit &TUnits::get_power_unit(void) { return power_unit_; }
-TUnit &TUnits::get_distance_unit(void) { return distance_unit_; }
-TUnit &TUnits::get_scalar_unit(void) { return scalar_unit_; }
+TUnit &TUnits::getCurrentUnit(void) { return current_unit_; }
+TUnit &TUnits::getPowerUnit(void) { return power_unit_; }
+TUnit &TUnits::getDistanceUnit(void) { return distance_unit_; }
+TUnit &TUnits::getScalarUnit(void) { return scalar_unit_; }
 
 // Set:
-void TUnits::set_time_unit(const TUnit &unit) { time_unit_ = unit; }
-void TUnits::set_capacitance_unit(const TUnit &unit) {
-    capacitance_unit_ = unit;
-}
-void TUnits::set_volatge_unit(const TUnit &unit) { volatge_unit_ = unit; }
-void TUnits::set_resistance_unit(const TUnit &unit) { resistance_unit_ = unit; }
-void TUnits::set_pulling_resistance_unit(const TUnit &unit) {
+void TUnits::setTimeUnit(const TUnit &unit) { time_unit_ = unit; }
+void TUnits::setCapacitanceUnit(const TUnit &unit) { capacitance_unit_ = unit; }
+void TUnits::setVolatgeUnit(const TUnit &unit) { volatge_unit_ = unit; }
+void TUnits::setResistanceUnit(const TUnit &unit) { resistance_unit_ = unit; }
+void TUnits::setPullingResistanceUnit(const TUnit &unit) {
     pulling_resistance_unit_ = unit;
 }
-void TUnits::set_current_unit(const TUnit &unit) { current_unit_ = unit; }
-void TUnits::set_power_unit(const TUnit &unit) { power_unit_ = unit; }
-void TUnits::set_distance_unit(const TUnit &unit) { distance_unit_ = unit; }
-void TUnits::set_scalar_unit(const TUnit &unit) { scalar_unit_ = unit; }
+void TUnits::setCurrentUnit(const TUnit &unit) { current_unit_ = unit; }
+void TUnits::setPowerUnit(const TUnit &unit) { power_unit_ = unit; }
+void TUnits::setDistanceUnit(const TUnit &unit) { distance_unit_ = unit; }
+void TUnits::setScalarUnit(const TUnit &unit) { scalar_unit_ = unit; }
 
 TUnits *TUnits::clone() const { return new TUnits(*this); }
 

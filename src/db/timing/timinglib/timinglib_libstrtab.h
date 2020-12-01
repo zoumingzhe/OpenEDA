@@ -39,21 +39,20 @@ typedef struct timinglib_strtable timinglib_strtable;
 
 class LibStrtab {
   public:
-    timinglib_strtable *timinglib_strtable_create_strtable(
-        int numels, int strsize, int case_insensitive);
+    timinglib_strtable *timinglibStrtableCreateStrtable(int numels, int strsize,
+                                                        int case_insensitive);
 
-    void timinglib_strtable_destroy_strtable(timinglib_strtable *ht);
+    void timinglibStrtableDestroyStrtable(timinglib_strtable *ht);
 
-    void timinglib_strtable_resize_strtable(timinglib_strtable *ht,
-                                            int new_size);
+    void timinglibStrtableResizeStrtable(timinglib_strtable *ht, int new_size);
 
-    char *timinglib_strtable_enter_string(timinglib_strtable *ht, char *str);
+    char *timinglibStrtableEnterString(timinglib_strtable *ht, char *str);
 
     /* there's no element delete here, because it wouldn't be very useful */
 
-    void timinglib_strtable_lookup(timinglib_strtable *ht, char *str,
-                                   char **result);
-    void print_strtab_stats(void);
+    void timinglibStrtableLookup(timinglib_strtable *ht, char *str,
+                                 char **result);
+    void printStrtabStats(void);
 
   private:
     int total_lookup_calls_ = 0;

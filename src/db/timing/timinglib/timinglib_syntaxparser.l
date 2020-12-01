@@ -78,7 +78,7 @@ list {return SYNTAX_KW_LIST;}
 \t  {}
 " "	{}
 
-\"[^"]*\"		{char *p = (char *)malloc(strlen(yytext)); yytext[strlen(yytext)-1]=0; libAnalysis.search_string_for_linefeeds(yytext); strcpy(p,yytext+1); yylval->str = p;return SYNTAX_STRING;}
+\"[^"]*\"		{char *p = (char *)malloc(strlen(yytext)); yytext[strlen(yytext)-1]=0; libAnalysis.searchStringForLinefeeds(yytext); strcpy(p,yytext+1); yylval->str = p;return SYNTAX_STRING;}
 \"		|
 \"[^"]*		{fprintf(stderr,"No closing quote for quoted string begun in line %d\n",sd->lineno);}
 
@@ -99,18 +99,18 @@ list {return SYNTAX_KW_LIST;}
 
 namespace Timinglib
 {
-   void LibSyn::__desc_scan_begin(FILE *fp)
+   void LibSyn::__descScanBegin(FILE *fp)
    {
       syntax_lex_init(&scanner_);
       syntax_restart (fp, scanner_);
    }
-   int LibSyn::__desc_parse()
+   int LibSyn::__descParse()
    {
       if (analysis_ == nullptr)
          return 2;
       return syntax_parse(scanner_, *analysis_);;
    }
-   void LibSyn::__desc_scan_end(FILE *fp)
+   void LibSyn::__descScanEnd(FILE *fp)
    {
       if (scanner_ != nullptr)
          syntax_lex_destroy(scanner_);

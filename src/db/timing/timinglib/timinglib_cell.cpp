@@ -25,6 +25,34 @@ namespace db {
 
 TCell::TCell()
     : TCell::BaseType(),
+      always_on_(false),
+      dont_touch_(false),
+      dont_use_(false),
+      is_pad_(false),
+      is_macro_cell_(false),
+      is_clock_gating_cell_(false),
+      is_clock_isolation_cell_(false),
+      is_isolation_cell_(false),
+      is_level_shifter_(false),
+      is_enable_level_shifter_(false),
+      is_decap_cell_(false),
+      is_filler_cell_(false),
+      is_tap_cell_(false),
+      is_diode_cell_(false),
+      is_power_switch_(false),
+      is_retention_cell_(false),
+      is_sequential_(false),
+      is_integrated_clock_gating_cell_(false),
+      is_three_state_(false),
+      antenna_diode_type_(AntennaDiodeType::kUnknown),
+      switch_cell_type_(SwitchCellType::kUnknown),
+      threshold_votage_group_(ThresholdVotageGroup::kUnknown),
+      clock_gating_integrated_cell_(ClockGateIntegratedType::kUnknown),
+      name_(0),
+      cell_footprint_(0),
+      retention_cell_(0),
+      area_(0.0),
+      cell_leakage_power_(0.0),
       tterms_(UNINIT_OBJECT_ID),
       tpg_terms_(UNINIT_OBJECT_ID),
       term_map_(),
@@ -39,6 +67,34 @@ TCell::~TCell() {
 
 TCell::TCell(Object *owner, TCell::IndexType id)
     : TCell::BaseType(owner, id),
+      always_on_(false),
+      dont_touch_(false),
+      dont_use_(false),
+      is_pad_(false),
+      is_macro_cell_(false),
+      is_clock_gating_cell_(false),
+      is_clock_isolation_cell_(false),
+      is_isolation_cell_(false),
+      is_level_shifter_(false),
+      is_enable_level_shifter_(false),
+      is_decap_cell_(false),
+      is_filler_cell_(false),
+      is_tap_cell_(false),
+      is_diode_cell_(false),
+      is_power_switch_(false),
+      is_retention_cell_(false),
+      is_sequential_(false),
+      is_integrated_clock_gating_cell_(false),
+      is_three_state_(false),
+      antenna_diode_type_(AntennaDiodeType::kUnknown),
+      switch_cell_type_(SwitchCellType::kUnknown),
+      threshold_votage_group_(ThresholdVotageGroup::kUnknown),
+      clock_gating_integrated_cell_(ClockGateIntegratedType::kUnknown),
+      name_(0),
+      cell_footprint_(0),
+      retention_cell_(0),
+      area_(0.0),
+      cell_leakage_power_(0.0),
       tterms_(UNINIT_OBJECT_ID),
       tpg_terms_(UNINIT_OBJECT_ID),
       term_map_(),
@@ -86,7 +142,7 @@ TCell::IndexType TCell::numPgTerms() const {
         return 0;
 }
 
-TTerm *TCell::get_or_create_term(const std::string &name) {
+TTerm *TCell::getOrCreateTerm(const std::string &name) {
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
@@ -97,10 +153,8 @@ TTerm *TCell::get_or_create_term(const std::string &name) {
             } else {
                 auto term = __addTermImpl();
                 if (term) {
-                    TTerm::AttrType attr;
-                    attr.set_name(name);
-                    term->setAttr(&attr);
-                    term_map_[attr.get_name_index()] = term->getId();
+                    setName(name);
+                    term_map_[getNameIndex()] = term->getId();
                 }
                 return term;
             }
@@ -108,7 +162,7 @@ TTerm *TCell::get_or_create_term(const std::string &name) {
     }
     return nullptr;
 }
-TTerm *TCell::get_term(const std::string &name) {
+TTerm *TCell::getTerm(const std::string &name) {
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
@@ -121,7 +175,7 @@ TTerm *TCell::get_term(const std::string &name) {
     }
     return nullptr;
 }
-std::vector<TTerm *> TCell::get_terms(void) {
+std::vector<TTerm *> TCell::getTerms(void) {
     std::vector<TTerm *> terms;
     for (auto p : term_map_) {
         auto term = Object::addr<TTerm>(p.second);
@@ -129,7 +183,7 @@ std::vector<TTerm *> TCell::get_terms(void) {
     }
     return terms;
 }
-void TCell::reset_terms(const std::vector<TTerm *> &terms) {
+void TCell::resetTerms(const std::vector<TTerm *> &terms) {
     if (terms.empty() && tterms_ == UNINIT_OBJECT_ID) return;
 
     Timing *timing_lib = getTimingLib();
@@ -155,35 +209,33 @@ void TCell::reset_terms(const std::vector<TTerm *> &terms) {
 
                 for (int64_t i = 0; i < cur_size; ++i) {
                     auto &term = (*p)[i];
-                    if (terms[i]->getAttr()) {
+                    if (terms[i]) {
                         term = terms[i]->getId();
-                        term_map_[terms[i]->getAttr()->get_name_index()] =
-                            terms[i]->getId();
+                        term_map_[terms[i]->getNameIndex()] = terms[i]->getId();
                     }
                 }
 
             } else {
                 for (int64_t i = 0; i < orig_size; ++i) {
                     auto &term = (*p)[i];
-                    if (terms[i]->getAttr()) {
+                    if (terms[i]) {
                         term = terms[i]->getId();
-                        term_map_[terms[i]->getAttr()->get_name_index()] =
-                            terms[i]->getId();
+                        term_map_[terms[i]->getNameIndex()] = terms[i]->getId();
                     }
                 }
                 for (IndexType i = orig_size; i < cur_size; ++i) {
                     auto &term = terms[i];
-                    if (term->getAttr()) {
+                    if (term) {
                         ObjectId id = term->getId();
                         p->pushBack(id);
-                        term_map_[term->getAttr()->get_name_index()] = id;
+                        term_map_[term->getNameIndex()] = id;
                     }
                 }
             }
         }
     }
 }
-TPgTerm *TCell::get_or_create_pgTerm(const std::string &name) {
+TPgTerm *TCell::getOrCreatePgTerm(const std::string &name) {
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
@@ -194,8 +246,8 @@ TPgTerm *TCell::get_or_create_pgTerm(const std::string &name) {
             } else {
                 auto term = __addPgTermImpl();
                 if (term) {
-                    term->set_name(name);
-                    pg_term_map_[term->get_name_index()] = term->getId();
+                    term->setName(name);
+                    pg_term_map_[term->getNameIndex()] = term->getId();
                 }
                 return term;
             }
@@ -203,7 +255,7 @@ TPgTerm *TCell::get_or_create_pgTerm(const std::string &name) {
     }
     return nullptr;
 }
-TPgTerm *TCell::get_pgTerm(const std::string &name) {
+TPgTerm *TCell::getPgTerm(const std::string &name) {
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
@@ -216,7 +268,7 @@ TPgTerm *TCell::get_pgTerm(const std::string &name) {
     }
     return nullptr;
 }
-std::vector<TPgTerm *> TCell::get_pgTerms(void) {
+std::vector<TPgTerm *> TCell::getPgTerms(void) {
     std::vector<TPgTerm *> pg_terms;
     for (auto p : pg_term_map_) {
         auto term = Object::addr<TPgTerm>(p.second);
@@ -227,33 +279,118 @@ std::vector<TPgTerm *> TCell::get_pgTerms(void) {
 TCell::IndexType TCell::memory() const {
     IndexType ret = this->BaseType::memory();
 
+    ret += sizeof(always_on_);
+    ret += sizeof(dont_touch_);
+    ret += sizeof(dont_use_);
+    ret += sizeof(is_pad_);
+    ret += sizeof(is_macro_cell_);
+    ret += sizeof(is_clock_gating_cell_);
+    ret += sizeof(is_clock_isolation_cell_);
+    ret += sizeof(is_isolation_cell_);
+    ret += sizeof(is_level_shifter_);
+    ret += sizeof(is_enable_level_shifter_);
+    ret += sizeof(is_decap_cell_);
+    ret += sizeof(is_filler_cell_);
+    ret += sizeof(is_tap_cell_);
+    ret += sizeof(is_diode_cell_);
+    ret += sizeof(is_power_switch_);
+    ret += sizeof(is_retention_cell_);
+    ret += sizeof(is_sequential_);
+    ret += sizeof(is_integrated_clock_gating_cell_);
+    ret += sizeof(is_three_state_);
+    ret += sizeof(is_tap_cell_);
+    ret += sizeof(antenna_diode_type_);
+    ret += sizeof(switch_cell_type_);
+    ret += sizeof(threshold_votage_group_);
+    ret += sizeof(clock_gating_integrated_cell_);
+    ret += sizeof(name_);
+    ret += sizeof(cell_footprint_);
+    ret += sizeof(retention_cell_);
+    ret += sizeof(area_);
+    ret += sizeof(cell_leakage_power_);
     ret += sizeof(tterms_);
     ret += sizeof(tpg_terms_);
 
     return ret;
 }
 
-bool TCell::is_physical_only(void) {
+void TCell::setAlwaysOn(bool b) { always_on_ = b; }
+void TCell::setDontTouch(bool b) { dont_touch_ = b; }
+void TCell::setDontUse(bool b) { dont_use_ = b; }
+void TCell::setPad(bool b) { is_pad_ = b; }
+void TCell::setMacroCell(bool b) { is_macro_cell_ = b; }
+void TCell::setClockGatingCell(bool b) { is_clock_gating_cell_ = b; }
+void TCell::setClockIsolationCell(bool b) { is_clock_isolation_cell_ = b; }
+void TCell::setIsolationCell(bool b) { is_isolation_cell_ = b; }
+void TCell::setLevelShifter(bool b) { is_level_shifter_ = b; }
+void TCell::setEnableLevelShifter(bool b) { is_enable_level_shifter_ = b; }
+void TCell::setDecapCell(bool b) { is_decap_cell_ = b; }
+void TCell::setFillerCell(bool b) { is_filler_cell_ = b; }
+void TCell::setTapCell(bool b) { is_tap_cell_ = b; }
+void TCell::setDiodeCell(bool b) { is_diode_cell_ = b; }
+void TCell::setPowerSwitch(bool b) { is_power_switch_ = b; }
+void TCell::setRetentionCell(bool b) { is_retention_cell_ = b; }
+void TCell::setSequential(bool b) { is_sequential_ = b; }
+void TCell::setIntegratedClockGatingCell(bool b) {
+    is_integrated_clock_gating_cell_ = b;
+}
+void TCell::setThreeState(bool b) { is_three_state_ = b; }
+void TCell::setAntennaDiodeType(AntennaDiodeType t) { antenna_diode_type_ = t; }
+void TCell::setSwitchCellType(SwitchCellType t) { switch_cell_type_ = t; }
+void TCell::setThresholdVotageGroup(ThresholdVotageGroup t) {
+    threshold_votage_group_ = t;
+}
+void TCell::setClockGatingIntegratedCell(ClockGateIntegratedType t) {
+    clock_gating_integrated_cell_ = t;
+}
+void TCell::setName(const std::string &name) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
+            name_ = index;
+            timing_lib->addSymbolReference(name_, this->getId());
+        }
+    }
+}
+void TCell::setCellFootprint(const std::string &cf) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(cf.c_str());
+        if (index != kInvalidSymbolIndex) {
+            cell_footprint_ = index;
+            timing_lib->addSymbolReference(cell_footprint_, this->getId());
+        }
+    }
+}
+void TCell::setRetentionCell(const std::string &rc) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(rc.c_str());
+        if (index != kInvalidSymbolIndex) {
+            retention_cell_ = index;
+            // timing_lib->addSymbolReference(retention_cell_, this->getId());
+        }
+    }
+}
+void TCell::setArea(float f) { area_ = f; }
+void TCell::setCellLeakagePower(float f) { cell_leakage_power_ = f; }
+
+bool TCell::isPhysicalOnly(void) {
     if (numTerms() == 0 && numPgTerms() != 0) return true;
     return false;
 }
 
-bool TCell::is_combinational(void) {
-    TCell::AttrType *attr = getAttr();
-    if (attr) {
-        if (attr->is_sequential() == false && is_physical_only() == false)
-            return true;
-    }
+bool TCell::isCombinational(void) {
+    if (isSequential() == false && isPhysicalOnly() == false) return true;
     return false;
 }
-bool TCell::has_multi_power_rails(void) {
+bool TCell::hasMultiPowerRails(void) {
     if (numPgTerms() > 1) return true;
     return false;
 }
 void TCell::print(std::ostream &stream) {
-    if (attr_ == nullptr) return;
-    stream << "TCell name: " << attr_->get_name() << " id: " << getId()
-           << std::endl;
+    stream << "TCell name: " << getName() << " id: " << getId() << std::endl;
     if (tterms_ != UNINIT_OBJECT_ID) {
         ArrayObject<ObjectId> *object_vector =
             Object::addr<ArrayObject<ObjectId>>(tterms_);
@@ -276,7 +413,63 @@ void TCell::print(std::ostream &stream) {
     }
 }
 
-std::string TCell::get_full_name(void) {
+bool TCell::isAlwaysOn(void) { return always_on_; }
+bool TCell::isDontTouch(void) { return dont_touch_; }
+bool TCell::isDontUse(void) { return dont_use_; }
+bool TCell::isPad(void) { return is_pad_; }
+bool TCell::isMacroCell(void) { return is_macro_cell_; }
+bool TCell::isClockGatingCell(void) { return is_clock_gating_cell_; }
+bool TCell::isClockIsolationCell(void) { return is_clock_isolation_cell_; }
+bool TCell::isIsolationCell(void) { return is_isolation_cell_; }
+bool TCell::isLevelShifter(void) { return is_level_shifter_; }
+bool TCell::isEnableLevelShifter(void) { return is_enable_level_shifter_; }
+bool TCell::isDecapCell(void) { return is_decap_cell_; }
+bool TCell::isFillerCell(void) { return is_filler_cell_; }
+bool TCell::isTapCell(void) { return is_tap_cell_; }
+bool TCell::isDiodeCell(void) { return is_diode_cell_; }
+bool TCell::isPowerSwitch(void) { return is_power_switch_; }
+bool TCell::isRetentionCell(void) { return is_retention_cell_; }
+bool TCell::isSequential(void) { return is_sequential_; }
+bool TCell::isIntegratedClockGatingCell(void) {
+    return is_integrated_clock_gating_cell_;
+}
+bool TCell::isThreeState(void) { return is_three_state_; }
+AntennaDiodeType TCell::getAntennaDiodeType(void) {
+    return antenna_diode_type_;
+}
+SwitchCellType TCell::getSwitchCellType(void) { return switch_cell_type_; }
+ThresholdVotageGroup TCell::getThresholdVotageGroup(void) {
+    return threshold_votage_group_;
+}
+ClockGateIntegratedType TCell::getClockGatingIntegratedCell(void) {
+    return clock_gating_integrated_cell_;
+}
+std::string TCell::getName(void) const {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(name_);
+    }
+    return "";
+}
+SymbolIndex TCell::getNameIndex(void) { return name_; }
+std::string TCell::getCellFootprint(void) const {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(cell_footprint_);
+    }
+    return "";
+}
+std::string TCell::getRetentionCell(void) const {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(retention_cell_);
+    }
+    return "";
+}
+float TCell::getArea(void) { return area_; }
+float TCell::getCellLeakagePower(void) { return cell_leakage_power_; }
+
+std::string TCell::getFullName(void) {
     std::string str = "";
     Object *owner_obj = nullptr;
 
@@ -285,24 +478,52 @@ std::string TCell::get_full_name(void) {
     }
     if (owner_obj != nullptr &&
         owner_obj->getObjectType() == ObjectType::kObjectTypeTLib) {
-        TLib::AttrType *attr = static_cast<TLib *>(owner_obj)->getAttr();
-        if (attr != nullptr) str = attr->get_name();
+        TLib *lib = static_cast<TLib *>(owner_obj);
+        if (lib != nullptr) str = lib->getName();
     }
-    if (attr_ != nullptr) {
-        if (str != "")
-            str = str + "_" + attr_->get_name();
-        else
-            str = attr_->get_name();
-    }
+
+    if (str != "")
+        str = str + "_" + getName();
+    else
+        str = getName();
 
     return str;
 }
 
-TCell::IndexType TCell::get_num_pins(void) { return numTerms() + numPgTerms(); }
+TCell::IndexType TCell::getNumPins(void) { return numTerms() + numPgTerms(); }
 
 void TCell::copy(TCell const &rhs) {
     this->BaseType::copy(rhs);
 
+    always_on_ = rhs.always_on_;
+    dont_touch_ = rhs.dont_touch_;
+    dont_use_ = rhs.dont_use_;
+    is_pad_ = rhs.is_pad_;
+    is_macro_cell_ = rhs.is_macro_cell_;
+    is_clock_gating_cell_ = rhs.is_clock_gating_cell_;
+    is_clock_isolation_cell_ = rhs.is_clock_isolation_cell_;
+    is_isolation_cell_ = rhs.is_isolation_cell_;
+    is_level_shifter_ = rhs.is_level_shifter_;
+    is_enable_level_shifter_ = rhs.is_enable_level_shifter_;
+    is_decap_cell_ = rhs.is_decap_cell_;
+    is_filler_cell_ = rhs.is_filler_cell_;
+    is_tap_cell_ = rhs.is_tap_cell_;
+    is_diode_cell_ = rhs.is_diode_cell_;
+    is_power_switch_ = rhs.is_power_switch_;
+    is_retention_cell_ = rhs.is_retention_cell_;
+    is_sequential_ = rhs.is_sequential_;
+    is_integrated_clock_gating_cell_ = rhs.is_integrated_clock_gating_cell_;
+    is_three_state_ = rhs.is_three_state_;
+    is_tap_cell_ = rhs.is_tap_cell_;
+    antenna_diode_type_ = rhs.antenna_diode_type_;
+    switch_cell_type_ = rhs.switch_cell_type_;
+    threshold_votage_group_ = rhs.threshold_votage_group_;
+    clock_gating_integrated_cell_ = rhs.clock_gating_integrated_cell_;
+    name_ = rhs.name_;
+    cell_footprint_ = rhs.cell_footprint_;
+    retention_cell_ = rhs.retention_cell_;
+    area_ = rhs.area_;
+    cell_leakage_power_ = rhs.cell_leakage_power_;
     tterms_ = rhs.tterms_;
     tpg_terms_ = rhs.tpg_terms_;
     term_map_ = rhs.term_map_;
@@ -312,6 +533,37 @@ void TCell::copy(TCell const &rhs) {
 void TCell::move(TCell &&rhs) {
     this->BaseType::move(std::move(rhs));
 
+    always_on_ = std::move(rhs.always_on_);
+    dont_touch_ = std::move(rhs.dont_touch_);
+    dont_use_ = std::move(rhs.dont_use_);
+    is_pad_ = std::move(rhs.is_pad_);
+    is_macro_cell_ = std::move(rhs.is_macro_cell_);
+    is_clock_gating_cell_ = std::move(rhs.is_clock_gating_cell_);
+    is_clock_isolation_cell_ = std::move(rhs.is_clock_isolation_cell_);
+    is_isolation_cell_ = std::move(rhs.is_isolation_cell_);
+    is_level_shifter_ = std::move(rhs.is_level_shifter_);
+    is_enable_level_shifter_ = std::move(rhs.is_enable_level_shifter_);
+    is_decap_cell_ = std::move(rhs.is_decap_cell_);
+    is_filler_cell_ = std::move(rhs.is_filler_cell_);
+    is_tap_cell_ = std::move(rhs.is_tap_cell_);
+    is_diode_cell_ = std::move(rhs.is_diode_cell_);
+    is_power_switch_ = std::move(rhs.is_power_switch_);
+    is_retention_cell_ = std::move(rhs.is_retention_cell_);
+    is_sequential_ = std::move(rhs.is_sequential_);
+    is_integrated_clock_gating_cell_ =
+        std::move(rhs.is_integrated_clock_gating_cell_);
+    is_three_state_ = std::move(rhs.is_three_state_);
+    is_tap_cell_ = std::move(rhs.is_tap_cell_);
+    antenna_diode_type_ = std::move(rhs.antenna_diode_type_);
+    switch_cell_type_ = std::move(rhs.switch_cell_type_);
+    threshold_votage_group_ = std::move(rhs.threshold_votage_group_);
+    clock_gating_integrated_cell_ =
+        std::move(rhs.clock_gating_integrated_cell_);
+    name_ = std::move(rhs.name_);
+    cell_footprint_ = std::move(rhs.cell_footprint_);
+    retention_cell_ = std::move(rhs.retention_cell_);
+    area_ = std::move(rhs.area_);
+    cell_leakage_power_ = std::move(rhs.cell_leakage_power_);
     tterms_ = std::move(rhs.tterms_);
     tpg_terms_ = std::move(rhs.tpg_terms_);
     term_map_ = std::move(rhs.term_map_);
@@ -328,6 +580,56 @@ OStreamBase &operator<<(OStreamBase &os, TCell const &rhs) {
 
     TCell::BaseType const &base = rhs;
     os << base << DataDelimiter();
+
+    os << DataFieldName("always_on_") << rhs.always_on_ << DataDelimiter();
+    os << DataFieldName("dont_touch_") << rhs.dont_touch_ << DataDelimiter();
+    os << DataFieldName("dont_use_") << rhs.dont_use_ << DataDelimiter();
+    os << DataFieldName("is_pad_") << rhs.is_pad_ << DataDelimiter();
+    os << DataFieldName("is_macro_cell_") << rhs.is_macro_cell_
+       << DataDelimiter();
+    os << DataFieldName("is_clock_gating_cell_") << rhs.is_clock_gating_cell_
+       << DataDelimiter();
+    os << DataFieldName("is_clock_isolation_cell_")
+       << rhs.is_clock_isolation_cell_ << DataDelimiter();
+    os << DataFieldName("is_isolation_cell_") << rhs.is_isolation_cell_
+       << DataDelimiter();
+    os << DataFieldName("is_level_shifter_") << rhs.is_level_shifter_
+       << DataDelimiter();
+    os << DataFieldName("is_enable_level_shifter_")
+       << rhs.is_enable_level_shifter_ << DataDelimiter();
+    os << DataFieldName("is_decap_cell_") << rhs.is_decap_cell_
+       << DataDelimiter();
+    os << DataFieldName("is_filler_cell_") << rhs.is_filler_cell_
+       << DataDelimiter();
+    os << DataFieldName("is_tap_cell_") << rhs.is_tap_cell_ << DataDelimiter();
+    os << DataFieldName("is_diode_cell_") << rhs.is_diode_cell_
+       << DataDelimiter();
+    os << DataFieldName("is_power_switch_") << rhs.is_power_switch_
+       << DataDelimiter();
+    os << DataFieldName("is_retention_cell_") << rhs.is_retention_cell_
+       << DataDelimiter();
+    os << DataFieldName("is_sequential_") << rhs.is_sequential_
+       << DataDelimiter();
+    os << DataFieldName("is_integrated_clock_gating_cell_")
+       << rhs.is_integrated_clock_gating_cell_ << DataDelimiter();
+    os << DataFieldName("is_three_state_") << rhs.is_three_state_
+       << DataDelimiter();
+    os << DataFieldName("is_tap_cell_") << rhs.is_tap_cell_ << DataDelimiter();
+    os << DataFieldName("antenna_diode_type_") << rhs.antenna_diode_type_
+       << DataDelimiter();
+    os << DataFieldName("switch_cell_type_") << rhs.switch_cell_type_
+       << DataDelimiter();
+    os << DataFieldName("threshold_votage_group_")
+       << rhs.threshold_votage_group_ << DataDelimiter();
+    os << DataFieldName("clock_gating_integrated_cell_")
+       << rhs.clock_gating_integrated_cell_ << DataDelimiter();
+    os << DataFieldName("name_") << rhs.getName() << DataDelimiter();
+    os << DataFieldName("cell_footprint_") << rhs.getCellFootprint()
+       << DataDelimiter();
+    os << DataFieldName("retention_cell_") << rhs.getRetentionCell()
+       << DataDelimiter();
+    os << DataFieldName("area_") << rhs.area_ << DataDelimiter();
+    os << DataFieldName("cell_leakage_power_") << rhs.cell_leakage_power_;
 
     // write tterms
     os << DataFieldName("tterms_");
@@ -392,8 +694,8 @@ TTerm *TCell::__addTermImpl() {
             p = Object::addr<ArrayObject<ObjectId>>(tterms_);
         }
         if (p != nullptr) {
-            auto term = Object::createObject<TTerm>(
-                kObjectTypeTTerm, timing_lib->getId());
+            auto term = Object::createObject<TTerm>(kObjectTypeTTerm,
+                                                    timing_lib->getId());
             if (term) {
                 term->setOwner(this);
                 ObjectId id = term->getId();
@@ -421,8 +723,8 @@ TPgTerm *TCell::__addPgTermImpl() {
             p = Object::addr<ArrayObject<ObjectId>>(tpg_terms_);
         }
         if (p != nullptr) {
-            auto pg_term = Object::createObject<TPgTerm>(
-                kObjectTypeTPgTerm, timing_lib->getId());
+            auto pg_term = Object::createObject<TPgTerm>(kObjectTypeTPgTerm,
+                                                         timing_lib->getId());
             if (pg_term) {
                 pg_term->setOwner(this);
                 ObjectId id = pg_term->getId();

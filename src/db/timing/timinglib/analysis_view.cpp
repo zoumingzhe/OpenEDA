@@ -149,7 +149,7 @@ AnalysisView::IndexType AnalysisView::memory() const {
 }
 
 /// set
-void AnalysisView::set_name(const std::string& name) {
+void AnalysisView::setName(const std::string& name) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
@@ -159,47 +159,47 @@ void AnalysisView::set_name(const std::string& name) {
         }
     }
 }
-void AnalysisView::set_analysis_corner(ObjectId id) { analysis_corner_ = id; }
-void AnalysisView::set_analysis_mode(ObjectId id) { analysis_mode_ = id; }
-void AnalysisView::set_active(bool b) { is_active_ = b; }
-void AnalysisView::set_setup(bool b) { is_setup_ = b; }
-void AnalysisView::set_hold(bool b) { is_hold_ = b; }
-void AnalysisView::set_max_cap(bool b) { is_max_cap_ = b; }
-void AnalysisView::set_max_tran(bool b) { is_max_tran_ = b; }
-void AnalysisView::set_min_cap(bool b) { is_min_cap_ = b; }
-void AnalysisView::set_leakage_power(bool b) { is_leakage_power_ = b; }
-void AnalysisView::set_dynamic_power(bool b) { is_dynamic_power_ = b; }
-void AnalysisView::set_cell_em(bool b) { is_cell_em_ = b; }
-void AnalysisView::set_signal_em(bool b) { is_signal_em_ = b; }
+void AnalysisView::setAnalysisCorner(ObjectId id) { analysis_corner_ = id; }
+void AnalysisView::setAnalysisMode(ObjectId id) { analysis_mode_ = id; }
+void AnalysisView::setActive(bool b) { is_active_ = b; }
+void AnalysisView::setSetup(bool b) { is_setup_ = b; }
+void AnalysisView::setHold(bool b) { is_hold_ = b; }
+void AnalysisView::setMaxCap(bool b) { is_max_cap_ = b; }
+void AnalysisView::setMaxTran(bool b) { is_max_tran_ = b; }
+void AnalysisView::setMinCap(bool b) { is_min_cap_ = b; }
+void AnalysisView::setLeakagePower(bool b) { is_leakage_power_ = b; }
+void AnalysisView::setDynamicPower(bool b) { is_dynamic_power_ = b; }
+void AnalysisView::setCellEm(bool b) { is_cell_em_ = b; }
+void AnalysisView::setSignalEm(bool b) { is_signal_em_ = b; }
 
 /// get
-SymbolIndex AnalysisView::get_name_index(void) { return name_; }
-std::string AnalysisView::get_name(void) const {
+SymbolIndex AnalysisView::getNameIndex(void) { return name_; }
+std::string AnalysisView::getName(void) const {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
-AnalysisCorner* AnalysisView::get_analysis_corner(void) {
+AnalysisCorner* AnalysisView::getAnalysisCorner(void) {
     if (analysis_corner_ == UNINIT_OBJECT_ID) return nullptr;
     return Object::addr<AnalysisCorner>(analysis_corner_);
 }
 
-AnalysisMode* AnalysisView::get_analysis_mode(void) {
+AnalysisMode* AnalysisView::getAnalysisMode(void) {
     if (analysis_mode_ == UNINIT_OBJECT_ID) return nullptr;
     return Object::addr<AnalysisMode>(analysis_mode_);
 }
-bool AnalysisView::is_active(void) { return is_active_; }
-bool AnalysisView::is_setup(void) { return is_setup_; }
-bool AnalysisView::is_hold(void) { return is_hold_; }
-bool AnalysisView::is_max_cap(void) { return is_max_cap_; }
-bool AnalysisView::is_max_tran(void) { return is_max_tran_; }
-bool AnalysisView::is_min_cap(void) { return is_min_cap_; }
-bool AnalysisView::is_leakage_power(void) { return is_leakage_power_; }
-bool AnalysisView::is_dynamic_power(void) { return is_dynamic_power_; }
-bool AnalysisView::is_cell_em(void) { return is_cell_em_; }
-bool AnalysisView::is_signal_em(void) { return is_signal_em_; }
+bool AnalysisView::isActive(void) { return is_active_; }
+bool AnalysisView::isSetup(void) { return is_setup_; }
+bool AnalysisView::isHold(void) { return is_hold_; }
+bool AnalysisView::isMaxCap(void) { return is_max_cap_; }
+bool AnalysisView::isMaxTran(void) { return is_max_tran_; }
+bool AnalysisView::isMinCap(void) { return is_min_cap_; }
+bool AnalysisView::isLeakagePower(void) { return is_leakage_power_; }
+bool AnalysisView::isDynamicPower(void) { return is_dynamic_power_; }
+bool AnalysisView::isCellEm(void) { return is_cell_em_; }
+bool AnalysisView::isSignalEm(void) { return is_signal_em_; }
 
 OStreamBase& operator<<(OStreamBase& os, AnalysisView const& rhs) {
     os << DataTypeName(className(rhs)) << DataBegin("(");
@@ -207,7 +207,7 @@ OStreamBase& operator<<(OStreamBase& os, AnalysisView const& rhs) {
     AnalysisView::BaseType const& base = rhs;
     os << base << DataDelimiter();
 
-    os << DataFieldName("name_") << rhs.get_name() << DataDelimiter();
+    os << DataFieldName("name_") << rhs.getName() << DataDelimiter();
 
     os << DataFieldName("analysis_corner_");
     os << rhs.analysis_corner_;
