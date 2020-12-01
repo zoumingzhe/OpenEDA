@@ -487,8 +487,8 @@ class PlaceDB (object):
         @brief initialize from common db
         @param params parameters
         """
-        pydb = place_io.PlaceIOFunction.pydb()
-        initialize_from_pydb(pydb)
+        pydb = place_io.PlaceIOFunction.pydb(None)
+        self.initialize_from_pydb(pydb, params)
 
     def initialize_from_rawdb(self, params):
         """
@@ -496,9 +496,9 @@ class PlaceDB (object):
         @param params parameters 
         """
         pydb = place_io.PlaceIOFunction.pydb(self.rawdb)
-        initialize_from_pydb(pydb)
+        self.initialize_from_pydb(pydb, params)
         
-    def initialize_from_pydb(self, pydb):
+    def initialize_from_pydb(self, pydb, params):
         """
         @brief initialize from pydb
         @param pydb
@@ -858,7 +858,7 @@ row height = %g, site width = %g
             # update raw database 
             place_io.PlaceIOFunction.apply(self.rawdb, node_x, node_y)
         else:
-            place_io.PlaceIOFunction.apply(node_x, node_y)
+            place_io.PlaceIOFunction.apply(None, node_x, node_y)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
