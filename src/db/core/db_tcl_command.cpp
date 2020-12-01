@@ -433,8 +433,8 @@ static void registerTestCommandManager() {
 }
 
 void registerDatabaseTclCommands(Tcl_Interp *itp) {
-    registerTestCommandManager();
-    Tcl_CreateCommand(itp, "test_cmd", testCommandManager, NULL, NULL);
+    //registerTestCommandManager();
+    //Tcl_CreateCommand(itp, "test_cmd", testCommandManager, NULL, NULL);
 
     Tcl_CreateCommand(itp, "read_lef", readLefCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "write_lef", writeLefCommand, NULL, NULL);
