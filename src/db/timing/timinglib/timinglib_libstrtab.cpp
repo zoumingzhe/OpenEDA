@@ -26,7 +26,7 @@
 
 namespace Timinglib {
 
-void LibStrtab::print_strtab_stats(void) {
+void LibStrtab::printStrtabStats(void) {
     printf(
         "String Table Lookup called %d times\nString Table Enter called %d "
         "times\nNo. Strings entered into String Table: %d\n, Total Bytes "
@@ -35,14 +35,14 @@ void LibStrtab::print_strtab_stats(void) {
         total_bytes_entered_);
 }
 
-timinglib_strtable *LibStrtab::timinglib_strtable_create_strtable(
+timinglib_strtable *LibStrtab::timinglibStrtableCreateStrtable(
     int numels, int strsize, int case_insensitive) {
     timinglib_strtable *ht;
     timinglib_strtable_chunk *htc;
 
     ht = static_cast<timinglib_strtable *>(
         calloc(sizeof(timinglib_strtable), 1));
-    ht->hashtab = LibHash::timinglib_hash_create_hash_table(
+    ht->hashtab = LibHash::timinglibHashCreateHashTable(
         numels, 1 /* make it resizeable */, case_insensitive);
     htc = static_cast<timinglib_strtable_chunk *>(
         calloc(sizeof(timinglib_strtable_chunk), 1));
@@ -53,13 +53,13 @@ timinglib_strtable *LibStrtab::timinglib_strtable_create_strtable(
     return ht;
 }
 
-void LibStrtab::timinglib_strtable_destroy_strtable(timinglib_strtable *ht) {
+void LibStrtab::timinglibStrtableDestroyStrtable(timinglib_strtable *ht) {
     if (ht == nullptr) return;
 
     timinglib_strtable_chunk *htc, *htcn;
 
     /* traverse the all chain, and destroy all the buckets. */
-    if (ht->hashtab) LibHash::timinglib_hash_destroy_hash_table(ht->hashtab);
+    if (ht->hashtab) LibHash::timinglibHashDestroyHashTable(ht->hashtab);
     ht->hashtab = 0;
     htc = ht->chunklist;
     while (htc) {
@@ -80,15 +80,15 @@ void LibStrtab::timinglib_strtable_destroy_strtable(timinglib_strtable *ht) {
     free(ht);
 }
 
-void LibStrtab::timinglib_strtable_resize_strtable(timinglib_strtable *ht,
-                                                      int new_size) {
-    LibHash::timinglib_hash_resize_hash_table(ht->hashtab, new_size);
+void LibStrtab::timinglibStrtableResizeStrtable(timinglib_strtable *ht,
+                                                int new_size) {
+    LibHash::timinglibHashResizeHashTable(ht->hashtab, new_size);
 
     /* there isn't anything to do about the string space */
 }
 
-char *LibStrtab::timinglib_strtable_enter_string(timinglib_strtable *ht,
-                                                    char *str) {
+char *LibStrtab::timinglibStrtableEnterString(timinglib_strtable *ht,
+                                              char *str) {
     si2drObjectIdT t, ores;
     char *strptr;
     int slen = strlen(str);
@@ -97,7 +97,7 @@ char *LibStrtab::timinglib_strtable_enter_string(timinglib_strtable *ht,
 
     /* first, check the table for the string */
 
-    LibHash::timinglib_hash_lookup(ht->hashtab, str, &ores);
+    LibHash::timinglibHashLookup(ht->hashtab, str, &ores);
 
     if (ores.v1 != 0) return static_cast<char *>(ores.v1);
 
@@ -131,7 +131,7 @@ char *LibStrtab::timinglib_strtable_enter_string(timinglib_strtable *ht,
     t.v1 = strptr;
     t.v2 = 0;
 
-    LibHash::timinglib_hash_enter_oid(ht->hashtab, strptr, t);
+    LibHash::timinglibHashEnterOid(ht->hashtab, strptr, t);
     // ToDo: make a generic hashtab, then somehow use it as a
     // base for oid hashes, and then use it as a base for the
     // string hash
@@ -139,8 +139,8 @@ char *LibStrtab::timinglib_strtable_enter_string(timinglib_strtable *ht,
     return strptr;
 }
 
-void LibStrtab::timinglib_strtable_lookup(timinglib_strtable *ht, char *str,
-                                             char **result) {
+void LibStrtab::timinglibStrtableLookup(timinglib_strtable *ht, char *str,
+                                        char **result) {
     si2drObjectIdT ores;
 
     total_lookup_calls_++;
@@ -152,7 +152,7 @@ void LibStrtab::timinglib_strtable_lookup(timinglib_strtable *ht, char *str,
 
     /* first, check the table for the string */
 
-    LibHash::timinglib_hash_lookup(ht->hashtab, str, &ores);
+    LibHash::timinglibHashLookup(ht->hashtab, str, &ores);
 
     if (ores.v1 != 0) {
         *result = static_cast<char *>(ores.v1);

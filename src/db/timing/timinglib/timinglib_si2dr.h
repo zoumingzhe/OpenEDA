@@ -252,7 +252,7 @@ struct timinglib_value_data {
 };
 
 template <typename... Args>
-std::string string_format(const std::string &format, Args... args) {
+std::string stringFormat(const std::string &format, Args... args) {
     size_t size = snprintf(nullptr, 0, format.c_str(), args...) +
                   1;  // Extra space for '\0'
     if (size <= 0) {

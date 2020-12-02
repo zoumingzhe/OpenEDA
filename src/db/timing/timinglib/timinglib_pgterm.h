@@ -56,15 +56,15 @@ class TPgTerm : public Object {
     void print(std::ostream &stream);
 
     /// set
-    void set_name(const std::string &name);
-    void set_pg_type(PGType t);
-    void set_voltage_name(const std::string &name);
+    void setName(const std::string &name);
+    void setPgType(PGType t);
+    void setVoltageName(const std::string &name);
 
     /// get
-    std::string get_name(void) const;
-    SymbolIndex get_name_index(void);
-    PGType get_pg_type(void);
-    std::string get_voltage_name(void) const;
+    std::string getName(void) const;
+    SymbolIndex getNameIndex(void);
+    PGType getPgType(void);
+    std::string getVoltageName(void) const;
 
   protected:
     /// @brief copy object

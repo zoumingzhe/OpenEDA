@@ -104,15 +104,15 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
                     return TCL_ERROR;
                 }
 
-                view->set_analysis_mode(mode->getId());
-                view->set_analysis_corner(corner->getId());
-                view->set_active(true);
-                view->set_setup(true);
-                view->set_hold(true);
+                view->setAnalysisMode(mode->getId());
+                view->setAnalysisCorner(corner->getId());
+                view->setActive(true);
+                view->setSetup(true);
+                view->setHold(true);
                 timingdb->addActiveSetupView(view->getId());
                 timingdb->addActiveHoldView(view->getId());
             } else {
-                corner = view->get_analysis_corner();
+                corner = view->getAnalysisCorner();
                 if (corner == nullptr) {
                     corner = timingdb->createAnalysisCorner(default_name);
                     if (corner == nullptr) {
@@ -131,7 +131,7 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 return TCL_ERROR;
             }
         }
-        DesignParasitics *dsnParasitics = corner->get_design_parasitics();
+        DesignParasitics *dsnParasitics = corner->getDesignParasitics();
         if (dsnParasitics == nullptr) {
 	    dsnParasitics = timingdb->createObject<DesignParasitics>(kObjectTypeDesignParasitics, timingdb->getId());
             if (dsnParasitics == nullptr) {
@@ -140,7 +140,7 @@ int readSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
                     "Create spef database failed.");
                 return TCL_ERROR;
 	    }
-            corner->set_design_parasitics(dsnParasitics->getId());
+            corner->setDesignParasitics(dsnParasitics->getId());
         }
         open_edi::util::message->info("\nReading SPEF file\n");
         for (auto spefFile : spefFiles) {
@@ -225,7 +225,7 @@ int writeSpefCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 return TCL_ERROR;
 	    }
 	}
-        DesignParasitics *dsgPara = corner->get_design_parasitics();
+        DesignParasitics *dsgPara = corner->getDesignParasitics();
         if (dsgPara) {
 	    open_edi::util::message->info("Write spef file %s...\n", outFiles[0].c_str()); 
             
