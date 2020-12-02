@@ -53,6 +53,7 @@ TLib::TLib()
       default_max_transition_(0.0),
       default_fanout_load_(0.0),
       default_cell_leakage_power_(0.0),
+      supply_voltages_(UNINIT_OBJECT_ID),
       default_operating_conditions_(UNINIT_OBJECT_ID),
       scaling_factors_(UNINIT_OBJECT_ID),
       units_(UNINIT_OBJECT_ID),
@@ -75,6 +76,7 @@ TLib::TLib()
 }
 
 TLib::~TLib() {
+    supply_voltages_ = UNINIT_OBJECT_ID;
     default_operating_conditions_ = UNINIT_OBJECT_ID;
     scaling_factors_ = UNINIT_OBJECT_ID;
     units_ = UNINIT_OBJECT_ID;
@@ -123,6 +125,7 @@ TLib::TLib(Object *owner, TLib::IndexType id)
       default_max_transition_(0.0),
       default_fanout_load_(0.0),
       default_cell_leakage_power_(0.0),
+      supply_voltages_(UNINIT_OBJECT_ID),
       default_operating_conditions_(UNINIT_OBJECT_ID),
       scaling_factors_(UNINIT_OBJECT_ID),
       units_(UNINIT_OBJECT_ID),
@@ -167,7 +170,7 @@ void TLib::setName(const std::string &name) {
         SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
         if (index != kInvalidSymbolIndex) {
             name_ = index;
-            // timing_lib->addSymbolReference(name_, this->getId());
+            timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }
@@ -223,7 +226,26 @@ void TLib::addSupplyVoltage(const std::string &name, float f) {
         if (index != kInvalidSymbolIndex) {
             name_ = index;
             supply_voltage_map_[name_] = f;
-            // timing_lib->addSymbolReference(name_, this->getId());
+            timing_lib->addSymbolReference(name_, this->getId());
+
+            ArrayObject<SupplyVoltagePair> *p = nullptr;
+            if (supply_voltages_ == UNINIT_OBJECT_ID) {
+                p = Object::createObject<ArrayObject<SupplyVoltagePair>>(
+                    kObjectTypeArray, timing_lib->getId());
+                if (p != nullptr) {
+                    p->setPool(timing_lib->getPool());
+                    p->reserve(32);
+                    supply_voltages_ = p->getId();
+                }
+            } else {
+                p = addr<ArrayObject<SupplyVoltagePair>>(supply_voltages_);
+            }
+            if (p != nullptr) {
+                SupplyVoltagePair sp;
+                sp.name = index;
+                sp.value = f;
+                p->pushBack(sp);
+            }
         }
     }
 }
@@ -635,6 +657,7 @@ TLib::IndexType TLib::memory() const {
     ret += sizeof(default_max_transition_);
     ret += sizeof(default_fanout_load_);
     ret += sizeof(default_cell_leakage_power_);
+    ret += sizeof(supply_voltages_);
     ret += sizeof(default_operating_conditions_);
     ret += sizeof(scaling_factors_);
     ret += sizeof(units_);
@@ -699,6 +722,7 @@ void TLib::copy(TLib const &rhs) {
     default_max_transition_ = rhs.default_max_transition_;
     default_fanout_load_ = rhs.default_fanout_load_;
     default_cell_leakage_power_ = rhs.default_cell_leakage_power_;
+    supply_voltages_ = rhs.supply_voltages_;
     default_operating_conditions_ = rhs.default_operating_conditions_;
     scaling_factors_ = rhs.scaling_factors_;
     units_ = rhs.units_;
@@ -754,6 +778,7 @@ void TLib::move(TLib &&rhs) {
     default_max_transition_ = std::move(rhs.default_max_transition_);
     default_fanout_load_ = std::move(rhs.default_fanout_load_);
     default_cell_leakage_power_ = std::move(rhs.default_cell_leakage_power_);
+    supply_voltages_ = std::move(rhs.supply_voltages_);
     default_operating_conditions_ =
         std::move(rhs.default_operating_conditions_);
     scaling_factors_ = std::move(rhs.scaling_factors_);
@@ -774,6 +799,7 @@ void TLib::move(TLib &&rhs) {
     table_templates_map_ = std::move(rhs.table_templates_map_);
     timing_cells_map_ = std::move(rhs.timing_cells_map_);
 
+    rhs.supply_voltages_ = UNINIT_OBJECT_ID;
     rhs.default_operating_conditions_ = UNINIT_OBJECT_ID;
     rhs.scaling_factors_ = UNINIT_OBJECT_ID;
     rhs.units_ = UNINIT_OBJECT_ID;

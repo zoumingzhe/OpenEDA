@@ -165,7 +165,7 @@ void TTerm::setName(const std::string &name) {
         SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
         if (index != kInvalidSymbolIndex) {
             name_ = index;
-            // timing_lib->addSymbolReference(name_, this->getId());
+            timing_lib->addSymbolReference(name_, this->getId());
         }
     }
 }

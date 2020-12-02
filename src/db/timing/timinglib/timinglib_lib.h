@@ -33,6 +33,11 @@ class TableTemplate;
 class TUnits;
 class ScaleFactors;
 
+typedef struct supply_voltage__pair {
+    SymbolIndex name = 0;
+    float value = 0.0f;
+} SupplyVoltagePair;
+
 class TLib : public Object {
   public:
     using BaseType = Object;
@@ -197,6 +202,7 @@ class TLib : public Object {
     float default_max_transition_;
     float default_fanout_load_;
     float default_cell_leakage_power_;
+    ObjectId supply_voltages_;
     ObjectId default_operating_conditions_;
     ObjectId scaling_factors_;
     ObjectId units_;

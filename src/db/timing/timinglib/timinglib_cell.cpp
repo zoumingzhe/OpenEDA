@@ -369,7 +369,7 @@ void TCell::setRetentionCell(const std::string &rc) {
         SymbolIndex index = timing_lib->getOrCreateSymbol(rc.c_str());
         if (index != kInvalidSymbolIndex) {
             retention_cell_ = index;
-            // timing_lib->addSymbolReference(retention_cell_, this->getId());
+            timing_lib->addSymbolReference(retention_cell_, this->getId());
         }
     }
 }

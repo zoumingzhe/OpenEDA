@@ -112,10 +112,10 @@ typedef struct scandata {
     char string_buf[80960] = {'\0'};
     char token_comment_buf[102400] = {'\0'};
     char token_comment_buf2[102400] = {'\0'};
-    char *string_buf_ptr = {'\0'};
+    char *string_buf_ptr = nullptr;
     struct nl *file_name_list = nullptr;
-    char *curr_file = {'\0'};
-    char *curr_file_save = {'\0'};
+    char *curr_file = nullptr;
+    char *curr_file_save = nullptr;
     int include_stack_index = 0;
     void *include_stack[MAX_INCLUDE_DEPTH] = {nullptr};
 
