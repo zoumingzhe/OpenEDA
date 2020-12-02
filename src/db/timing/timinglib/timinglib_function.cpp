@@ -94,7 +94,7 @@ TFunction::IndexType TFunction::memory() const {
 }
 
 /// set
-void TFunction::set_func_str(const std::string& str) {
+void TFunction::setFuncStr(const std::string& str) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib != nullptr) {
         SymbolIndex idx = timing_lib->getOrCreateSymbol(str.c_str());
@@ -104,26 +104,26 @@ void TFunction::set_func_str(const std::string& str) {
         }
     }
 }
-void TFunction::set_tterm(ObjectId id) { tterm_ = id; }
-void TFunction::set_op(FuncOpType t) { op_ = t; }
-void TFunction::set_left(ObjectId id) { left_ = id; }
-void TFunction::set_right(ObjectId id) { right_ = id; }
+void TFunction::setTterm(ObjectId id) { tterm_ = id; }
+void TFunction::setOp(FuncOpType t) { op_ = t; }
+void TFunction::setLeft(ObjectId id) { left_ = id; }
+void TFunction::setRight(ObjectId id) { right_ = id; }
 
 /// get
-TTerm* TFunction::get_tterm(void) {
+TTerm* TFunction::getTterm(void) {
     if (tterm_ != UNINIT_OBJECT_ID)
         return addr<TTerm>(tterm_);
     else
         return nullptr;
 }
-FuncOpType TFunction::get_op(void) { return op_; }
-TFunction* TFunction::get_left(void) {
+FuncOpType TFunction::getOp(void) { return op_; }
+TFunction* TFunction::getLeft(void) {
     if (left_ != UNINIT_OBJECT_ID)
         return addr<TFunction>(left_);
     else
         return nullptr;
 }
-TFunction* TFunction::get_right(void) {
+TFunction* TFunction::getRight(void) {
     if (right_ != UNINIT_OBJECT_ID)
         return addr<TFunction>(right_);
     else

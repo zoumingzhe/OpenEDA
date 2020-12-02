@@ -28,7 +28,7 @@ namespace Timinglib {
 
 si2drObjectIdT LibHash::nulloid_ = {0, 0};
 
-timinglib_hash_table *LibHash::timinglib_hash_create_hash_table(
+timinglib_hash_table *LibHash::timinglibHashCreateHashTable(
     int numels, int auto_resize, int case_insensitive) {
     timinglib_hash_table *ht;
 
@@ -49,7 +49,7 @@ timinglib_hash_table *LibHash::timinglib_hash_create_hash_table(
     return ht;
 }
 
-int LibHash::timinglib_hash_get_next_higher_prime(int prime) {
+int LibHash::timinglibHashGetNextHigherPrime(int prime) {
     if (prime < 20) return 53;
     if (prime < 60) return 409;
     if (prime < 400) return 1019;
@@ -59,7 +59,7 @@ int LibHash::timinglib_hash_get_next_higher_prime(int prime) {
                    //  this!
 }
 
-void LibHash::timinglib_hash_destroy_hash_table(timinglib_hash_table *ht) {
+void LibHash::timinglibHashDestroyHashTable(timinglib_hash_table *ht) {
     if (ht == nullptr) return;
     /* traverse the all chain, and destroy all the buckets. */
     timinglib_hash_bucket *hbptr, *hb_next;
@@ -92,8 +92,8 @@ void LibHash::timinglib_hash_destroy_hash_table(timinglib_hash_table *ht) {
     free(ht);
 }
 
-void LibHash::timinglib_hash_resize_hash_table(timinglib_hash_table *ht,
-                                                  int new_size) {
+void LibHash::timinglibHashResizeHashTable(timinglib_hash_table *ht,
+                                           int new_size) {
     timinglib_hash_bucket *hb;
     int hash_num;
 
@@ -116,9 +116,9 @@ void LibHash::timinglib_hash_resize_hash_table(timinglib_hash_table *ht,
      * size */
     for (hb = ht->all_list; hb; hb = hb->all_next) {
         if (ht->case_insensitive)
-            hash_num = timinglib_hash_name_hash_nocase(hb->name, ht->size);
+            hash_num = timinglibHashNameHashNocase(hb->name, ht->size);
         else
-            hash_num = timinglib_hash_name_hash(hb->name, ht->size);
+            hash_num = timinglibHashNameHash(hb->name, ht->size);
 
         hb->next = ht->table[hash_num];
         ht->table[hash_num] = hb;
@@ -130,22 +130,22 @@ void LibHash::timinglib_hash_resize_hash_table(timinglib_hash_table *ht,
     }
 }
 
-unsigned int LibHash::timinglib_hash_name_hash(char *name, int size) {
+unsigned int LibHash::timinglibHashNameHash(char *name, int size) {
     unsigned int h = 0;
     for (; *name; name++) h = 13 * h + static_cast<int>(*name);
     h = (h % size);
     return h;
 }
 
-unsigned int LibHash::timinglib_hash_name_hash_nocase(char *name, int size) {
+unsigned int LibHash::timinglibHashNameHashNocase(char *name, int size) {
     unsigned int h = 0;
     for (; *name; name++) h = 13 * h + static_cast<int>(toupper(*name));
     h = (h % size);
     return h;
 }
 
-int LibHash::timinglib_hash_enter_oid(timinglib_hash_table *ht, char *name,
-                                         si2drObjectIdT oid) {
+int LibHash::timinglibHashEnterOid(timinglib_hash_table *ht, char *name,
+                                   si2drObjectIdT oid) {
     timinglib_hash_bucket *hb;
     int hash_num;
 
@@ -153,9 +153,9 @@ int LibHash::timinglib_hash_enter_oid(timinglib_hash_table *ht, char *name,
         return -1;
     }
     if (ht->case_insensitive)
-        hash_num = LibHash::timinglib_hash_name_hash_nocase(name, ht->size);
+        hash_num = LibHash::timinglibHashNameHashNocase(name, ht->size);
     else
-        hash_num = LibHash::timinglib_hash_name_hash(name, ht->size);
+        hash_num = LibHash::timinglibHashNameHash(name, ht->size);
 
     for (hb = ht->table[hash_num]; hb; hb = hb->next) {
         if (ht->case_insensitive) {
@@ -195,9 +195,9 @@ int LibHash::timinglib_hash_enter_oid(timinglib_hash_table *ht, char *name,
     if (ht->auto_resize && ht->longest_bucket_string > ht->threshold) {
         int biggest_size =
             (ht->size > ht->entry_count ? ht->size : ht->entry_count);
-        int next_size = timinglib_hash_get_next_higher_prime(biggest_size);
+        int next_size = timinglibHashGetNextHigherPrime(biggest_size);
         if (next_size > ht->size) {
-            timinglib_hash_resize_hash_table(ht, next_size);
+            timinglibHashResizeHashTable(ht, next_size);
             if (ht->longest_bucket_string > ht->threshold) {
                 ht->threshold = ht->longest_bucket_string +
                                 3; /* we don't want to get too radical! */
@@ -208,8 +208,7 @@ int LibHash::timinglib_hash_enter_oid(timinglib_hash_table *ht, char *name,
     return 0;
 }
 
-void LibHash::timinglib_hash_delete_elem(timinglib_hash_table *ht,
-                                            char *name) {
+void LibHash::timinglibHashDeleteElem(timinglib_hash_table *ht, char *name) {
     timinglib_hash_bucket *hb, *hb_last;
     int hash_num;
     // int count;
@@ -218,9 +217,9 @@ void LibHash::timinglib_hash_delete_elem(timinglib_hash_table *ht,
         return;
     }
     if (ht->case_insensitive)
-        hash_num = timinglib_hash_name_hash_nocase(name, ht->size);
+        hash_num = timinglibHashNameHashNocase(name, ht->size);
     else
-        hash_num = timinglib_hash_name_hash(name, ht->size);
+        hash_num = timinglibHashNameHash(name, ht->size);
 
     hb_last = 0;
     for (hb = ht->table[hash_num]; hb; hb = hb->next) {
@@ -277,8 +276,8 @@ void LibHash::timinglib_hash_delete_elem(timinglib_hash_table *ht,
     return;
 }
 
-void LibHash::timinglib_hash_lookup(timinglib_hash_table *ht, char *name,
-                                       si2drObjectIdT *oidptr) {
+void LibHash::timinglibHashLookup(timinglib_hash_table *ht, char *name,
+                                  si2drObjectIdT *oidptr) {
     timinglib_hash_bucket *hb;
     int hash_num;
 
@@ -287,9 +286,9 @@ void LibHash::timinglib_hash_lookup(timinglib_hash_table *ht, char *name,
         return;
     }
     if (ht->case_insensitive)
-        hash_num = timinglib_hash_name_hash_nocase(name, ht->size);
+        hash_num = timinglibHashNameHashNocase(name, ht->size);
     else
-        hash_num = timinglib_hash_name_hash(name, ht->size);
+        hash_num = timinglibHashNameHash(name, ht->size);
 
     for (hb = ht->table[hash_num]; hb; hb = hb->next) {
         if (ht->case_insensitive) {
@@ -308,7 +307,7 @@ void LibHash::timinglib_hash_lookup(timinglib_hash_table *ht, char *name,
     return;
 }
 
-std::string LibHash::make_rep(const char *prefix, void *x) {
+std::string LibHash::makeRep(const char *prefix, void *x) {
     char buf[50];
     if (x == NULL) {
         snprintf(buf, sizeof(buf), "%s", "0");
@@ -319,8 +318,7 @@ std::string LibHash::make_rep(const char *prefix, void *x) {
     return std::string(buf);
 }
 
-void LibHash::dump_attr_hash(timinglib_hash_table *ht, FILE *outc,
-                                FILE *outh) {
+void LibHash::dumpAttrHash(timinglib_hash_table *ht, FILE *outc, FILE *outh) {
     /* go thru all the hash buckets and print out forward references to the h
      * file */
     timinglib_hash_bucket *b;
@@ -333,10 +331,10 @@ void LibHash::dump_attr_hash(timinglib_hash_table *ht, FILE *outc,
                 "timinglib_hash_bucket hbuck_%llx = { %s, %s, %s, "
                 "(char*)(\"%s\"), {%s,(void*)0x%llx}  };\n",
                 reinterpret_cast<uint64_t>(b),
-                make_rep("hbuck", b->next).c_str(),
-                make_rep("hbuck", b->all_next).c_str(),
-                make_rep("hbuck", b->all_prev).c_str(), b->name,
-                make_rep("attr", b->item.v1).c_str(),
+                makeRep("hbuck", b->next).c_str(),
+                makeRep("hbuck", b->all_next).c_str(),
+                makeRep("hbuck", b->all_prev).c_str(), b->name,
+                makeRep("attr", b->item.v1).c_str(),
                 reinterpret_cast<uint64_t>(b->item.v2));
     }
 
@@ -367,14 +365,13 @@ void LibHash::dump_attr_hash(timinglib_hash_table *ht, FILE *outc,
         "%s, %d, %d, %d, %d, %d, %d};\n",
         reinterpret_cast<uint64_t>(ht), reinterpret_cast<uint64_t>(ht->table),
         reinterpret_cast<uint64_t>(ht->counts),
-        make_rep("hbuck", ht->all_list).c_str(),
-        make_rep("hbuck", ht->all_last).c_str(), ht->auto_resize, ht->threshold,
+        makeRep("hbuck", ht->all_list).c_str(),
+        makeRep("hbuck", ht->all_last).c_str(), ht->auto_resize, ht->threshold,
         ht->size, ht->longest_bucket_string, ht->entry_count,
         ht->case_insensitive);
 }
 
-void LibHash::dump_group_hash(timinglib_hash_table *ht, FILE *outc,
-                                 FILE *outh) {
+void LibHash::dumpGroupHash(timinglib_hash_table *ht, FILE *outc, FILE *outh) {
     /* go thru all the hash buckets and print out forward references to the h
      * file */
     timinglib_hash_bucket *b;
@@ -387,10 +384,10 @@ void LibHash::dump_group_hash(timinglib_hash_table *ht, FILE *outc,
                 "timinglib_hash_bucket hbuck_%llx = { %s, %s, %s, "
                 "(char*)(\"%s\"), {%s,(void*)0x%llx}  };\n",
                 reinterpret_cast<uint64_t>(b),
-                make_rep("hbuck", b->next).c_str(),
-                make_rep("hbuck", b->all_next).c_str(),
-                make_rep("hbuck", b->all_prev).c_str(), b->name,
-                make_rep("group", b->item.v1).c_str(),
+                makeRep("hbuck", b->next).c_str(),
+                makeRep("hbuck", b->all_next).c_str(),
+                makeRep("hbuck", b->all_prev).c_str(), b->name,
+                makeRep("group", b->item.v1).c_str(),
                 reinterpret_cast<uint64_t>(b->item.v2));
     }
 
@@ -421,8 +418,8 @@ void LibHash::dump_group_hash(timinglib_hash_table *ht, FILE *outc,
         "%s, %d, %d, %d, %d, %d, %d};\n",
         reinterpret_cast<uint64_t>(ht), reinterpret_cast<uint64_t>(ht->table),
         reinterpret_cast<uint64_t>(ht->counts),
-        make_rep("hbuck", ht->all_list).c_str(),
-        make_rep("hbuck", ht->all_last).c_str(), ht->auto_resize, ht->threshold,
+        makeRep("hbuck", ht->all_list).c_str(),
+        makeRep("hbuck", ht->all_last).c_str(), ht->auto_resize, ht->threshold,
         ht->size, ht->longest_bucket_string, ht->entry_count,
         ht->case_insensitive);
 }

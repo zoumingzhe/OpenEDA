@@ -65,14 +65,13 @@ bool buildTermMapping(Cell *cell, const std::vector<TCell *> &tcells) {
     std::unordered_map<TCell *, std::unordered_map<std::string, TTerm *> >
         cell_tterm_map;
     for (auto tcell : tcells) {
-        auto tterms = tcell->get_terms();
+        auto tterms = tcell->getTerms();
         std::list<std::string> &tterm_names = cell_tterm_names_map[tcell];
         std::unordered_map<std::string, TTerm *> &tterm_map =
             cell_tterm_map[tcell];
         for (auto tterm : tterms) {
-            auto attr = tterm->getAttr();
-            if (attr != nullptr) {
-                str = attr->get_name();
+            if (tterm != nullptr) {
+                str = tterm->getName();
                 tterm_names.emplace_back(str);
                 tterm_map[str] = tterm;
             }
@@ -105,19 +104,17 @@ bool buildTermMapping(Cell *cell, const std::vector<TCell *> &tcells) {
                 TTerm *term = tterm_map[name];
                 if (term) tcell_reset_terms_map[cell].emplace_back(term);
             } else {
-                TTerm *term = cell->get_or_create_term(name);
+                TTerm *term = cell->getOrCreateTerm(name);
                 if (term == nullptr) {
                     open_edi::util::message->issueMsg("TIMINGLIB", 1, kError,
                                                       "tterm", name.c_str());
                     return false;
                 }
-                if (term->getAttr()) {
-                    term->getAttr()->set_name(name);
-                    term->getAttr()->set_dummy(true);
-                    tterm_names.emplace_back(name);
-                    tterm_map[name] = term;
-                    tcell_reset_terms_map[cell].emplace_back(term);
-                }
+                term->setName(name);
+                term->setDummy(true);
+                tterm_names.emplace_back(name);
+                tterm_map[name] = term;
+                tcell_reset_terms_map[cell].emplace_back(term);
             }
         }
     }
@@ -133,7 +130,7 @@ bool buildTermMapping(Cell *cell, const std::vector<TCell *> &tcells) {
     for (auto iter : tcell_reset_terms_map) {
         TCell *cell = iter.first;
         std::vector<TTerm *> &terms = iter.second;
-        cell->reset_terms(terms);
+        cell->resetTerms(terms);
     }
 
     return true;
@@ -171,17 +168,16 @@ void buildTermMapping() {
     for (auto index = 0; index < size; ++index) {
         AnalysisView *view = timing_lib->getAnalysisView(index);
         if (view == nullptr) continue;
-        auto corner = view->get_analysis_corner();
+        auto corner = view->getAnalysisCorner();
         if (corner == nullptr) continue;
-        auto libset = corner->get_libset();
+        auto libset = corner->getLibset();
         if (libset == nullptr) continue;
-        auto libs = libset->get_timing_libs();
+        auto libs = libset->getTimingLibs();
         for (auto lib : libs) {
-            auto cells = lib->get_timing_cells();
+            auto cells = lib->getTimingCells();
             for (auto cell : cells) {
-                auto attr = cell->getAttr();
-                if (attr)
-                    tcell_map.insert(std::make_pair(attr->get_name(), cell));
+                if (cell)
+                    tcell_map.insert(std::make_pair(cell->getName(), cell));
             }
         }
     }
@@ -361,17 +357,17 @@ int readTimingLibCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 return TCL_ERROR;
             }
 
-            view->set_analysis_mode(mode->getId());
-            view->set_analysis_corner(corner->getId());
-            view->set_active(true);
-            view->set_setup(true);
-            view->set_hold(true);
+            view->setAnalysisMode(mode->getId());
+            view->setAnalysisCorner(corner->getId());
+            view->setActive(true);
+            view->setSetup(true);
+            view->setHold(true);
             timing_lib->addActiveSetupView(view->getId());
             timing_lib->addActiveHoldView(view->getId());
         } else {
-            corner = view->get_analysis_corner();
+            corner = view->getAnalysisCorner();
         }
-        LibSet *libset = corner->get_libset();
+        LibSet *libset = corner->getLibset();
         if (libset == nullptr) {
             libset = Object::createObject<LibSet>(kObjectTypeLibSet,
                                                   timing_lib->getId());
@@ -381,8 +377,8 @@ int readTimingLibCommand(ClientData cld, Tcl_Interp *itp, int argc,
                                                   "default", "libset");
                 return TCL_ERROR;
             }
-            libset->set_name(corner->get_name());
-            corner->set_libset(libset->getId());
+            libset->setName(corner->getName());
+            corner->setLibset(libset->getId());
         }
 
         if (lib_file_count != 0)
@@ -530,10 +526,10 @@ int createAnalysisViewCommand(ClientData cld, Tcl_Interp *itp, int argc,
             return TCL_ERROR;
         }
         mode->setOwner(analysis_view->getId());
-        analysis_view->set_analysis_mode(mode->getId());
+        analysis_view->setAnalysisMode(mode->getId());
 
         corner->setOwner(analysis_view->getId());
-        analysis_view->set_analysis_corner(corner->getId());
+        analysis_view->setAnalysisCorner(corner->getId());
 
         open_edi::util::message->info("Creating view %s successfully.\n",
                                       args.name.c_str());
@@ -618,7 +614,7 @@ int createAnalysisModeCommand(ClientData cld, Tcl_Interp *itp, int argc,
                                               args.name.c_str());
             return TCL_ERROR;
         }
-        mode->add_constraint_file(args.constraint_file);
+        mode->addConstraintFile(args.constraint_file);
 
         open_edi::util::message->info("Creating mode %s successfully.\n",
                                       args.name.c_str());
@@ -743,7 +739,7 @@ int createAnalysisCornerCommand(ClientData cld, Tcl_Interp *itp, int argc,
                                               args.lib_set.c_str());
             return TCL_ERROR;
         }
-        libset->set_name(args.name);
+        libset->setName(args.name);
 
         open_edi::util::message->info("\nReading Timing Library\n");
         if (false == parseLib(libset, args.lib_set, dump_lib_file, dump_db_file,
@@ -764,8 +760,8 @@ int createAnalysisCornerCommand(ClientData cld, Tcl_Interp *itp, int argc,
                                               args.name.c_str());
             return TCL_ERROR;
         }
-        corner->set_rc_tech_file(args.rc_tech);
-        corner->set_libset(libset->getId());
+        corner->setRcTechFile(args.rc_tech);
+        corner->setLibset(libset->getId());
 
         open_edi::util::message->info("Creating corner %s successfully.\n",
                                       args.name.c_str());
@@ -962,16 +958,16 @@ int setAnalysisViewStatusCommand(ClientData cld, Tcl_Interp *itp, int argc,
                                               args.view_name.c_str());
             return TCL_ERROR;
         }
-        view->set_active(args.active);
-        view->set_setup(args.setup);
-        view->set_hold(args.hold);
-        view->set_max_tran(args.max_tran);
-        view->set_max_cap(args.max_cap);
-        view->set_min_cap(args.min_cap);
-        view->set_leakage_power(args.leakage_power);
-        view->set_dynamic_power(args.dynamic_power);
-        view->set_cell_em(args.cell_em);
-        view->set_signal_em(args.signal_em);
+        view->setActive(args.active);
+        view->setSetup(args.setup);
+        view->setHold(args.hold);
+        view->setMaxTran(args.max_tran);
+        view->setMaxCap(args.max_cap);
+        view->setMinCap(args.min_cap);
+        view->setLeakagePower(args.leakage_power);
+        view->setDynamicPower(args.dynamic_power);
+        view->setCellEm(args.cell_em);
+        view->setSignalEm(args.signal_em);
         if (args.active && args.setup) {
             timing_lib->addActiveSetupView(view->getId());
         }
