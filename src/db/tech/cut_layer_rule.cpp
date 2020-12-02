@@ -356,8 +356,11 @@ void CutSpacing::setIsSecondLayer() {
  * @return
  */
 SecondLayer *CutSpacing::getSecondLayer() const {
-    SecondLayer *obj_data = addr<SecondLayer>(cut_sp_rules_);
-    return obj_data;
+    if (getIsSecondLayer()) {
+        SecondLayer *obj_data = addr<SecondLayer>(cut_sp_rules_);
+        return obj_data;
+    }
+    return nullptr;
 }
 
 /**
@@ -396,9 +399,12 @@ void CutSpacing::setIsAdjCuts() {
  *
  * @return
  */
-AdjacentCuts *CutSpacing::getAdjCuts() const { 
-    AdjacentCuts *obj_data = addr<AdjacentCuts>(cut_sp_rules_);
-    return obj_data;
+AdjacentCuts *CutSpacing::getAdjCuts() const {
+    if (getIsAdjCuts()) {
+        AdjacentCuts *obj_data = addr<AdjacentCuts>(cut_sp_rules_);
+        return obj_data;
+    }
+    return nullptr;
 }
 
 /**
@@ -438,8 +444,11 @@ void CutSpacing::setIsParallelOverlap() {
  * @return
  */
 CutSpacingPrlOvlp *CutSpacing::getParallelOverlap() const {
-    CutSpacingPrlOvlp *obj_data = addr<CutSpacingPrlOvlp>(cut_sp_rules_);
-    return obj_data;
+    if (getIsParallelOverlap()) {
+        CutSpacingPrlOvlp *obj_data = addr<CutSpacingPrlOvlp>(cut_sp_rules_);
+        return obj_data;
+    }
+    return nullptr;
 }
 
 /**
@@ -674,8 +683,11 @@ void Enclosure::setIsEol() { enclosure_type_ |= enclosure_is_eol; }
  * @return
  */
 EnclosureEol *Enclosure::getEol() const {
-    EnclosureEol *obj_data = addr<EnclosureEol>(enclosure_rules_);
-    return obj_data;
+    if (getIsEol()) {
+        EnclosureEol *obj_data = addr<EnclosureEol>(enclosure_rules_);
+        return obj_data;
+    }
+    return nullptr;
 }
 
 /**
@@ -713,8 +725,11 @@ void Enclosure::setIsOverhang() { enclosure_type_ |= enclosure_is_overhang; }
  * @return
  */
 EnclosureOverhang *Enclosure::getOverhang() const {
-    EnclosureOverhang *obj_data = addr<EnclosureOverhang>(enclosure_rules_);
-    return obj_data;
+    if (getIsOverhang()) {
+        EnclosureOverhang *obj_data = addr<EnclosureOverhang>(enclosure_rules_);
+        return obj_data;
+    }
+    return nullptr;
 }
 
 /**
