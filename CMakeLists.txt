@@ -22,13 +22,13 @@ MESSAGE(STATUS "DEV_TOOL path: " ${OPT_PATH})
 # set Boost path
 find_package(Boost 1.55.0 REQUIRED)
 if (Boost_FOUND)
-    set(Boost_HEADERS  Boost::header ${Boost_INCLUDE_DIRS})
+    set(Boost_INCLUDE_DIRS  Boost::header ${Boost_INCLUDE_DIRS})
 else ()
     set(Boost_DIR ${OPT_PATH}/boost-1.69)
-    set(Boost_HEADERS ${Boost_DIR}/include)
+    set(Boost_INCLUDE_DIRS ${Boost_DIR}/include)
     set(Boost_LIBRARY_DIRS ${Boost_DIR}/lib)
 endif ()
-message(STATUS "Boost_HEADERS = ${Boost_HEADERS}")
+message(STATUS "Boost_INCLUDE_DIRS = ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost_LIBRARY_DIRS = ${Boost_LIBRARY_DIRS}")
 
 # set Tcl path

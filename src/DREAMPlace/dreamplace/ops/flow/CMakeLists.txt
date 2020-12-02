@@ -9,7 +9,7 @@ if (CUDA_FOUND)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
     set(CUDA_SEPARABLE_COMPILATION TRUE)
     list(APPEND CUDA_NVCC_FLAGS
-        -O3 -std=c++11 ${CMAKE_CUDA_FLAGS} 
+        -O3 -std=c++14 ${CMAKE_CUDA_FLAGS} 
         )
     list(APPEND CUDA_NVCC_FLAGS --compiler-options -fPIC)
 
@@ -26,9 +26,9 @@ if (CUDA_FOUND)
         ${Boost_INCLUDE_DIRS}
         )
 
-    # Request that cuda_linked be built with -std=c++11
+    # Request that cuda_linked be built with -std=c++14
     # As this is a public compile feature anything that links to cuda_linked
-    # will also build with -std=c++11
+    # will also build with -std=c++14
 	#target_compile_features(${CUDA_LINKED} PUBLIC cxx_std_11)
 
     # We need to explicitly state that we need all CUDA files in the cuda_linked
@@ -38,15 +38,33 @@ if (CUDA_FOUND)
         PROPERTIES CUDA_SEPARABLE_COMPILATION ON
         )
 endif(CUDA_FOUND)
+configure_file(src/global_place.cpp.in ${CMAKE_CURRENT_SOURCE_DIR}/src/global_place.cpp)
 
 file(GLOB SOURCES 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
     )
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/..")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/.." 
+                    "${CMAKE_CURRENT_SOURCE_DIR}/../../../..")
 include_directories("${LIMBO_SOURCE_DIR}")
 include_directories("${Boost_INCLUDE_DIRS}")
+include_directories("${Python_INCLUDE_DIRS}")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
+#add_executable(test_p ${SOURCES})
+#target_link_libraries(test_p ${UTILITY_LIBRARY_DIRS}/libutility.a)
+#target_link_libraries(test_p ${Python_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${Python_LIBRARIES})
+
+link_directories(${Python_LIBRARY_DIRS})
+link_directories(${Python_SITELIB})
+link_directories(${UTILITY_LIBRARY_DIRS})
+
+#if (CUDA_FOUND)
+#    target_link_libraries(test_p ${CUDA_LINKED})
+#endif(CUDA_FOUND)
+#install ( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/test_p DESTINATION dreamplace )
+
+

@@ -10,7 +10,7 @@ add_library(${_SUBLIBNAME} STATIC ${SRCS})
 target_include_directories(${_SUBLIBNAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/.. 
     ${PROFILER_DIR}/include
-    ${Boost_HEADERS} 
+    ${Boost_INCLUDE_DIRS} 
     ${TCL_DIR}/include)
 
 # must turn fPIC on 

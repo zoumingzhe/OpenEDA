@@ -14,6 +14,7 @@
 
 #include <string>
 #include <vector>
+#include "db/core/root.h"
 
 #include "db/core/bus.h"
 #include "db/core/fill.h"
@@ -36,9 +37,7 @@ namespace open_edi {
 namespace db {
 
 class SpecialNet;
-class AnalysisView;
-class AnalysisMode;
-class AnalysisCorner;
+class StorageUtil;
 
 class Foreign : public Object {
   public:
@@ -160,9 +159,11 @@ class HierData : public Object {
     bool addSymbolReference(SymbolIndex index, ObjectId owner);
     void setPool(MemPagePool *p);
     MemPagePool *getPool();
+    void setStorageUtil(StorageUtil *v);
+    StorageUtil* getStorageUtil() const;
 
-    void setTechLibId(ObjectId v);
-    ObjectId getTechLibId() const;
+    // void setTechLibId(ObjectId v);
+    // ObjectId getTechLibId() const;
     void setFloorplanId(ObjectId v);
     ObjectId getFloorplanId() const;
 
@@ -193,11 +194,9 @@ class HierData : public Object {
   private:
     void __init();
 
-    MemPagePool *pool_;  ///< use the memory pool to allocate object
-    SymbolTable *symtbl_;
-    PolygonTable *polytbl_;
+    StorageUtil *storage_util_; // runtime object.
     ObjectId floor_plan_;
-    ObjectId tech_lib_;  ///< tech LEF information
+    // ObjectId tech_lib_;  ///< tech LEF information
     ObjectId cells_;  ///< Macro in LEF, module in Verilog,full implemented sub
                       ///< blocks. Only used by hierarchical cell
     ObjectId instances_;  ///< Instantiation of a cell
@@ -248,6 +247,10 @@ class Cell : public Object {
     bool addSymbolReference(SymbolIndex index, ObjectId owner);
     void setPool(MemPagePool *p);
     MemPagePool *getPool();
+    StorageUtil *getStorageUtil();
+    void setStorageUtil(StorageUtil *v);
+    void initHierData(StorageUtil *v);
+    // void initHierData();
 
     // Get object vector size:
     uint64_t getNumOfCells() const;
@@ -262,11 +265,13 @@ class Cell : public Object {
     uint64_t getNumOfScanChains() const;
     uint64_t getNumOfForeigns() const;
     uint64_t getNumOfSitePatterns() const;
-    uint64_t getNumOfAnalysisViews() const;
 
     // Get object by name:
     Cell *getCell(std::string name);
+    Cell *getCellFromTechLib(std::string name);
+
     Term *getTerm(std::string name);
+
     Bus *getBus(std::string name);
     Net *getNet(std::string name);
     Inst *getInstance(std::string name);
@@ -348,19 +353,10 @@ class Cell : public Object {
 
     // timinglib
     void resetTerms(const std::vector<Term *> &terms);
-    AnalysisMode *getAnalysisMode(std::string name);
-    AnalysisCorner *getAnalysisCorner(std::string name);
-    AnalysisView *getAnalysisView(std::string name);
-    AnalysisView *getAnalysisView(size_t idx) const;
-    void addActiveSetupView(ObjectId id);
-    void addActiveHoldView(ObjectId id);
-    AnalysisMode *createAnalysisMode(std::string &name);
-    AnalysisCorner *createAnalysisCorner(std::string &name);
-    AnalysisView *createAnalysisView(std::string &name);
     // timinglib
 
     // Container: tech, floorplan, etc.
-    void setTechLib(Tech *t);
+    // void setTechLib(Tech *t);
     Tech *getTechLib();
     Layer *getLayerByLayerId(Int32 id);
     void setFloorplan(Floorplan *fp);
@@ -419,7 +415,7 @@ class Cell : public Object {
     void __init();
     const HierData *__getConstHierData() const;
     HierData *__getHierData();
-    void __initHierData();
+    //void __initHierData();
 
     SymbolIndex name_index_;  ///< cell name
     CellType cell_type_;      ///< cell type
@@ -440,14 +436,7 @@ class Cell : public Object {
     ObjectId foreigns_;
     ObjectId densities_;
     ObjectId obses_;
-    // timinglib
-    ObjectId analysis_modes_;
-    ObjectId analysis_corners_;
-    ObjectId analysis_views_;
-    ObjectId active_setup_views_;
-    ObjectId active_hold_views_;
-    // timinglib
-    
+   
     ///< Component mask shift in DEF
     ObjectId mask_shift_layers_[max_layer_num];
     uint8_t num_mask_shift_layers_;

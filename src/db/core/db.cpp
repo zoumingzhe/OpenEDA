@@ -10,7 +10,7 @@
  */
 
 #include "db/core/db.h"
-
+#include "db/core/root.h"
 #include "db/util/symbol_table.h"
 #include "util/polygon_table.h"
 
@@ -23,10 +23,13 @@ using Version = open_edi::util::Version;
 static Cell *kTopCell = nullptr;
 static bool kIsTopCellInitialized = false;
 static Version kCurrentVersion;
+static Root &kRoot = Root::getInstance();
 
-/// @brief resetTopCell
+/// @brief resetTopCell: 
+//    Note currently the root is also reset. might be changed someday.
 void resetTopCell() {
-    MemPool::initMemPool();
+    //MemPool::initMemPool();
+    kRoot.reset();
     kTopCell = nullptr;
     kCurrentVersion.reset();
 }
@@ -37,25 +40,10 @@ void resetTopCell() {
 bool initTopCell() {
     if (kIsTopCellInitialized) return true;
 
-    MemPagePool *pool = MemPool::newPagePool();
-    if (pool == nullptr) return false;
-
-    ObjectId cell_id = 0;
-    kTopCell = pool->allocate<Cell>(kObjectTypeCell, cell_id);
-    kTopCell->setId(cell_id);
-    kTopCell->setOwner(cell_id);
-    kTopCell->setObjectType(kObjectTypeCell);
-    kTopCell->setCellType(CellType::kHierCell);
-    kTopCell->setPool(pool);
-    MemPool::insertPagePool(cell_id, pool);
-
-    Tech *tech_lib = kTopCell->createObject<Tech>(kObjectTypeTech);
-
-    if (nullptr == tech_lib) {
-        resetTopCell();
-        return false;
-    }
-    kTopCell->setTechLib(tech_lib);
+    kRoot.initTopCell();
+    kRoot.initTechLib();
+    kRoot.initTimingLib();
+    kTopCell = kRoot.getTopCell();
 
     Floorplan *floorplan = kTopCell->createFloorplan();
     if (!floorplan) {
@@ -64,25 +52,31 @@ bool initTopCell() {
         return false;
     }
 
-    SymbolTable *st = new SymbolTable;
-    if (nullptr == st) {
-        resetTopCell();
-        return false;
-    }
-    kTopCell->setSymbolTable(st);
-    PolygonTable *pt = new PolygonTable();
-    kTopCell->setPolygonTable(pt);
-
     kIsTopCellInitialized = true;
     kCurrentVersion.init();
 
     return true;
 }
 
+/// @brief getRoot
+///
+/// @return
+Root *getRoot() { return &kRoot; }
+
 /// @brief getTopCell
 ///
 /// @return
 Cell *getTopCell() { return kTopCell; }
+
+/// @brief getTechLib
+///
+/// @return
+Tech *getTechLib() { return kRoot.getTechLib(); }
+
+/// @brief getTimingLib
+///
+/// @return
+Timing *getTimingLib() { return kRoot.getTimingLib(); }
 
 /// @brief  setTopCell
 ///
@@ -90,6 +84,25 @@ Cell *getTopCell() { return kTopCell; }
 void setTopCell(ObjectId top_cell_id) {
     if (top_cell_id == 0) return;
     kTopCell = (Cell *)Object::addr<Cell>(top_cell_id);
+    kRoot.setTopCell(kTopCell);
+}
+
+/// @brief  setTechLib
+///
+/// @return
+void setTechLib(ObjectId tech_lib_id) {
+    if (tech_lib_id == 0) return;
+    Tech *tech = (Tech *)Object::addr<Tech>(tech_lib_id);
+    kRoot.setTechLib(tech);
+}
+
+/// @brief  setTimingLib
+///
+/// @return
+void setTimingLib(ObjectId timing_lib_id) {
+    if (timing_lib_id == 0) return;
+    Timing *timing = (Timing *)Object::addr<Timing>(timing_lib_id);
+    kRoot.setTimingLib(timing);
 }
 
 /// @brief getCurrentVersion

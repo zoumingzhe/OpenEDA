@@ -799,8 +799,6 @@ void CornerSpacing::addVertcialSpacing(UInt32 vsp) {
  * release allocated memory
  */
 DirSpanLengthSpTbl::ExactSLSpacing::~ExactSLSpacing() {
-    // if (exact_spacings_)
-    //     free(exact_spacings_);
 }
 
 /**
@@ -881,7 +879,6 @@ UInt32 DirSpanLengthSpTbl::ExactSLSpacing::getNumSpacings() const {
  */
 void DirSpanLengthSpTbl::ExactSLSpacing::setNumSpacings(UInt32 num) {
     spacings_num_ = num;
-    //exact_spacings_ = (UInt32*) calloc(spacings_num_, sizeof(UInt32));
 }
 
 /**
@@ -1582,7 +1579,7 @@ void DirSpanLengthSpTbl::addExactSLSpacingList(ObjectId id) {
  * @return
  */
 EOLKeepout::EOLKeepout() {
-    //memset(static_cast<void*>(this), 0, sizeof(EOLKeepout));
+    memset(static_cast<void*>(this), 0, sizeof(EOLKeepout));
     ArrayObject<SymbolIndex> *vct = nullptr;
     if (class_names_ == 0) {
         vct = getOwnerCell()->createObject<ArrayObject<SymbolIndex>>(kObjectTypeArray);
@@ -2512,10 +2509,7 @@ UInt32 MinSize::getMinSizeNum() const {
  * @return
  */
 void MinSize::setMinSizeNum(UInt32 num) {
-
     minsize_num_ = num;
-    //widths_ = (UInt32*) calloc(minsize_num_, sizeof(UInt32));
-    //lengths_ = (UInt32*) calloc(minsize_num_, sizeof(UInt32));
 }
 
 /**
@@ -3619,14 +3613,6 @@ UInt32 WidthSpTbl::getWidthDim() const {
  */
 void WidthSpTbl::setWidthDim(UInt32 w_dim) {
     width_num_ = w_dim;
-    // if (is_PRL_width_) {
-    //     if (low_excl_spacing_)
-    //         free(low_excl_spacing_);
-    //     if (high_excl_spacing_)
-    //         free(high_excl_spacing_);
-    //     low_excl_spacing_ = (UInt32*)calloc(width_num_, sizeof(UInt32));
-    //     high_excl_spacing_ = (UInt32*)calloc(width_num_, sizeof(UInt32));
-    // }
 }
 
 /**
@@ -3953,11 +3939,6 @@ UInt32 InfluenceSpTbl::getRowNum() const {
  */
 void InfluenceSpTbl::setRowNum(UInt32 num) {
     row_num_ = num;
-    // if (num > 0) {
-    //     widths_ = static_cast<UInt32*>(calloc(row_num_, sizeof(UInt32)));
-    //     withins_ = static_cast<UInt32*>(calloc(row_num_, sizeof(UInt32)));
-    //     spacings_ = static_cast<UInt32*>(calloc(row_num_, sizeof(UInt32)));
-    // }
 }
 
 /**
@@ -4141,10 +4122,6 @@ UInt32 ParaSpanLenTbl::getDim() const {
  */
 void ParaSpanLenTbl::setDim(UInt32 dim) {
     dim_ = dim;
-    // release(span_lengths_);
-    // release(spacings_);
-    // span_lengths_ = static_cast<UInt32*>(calloc(dim_, sizeof(UInt32)));
-    // spacings_ = static_cast<UInt32*>(calloc(dim_*dim_, sizeof(UInt32)));
 }
 
 /**

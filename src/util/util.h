@@ -28,6 +28,7 @@
 #include "util/stream.h"
 #include "util/util_mem.h"
 #include "util/version.h"
+#include "util/monitor.h"
 
 namespace open_edi {
 namespace util {

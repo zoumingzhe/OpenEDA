@@ -49,6 +49,7 @@ class Command {
     bool getOptionValue(const char * name, std::string& value);
     bool getOptionValue(const char * name, Point** value);
     bool getOptionValue(const char * name, db::Box** value);
+    bool getOptionValue(const char * name, std::vector<std::string>** value);
 
     int preParse();
     int postParse();

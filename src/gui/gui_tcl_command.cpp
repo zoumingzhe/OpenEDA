@@ -3,9 +3,8 @@
 #include "win/main_window.h"
 #include "util/util.h"
 #include "qtint/qt_int.h"
-extern "C"{
 #include "console/tcl_console.h"
-}
+
 
 namespace open_edi {
 namespace gui {

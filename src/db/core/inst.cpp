@@ -18,8 +18,8 @@
 #include "db/core/cell.h"
 #include "db/core/db.h"
 #include "db/core/pin.h"
-#include "db/util/vector_object_var.h"
 #include "db/util/array.h"
+#include "db/util/vector_object_var.h"
 
 namespace open_edi {
 namespace db {
@@ -113,63 +113,23 @@ Box Inst::getBox() {
         size_y = cell->getSizeY();
     }
 
-    size_x += origin_x;
-    size_y += origin_y;
+    // size_x += origin_x;
+    // size_y += origin_y;
 
-    if (getOrient() == Orient::kN) {
+    if (getOrient() == Orient::kN || getOrient() == Orient::kS ||
+        getOrient() == Orient::kFN || getOrient() == Orient::kFS) {
         llx = getLocation().getX();
         lly = getLocation().getY();
         urx = llx + size_x;
         ury = lly + size_y;
     }
 
-    if (getOrient() == Orient::kS) {
-        llx = getLocation().getX() - size_x;
-        lly = getLocation().getY() - size_y;
-        urx = getLocation().getX();
-        ury = getLocation().getY();
-    }
-
-    if (getOrient() == Orient::kW) {
-        llx = getLocation().getX() - size_y;
-        lly = getLocation().getY();
-        urx = getLocation().getX();
-        ury = getLocation().getY() + size_x;
-    }
-
-    if (getOrient() == Orient::kE) {
-        llx = getLocation().getX();
-        lly = getLocation().getY() - size_x;
-        urx = getLocation().getX() + size_y;
-        ury = getLocation().getY();
-    }
-
-    if (getOrient() == Orient::kFN) {
-        llx = getLocation().getX() - size_x;
-        lly = getLocation().getY();
-        urx = getLocation().getX();
-        ury = getLocation().getY() + size_y;
-    }
-
-    if (getOrient() == Orient::kFS) {
-        llx = getLocation().getX();
-        lly = getLocation().getY() - size_y;
-        urx = getLocation().getX() + size_x;
-        ury = getLocation().getY();
-    }
-
-    if (getOrient() == Orient::kFW) {
+    if (getOrient() == Orient::kW || getOrient() == Orient::kE ||
+        getOrient() == Orient::kFW || getOrient() == Orient::kFE) {
         llx = getLocation().getX();
         lly = getLocation().getY();
-        urx = getLocation().getX() + size_y;
-        ury = getLocation().getY() + size_x;
-    }
-
-    if (getOrient() == Orient::kFS) {
-        llx = getLocation().getX() - size_y;
-        lly = getLocation().getY() - size_x;
-        urx = getLocation().getX();
-        ury = getLocation().getY();
+        urx = llx + size_y;
+        ury = lly + size_x;
     }
 
     Box bbox(llx, lly, urx, ury);
@@ -188,17 +148,14 @@ std::string Inst::getName() const {
 
 Cell *Inst::getMaster() const { return addr<Cell>(master_); }
 
-void Inst::setMaster(ObjectId master) {
-    master_ = master;
-}
+void Inst::setMaster(ObjectId master) { master_ = master; }
 void Inst::setMaster(const std::string name) {
     Cell *master = getOwnerCell()->getCell(name);
     if (master) {
         master_ = master->getId();
     } else {
-        message->issueMsg(kError,
-                "cannot find cell %s for instance %s\n",
-                name.c_str(), getName().c_str());
+        message->issueMsg(kError, "cannot find cell %s for instance %s\n",
+                          name.c_str(), getName().c_str());
     }
 }
 
@@ -206,26 +163,22 @@ UInt32 Inst::numPGPins() const {
     if (pg_pins_ == 0) {
         return 0;
     }
-    ArrayObject <ObjectId> *pins_vector = addr<ArrayObject <ObjectId> >(pg_pins_);
+    ArrayObject<ObjectId> *pins_vector = addr<ArrayObject<ObjectId>>(pg_pins_);
     if (pins_vector == nullptr) {
         return 0;
     }
     return pins_vector->getSize();
 }
 
-void Inst::setPGPins(ObjectId pg_pins) {
-    pg_pins_ = pg_pins;
-}
+void Inst::setPGPins(ObjectId pg_pins) { pg_pins_ = pg_pins; }
 
-ObjectId Inst::getPGPins() const {
-    return pg_pins_;
-}
+ObjectId Inst::getPGPins() const { return pg_pins_; }
 
 Pin *Inst::getPGPin(const std::string &name) const {
     if (pg_pins_ == 0) {
         return nullptr;
     }
-    ArrayObject <ObjectId> *pins_vector = addr<ArrayObject <ObjectId> >(pg_pins_);
+    ArrayObject<ObjectId> *pins_vector = addr<ArrayObject<ObjectId>>(pg_pins_);
     if (pins_vector == nullptr) {
         return nullptr;
     }
@@ -240,20 +193,20 @@ Pin *Inst::getPGPin(const std::string &name) const {
 }
 
 ObjectId Inst::__createPinArray() {
-    ArrayObject<ObjectId> *vobj = 
-      getOwnerCell()->createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
+    ArrayObject<ObjectId> *vobj =
+        getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
     ediAssert(vobj != nullptr);
     vobj->setPool(getOwnerCell()->getPool());
-    vobj->reserve(8);      
+    vobj->reserve(8);
     return (vobj->getId());
 }
 
 ObjectId Inst::__createPropertyArray() {
-    ArrayObject<ObjectId> *vobj = 
-      getOwnerCell()->createObject< ArrayObject<ObjectId> >(kObjectTypeArray);
+    ArrayObject<ObjectId> *vobj =
+        getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
     ediAssert(vobj != nullptr);
     vobj->setPool(getOwnerCell()->getPool());
-    vobj->reserve(16);      
+    vobj->reserve(16);
     return (vobj->getId());
 }
 
@@ -261,7 +214,7 @@ void Inst::addPGPin(Pin *pin) {
     if (pg_pins_ == 0) {
         pg_pins_ = __createPinArray();
     }
-    ArrayObject <ObjectId> *pin_vector = addr<ArrayObject <ObjectId> >(pg_pins_);
+    ArrayObject<ObjectId> *pin_vector = addr<ArrayObject<ObjectId>>(pg_pins_);
     pin_vector->pushBack(pin->getId());
 }
 
@@ -269,7 +222,7 @@ UInt32 Inst::numPins() const {
     if (pins_ == 0) {
         return 0;
     }
-    ArrayObject <ObjectId> *pins_vector = addr<ArrayObject <ObjectId> >(pins_);
+    ArrayObject<ObjectId> *pins_vector = addr<ArrayObject<ObjectId>>(pins_);
     if (pins_vector == nullptr) {
         return 0;
     }
@@ -280,7 +233,7 @@ Pin *Inst::getPin(const std::string &name) const {
     if (pins_ == 0) {
         return nullptr;
     }
-    ArrayObject <ObjectId> *pins_vector = addr<ArrayObject <ObjectId> >(pins_);
+    ArrayObject<ObjectId> *pins_vector = addr<ArrayObject<ObjectId>>(pins_);
     if (pins_vector == nullptr) {
         return nullptr;
     }
@@ -294,9 +247,7 @@ Pin *Inst::getPin(const std::string &name) const {
     return nullptr;
 }
 
-ObjectId Inst::getPins() const {
-    return pins_;
-}
+ObjectId Inst::getPins() const { return pins_; }
 
 Pin *Inst::getPinById(ObjectId obj_id) const {
     if (obj_id == 0) {
@@ -309,7 +260,7 @@ void Inst::addPin(Pin *pin) {
     if (pins_ == 0) {
         pins_ = __createPinArray();
     }
-    ArrayObject <ObjectId> *pin_vector = addr<ArrayObject <ObjectId> >(pins_);
+    ArrayObject<ObjectId> *pin_vector = addr<ArrayObject<ObjectId>>(pins_);
     pin_vector->pushBack(pin->getId());
 }
 
@@ -338,17 +289,17 @@ Pin *Inst::createInstancePin(std::string &pin_name) {
     pin->setName(pin_name);
     pin->setInst(this);
     pin->setTerm(term);
-    ArrayObject <ObjectId> *pin_vector = nullptr;
+    ArrayObject<ObjectId> *pin_vector = nullptr;
     if (term->isPGType()) {
         if (pg_pins_ == 0) {
             pg_pins_ = __createPinArray();
         }
-        pin_vector = addr<ArrayObject <ObjectId> >(pg_pins_);
+        pin_vector = addr<ArrayObject<ObjectId>>(pg_pins_);
     } else {
         if (pins_ == 0) {
             pins_ = __createPinArray();
         }
-        pin_vector = addr<ArrayObject <ObjectId> >(pins_);
+        pin_vector = addr<ArrayObject<ObjectId>>(pins_);
     }
     pin_vector->pushBack(pin->getId());
     return pin;
@@ -361,11 +312,10 @@ Pin *Inst::createInstancePinWithoutMaster(std::string &pin_name) {
     if (pins_ == 0) {
         pins_ = __createPinArray();
     }
-    pin_vector = Object::addr< ArrayObject<ObjectId> >(pins_);
+    pin_vector = Object::addr<ArrayObject<ObjectId>>(pins_);
     pin_vector->pushBack(pin->getId());
     return pin;
 }
-
 
 PlaceStatus Inst::getStatus() const { return status_; }
 
@@ -404,9 +354,7 @@ std::string Inst::getSourceString() const {
 
 void Inst::setSource(const SourceType &s) { source_ = s; }
 
-Cell *Inst::getEeqMaster() const {
-    return addr<Cell>(eeq_master_);
-}
+Cell *Inst::getEeqMaster() const { return addr<Cell>(eeq_master_); }
 
 void Inst::setEeqMaster(const std::string &name) {
     Cell *cell = getOwnerCell()->getCell(name);
@@ -432,24 +380,22 @@ void Inst::setRouteHaloDist(const UInt32 &d) { route_halo_dist_ = d; }
 Int32 Inst::getMinLayerId() const { return min_layer_id_; }
 
 void Inst::setMinLayer(std::string name) {
-    min_layer_id_
-        = getOwnerCell()->getTechLib()->getLayerLEFIndexByName(name.c_str());
+    min_layer_id_ =
+        getOwnerCell()->getTechLib()->getLayerLEFIndexByName(name.c_str());
 }
 
 Int32 Inst::getMaxLayerId() const { return max_layer_id_; }
 
 void Inst::setMaxLayer(std::string name) {
-    max_layer_id_
-        = getOwnerCell()->getTechLib()->getLayerLEFIndexByName(name.c_str());
+    max_layer_id_ =
+        getOwnerCell()->getTechLib()->getLayerLEFIndexByName(name.c_str());
 }
 
 Int32 Inst::getWeight() const { return weight_; }
 
 void Inst::setWeight(const Int32 &w) { weight_ = w; }
 
-Constraint *Inst::getRegion() const {
-    return addr<Constraint>(region_);
-}
+Constraint *Inst::getRegion() const { return addr<Constraint>(region_); }
 
 void Inst::setRegion(std::string &name) {
     Constraint *region = getOwnerCell()->getFloorplan()->getRegion(name);
@@ -473,14 +419,14 @@ void Inst::copy(Inst const &rhs) {
     if (rhs.pg_pins_ == 0) {
         pg_pins_ = 0;
     }
-    ArrayObject <ObjectId> *rhs_pg_pins_vector =
-        addr<ArrayObject <ObjectId> >(rhs.pg_pins_);
+    ArrayObject<ObjectId> *rhs_pg_pins_vector =
+        addr<ArrayObject<ObjectId>>(rhs.pg_pins_);
     if (rhs_pg_pins_vector == nullptr) {
         pg_pins_ = 0;
     }
-    pg_pins_ = __createPinArray();    
-    ArrayObject <ObjectId> *new_pg_pin_vector =
-        addr<ArrayObject <ObjectId> >(pg_pins_);
+    pg_pins_ = __createPinArray();
+    ArrayObject<ObjectId> *new_pg_pin_vector =
+        addr<ArrayObject<ObjectId>>(pg_pins_);
     for (int i = 0; i < rhs_pg_pins_vector->getSize(); i++) {
         ObjectId pin_id = (*rhs_pg_pins_vector)[i];
         Pin *pin = addr<Pin>(pin_id);
@@ -489,13 +435,13 @@ void Inst::copy(Inst const &rhs) {
     if (rhs.pins_ == 0) {
         pins_ = 0;
     }
-    ArrayObject <ObjectId> *rhs_pins_vector =
-        addr<ArrayObject <ObjectId> >(rhs.pins_);
+    ArrayObject<ObjectId> *rhs_pins_vector =
+        addr<ArrayObject<ObjectId>>(rhs.pins_);
     if (rhs_pins_vector == nullptr) {
         pins_ = 0;
     }
-    pins_ = __createPinArray();    
-    ArrayObject <ObjectId> *new_pin_vector = addr<ArrayObject <ObjectId> >(pins_);
+    pins_ = __createPinArray();
+    ArrayObject<ObjectId> *new_pin_vector = addr<ArrayObject<ObjectId>>(pins_);
     for (int i = 0; i < rhs_pins_vector->getSize(); i++) {
         ObjectId pin_id = (*rhs_pins_vector)[i];
         Pin *pin = addr<Pin>(pin_id);
@@ -523,9 +469,9 @@ void Inst::move(Inst &&rhs) {
 void Inst::setPropertySize(uint64_t v) {
     if (v == 0) {
         if (properties_id_) {
-            ArrayObject < ObjectId > *data = addr<ArrayObject <ObjectId> >(properties_id_);
-            getOwnerCell()->deleteObject<ArrayObject <ObjectId> >(data);
-
+            ArrayObject<ObjectId> *data =
+                addr<ArrayObject<ObjectId>>(properties_id_);
+            getOwnerCell()->deleteObject<ArrayObject<ObjectId>>(data);
         }
         return;
     }
@@ -537,23 +483,41 @@ void Inst::setPropertySize(uint64_t v) {
 uint64_t Inst::getNumProperties() const {
     if (!properties_id_) return 0;
 
-    return addr<ArrayObject <ObjectId> >(properties_id_)->getSize();
+    return addr<ArrayObject<ObjectId>>(properties_id_)->getSize();
 }
 
 void Inst::addProperty(ObjectId obj_id) {
-    ArrayObject <ObjectId> *vobj = nullptr;
+    ArrayObject<ObjectId> *vobj = nullptr;
     if (obj_id == 0) return;
 
     if (properties_id_ == 0) {
         properties_id_ = __createPropertyArray();
     } else {
-        vobj = addr<ArrayObject <ObjectId> >(properties_id_);
+        vobj = addr<ArrayObject<ObjectId>>(properties_id_);
     }
     ediAssert(vobj != nullptr);
     vobj->pushBack(obj_id);
 }
 
 ObjectId Inst::getPropertiesId() const { return properties_id_; }
+
+ArrayObject<ObjectId> *Inst::getPinArray() const {
+    if (pins_ != 0) {
+        ArrayObject<ObjectId> *pin_array = addr<ArrayObject<ObjectId>>(pins_);
+        return pin_array;
+    } else {
+        return nullptr;
+    }
+}
+ArrayObject<ObjectId> *Inst::getPGPinArray() const {
+    if (pg_pins_ != 0) {
+        ArrayObject<ObjectId> *pg_pin_array =
+            addr<ArrayObject<ObjectId>>(pg_pins_);
+        return pg_pin_array;
+    } else {
+        return nullptr;
+    }
+}
 
 void Inst::clear() {
     // TODO.
@@ -629,8 +593,8 @@ void Inst::print(FILE *fp) {
     }
 
     if (getNumProperties() > 0) {
-        ArrayObject <ObjectId> *vobj =
-            addr<ArrayObject <ObjectId> >(properties_id_);
+        ArrayObject<ObjectId> *vobj =
+            addr<ArrayObject<ObjectId>>(properties_id_);
         for (int i = 0; i < getNumProperties(); i++) {
             ObjectId obj_id = (*vobj)[i];
             if (!obj_id) continue;
@@ -653,7 +617,6 @@ OStreamBase &operator<<(OStreamBase &os, Inst const &rhs) {
         os << UNINIT_OBJECT_ID;
     }
     os << DataDelimiter();
-
 
     os << rhs.numPins();
     os << DataBegin("[");
@@ -698,4 +661,3 @@ IStreamBase &operator>>(IStreamBase &is, Inst &rhs) {
 
 }  // namespace db
 }  // namespace open_edi
-

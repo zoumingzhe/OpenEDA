@@ -9,12 +9,12 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 #include "db/core/cell.h"
-#include "db/util/vector_object_var.h"
 #include "db/tech/layer.h"
 #include "db/core/db.h"
 
 namespace open_edi {
 namespace db {
+using IdArray = ArrayObject<ObjectId>;
 
 /**
  * @brief
@@ -65,20 +65,6 @@ const LayerType GetEDITypeFromTables(UInt32 index) {
 
 /**
  * @brief
- * release allocated memory
- *
- * @param ptr
- * @param is_ptr_set
- */
-void AntennaModel::release(std::vector<std::pair<float, float>>*& ptr, UInt32 is_ptr_set) {
-    if (is_ptr_set && ptr) {
-        delete ptr;
-        ptr = nullptr;
-    }
-}
-
-/**
- * @brief
  * reset the current model. If one more same OXIDE is defined in LEF, the next one should overwrite previous one.
  * it means, if isSet() is true before last one, the existing model must be reset
  */
@@ -88,27 +74,12 @@ void AntennaModel::reset() {
 
 /**
  * @brief
- * add float values pair to specified pair container
- *
- * @param pairs
- * @param first
- * @param second
- */
-void AntennaModel::pushBackPair(std::vector<std::pair<float, float>>*& pairs, float first, float second) {
-    if (!pairs)
-        pairs = new std::vector<std::pair<float, float>>;
-    if (pairs) {
-        pairs->push_back({first, second});
-    }
-}
-
-/**
- * @brief
  * indicate whether same OXIDE is defined or not before this model
  *
  * @return
  */
 bool AntennaModel::isSet() const {
+ 
     return is_set_;
 }
 
@@ -462,7 +433,8 @@ FloatPair* AntennaModel::getDiffAreaRatioPWL(UInt32 index) const {
     }
     if (vct) {
         FloatPair obj_data = (*vct)[index];
-        return &obj_data;
+        FloatPair* ptr = &obj_data;
+        return ptr;
     }
     return nullptr;
 }
@@ -475,6 +447,8 @@ FloatPair* AntennaModel::getDiffAreaRatioPWL(UInt32 index) const {
  * @param r
  */
 void AntennaModel::addDiffAreaRatioPWL(float d, float r) {
+    if (!is_diff_area_ratio_pwl_)
+        is_diff_area_ratio_pwl_ = 1;
     FloatPair fp{d,r};
     ArrayObject<FloatPair> *vct = nullptr;
     if (diff_area_ratio_pwl_ == 0) {
@@ -548,7 +522,8 @@ FloatPair* AntennaModel::getCumDiffAreaRatioPWL(UInt32 index) const {
     }
     if (vct) {
         FloatPair obj_data = (*vct)[index];
-        return &obj_data;
+        FloatPair* ptr = &obj_data;
+        return ptr;
     }
     return nullptr;
 }
@@ -583,6 +558,8 @@ UInt32 AntennaModel::getCumDiffAreaRatioPWLSize() const {
  * @param r
  */
 void AntennaModel::addCumDiffAreaRatioPWL(float d, float r) {
+    if (!is_cum_diff_area_ratio_pwl_)
+        is_cum_diff_area_ratio_pwl_ = 1;
 
     FloatPair fp{d,r};
     ArrayObject<FloatPair> *vct = nullptr;
@@ -658,7 +635,8 @@ FloatPair* AntennaModel::getGatePlusDiffPWL(UInt32 index) const {
     }
     if (vct) {
         FloatPair obj_data = (*vct)[index];
-        return &obj_data;
+        FloatPair* ptr = &obj_data;
+        return ptr;
     }
     return nullptr;
 }
@@ -729,7 +707,8 @@ FloatPair* AntennaModel::getAreaDiffReducePWL(UInt32 index) const {
     }
     if (vct) {
         FloatPair obj_data = (*vct)[index];
-        return &obj_data;
+        FloatPair* ptr = &obj_data;
+        return ptr;
     }
     return nullptr;
 }
@@ -818,7 +797,8 @@ FloatPair* AntennaModel::getDiffGatePWL(UInt32 index) const {
     }
     if (vct) {
         FloatPair obj_data = (*vct)[index];
-        return &obj_data;
+        FloatPair* ptr = &obj_data;
+        return ptr;
     }
     return nullptr;
 
@@ -908,7 +888,8 @@ FloatPair* AntennaModel::getGatePWL(UInt32 index) const {
     }
     if (vct) {
         FloatPair obj_data = (*vct)[index];
-        return &obj_data;
+        FloatPair* ptr = &obj_data;
+        return ptr;
     }
     return nullptr;
 }
@@ -997,7 +978,8 @@ FloatPair* AntennaModel::getDiffSideAreaRatioPWL(UInt32 index) const {
     }
     if (vct) {
         FloatPair obj_data = (*vct)[index];
-        return &obj_data;
+        FloatPair* ptr = &obj_data;
+        return ptr;
     }
     return nullptr;
 }
@@ -1088,7 +1070,8 @@ FloatPair* AntennaModel::getCumDiffSideAreaRatioPWL(UInt32 index) const {
     }
     if (vct) {
         FloatPair obj_data = (*vct)[index];
-        return &obj_data;
+        FloatPair* ptr = &obj_data;
+        return ptr;
     }
     return nullptr;
 }
@@ -1140,13 +1123,6 @@ void AntennaModel::addCumDiffSideAreaRatioPWL(float d, float r) {
 }
 
 void CurrentDen::reset() {
-    // if (frequencies_)
-    //     free(frequencies_);
-    // if (table_entries_)
-    //     free(table_entries_);
-    // if (widths_)
-    //     free(widths_);
-
     memset(static_cast<void*>(this), 0, sizeof(CurrentDen));
 }
 
@@ -1412,11 +1388,6 @@ UInt32 CurrentDen::getFrequenciesNum() const {
  * @param freq_num
  */
 void CurrentDen::setFrequenciesNum(UInt32 freq_num) {
-    // if (frequencies_) {
-    //     free(frequencies_);
-    //     frequencies_ = nullptr;
-    //     freq_num_ = 0;
-    // }
     if (freq_num) {
         freq_num_ = freq_num;
         //frequencies_ = (float*)calloc(freq_num_, sizeof(float));
@@ -1780,13 +1751,10 @@ UInt32 CurrentDen::getWidthsNum() const {
  */
 void CurrentDen::setWidthsNum(UInt32 widths_num) {
     if (widths_) {
-        //free(widths_);
-        //widths_ = nullptr;
         widths_num_ = 0;
     }
     if (widths_num) {
         widths_num_ = widths_num;
-        //widths_ = (UInt32*)calloc(widths_num_, sizeof(UInt32));
     }
 }
 
@@ -1955,19 +1923,7 @@ void CurrentDen::setIsValid(bool v) {
 CurrentDenContainer::CurrentDenContainer() {
     //memset(static_cast<void*>(this), 0, sizeof(CurrentDenContainer));
     //current_dens_ = new CurrentDen[kCurrentMax];
-    ArrayObject<ObjectId> *vct = nullptr;
-    vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-    if (vct == nullptr) return;
-    current_dens_ = vct->getId();
-    vct->setPool(getOwnerCell()->getPool());
-    vct->reserve(16);
-
-    Cell *current_top_cell = getTopCell();
-    if (!current_top_cell) return;
-    for (int i = 0; i < kCurrentMax; i++) {
-        CurrentDen *den = current_top_cell->createObject<CurrentDen>(kObjectTypeCurrentDen);
-        if (vct) vct->pushBack(den->getId());
-    }
+    
 }
 
 /**
@@ -1977,8 +1933,6 @@ CurrentDenContainer::CurrentDenContainer() {
  * @return
  */
 ACCurrentDen* CurrentDenContainer::getACPeak() const {
-    //ACCurrentDen* den =  current_dens_ + CurrentDenContainer::kCurrentPeak;
-    //return den->isValid() ? den : nullptr;
     ArrayObject<ObjectId> *vct = nullptr;
     if (current_dens_ == 0) {
         return nullptr;
@@ -2097,17 +2051,32 @@ DCCurrentDen* CurrentDenContainer::getDCAverage() const {
  *
  * @return
  */
-ACCurrentDen* CurrentDenContainer::getInitACPeak() const {
+ACCurrentDen* CurrentDenContainer::getInitACPeak() {
     ArrayObject<ObjectId> *vct = nullptr;
     if (current_dens_ == 0) {
-        return nullptr;
+        //ArrayObject<ObjectId> *vct = nullptr;
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr)
+            return nullptr;
+        current_dens_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+
+        Cell *current_top_cell = getTopCell();
+        if (!current_top_cell)
+            return nullptr;
+        for (int i = 0; i < kCurrentMax; i++) {
+            CurrentDen *den = current_top_cell->createObject<CurrentDen>(kObjectTypeCurrentDen);
+            if (vct)
+                vct->pushBack(den->getId());
+        }
     } else {
         vct = addr<ArrayObject<ObjectId>>(current_dens_);
     }
     if (vct) {
         ACCurrentDen *obj_data = addr<ACCurrentDen>((*vct)[kCurrentPeak]);
         if (obj_data) {
-            return obj_data->isValid() ? obj_data : nullptr;
+            return obj_data;
         }
     }
     return nullptr;
@@ -2119,7 +2088,7 @@ ACCurrentDen* CurrentDenContainer::getInitACPeak() const {
  *
  * @return 
  */
-ACCurrentDen* CurrentDenContainer::getInitACPeakPWL() const {
+ACCurrentDen* CurrentDenContainer::getInitACPeakPWL() {
     return getInitACPeak();
 }
 
@@ -2129,17 +2098,31 @@ ACCurrentDen* CurrentDenContainer::getInitACPeakPWL() const {
  *
  * @return
  */
-ACCurrentDen* CurrentDenContainer::getInitACAverage() const {
+ACCurrentDen* CurrentDenContainer::getInitACAverage() {
     ArrayObject<ObjectId> *vct = nullptr;
     if (current_dens_ == 0) {
-        return nullptr;
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr)
+            return nullptr;
+        current_dens_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+
+        Cell *current_top_cell = getTopCell();
+        if (!current_top_cell)
+            return nullptr;
+        for (int i = 0; i < kCurrentMax; i++) {
+            CurrentDen *den = current_top_cell->createObject<CurrentDen>(kObjectTypeCurrentDen);
+            if (vct)
+                vct->pushBack(den->getId());
+        }
     } else {
         vct = addr<ArrayObject<ObjectId>>(current_dens_);
     }
     if (vct) {
         ACCurrentDen *obj_data = addr<ACCurrentDen>((*vct)[kCurrentAverage]);
         if (obj_data) {
-            return obj_data->isValid() ? obj_data : nullptr;
+            return obj_data;
         }
     }
     return nullptr;
@@ -2151,7 +2134,7 @@ ACCurrentDen* CurrentDenContainer::getInitACAverage() const {
  *
  * @return 
  */
-ACCurrentDen* CurrentDenContainer::getInitACAveragePWL() const {
+ACCurrentDen* CurrentDenContainer::getInitACAveragePWL() {
     return getInitACAverage();
 }
 
@@ -2161,17 +2144,31 @@ ACCurrentDen* CurrentDenContainer::getInitACAveragePWL() const {
  *
  * @return
  */
-ACCurrentDen* CurrentDenContainer::getInitACRMS() const {
+ACCurrentDen* CurrentDenContainer::getInitACRMS() {
     ArrayObject<ObjectId> *vct = nullptr;
     if (current_dens_ == 0) {
-        return nullptr;
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr)
+            return nullptr;
+        current_dens_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+
+        Cell *current_top_cell = getTopCell();
+        if (!current_top_cell)
+            return nullptr;
+        for (int i = 0; i < kCurrentMax; i++) {
+            CurrentDen *den = current_top_cell->createObject<CurrentDen>(kObjectTypeCurrentDen);
+            if (vct)
+                vct->pushBack(den->getId());
+        }
     } else {
         vct = addr<ArrayObject<ObjectId>>(current_dens_);
     }
     if (vct) {
         ACCurrentDen *obj_data = addr<ACCurrentDen>((*vct)[kCurrentRMS]);
         if (obj_data) {
-            return obj_data->isValid() ? obj_data : nullptr;
+            return  obj_data;
         }
     }
     return nullptr;
@@ -2183,7 +2180,7 @@ ACCurrentDen* CurrentDenContainer::getInitACRMS() const {
  *
  * @return 
  */
-ACCurrentDen* CurrentDenContainer::getInitACRMSPWL() const {
+ACCurrentDen* CurrentDenContainer::getInitACRMSPWL() {
     return getInitACRMS();
 }
 
@@ -2193,17 +2190,31 @@ ACCurrentDen* CurrentDenContainer::getInitACRMSPWL() const {
  *
  * @return
  */
-DCCurrentDen* CurrentDenContainer::getInitDCAverage() const {
+DCCurrentDen* CurrentDenContainer::getInitDCAverage() {
     ArrayObject<ObjectId> *vct = nullptr;
     if (current_dens_ == 0) {
-        return nullptr;
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr)
+            return nullptr;
+        current_dens_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+
+        Cell *current_top_cell = getTopCell();
+        if (!current_top_cell)
+            return nullptr;
+        for (int i = 0; i < kCurrentMax; i++) {
+            CurrentDen *den = current_top_cell->createObject<CurrentDen>(kObjectTypeCurrentDen);
+            if (vct)
+                vct->pushBack(den->getId());
+        }
     } else {
         vct = addr<ArrayObject<ObjectId>>(current_dens_);
     }
     if (vct) {
         DCCurrentDen *obj_data = addr<DCCurrentDen>((*vct)[kCurrentAverage]);
         if (obj_data) {
-            return obj_data->isValid() ? obj_data : nullptr;
+            return obj_data;
         }
     }
     return nullptr;
@@ -2435,7 +2446,8 @@ UintPair* MinArea::getExceptMinSizePair(UInt32 index) {
     }
     if (vct) {
         UintPair obj_data = (*vct)[index];
-        return &obj_data;
+        UintPair* ptr = &obj_data;
+        return ptr;
     }
     return nullptr;
 }
@@ -2643,34 +2655,12 @@ void MinArea::setOverlap(UInt32 ol) {
     layer_overlap_ = (ol & 0x3); // layer_overlap_ occupies 2 Bits
 }
 
-/// @brief initializeCell_ 
-void Layer::initializeCell_()
-{
-    setObjectType(kObjectTypeLayer);
-    cell_ = nullptr;
-}
-
 /// @brief Layer 
 Layer::Layer()
 {
-    initializeCell_();
-
-    ArrayObject<ObjectId> *vct = nullptr;
-    vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-    if (vct == nullptr)
-        return;
-    antenna_ = vct->getId();
-    vct->setPool(getOwnerCell()->getPool());
-    vct->reserve(16);
-    // init antenna model first
-    Cell *current_top_cell = getTopCell();
-    if (!current_top_cell)
-        return;
-    for (int i = 0; i < kMaxOxideNum; i++)
-    {
-        AntennaModel *am = current_top_cell->createObject<AntennaModel>(kObjectTypeAntennaModel);
-        vct->pushBack(am->getId());
-    }
+    //initializeCell_();
+    antenna_ = 0;
+    
 }
 
 /**
@@ -2689,14 +2679,14 @@ Layer::~Layer() {
 
 }
 
-/// @brief getCell_ 
+/// @brief getTech_ 
 ///
 /// @return 
-Cell *Layer::getCell_()
+Tech *Layer::getTech_()
 {
-    if (nullptr != cell_) return cell_;
-    cell_ = addr<Cell>(getOwnerId());
-    return cell_;
+    if (nullptr != tech_) return tech_;
+    tech_ = addr<Tech>(getOwnerId());
+    return tech_;
 }
 
 /// @brief getNameId 
@@ -2710,7 +2700,7 @@ uint64_t Layer::getNameId() const {
 ///
 /// @return 
 const char* Layer::getName() {
-    return getCell_()->getSymbolByIndex(nameId_).c_str();
+    return getTech_()->getSymbolByIndex(nameId_).c_str();
 }
 
 /**
@@ -2728,7 +2718,7 @@ void Layer::setNameId(uint64_t id) {
 ///
 /// @return 
 bool Layer::setName(const char *name) {
-    SymbolIndex sym_id = getCell_()->getOrCreateSymbol(name);
+    SymbolIndex sym_id = getTech_()->getOrCreateSymbol(name);
     if (sym_id != kInvalidSymbolIndex) {
         setNameId(sym_id);
         return true;
@@ -3186,22 +3176,22 @@ void Layer::setWidth(UInt32 w) {
 
 /**
  * @brief 
- * create and reserve minarea to VectorObject, and return the created minarea
+ * create and reserve minarea to array object, and return the created minarea
  *
  * @return MinArea
  */
 MinArea* Layer::createMinArea() {
-    MinArea* ma = getTopCell()->createObject<MinArea>(kObjectTypeLayerMinArea);
+    MinArea* ma = Object::createObject<MinArea>(
+          kObjectTypeLayerMinArea, getTechLib()->getId());
     if (!ma)
       return nullptr;
-    MinAreaVectorBucket *ma_vector = nullptr;
+    IdArray *ma_vector = nullptr;
     if (min_area_id_ == 0) {
-      ma_vector = createVectorObject<MinAreaVectorBucket>();
-      min_area_id_ = ma_vector->getId();
-    } else {
-      ma_vector = addr<MinAreaVectorBucket>(min_area_id_);
+      min_area_id_ = __createObjectIdArray(8);
     }
-    ma_vector->push_back(ma->getId());
+    ma_vector = addr<IdArray>(min_area_id_);
+    ediAssert(ma_vector != nullptr);
+    ma_vector->pushBack(ma->getId());
     return ma;
 }
 
@@ -3289,13 +3279,30 @@ const AntennaModel* Layer::getAntennaModel(UInt32 index) const {
  * @return
  */
 AntennaModel* Layer::getInitAntennaModel(UInt32 index) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (antenna_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr)
+            return nullptr;
+        antenna_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+        // init antenna model first
+        Cell *current_top_cell = getTopCell();
+        if (!current_top_cell)
+            return nullptr;
+        for (int i = 0; i < kMaxOxideNum; i++)
+        {
+            AntennaModel *am = current_top_cell->createObject<AntennaModel>(kObjectTypeAntennaModel);
+            vct->pushBack(am->getId());
+        }
+    }
+
     if (index < 0 || index >= kMaxOxideNum) {
         return nullptr;
     }
-
-    ArrayObject<ObjectId> *vct = nullptr;
+    //ArrayObject<ObjectId> *vct = nullptr;
     vct = addr<ArrayObject<ObjectId>>(antenna_);
-
     if (vct) {
         AntennaModel *obj_data = addr<AntennaModel>((*vct)[index]);
         if (obj_data) {
@@ -3520,15 +3527,14 @@ void Layer::setDirection(UInt32 v) {
 
 void Layer::addProp(ObjectId obj_id) {
     if (obj_id == 0) return;
-    VectorObject16 *vobj = nullptr;
+    IdArray *vobj = nullptr;
 
     if (properties_ == 0) {
-        vobj = VectorObject16::createDBVectorObjectVar(true/*is_header*/);
-        properties_ = vobj->getId();
-    } else {
-        vobj = addr<VectorObject16>(properties_);
+        properties_ = __createObjectIdArray(16);
     }
-    vobj->push_back(obj_id);
+    vobj = addr<IdArray>(properties_);
+    ediAssert(vobj != nullptr);
+    vobj->pushBack(obj_id);
 }
 
 ObjectId Layer::getPropId() const {

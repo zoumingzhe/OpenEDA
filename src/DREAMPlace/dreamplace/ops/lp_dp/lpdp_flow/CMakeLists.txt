@@ -1,5 +1,4 @@
 project(lpdp_flow LANGUAGES CXX)
-
 if (PYTHON)
     set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
     set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
@@ -40,3 +39,5 @@ if (PYTHON)
         FILES ${INSTALL_SRCS} DESTINATION dreamplace/ops/lp_dp/${PROJECT_NAME}
         )
 endif(PYTHON)
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../.." 
+                    "${CMAKE_CURRENT_SOURCE_DIR}/../../../../..")

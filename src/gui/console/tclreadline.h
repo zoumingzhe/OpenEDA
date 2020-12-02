@@ -13,6 +13,9 @@
 
 #include <tcl.h>
 
+namespace open_edi {
+namespace gui {
+
 // #define TCLRL_LIBRARY        "/usr/local/lib/tclreadline2.3.8"
 #define TCLRL_LIBRARY ""
 
@@ -25,13 +28,10 @@
 #define TCLRL_MINOR      3
 #define TCLRL_PATCHLEVEL 8
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 int Tclreadline_Init(Tcl_Interp *interp);
 int Tclreadline_SafeInit(Tcl_Interp *interp);
-#ifdef __cplusplus
-}
-#endif
 
+} // namespace gui
+} // namespace open_edi
 #endif /* TCLREADLINE_H_ */
