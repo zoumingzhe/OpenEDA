@@ -95,6 +95,19 @@ typedef enum ObjectType {
     kObjectTypeScaleFactors,
     kObjectTypeTFunction,
     kObjectTypeTimingArc,
+    kObjectTypeDesignParasitics,
+    kObjectTypeNetsParasitics,
+    kObjectTypeNetParasitics,
+    kObjectTypeDNetParasitics,
+    kObjectTypeRNetParasitics,
+    kObjectTypeParasiticNode,
+    kObjectTypeParasiticIntNode,
+    kObjectTypeParasiticPinNode,
+    kObjectTypeParasiticExtNode,
+    kObjectTypeParasiticDevice,
+    kObjectTypeParasiticResistor,
+    kObjectTypeParasiticXCap,
+    kObjectTypeParasiticCap,
     // Misc
     kObjectTypeVector,
     kObjectTypePropertyDefinition,
@@ -346,10 +359,12 @@ void Object::deleteObject(T *obj) {
         MemPagePool *pool = MemPool::getPagePoolByObjectId(obj->getId());
 
         if (!pool) {
+            // Internal debug message:
             message->issueMsg(kError,
                               "Cannot delete object for type %d because memory "
                               "pool is null.\n",
                               type);
+            return;
         }
 
         obj->setIsValid(0);

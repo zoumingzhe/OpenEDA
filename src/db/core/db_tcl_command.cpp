@@ -23,6 +23,7 @@
 #include "db/io/write_lef.h"
 #include "db/io/write_verilog.h"
 #include "db/timing/timinglib/timinglib_tcl_command.h"
+#include "db/timing/spef/spef_tcl_command.h"
 #include "util/util.h"
 #include "infra/command_manager.h"
 
@@ -392,6 +393,15 @@ static int testCommandManager(ClientData cld, Tcl_Interp *itp, int argc, const c
          bool res = cmd->getOptionValue("-r", &value_b);
          message->info("get option %s rect lx %d, ly %d, ux %d, uy %d\n", op_name6.c_str(), value_b->getLLX(), value_b->getLLY(), value_b->getURX(), value_b->getURY());
      }
+    std::string op_name7 = "-sl";
+    if (cmd->isOptionSet("-sl")) {
+         std::vector<std::string> *value_sl = new std::vector<std::string>();
+         bool res = cmd->getOptionValue("-sl", &value_sl);
+	 for(int i = 0; i < value_sl->size(); i ++) {
+             message->info("get option %s string %s \n", op_name7.c_str(), value_sl->at(i).c_str());
+	}
+     }
+ 
     return TCL_OK;  // runCommandWithProcessBar(testcmd, argc, argv);
 }
 
@@ -414,6 +424,7 @@ static void registerTestCommandManager() {
                                                                     + *(new Option("-x", OptionDataType::kInt, false, "opt description\n"))
                                                                     + *(new Option("-y", OptionDataType::kInt, false, "opt description\n"))
                                                                     + *(new Option("-z", OptionDataType::kInt, false, "opt description\n"))
+                                                                    + *(new Option("-sl", OptionDataType::kStringList, false, "opt description\n"))
                                                                     + *(new Option("-f", OptionDataType::kDouble, false, 1.23, "opt description\n")),
                                                                     *(new OptionGroup("-x", "-y", kDependency))
                                                                     //+(new OptionGroup("-x", "-j", kExclusive))// should not pass register
@@ -435,6 +446,8 @@ void registerDatabaseTclCommands(Tcl_Interp *itp) {
     Tcl_CreateCommand(itp, "create_analysis_mode", createAnalysisModeCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "create_analysis_corner", createAnalysisCornerCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "set_analysis_view_status", setAnalysisViewStatusCommand, NULL, NULL);
+    Tcl_CreateCommand(itp, "read_spef", readSpefCommand, NULL, NULL);
+    Tcl_CreateCommand(itp, "write_spef", writeSpefCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "read_design", readDBCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "write_design", writeDBCommand, NULL, NULL);
     // testing commands. TODO: remove them.

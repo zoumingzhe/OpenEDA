@@ -1,5 +1,4 @@
 project(lpdp_flow LANGUAGES CXX)
-if (!CMAKE_PLACE)
 if (PYTHON)
     set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
     set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
@@ -42,4 +41,3 @@ if (PYTHON)
 endif(PYTHON)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../.." 
                     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../..")
-endif(CMAKE_PLACE)

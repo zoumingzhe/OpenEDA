@@ -129,10 +129,9 @@ if (CMAKE_PLACE)
         set_target_properties( ${CUDA_LINKED}
             PROPERTIES CUDA_SEPARABLE_COMPILATION ON
             )
-    endif(CUDA_FOUND)
+    endif(FALSE AND CUDA_FOUND)
     
     file(GLOB_RECURSE SRCS
-        ${CMAKE_CURRENT_SOURCE_DIR}/dreamplace/ops/tcl_command/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/dreamplace/ops/utility/*.cpp
         )
     link_directories(
@@ -141,6 +140,7 @@ if (CMAKE_PLACE)
         ${PROJECT_BINARY_DIR}/src/util
         ${PROJECT_BINARY_DIR}/src/gui
         ${PROJECT_BINARY_DIR}/src/console
+        ${PROJECT_BINARY_DIR}/src/infra
         ${TCL_DIR}/lib
         ${Boost_LIBRARY_DIRS}
         ${PROFILER_DIR}/lib
@@ -153,9 +153,9 @@ if (CMAKE_PLACE)
         ${SRCS}
         )
     target_link_libraries(${PROJECT_NAME_LOWERCASE}_DREAMPlace PUBLIC
-        tcl_command place_flow place_abacus_legalize place_global_swap place_greedy_legalize
+        place_tcl_command place_flow place_abacus_legalize place_global_swap place_greedy_legalize
         place_independent_set_matching place_k_reorder place_legality_check
-        place_macro_legalize
+        place_macro_legalize place_wire_length
         )
     target_include_directories(${PROJECT_NAME_LOWERCASE}_DREAMPlace PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
