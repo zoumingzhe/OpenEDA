@@ -160,6 +160,13 @@ void Term::setDirection(SignalDirection v) {
     direction_ = v;
 }
 
+/// @brief getDirection 
+///
+/// @return 
+SignalDirection Term::getDirection() const {
+    return direction_;
+}
+
 std::string Term::getDirectionStr() const {
     return toString(direction_);
 }

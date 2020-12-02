@@ -86,7 +86,16 @@ static int MessageInit() {
     message->registerMsgFile(
         timinglib_msg_path.c_str());  // register timinglib message file
     message->registerMsgFile(
-        infra_msg_path.c_str());  // register timinglib message file 
+        infra_msg_path.c_str());  // register timinglib message file
+    // register db message file
+    {
+        std::string msg_path = path + "src/db/db.msg";
+        if (access(msg_path.c_str(), F_OK) != 0) {
+            msg_path = path + "/include/src/db/db.msg";
+        }
+        message->registerMsgFile(
+            msg_path.c_str());
+    }
     return 0;
 }
 

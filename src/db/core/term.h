@@ -169,6 +169,7 @@ class Term : public Object {
     bool hasUse() const;
     void setUse(const char* v);
 
+    SignalDirection getDirection() const;
     std::string getDirectionStr() const;
     void setDirectionStr(const char* v);
     
