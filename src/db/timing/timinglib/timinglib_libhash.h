@@ -49,36 +49,33 @@ typedef struct timinglib_hash_table timinglib_hash_table;
 
 class LibHash {
   public:
-    static timinglib_hash_table *timinglib_hash_create_hash_table(
+    static timinglib_hash_table *timinglibHashCreateHashTable(
         int numels, int auto_resize, int case_insensitive);
 
-    static int timinglib_hash_get_next_higher_prime(int prime);
+    static int timinglibHashGetNextHigherPrime(int prime);
 
-    static void timinglib_hash_destroy_hash_table(timinglib_hash_table *ht);
+    static void timinglibHashDestroyHashTable(timinglib_hash_table *ht);
 
-    static void timinglib_hash_resize_hash_table(timinglib_hash_table *ht,
-                                                 int new_size);
+    static void timinglibHashResizeHashTable(timinglib_hash_table *ht,
+                                             int new_size);
 
-    static unsigned int timinglib_hash_name_hash(char *name, int size);
+    static unsigned int timinglibHashNameHash(char *name, int size);
 
-    static unsigned int timinglib_hash_name_hash_nocase(char *name, int size);
+    static unsigned int timinglibHashNameHashNocase(char *name, int size);
 
-    static int timinglib_hash_enter_oid(timinglib_hash_table *ht, char *name,
-                                        si2drObjectIdT oid);
+    static int timinglibHashEnterOid(timinglib_hash_table *ht, char *name,
+                                     si2drObjectIdT oid);
 
-    static void timinglib_hash_delete_elem(timinglib_hash_table *ht,
-                                           char *name);
+    static void timinglibHashDeleteElem(timinglib_hash_table *ht, char *name);
 
-    static void timinglib_hash_lookup(timinglib_hash_table *ht, char *name,
-                                      si2drObjectIdT *oid);
+    static void timinglibHashLookup(timinglib_hash_table *ht, char *name,
+                                    si2drObjectIdT *oid);
 
-    static void dump_attr_hash(timinglib_hash_table *ht, FILE *outc,
-                               FILE *outh);
+    static void dumpAttrHash(timinglib_hash_table *ht, FILE *outc, FILE *outh);
 
-    static void dump_group_hash(timinglib_hash_table *ht, FILE *outc,
-                                FILE *outh);
+    static void dumpGroupHash(timinglib_hash_table *ht, FILE *outc, FILE *outh);
 
-    static std::string make_rep(const char *prefix, void *x);
+    static std::string makeRep(const char *prefix, void *x);
 
   private:
     static si2drObjectIdT nulloid_;

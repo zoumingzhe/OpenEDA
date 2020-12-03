@@ -27,6 +27,33 @@ namespace db {
 
 TLib::TLib()
     : TLib::BaseType(),
+      name_(0),
+      timing_model_type_(TimingModel::kNLDM),
+      nominal_voltage_(0.0),
+      nominal_process_(0.0),
+      nominal_temperature_(0.0),
+      input_threshold_pct_fall_(0.0),
+      input_threshold_pct_rise_(0.0),
+      output_threshold_pct_fall_(0.0),
+      output_threshold_pct_rise_(0.0),
+      slew_lower_threshold_pct_fall_(0.0),
+      slew_lower_threshold_pct_rise_(0.0),
+      slew_upper_threshold_pct_fall_(0.0),
+      slew_upper_threshold_pct_rise_(0.0),
+      slew_derate_from_library_(0.0),
+      default_wire_load_area_(0.0),
+      default_wire_load_mode_(WireLoadMode::kUnknown),
+      default_wire_load_capacitance_(0.0),
+      default_wire_load_resistance_(0.0),
+      default_input_pin_cap_(0.0),
+      default_output_pin_cap_(0.0),
+      default_inout_pin_cap_(0.0),
+      default_max_capacitance_(0.0),
+      default_max_fanout_(0.0),
+      default_max_transition_(0.0),
+      default_fanout_load_(0.0),
+      default_cell_leakage_power_(0.0),
+      supply_voltages_(UNINIT_OBJECT_ID),
       default_operating_conditions_(UNINIT_OBJECT_ID),
       scaling_factors_(UNINIT_OBJECT_ID),
       units_(UNINIT_OBJECT_ID),
@@ -38,6 +65,7 @@ TLib::TLib()
       wire_load_selections_(UNINIT_OBJECT_ID),
       table_templates_(UNINIT_OBJECT_ID),
       timing_cells_(UNINIT_OBJECT_ID),
+      supply_voltage_map_(),
       operating_conditions_map_(),
       wire_loads_map_(),
       wire_load_tables_map_(),
@@ -48,6 +76,7 @@ TLib::TLib()
 }
 
 TLib::~TLib() {
+    supply_voltages_ = UNINIT_OBJECT_ID;
     default_operating_conditions_ = UNINIT_OBJECT_ID;
     scaling_factors_ = UNINIT_OBJECT_ID;
     units_ = UNINIT_OBJECT_ID;
@@ -59,6 +88,7 @@ TLib::~TLib() {
     wire_load_selections_ = UNINIT_OBJECT_ID;
     table_templates_ = UNINIT_OBJECT_ID;
     timing_cells_ = UNINIT_OBJECT_ID;
+    supply_voltage_map_.clear();
     operating_conditions_map_.clear();
     wire_loads_map_.clear();
     wire_load_tables_map_.clear();
@@ -69,6 +99,33 @@ TLib::~TLib() {
 
 TLib::TLib(Object *owner, TLib::IndexType id)
     : TLib::BaseType(owner, id),
+      name_(0),
+      timing_model_type_(TimingModel::kNLDM),
+      nominal_voltage_(0.0),
+      nominal_process_(0.0),
+      nominal_temperature_(0.0),
+      input_threshold_pct_fall_(0.0),
+      input_threshold_pct_rise_(0.0),
+      output_threshold_pct_fall_(0.0),
+      output_threshold_pct_rise_(0.0),
+      slew_lower_threshold_pct_fall_(0.0),
+      slew_lower_threshold_pct_rise_(0.0),
+      slew_upper_threshold_pct_fall_(0.0),
+      slew_upper_threshold_pct_rise_(0.0),
+      slew_derate_from_library_(0.0),
+      default_wire_load_area_(0.0),
+      default_wire_load_mode_(WireLoadMode::kUnknown),
+      default_wire_load_capacitance_(0.0),
+      default_wire_load_resistance_(0.0),
+      default_input_pin_cap_(0.0),
+      default_output_pin_cap_(0.0),
+      default_inout_pin_cap_(0.0),
+      default_max_capacitance_(0.0),
+      default_max_fanout_(0.0),
+      default_max_transition_(0.0),
+      default_fanout_load_(0.0),
+      default_cell_leakage_power_(0.0),
+      supply_voltages_(UNINIT_OBJECT_ID),
       default_operating_conditions_(UNINIT_OBJECT_ID),
       scaling_factors_(UNINIT_OBJECT_ID),
       units_(UNINIT_OBJECT_ID),
@@ -79,6 +136,7 @@ TLib::TLib(Object *owner, TLib::IndexType id)
       wire_load_selections_(UNINIT_OBJECT_ID),
       table_templates_(UNINIT_OBJECT_ID),
       timing_cells_(UNINIT_OBJECT_ID),
+      supply_voltage_map_(),
       operating_conditions_map_(),
       wire_loads_map_(),
       wire_load_tables_map_(),
@@ -106,6 +164,92 @@ TLib &TLib::operator=(TLib &&rhs) noexcept {
     return *this;
 }
 
+void TLib::setName(const std::string &name) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
+            name_ = index;
+            timing_lib->addSymbolReference(name_, this->getId());
+        }
+    }
+}
+void TLib::setTimingModelType(TimingModel tm) { timing_model_type_ = tm; }
+void TLib::setNominalVoltage(float f) { nominal_voltage_ = f; }
+void TLib::setNominalProcess(float f) { nominal_process_ = f; }
+void TLib::setNominalTemperature(float f) { nominal_temperature_ = f; }
+void TLib::setInputThresholdPctFall(float f) { input_threshold_pct_fall_ = f; }
+void TLib::setInputThresholdPctRise(float f) { input_threshold_pct_rise_ = f; }
+void TLib::setOutputThresholdPctFall(float f) {
+    output_threshold_pct_fall_ = f;
+}
+void TLib::setOutputThresholdPctRise(float f) {
+    output_threshold_pct_rise_ = f;
+}
+void TLib::setSlewLowerThresholdPctFall(float f) {
+    slew_lower_threshold_pct_fall_ = f;
+}
+void TLib::setSlewLowerThresholdPctRise(float f) {
+    slew_lower_threshold_pct_rise_ = f;
+}
+void TLib::setSlewUpperThresholdPctFall(float f) {
+    slew_upper_threshold_pct_fall_ = f;
+}
+void TLib::setSlewUpperThresholdPctRise(float f) {
+    slew_upper_threshold_pct_rise_ = f;
+}
+void TLib::setSlewDerateFromLibrary(float f) { slew_derate_from_library_ = f; }
+void TLib::setDefaultWireLoadArea(float f) { default_wire_load_area_ = f; }
+void TLib::setDefaultWireLoadMode(WireLoadMode w) {
+    default_wire_load_mode_ = w;
+}
+void TLib::setDefaultWireLoadCapacitance(float f) {
+    default_wire_load_capacitance_ = f;
+}
+void TLib::setDefaultWireLoadResistance(float f) {
+    default_wire_load_resistance_ = f;
+}
+void TLib::setDefaultInputPinCap(float f) { default_input_pin_cap_ = f; }
+void TLib::setDefaultOutputPinCap(float f) { default_output_pin_cap_ = f; }
+void TLib::setDefaultInoutPinCap(float f) { default_inout_pin_cap_ = f; }
+void TLib::setDefaultMaxCapacitance(float f) { default_max_capacitance_ = f; }
+void TLib::setDefaultMaxFanout(float f) { default_max_fanout_ = f; }
+void TLib::setDefaultMaxTransition(float f) { default_max_transition_ = f; }
+void TLib::setDefaultFanoutLoad(float f) { default_fanout_load_ = f; }
+void TLib::setDefaultCellLeakagePower(float f) {
+    default_cell_leakage_power_ = f;
+}
+void TLib::addSupplyVoltage(const std::string &name, float f) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
+            name_ = index;
+            supply_voltage_map_[name_] = f;
+            timing_lib->addSymbolReference(name_, this->getId());
+
+            ArrayObject<SupplyVoltagePair> *p = nullptr;
+            if (supply_voltages_ == UNINIT_OBJECT_ID) {
+                p = Object::createObject<ArrayObject<SupplyVoltagePair>>(
+                    kObjectTypeArray, timing_lib->getId());
+                if (p != nullptr) {
+                    p->setPool(timing_lib->getPool());
+                    p->reserve(32);
+                    supply_voltages_ = p->getId();
+                }
+            } else {
+                p = addr<ArrayObject<SupplyVoltagePair>>(supply_voltages_);
+            }
+            if (p != nullptr) {
+                SupplyVoltagePair sp;
+                sp.name = index;
+                sp.value = f;
+                p->pushBack(sp);
+            }
+        }
+    }
+}
+
 TLib::IndexType TLib::numTCells() const {
     if (timing_cells_ == UNINIT_OBJECT_ID) return 0;
     auto p = addr<ArrayObject<ObjectId>>(timing_cells_);
@@ -119,11 +263,9 @@ TLib::IndexType TLib::numOperatingConditions() const {
     return operating_conditions_map_.size();
 }
 
-TCell *TLib::add_timing_cell(const std::string &name) {
+TCell *TLib::addTimingCell(const std::string &name) {
     auto cell = __addTCellImpl();
-    TCell::AttrType attr;
-    attr.set_name(name);
-    cell->setAttr(&attr);
+    cell->setName(name);
 
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
@@ -137,9 +279,9 @@ TCell *TLib::add_timing_cell(const std::string &name) {
     return cell;
 }
 
-OperatingConditions *TLib::add_operating_conditions(const std::string &name) {
+OperatingConditions *TLib::addOperatingConditions(const std::string &name) {
     auto oc = __addOperatingConditionsImpl();
-    oc->set_name(name);
+    oc->setName(name);
 
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
@@ -153,130 +295,120 @@ OperatingConditions *TLib::add_operating_conditions(const std::string &name) {
     return oc;
 }
 
-WireLoad *TLib::add_wire_load(const std::string &name) {
+WireLoad *TLib::addWireLoad(const std::string &name) {
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
         ArrayObject<ObjectId> *object_array = nullptr;
         if (wire_loads_ == UNINIT_OBJECT_ID) {
-            object_array =
-                timing_lib->createObject<ArrayObject<ObjectId>>(
-                    kObjectTypeArray, timing_lib->getId());
+            object_array = timing_lib->createObject<ArrayObject<ObjectId>>(
+                kObjectTypeArray, timing_lib->getId());
             if (object_array != nullptr) {
                 wire_loads_ = object_array->getId();
                 object_array->setPool(timing_lib->getPool());
                 object_array->reserve(32);
             }
         } else {
-            object_array =
-                addr<ArrayObject<ObjectId>>(wire_loads_);
+            object_array = addr<ArrayObject<ObjectId>>(wire_loads_);
         }
         if (object_array != nullptr) {
-            auto p = timing_lib->createObject<WireLoad>(
-                kObjectTypeWireLoad, timing_lib->getId());
+            auto p = timing_lib->createObject<WireLoad>(kObjectTypeWireLoad,
+                                                        timing_lib->getId());
             if (p) {
                 p->setOwner(this);
-                p->set_name(name);
+                p->setName(name);
                 ObjectId id = p->getId();
                 object_array->pushBack(id);
-                wire_loads_map_[p->get_name_index()] = id;
+                wire_loads_map_[p->getNameIndex()] = id;
                 return p;
             }
         }
     }
     return nullptr;
 }
-WireLoadTable *TLib::add_wire_load_table(const std::string &name) {
+WireLoadTable *TLib::addWireLoadTable(const std::string &name) {
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
         ArrayObject<ObjectId> *object_array = nullptr;
         if (wire_load_tables_ == UNINIT_OBJECT_ID) {
-            object_array =
-                timing_lib->createObject<ArrayObject<ObjectId>>(
-                    kObjectTypeArray, timing_lib->getId());
+            object_array = timing_lib->createObject<ArrayObject<ObjectId>>(
+                kObjectTypeArray, timing_lib->getId());
             if (object_array != nullptr) {
                 wire_load_tables_ = object_array->getId();
                 object_array->setPool(timing_lib->getPool());
                 object_array->reserve(32);
             }
         } else {
-            object_array =
-                addr<ArrayObject<ObjectId>>(wire_load_tables_);
+            object_array = addr<ArrayObject<ObjectId>>(wire_load_tables_);
         }
         if (object_array != nullptr) {
-            auto p =
-                timing_lib->createObject<WireLoadTable>(
-                    kObjectTypeWireLoadTable, timing_lib->getId());
+            auto p = timing_lib->createObject<WireLoadTable>(
+                kObjectTypeWireLoadTable, timing_lib->getId());
             if (p) {
                 p->setOwner(this);
-                p->set_name(name);
+                p->setName(name);
                 ObjectId id = p->getId();
                 object_array->pushBack(id);
-                wire_load_tables_map_[p->get_name_index()] = id;
+                wire_load_tables_map_[p->getNameIndex()] = id;
                 return p;
             }
         }
     }
     return nullptr;
 }
-WireLoadSelection *TLib::add_wire_load_selection(const std::string &name) {
+WireLoadSelection *TLib::addWireLoadSelection(const std::string &name) {
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
         ArrayObject<ObjectId> *object_array = nullptr;
         if (wire_load_selections_ == UNINIT_OBJECT_ID) {
-            object_array =
-                timing_lib->createObject<ArrayObject<ObjectId>>(
-                    kObjectTypeArray, timing_lib->getId());
+            object_array = timing_lib->createObject<ArrayObject<ObjectId>>(
+                kObjectTypeArray, timing_lib->getId());
             if (object_array != nullptr) {
                 wire_load_selections_ = object_array->getId();
                 object_array->setPool(timing_lib->getPool());
                 object_array->reserve(32);
             }
         } else {
-            object_array = addr<ArrayObject<ObjectId>>(
-                wire_load_selections_);
+            object_array = addr<ArrayObject<ObjectId>>(wire_load_selections_);
         }
         if (object_array != nullptr) {
             auto p = timing_lib->createObject<WireLoadSelection>(
                 kObjectTypeWireLoadSelection, timing_lib->getId());
             if (p) {
                 p->setOwner(this);
-                p->set_name(name);
+                p->setName(name);
                 ObjectId id = p->getId();
                 object_array->pushBack(id);
-                wire_load_selections_map_[p->get_name_index()] = id;
+                wire_load_selections_map_[p->getNameIndex()] = id;
                 return p;
             }
         }
     }
     return nullptr;
 }
-TableTemplate *TLib::add_table_template(const std::string &name) {
+TableTemplate *TLib::addTableTemplate(const std::string &name) {
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
         ArrayObject<ObjectId> *object_array = nullptr;
         if (table_templates_ == UNINIT_OBJECT_ID) {
-            object_array =
-                timing_lib->createObject<ArrayObject<ObjectId>>(
-                    kObjectTypeArray, timing_lib->getId());
+            object_array = timing_lib->createObject<ArrayObject<ObjectId>>(
+                kObjectTypeArray, timing_lib->getId());
             if (object_array != nullptr) {
                 table_templates_ = object_array->getId();
                 object_array->setPool(timing_lib->getPool());
                 object_array->reserve(32);
             }
         } else {
-            object_array =
-                addr<ArrayObject<ObjectId>>(table_templates_);
+            object_array = addr<ArrayObject<ObjectId>>(table_templates_);
         }
         if (object_array != nullptr) {
-            auto p =
-                timing_lib->createObject<TableTemplate>(
-                    kObjectTypeTableTemplate, timing_lib->getId());
+            auto p = timing_lib->createObject<TableTemplate>(
+                kObjectTypeTableTemplate, timing_lib->getId());
             if (p) {
                 p->setOwner(this);
-                p->set_name(name);
+                p->setName(name);
                 ObjectId id = p->getId();
                 object_array->pushBack(id);
-                table_templates_map_[p->get_name_index()] = id;
+                table_templates_map_[p->getNameIndex()] = id;
                 return p;
             }
         }
@@ -284,32 +416,32 @@ TableTemplate *TLib::add_table_template(const std::string &name) {
     return nullptr;
 }
 
-void TLib::set_default_operating_conditions(ObjectId id) {
+void TLib::setDefaultOperatingConditions(ObjectId id) {
     default_operating_conditions_ = id;
 }
-ScaleFactors *TLib::get_or_create_scaling_factors(const std::string &name) {
+ScaleFactors *TLib::getOrCreateScalingFactors(const std::string &name) {
     if (scaling_factors_ != UNINIT_OBJECT_ID) {
         return addr<ScaleFactors>(scaling_factors_);
     } else {
         Timing *timing_lib = getTimingLib();
-        auto p = timing_lib->createObject<ScaleFactors>(
-                  kObjectTypeScaleFactors, timing_lib->getId());
+        auto p = timing_lib->createObject<ScaleFactors>(kObjectTypeScaleFactors,
+                                                        timing_lib->getId());
         if (p) {
             p->setOwner(this);
-            p->set_name(name);
+            p->setName(name);
             scaling_factors_ = p->getId();
             return p;
         }
     }
     return nullptr;
 }
-TUnits *TLib::get_or_create_units() {
+TUnits *TLib::getOrCreateUnits() {
     if (units_ != UNINIT_OBJECT_ID) {
         return addr<TUnits>(units_);
     } else {
         Timing *timing_lib = getTimingLib();
-        auto p = timing_lib->createObject<TUnits>(
-                  kObjectTypeTUnits, timing_lib->getId());
+        auto p = timing_lib->createObject<TUnits>(kObjectTypeTUnits,
+                                                  timing_lib->getId());
         if (p) {
             p->setOwner(this);
             units_ = p->getId();
@@ -318,44 +450,106 @@ TUnits *TLib::get_or_create_units() {
     }
     return nullptr;
 }
-void TLib::set_default_wire_load(ObjectId id) { default_wire_load_ = id; }
-void TLib::set_default_wire_load_selection(ObjectId id) {
+void TLib::setDefaultWireLoad(ObjectId id) { default_wire_load_ = id; }
+void TLib::setDefaultWireLoadSelection(ObjectId id) {
     default_wire_load_selection_ = id;
 }
 
-OperatingConditions *TLib::get_default_operating_conditions(void) const {
+std::string TLib::getName(void) const {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        return timing_lib->getSymbolByIndex(name_);
+    }
+    return "";
+}
+TimingModel TLib::getTimingModelType(void) { return timing_model_type_; }
+float TLib::getNominalVoltage(void) { return nominal_voltage_; }
+float TLib::getNominalProcess(void) { return nominal_process_; }
+float TLib::getNominalTemperature(void) { return nominal_temperature_; }
+float TLib::getInputThresholdPctFall(void) { return input_threshold_pct_fall_; }
+float TLib::getInputThresholdPctRise(void) { return input_threshold_pct_rise_; }
+float TLib::getOutputThresholdPctFall(void) {
+    return output_threshold_pct_fall_;
+}
+float TLib::getOutputThresholdPctRise(void) {
+    return output_threshold_pct_rise_;
+}
+float TLib::getSlewLowerThresholdPctFall(void) {
+    return slew_lower_threshold_pct_fall_;
+}
+float TLib::getSlewLowerThresholdPctRise(void) {
+    return slew_lower_threshold_pct_rise_;
+}
+float TLib::getSlewUpperThresholdPctFall(void) {
+    return slew_upper_threshold_pct_fall_;
+}
+float TLib::getSlewUpperThresholdPctRise(void) {
+    return slew_upper_threshold_pct_rise_;
+}
+float TLib::getSlewDerateFromLibrary(void) { return slew_derate_from_library_; }
+float TLib::getDefaultWireLoadArea(void) { return default_wire_load_area_; }
+WireLoadMode TLib::getDefaultWireLoadMode(void) {
+    return default_wire_load_mode_;
+}
+float TLib::getDefaultWireLoadCapacitance(void) {
+    return default_wire_load_capacitance_;
+}
+float TLib::getDefaultWireLoadResistance(void) {
+    return default_wire_load_resistance_;
+}
+float TLib::getDefaultInputPinCap(void) { return default_input_pin_cap_; }
+float TLib::getDefaultOutputPinCap(void) { return default_output_pin_cap_; }
+float TLib::getDefaultInoutPinCap(void) { return default_inout_pin_cap_; }
+float TLib::getDefaultMaxCapacitance(void) { return default_max_capacitance_; }
+float TLib::getDefaultMaxFanout(void) { return default_max_fanout_; }
+float TLib::getDefaultMaxTransition(void) { return default_max_transition_; }
+float TLib::getDefaultFanoutLoad(void) { return default_fanout_load_; }
+float TLib::getDefaultCellLeakagePower(void) {
+    return default_cell_leakage_power_;
+}
+float TLib::getSupplyVoltage(const std::string &name) {
+    Timing *timing_lib = getTimingLib();
+    if (timing_lib) {
+        SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
+        if (index != kInvalidSymbolIndex) {
+            auto it = supply_voltage_map_.find(index);
+            if (it != supply_voltage_map_.end()) return it->second;
+        }
+    }
+    return 0.0;
+}
+
+OperatingConditions *TLib::getDefaultOperatingConditions(void) const {
     if (default_operating_conditions_ != UNINIT_OBJECT_ID)
-        return addr<OperatingConditions>(
-            default_operating_conditions_);
+        return addr<OperatingConditions>(default_operating_conditions_);
     else
         return nullptr;
 }
-ScaleFactors *TLib::get_scaling_factors(void) {
+ScaleFactors *TLib::getScalingFactors(void) {
     if (scaling_factors_ != UNINIT_OBJECT_ID)
         return addr<ScaleFactors>(scaling_factors_);
     else
         return nullptr;
 }
-TUnits *TLib::get_units(void) {
+TUnits *TLib::getUnits(void) {
     if (units_ != UNINIT_OBJECT_ID)
         return addr<TUnits>(units_);
     else
         return nullptr;
 }
-WireLoad *TLib::get_default_wire_load(void) const {
+WireLoad *TLib::getDefaultWireLoad(void) const {
     if (default_wire_load_)
         return addr<WireLoad>(default_wire_load_);
     else
         return nullptr;
 }
-WireLoadSelection *TLib::get_default_wire_load_selection(void) const {
+WireLoadSelection *TLib::getDefaultWireLoadSelection(void) const {
     if (default_wire_load_selection_ != UNINIT_OBJECT_ID)
-        return addr<WireLoadSelection>(
-            default_wire_load_selection_);
+        return addr<WireLoadSelection>(default_wire_load_selection_);
     else
         return nullptr;
 }
-OperatingConditions *TLib::get_operating_conditions(
+OperatingConditions *TLib::getOperatingConditions(
     const std::string &name) const {
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
@@ -368,19 +562,18 @@ OperatingConditions *TLib::get_operating_conditions(
     }
     return nullptr;
 }
-WireLoad *TLib::get_wire_load(const std::string &name) const {
+WireLoad *TLib::getWireLoad(const std::string &name) const {
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
         if (idx != kInvalidSymbolIndex) {
             auto it = wire_loads_map_.find(idx);
-            if (it != wire_loads_map_.end())
-                return addr<WireLoad>(it->second);
+            if (it != wire_loads_map_.end()) return addr<WireLoad>(it->second);
         }
     }
     return nullptr;
 }
-WireLoadTable *TLib::get_wire_load_table(const std::string &name) {
+WireLoadTable *TLib::getWireLoadTable(const std::string &name) {
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
@@ -392,8 +585,7 @@ WireLoadTable *TLib::get_wire_load_table(const std::string &name) {
     }
     return nullptr;
 }
-WireLoadSelection *TLib::get_wire_load_selection(
-    const std::string &name) const {
+WireLoadSelection *TLib::getWireLoadSelection(const std::string &name) const {
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
@@ -405,7 +597,7 @@ WireLoadSelection *TLib::get_wire_load_selection(
     }
     return nullptr;
 }
-TableTemplate *TLib::get_table_template(const std::string &name) {
+TableTemplate *TLib::getTableTemplate(const std::string &name) {
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
@@ -417,19 +609,18 @@ TableTemplate *TLib::get_table_template(const std::string &name) {
     }
     return nullptr;
 }
-TCell *TLib::get_timing_cell(const std::string &name) {
+TCell *TLib::getTimingCell(const std::string &name) {
     Timing *timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
         if (idx != kInvalidSymbolIndex) {
             auto it = timing_cells_map_.find(idx);
-            if (it != timing_cells_map_.end())
-                return addr<TCell>(it->second);
+            if (it != timing_cells_map_.end()) return addr<TCell>(it->second);
         }
     }
     return nullptr;
 }
-std::vector<TCell *> TLib::get_timing_cells(void) {
+std::vector<TCell *> TLib::getTimingCells(void) {
     std::vector<TCell *> cells;
     for (auto p : timing_cells_map_) {
         auto cell = addr<TCell>(p.second);
@@ -440,6 +631,33 @@ std::vector<TCell *> TLib::get_timing_cells(void) {
 TLib::IndexType TLib::memory() const {
     IndexType ret = this->BaseType::memory();
 
+    ret += sizeof(name_);
+    ret += sizeof(timing_model_type_);
+    ret += sizeof(nominal_voltage_);
+    ret += sizeof(nominal_process_);
+    ret += sizeof(nominal_temperature_);
+    ret += sizeof(input_threshold_pct_fall_);
+    ret += sizeof(input_threshold_pct_rise_);
+    ret += sizeof(output_threshold_pct_fall_);
+    ret += sizeof(output_threshold_pct_rise_);
+    ret += sizeof(slew_lower_threshold_pct_fall_);
+    ret += sizeof(slew_lower_threshold_pct_rise_);
+    ret += sizeof(slew_upper_threshold_pct_fall_);
+    ret += sizeof(slew_upper_threshold_pct_rise_);
+    ret += sizeof(slew_derate_from_library_);
+    ret += sizeof(default_wire_load_area_);
+    ret += sizeof(default_wire_load_mode_);
+    ret += sizeof(default_wire_load_capacitance_);
+    ret += sizeof(default_wire_load_resistance_);
+    ret += sizeof(default_input_pin_cap_);
+    ret += sizeof(default_output_pin_cap_);
+    ret += sizeof(default_inout_pin_cap_);
+    ret += sizeof(default_max_capacitance_);
+    ret += sizeof(default_max_fanout_);
+    ret += sizeof(default_max_transition_);
+    ret += sizeof(default_fanout_load_);
+    ret += sizeof(default_cell_leakage_power_);
+    ret += sizeof(supply_voltages_);
     ret += sizeof(default_operating_conditions_);
     ret += sizeof(scaling_factors_);
     ret += sizeof(units_);
@@ -458,10 +676,7 @@ TLib::IndexType TLib::memory() const {
 }
 
 void TLib::print(std::ostream &stream) {
-    if (attr_ == nullptr) return;
-
-    stream << "TLib name: " << attr_->get_name() << " id: " << getId()
-           << std::endl;
+    stream << "TLib name: " << getName() << " id: " << getId() << std::endl;
 
     if (timing_cells_ != UNINIT_OBJECT_ID) {
         auto p = addr<ArrayObject<ObjectId>>(timing_cells_);
@@ -481,6 +696,33 @@ void TLib::print(std::ostream &stream) {
 void TLib::copy(TLib const &rhs) {
     this->BaseType::copy(rhs);
 
+    name_ = rhs.name_;
+    timing_model_type_ = rhs.timing_model_type_;
+    nominal_voltage_ = rhs.nominal_voltage_;
+    nominal_process_ = rhs.nominal_process_;
+    nominal_temperature_ = rhs.nominal_temperature_;
+    input_threshold_pct_fall_ = rhs.input_threshold_pct_fall_;
+    input_threshold_pct_rise_ = rhs.input_threshold_pct_rise_;
+    output_threshold_pct_fall_ = rhs.output_threshold_pct_fall_;
+    output_threshold_pct_rise_ = rhs.output_threshold_pct_rise_;
+    slew_lower_threshold_pct_fall_ = rhs.slew_lower_threshold_pct_fall_;
+    slew_lower_threshold_pct_rise_ = rhs.slew_lower_threshold_pct_rise_;
+    slew_upper_threshold_pct_fall_ = rhs.slew_upper_threshold_pct_fall_;
+    slew_upper_threshold_pct_rise_ = rhs.slew_upper_threshold_pct_rise_;
+    slew_derate_from_library_ = rhs.slew_derate_from_library_;
+    default_wire_load_area_ = rhs.default_wire_load_area_;
+    default_wire_load_mode_ = rhs.default_wire_load_mode_;
+    default_wire_load_capacitance_ = rhs.default_wire_load_capacitance_;
+    default_wire_load_resistance_ = rhs.default_wire_load_resistance_;
+    default_input_pin_cap_ = rhs.default_input_pin_cap_;
+    default_output_pin_cap_ = rhs.default_output_pin_cap_;
+    default_inout_pin_cap_ = rhs.default_inout_pin_cap_;
+    default_max_capacitance_ = rhs.default_max_capacitance_;
+    default_max_fanout_ = rhs.default_max_fanout_;
+    default_max_transition_ = rhs.default_max_transition_;
+    default_fanout_load_ = rhs.default_fanout_load_;
+    default_cell_leakage_power_ = rhs.default_cell_leakage_power_;
+    supply_voltages_ = rhs.supply_voltages_;
     default_operating_conditions_ = rhs.default_operating_conditions_;
     scaling_factors_ = rhs.scaling_factors_;
     units_ = rhs.units_;
@@ -492,6 +734,7 @@ void TLib::copy(TLib const &rhs) {
     wire_load_selections_ = rhs.wire_load_selections_;
     table_templates_ = rhs.table_templates_;
     timing_cells_ = rhs.timing_cells_;
+    supply_voltage_map_ = rhs.supply_voltage_map_;
     operating_conditions_map_ = rhs.operating_conditions_map_;
     wire_loads_map_ = rhs.wire_loads_map_;
     wire_load_tables_map_ = rhs.wire_load_tables_map_;
@@ -503,6 +746,39 @@ void TLib::copy(TLib const &rhs) {
 void TLib::move(TLib &&rhs) {
     this->BaseType::move(std::move(rhs));
 
+    name_ = std::move(rhs.name_);
+    timing_model_type_ = std::move(rhs.timing_model_type_);
+    nominal_voltage_ = std::move(rhs.nominal_voltage_);
+    nominal_process_ = std::move(rhs.nominal_process_);
+    nominal_temperature_ = std::move(rhs.nominal_temperature_);
+    input_threshold_pct_fall_ = std::move(rhs.input_threshold_pct_fall_);
+    input_threshold_pct_rise_ = std::move(rhs.input_threshold_pct_rise_);
+    output_threshold_pct_fall_ = std::move(rhs.output_threshold_pct_fall_);
+    output_threshold_pct_rise_ = std::move(rhs.output_threshold_pct_rise_);
+    slew_lower_threshold_pct_fall_ =
+        std::move(rhs.slew_lower_threshold_pct_fall_);
+    slew_lower_threshold_pct_rise_ =
+        std::move(rhs.slew_lower_threshold_pct_rise_);
+    slew_upper_threshold_pct_fall_ =
+        std::move(rhs.slew_upper_threshold_pct_fall_);
+    slew_upper_threshold_pct_rise_ =
+        std::move(rhs.slew_upper_threshold_pct_rise_);
+    slew_derate_from_library_ = std::move(rhs.slew_derate_from_library_);
+    default_wire_load_area_ = std::move(rhs.default_wire_load_area_);
+    default_wire_load_mode_ = std::move(rhs.default_wire_load_mode_);
+    default_wire_load_capacitance_ =
+        std::move(rhs.default_wire_load_capacitance_);
+    default_wire_load_resistance_ =
+        std::move(rhs.default_wire_load_resistance_);
+    default_input_pin_cap_ = std::move(rhs.default_input_pin_cap_);
+    default_output_pin_cap_ = std::move(rhs.default_output_pin_cap_);
+    default_inout_pin_cap_ = std::move(rhs.default_inout_pin_cap_);
+    default_max_capacitance_ = std::move(rhs.default_max_capacitance_);
+    default_max_fanout_ = std::move(rhs.default_max_fanout_);
+    default_max_transition_ = std::move(rhs.default_max_transition_);
+    default_fanout_load_ = std::move(rhs.default_fanout_load_);
+    default_cell_leakage_power_ = std::move(rhs.default_cell_leakage_power_);
+    supply_voltages_ = std::move(rhs.supply_voltages_);
     default_operating_conditions_ =
         std::move(rhs.default_operating_conditions_);
     scaling_factors_ = std::move(rhs.scaling_factors_);
@@ -515,6 +791,7 @@ void TLib::move(TLib &&rhs) {
     wire_load_selections_ = std::move(rhs.wire_load_selections_);
     table_templates_ = std::move(rhs.table_templates_);
     timing_cells_ = std::move(rhs.timing_cells_);
+    supply_voltage_map_ = std::move(rhs.supply_voltage_map_);
     operating_conditions_map_ = std::move(rhs.operating_conditions_map_);
     wire_loads_map_ = std::move(rhs.wire_loads_map_);
     wire_load_tables_map_ = std::move(rhs.wire_load_tables_map_);
@@ -522,6 +799,7 @@ void TLib::move(TLib &&rhs) {
     table_templates_map_ = std::move(rhs.table_templates_map_);
     timing_cells_map_ = std::move(rhs.timing_cells_map_);
 
+    rhs.supply_voltages_ = UNINIT_OBJECT_ID;
     rhs.default_operating_conditions_ = UNINIT_OBJECT_ID;
     rhs.scaling_factors_ = UNINIT_OBJECT_ID;
     rhs.units_ = UNINIT_OBJECT_ID;
@@ -589,11 +867,82 @@ OStreamBase &operator<<(OStreamBase &os, TLib const &rhs) {
     TLib::BaseType const &base = rhs;
     os << base << DataDelimiter();
 
+    os << DataFieldName("name_") << rhs.getName() << DataDelimiter();
+    os << DataFieldName("timing_model_type_") << rhs.timing_model_type_
+       << DataDelimiter();
+    os << DataFieldName("nominal_voltage_") << rhs.nominal_voltage_
+       << DataDelimiter();
+    os << DataFieldName("nominal_process_") << rhs.nominal_process_
+       << DataDelimiter();
+    os << DataFieldName("nominal_temperature_") << rhs.nominal_temperature_
+       << DataDelimiter();
+    os << DataFieldName("input_threshold_pct_fall_")
+       << rhs.input_threshold_pct_fall_ << DataDelimiter();
+    os << DataFieldName("input_threshold_pct_rise_")
+       << rhs.input_threshold_pct_rise_ << DataDelimiter();
+    os << DataFieldName("output_threshold_pct_fall_")
+       << rhs.output_threshold_pct_fall_ << DataDelimiter();
+    os << DataFieldName("output_threshold_pct_rise_")
+       << rhs.output_threshold_pct_rise_ << DataDelimiter();
+    os << DataFieldName("slew_lower_threshold_pct_fall_")
+       << rhs.slew_lower_threshold_pct_fall_ << DataDelimiter();
+    os << DataFieldName("slew_lower_threshold_pct_rise_")
+       << rhs.slew_lower_threshold_pct_rise_ << DataDelimiter();
+    os << DataFieldName("slew_upper_threshold_pct_fall_")
+       << rhs.slew_upper_threshold_pct_fall_ << DataDelimiter();
+    os << DataFieldName("slew_upper_threshold_pct_rise_")
+       << rhs.slew_upper_threshold_pct_rise_ << DataDelimiter();
+    os << DataFieldName("slew_derate_from_library_")
+       << rhs.slew_derate_from_library_ << DataDelimiter();
+    os << DataFieldName("default_wire_load_area_")
+       << rhs.default_wire_load_area_ << DataDelimiter();
+    os << DataFieldName("default_wire_load_mode_")
+       << rhs.default_wire_load_mode_ << DataDelimiter();
+    os << DataFieldName("default_wire_load_capacitance_")
+       << rhs.default_wire_load_capacitance_ << DataDelimiter();
+    os << DataFieldName("default_wire_load_resistance_")
+       << rhs.default_wire_load_resistance_ << DataDelimiter();
+    os << DataFieldName("default_input_pin_cap_") << rhs.default_input_pin_cap_
+       << DataDelimiter();
+    os << DataFieldName("default_output_pin_cap_")
+       << rhs.default_output_pin_cap_ << DataDelimiter();
+    os << DataFieldName("default_inout_pin_cap_") << rhs.default_inout_pin_cap_
+       << DataDelimiter();
+    os << DataFieldName("default_max_capacitance_")
+       << rhs.default_max_capacitance_ << DataDelimiter();
+    os << DataFieldName("default_max_fanout_") << rhs.default_max_fanout_
+       << DataDelimiter();
+    os << DataFieldName("default_max_transition_")
+       << rhs.default_max_transition_ << DataDelimiter();
+    os << DataFieldName("default_fanout_load_") << rhs.default_fanout_load_
+       << DataDelimiter();
+    os << DataFieldName("default_cell_leakage_power_")
+       << rhs.default_cell_leakage_power_ << DataDelimiter();
+    os << DataFieldName("supply_voltages_");
+
+    std::map<std::string, float> sorted_map;
+    Timing *timing_lib = getTimingLib();
+    for (auto it = rhs.supply_voltage_map_.begin();
+         it != rhs.supply_voltage_map_.end(); it++) {
+        if (timing_lib) {
+            std::string &str = timing_lib->getSymbolByIndex(it->first);
+            if (str != "") sorted_map[str] = it->second;
+        }
+    }
+    os << sorted_map.size();
+    os << DataBegin("[");
+    auto delimiter = DataDelimiter("");
+    for (auto it = sorted_map.begin(); it != sorted_map.end(); ++it) {
+        os << delimiter << it->first << DataDelimiter() << it->second;
+        delimiter = DataDelimiter();
+    }
+    os << DataEnd("]");
+
     os << DataFieldName("default_operating_conditions_");
     {
-        auto p = rhs.get_default_operating_conditions();
+        auto p = rhs.getDefaultOperatingConditions();
         if (p != nullptr)
-            os << p->get_name();
+            os << p->getName();
         else
             os << "";
         os << DataDelimiter();
@@ -618,18 +967,18 @@ OStreamBase &operator<<(OStreamBase &os, TLib const &rhs) {
     }
     os << DataFieldName("default_wire_load_");
     {
-        auto p = rhs.get_default_wire_load();
+        auto p = rhs.getDefaultWireLoad();
         if (p != nullptr)
-            os << p->get_name();
+            os << p->getName();
         else
             os << "";
         os << DataDelimiter();
     }
     os << DataFieldName("default_wire_load_selection_");
     {
-        auto p = rhs.get_default_wire_load_selection();
+        auto p = rhs.getDefaultWireLoadSelection();
         if (p != nullptr)
-            os << p->get_name();
+            os << p->getName();
         else
             os << "";
         os << DataDelimiter();
@@ -682,8 +1031,8 @@ TCell *TLib::__addTCellImpl() {
             p = addr<ArrayObject<ObjectId>>(timing_cells_);
         }
         if (p != nullptr) {
-            auto c = Object::createObject<TCell>(
-                      kObjectTypeTCell, timing_lib->getId());
+            auto c = Object::createObject<TCell>(kObjectTypeTCell,
+                                                 timing_lib->getId());
             if (c) {
                 c->setOwner(this);
                 ObjectId id = c->getId();
@@ -700,16 +1049,15 @@ OperatingConditions *TLib::__addOperatingConditionsImpl() {
     if (timing_lib) {
         ArrayObject<ObjectId> *object_array = nullptr;
         if (operating_conditions_ == UNINIT_OBJECT_ID) {
-            object_array =
-                Object::createObject<ArrayObject<ObjectId>>(kObjectTypeArray, timing_lib->getId());
+            object_array = Object::createObject<ArrayObject<ObjectId>>(
+                kObjectTypeArray, timing_lib->getId());
             if (object_array != nullptr) {
                 operating_conditions_ = object_array->getId();
                 object_array->setPool(timing_lib->getPool());
                 object_array->reserve(32);
             }
         } else {
-            object_array = addr<ArrayObject<ObjectId>>(
-                operating_conditions_);
+            object_array = addr<ArrayObject<ObjectId>>(operating_conditions_);
         }
         if (object_array != nullptr) {
             auto c = timing_lib->createObject<OperatingConditions>(

@@ -80,11 +80,11 @@ TPgTerm::IndexType TPgTerm::memory() const {
 }
 
 void TPgTerm::print(std::ostream& stream) {
-    stream << "TPgTerm name: " << get_name() << std::endl;
+    stream << "TPgTerm name: " << getName() << std::endl;
 }
 
 /// set
-void TPgTerm::set_name(const std::string& name) {
+void TPgTerm::setName(const std::string& name) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
@@ -95,8 +95,8 @@ void TPgTerm::set_name(const std::string& name) {
     }
 }
 
-void TPgTerm::set_pg_type(PGType t) { pg_type_ = t; }
-void TPgTerm::set_voltage_name(const std::string& name) {
+void TPgTerm::setPgType(PGType t) { pg_type_ = t; }
+void TPgTerm::setVoltageName(const std::string& name) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
@@ -108,16 +108,16 @@ void TPgTerm::set_voltage_name(const std::string& name) {
 }
 
 /// get
-std::string TPgTerm::get_name(void) const {
+std::string TPgTerm::getName(void) const {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
-SymbolIndex TPgTerm::get_name_index(void) { return name_; }
-PGType TPgTerm::get_pg_type(void) { return pg_type_; }
-std::string TPgTerm::get_voltage_name(void) const {
+SymbolIndex TPgTerm::getNameIndex(void) { return name_; }
+PGType TPgTerm::getPgType(void) { return pg_type_; }
+std::string TPgTerm::getVoltageName(void) const {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         return timing_lib->getSymbolByIndex(voltage_name_);
@@ -131,9 +131,9 @@ OStreamBase& operator<<(OStreamBase& os, TPgTerm const& rhs) {
     TPgTerm::BaseType const& base = rhs;
     os << base << DataDelimiter();
 
-    os << DataFieldName("name_") << rhs.get_name() << DataDelimiter();
+    os << DataFieldName("name_") << rhs.getName() << DataDelimiter();
     os << DataFieldName("pg_type_") << rhs.pg_type_ << DataDelimiter();
-    os << DataFieldName("voltage_name_") << rhs.get_voltage_name();
+    os << DataFieldName("voltage_name_") << rhs.getVoltageName();
 
     os << DataEnd(")");
     return os;

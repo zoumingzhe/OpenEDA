@@ -57,7 +57,7 @@ OperatingConditions& OperatingConditions::operator=(
 }
 
 void OperatingConditions::print(std::ostream& stream) {
-    stream << "OperatingConditions: name: " << get_name()
+    stream << "OperatingConditions: name: " << getName()
            << " wire_load_tree: " << toString(wire_load_tree_);
     this->BaseType::print(stream);
 }
@@ -83,7 +83,7 @@ OperatingConditions::IndexType OperatingConditions::memory() const {
     return ret;
 }
 
-void OperatingConditions::set_name(const std::string& name) {
+void OperatingConditions::setName(const std::string& name) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
@@ -93,16 +93,16 @@ void OperatingConditions::set_name(const std::string& name) {
         }
     }
 }
-void OperatingConditions::set_wire_load_tree(WireLoadTree ty) {
+void OperatingConditions::setWireLoadTree(WireLoadTree ty) {
     wire_load_tree_ = ty;
 }
-std::string OperatingConditions::get_name(void) const {
+std::string OperatingConditions::getName(void) const {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) return timing_lib->getSymbolByIndex(name_);
     return "";
 }
-SymbolIndex OperatingConditions::get_name_index(void) { return name_; }
-WireLoadTree OperatingConditions::get_wire_load_tree(void) {
+SymbolIndex OperatingConditions::getNameIndex(void) { return name_; }
+WireLoadTree OperatingConditions::getWireLoadTree(void) {
     return wire_load_tree_;
 }
 
@@ -112,7 +112,7 @@ OStreamBase& operator<<(OStreamBase& os, OperatingConditions const& rhs) {
     OperatingConditions::BaseType const& base = rhs;
     os << base << DataDelimiter();
 
-    os << DataFieldName("name_") << rhs.get_name() << DataDelimiter();
+    os << DataFieldName("name_") << rhs.getName() << DataDelimiter();
     os << DataFieldName("wire_load_tree_") << rhs.wire_load_tree_;
 
     os << DataEnd(")");

@@ -19,8 +19,8 @@
 #include <utility>
 
 #include "db/core/object.h"
-#include "util/data_traits.h"
 #include "db/timing/spef/design_parasitics.h"
+#include "util/data_traits.h"
 
 namespace open_edi {
 namespace db {
@@ -57,19 +57,19 @@ class AnalysisCorner : public Object {
     IndexType memory() const;
 
     /// set
-    void set_name(const std::string &name);
-    void set_rc_tech_file(const std::string &file);
-    void set_libset(ObjectId id);
-    void set_design_parasitics(ObjectId id);
+    void setName(const std::string &name);
+    void setRcTechFile(const std::string &file);
+    void setLibset(ObjectId id);
+    void setDesignParasitics(ObjectId id);
 
     /// get
-    SymbolIndex get_name_index(void);
-    SymbolIndex get_rc_tech_file_index(void);
-    std::string get_name(void) const;
-    std::string get_rc_tech_file(void) const;
+    SymbolIndex getNameIndex(void);
+    SymbolIndex getRcTechFileIndex(void);
+    std::string getName(void) const;
+    std::string getRcTechFile(void) const;
 
-    LibSet *get_libset(void);
-    DesignParasitics *get_design_parasitics(void);
+    LibSet *getLibset(void);
+    DesignParasitics *getDesignParasitics(void);
 
   protected:
     /// @brief copy object

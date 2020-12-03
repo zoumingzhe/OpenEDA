@@ -32,7 +32,7 @@ using namespace Timinglib;
    yyscan_t yyscanner, Timinglib::LibAnalysis &libAnalysis)
 
 void
-msg_output(LibAnalysis &libAnalysis, si2drSeverityT sev, const std::string &msg)
+msgOutput(LibAnalysis &libAnalysis, si2drSeverityT sev, const std::string &msg)
 {
    si2drErrorT err;
    si2drMessageHandlerT MsgPrinter;
@@ -66,34 +66,34 @@ msg_output(LibAnalysis &libAnalysis, si2drSeverityT sev, const std::string &msg)
    }
 %}
 
-\+  {sd->lline = sd->lineno;libAnalysis.set_tok(); return PLUS;}
-\-  {sd->lline = sd->lineno;libAnalysis.set_tok(); return MINUS;}
-\*  {sd->lline = sd->lineno;libAnalysis.set_tok(); return MULT;}
-\/  {sd->lline = sd->lineno;libAnalysis.set_tok(); return DIV;}
-\,	{sd->lline = sd->lineno;libAnalysis.set_tok(); return COMMA;}
-\;	{sd->lline = sd->lineno;libAnalysis.set_tok(); return SEMI;}
-\(	{sd->lline = sd->lineno;libAnalysis.set_tok(); return LPAR;}
-\)	{sd->lline = sd->lineno;libAnalysis.set_tok(); return RPAR;}
-\=  {sd->lline = sd->lineno;libAnalysis.set_tok(); return EQ;}
+\+  {sd->lline = sd->lineno;libAnalysis.setTok(); return PLUS;}
+\-  {sd->lline = sd->lineno;libAnalysis.setTok(); return MINUS;}
+\*  {sd->lline = sd->lineno;libAnalysis.setTok(); return MULT;}
+\/  {sd->lline = sd->lineno;libAnalysis.setTok(); return DIV;}
+\,	{sd->lline = sd->lineno;libAnalysis.setTok(); return COMMA;}
+\;	{sd->lline = sd->lineno;libAnalysis.setTok(); return SEMI;}
+\(	{sd->lline = sd->lineno;libAnalysis.setTok(); return LPAR;}
+\)	{sd->lline = sd->lineno;libAnalysis.setTok(); return RPAR;}
+\=  {sd->lline = sd->lineno;libAnalysis.setTok(); return EQ;}
 \{	{
       if(sd->lline != sd->lineno)
       {
-         std::string str = string_format("line %d: Opening Curly must be on same line as group declaration!", sd->lineno);
-         msg_output(libAnalysis, kSI2DR_SEVERITY_WARN, str);
+         std::string str = stringFormat("line %d: Opening Curly must be on same line as group declaration!", sd->lineno);
+         msgOutput(libAnalysis, kSI2DR_SEVERITY_WARN, str);
       }
-      libAnalysis.set_tok();
+      libAnalysis.setTok();
       return LCURLY;
    }
 
-\}[ \t]*\;?	{sd->lline = sd->lineno;libAnalysis.set_tok(); return RCURLY;}
+\}[ \t]*\;?	{sd->lline = sd->lineno;libAnalysis.setTok(); return RCURLY;}
 [ \t]?\:	{
       sd->lline = sd->lineno;
       if( yyleng == 1 && !sd->tight_colon_ok )
       {
-         std::string str = string_format("space must precede Colon (:) at line %d", sd->lineno);
-         msg_output(libAnalysis, kSI2DR_SEVERITY_ERR, str);
+         std::string str = stringFormat("space must precede Colon (:) at line %d", sd->lineno);
+         msgOutput(libAnalysis, kSI2DR_SEVERITY_ERR, str);
       }
-      libAnalysis.set_tok(); 
+      libAnalysis.setTok(); 
       return COLON;
    }
 
@@ -115,7 +115,7 @@ include_file[ \t]*\(	BEGIN(include);
       x.intnum = strtol(yytext,(char**)NULL, 10);
 		yylval->num = x; 
 	}
-   libAnalysis.set_tok();
+   libAnalysis.setTok();
 	return NUM;
 }
 
@@ -125,35 +125,35 @@ include_file[ \t]*\(	BEGIN(include);
  if( !strncmp(yytext,"values(",7) )
  {
    /* ugh -- a values() with a single unquoted number in it! let's translate it into a values with a single quoted value instead! */
-   char *ident = strtab->timinglib_strtable_enter_string(sd->master_string_table, (char*)("values")); /* OLD WAY: (char*)malloc(7); */
+   char *ident = strtab->timinglibStrtableEnterString(sd->master_string_table, (char*)("values")); /* OLD WAY: (char*)malloc(7); */
    char *str /* OLD WAY: = (char*)malloc(strlen(yytext)-4) */;
    /* strcpy(ident,"values");  OLD allocation method */
    yylval->str = ident;
-   str = strtab->timinglib_strtable_enter_string(sd->master_string_table, yytext+7);
+   str = strtab->timinglibStrtableEnterString(sd->master_string_table, yytext+7);
    /* OLD WAY: strcpy(str,yytext+7); 
 	           str[strlen(str)-1] = 0; */
-   libAnalysis.add_token(LPAR, 0, 0, 0.0, 0);
-   libAnalysis.add_token(STRING, 0, 0, 0.0, str);
-   libAnalysis.add_token(RPAR, 0, 0, 0.0, 0);
-   libAnalysis.set_tok(); return IDENT;
+   libAnalysis.addToken(LPAR, 0, 0, 0.0, 0);
+   libAnalysis.addToken(STRING, 0, 0, 0.0, str);
+   libAnalysis.addToken(RPAR, 0, 0, 0.0, 0);
+   libAnalysis.setTok(); return IDENT;
  }
  else
  {
    /* OLD:  char *str = (char*)malloc(strlen(yytext)+1);
             strcpy(str,yytext)*/ ;  
-	yylval->str = /* OLD: str  NEW: */ strtab->timinglib_strtable_enter_string(sd->master_string_table, yytext);
-   libAnalysis.set_tok(); return STRING;
+	yylval->str = /* OLD: str  NEW: */ strtab->timinglibStrtableEnterString(sd->master_string_table, yytext);
+   libAnalysis.setTok(); return STRING;
  }
 }
 
-"define" {sd->lline = sd->lineno;libAnalysis.set_tok(); return KW_DEFINE;}
-"define_group" {sd->lline = sd->lineno;libAnalysis.set_tok(); return KW_DEFINE_GROUP;}
-[Tt][Rr][Uu][Ee]   {sd->lline = sd->lineno;libAnalysis.set_tok(); return KW_TRUE;}
-[Ff][Aa][Ll][Ss][Ee]  {sd->lline = sd->lineno;libAnalysis.set_tok(); return KW_FALSE;}
+"define" {sd->lline = sd->lineno;libAnalysis.setTok(); return KW_DEFINE;}
+"define_group" {sd->lline = sd->lineno;libAnalysis.setTok(); return KW_DEFINE_GROUP;}
+[Tt][Rr][Uu][Ee]   {sd->lline = sd->lineno;libAnalysis.setTok(); return KW_TRUE;}
+[Ff][Aa][Ll][Ss][Ee]  {sd->lline = sd->lineno;libAnalysis.setTok(); return KW_FALSE;}
 \\?\n	{sd->lineno++;}
 \\[ \t]+\n	{
-      std::string str = string_format("%s:%d -- Continuation char followed by spaces or tabs!", sd->curr_file, sd->lineno);
-      msg_output(libAnalysis, kSI2DR_SEVERITY_ERR, str);
+      std::string str = stringFormat("%s:%d -- Continuation char followed by spaces or tabs!", sd->curr_file, sd->lineno);
+      msgOutput(libAnalysis, kSI2DR_SEVERITY_ERR, str);
       sd->lineno++;
    }
 
@@ -163,8 +163,8 @@ include_file[ \t]*\(	BEGIN(include);
 
 [a-zA-Z0-9!@#$%^&_+\|~\?<>\.\-]+ {
    sd->lline = sd->lineno;
-   yylval->str = /* OLD: my_strdup(yytext) NEW: */ strtab->timinglib_strtable_enter_string(sd->master_string_table, yytext);
-   libAnalysis.set_tok();
+   yylval->str = /* OLD: myStrdup(yytext) NEW: */ strtab->timinglibStrtableEnterString(sd->master_string_table, yytext);
+   libAnalysis.setTok();
    return IDENT;
    }
 
@@ -206,18 +206,18 @@ include_file[ \t]*\(	BEGIN(include);
 <stringx>\"	{ 
    BEGIN(INITIAL); 
    *sd->string_buf_ptr = 0;
-	yylval->str = strtab->timinglib_strtable_enter_string(sd->master_string_table, sd->string_buf);
-   /* OLD: my_strdup(string_buf); */ libAnalysis.set_tok(); 
+	yylval->str = strtab->timinglibStrtableEnterString(sd->master_string_table, sd->string_buf);
+   /* OLD: myStrdup(string_buf); */ libAnalysis.setTok(); 
    return STRING; 
 }
 
 <stringx>\n { 
-   std::string str = string_format("line %d: unterminated string constant-- use a back-slash to continue a string to the next line.", sd->lineno++);
-   msg_output(libAnalysis, kSI2DR_SEVERITY_ERR, str); 
+   std::string str = stringFormat("line %d: unterminated string constant-- use a back-slash to continue a string to the next line.", sd->lineno++);
+   msgOutput(libAnalysis, kSI2DR_SEVERITY_ERR, str); 
 	BEGIN(INITIAL); 
    *sd->string_buf_ptr = 0;
-	yylval->str = strtab->timinglib_strtable_enter_string(sd->master_string_table, sd->string_buf);
-   /* OLD: my_strdup(string_buf);*/ libAnalysis.set_tok(); 
+	yylval->str = strtab->timinglibStrtableEnterString(sd->master_string_table, sd->string_buf);
+   /* OLD: myStrdup(string_buf);*/ libAnalysis.setTok(); 
    return STRING;
 }
 
@@ -229,11 +229,11 @@ include_file[ \t]*\(	BEGIN(include);
 <include>[^ \t\n);]+	{  
                  if ( sd->include_stack_index >= MAX_INCLUDE_DEPTH )
                   {
-                     std::string str = string_format("Includes nested too deeply! An included file cannot include another file!" );
-                     msg_output(libAnalysis, kSI2DR_SEVERITY_ERR, str);
+                     std::string str = stringFormat("Includes nested too deeply! An included file cannot include another file!" );
+                     msgOutput(libAnalysis, kSI2DR_SEVERITY_ERR, str);
                      exit( 1 );
                   }
-				      libAnalysis.clean_file_name(yytext,sd->filenamebuf);
+				      libAnalysis.cleanFileName(yytext,sd->filenamebuf);
 }
 
 <include>")"		{}
@@ -242,14 +242,14 @@ include_file[ \t]*\(	BEGIN(include);
    Timinglib::struct_nl *nlp;
    ((YY_BUFFER_STATE*)(sd->include_stack))[sd->include_stack_index++] = YY_CURRENT_BUFFER;
    /*include_stack[sd->include_stack_index++] = YY_CURRENT_BUFFER;*/
-	std::string str = string_format("Including file %s.", sd->filenamebuf);
-   msg_output(libAnalysis, kSI2DR_SEVERITY_NOTE, str);
+	std::string str = stringFormat("Including file %s.", sd->filenamebuf);
+   msgOutput(libAnalysis, kSI2DR_SEVERITY_NOTE, str);
    yyin = fopen( sd->filenamebuf, "r" );
 	if ( ! yyin )
    {
       
-      std::string str = string_format("Couldn't find the include file: %s; ignoring the Include directive!", sd->filenamebuf);
-      msg_output(libAnalysis, kSI2DR_SEVERITY_ERR, str);
+      std::string str = stringFormat("Couldn't find the include file: %s; ignoring the Include directive!", sd->filenamebuf);
+      msgOutput(libAnalysis, kSI2DR_SEVERITY_ERR, str);
       sd->include_stack_index--;
       yyin = yyin_save;
       BEGIN(INITIAL);
@@ -258,7 +258,7 @@ include_file[ \t]*\(	BEGIN(include);
    {
       yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE, yyg), yyg);
       nlp = (Timinglib::struct_nl *)calloc(sizeof(Timinglib::struct_nl),1);
-      nlp->fname = /*OLD: (char*)malloc(strlen(filenamebuf)+1); NEW:*/ strtab->timinglib_strtable_enter_string(sd->master_string_table, sd->filenamebuf);
+      nlp->fname = /*OLD: (char*)malloc(strlen(filenamebuf)+1); NEW:*/ strtab->timinglibStrtableEnterString(sd->master_string_table, sd->filenamebuf);
                   /*OLD: strcpy(nlp->fname,filenamebuf); */
       nlp->next = sd->file_name_list;
       sd->file_name_list = nlp;
@@ -293,10 +293,10 @@ include_file[ \t]*\(	BEGIN(include);
 int yylex(YYSTYPE *yylval_param, \
    yyscan_t yyscanner, Timinglib::LibAnalysis &libAnalysis)
 {
-   if( !libAnalysis.token_q_empty() )
+   if( !libAnalysis.tokenQEmpty() )
       {
          void *p = (void *)yylval_param;
-         return libAnalysis.injected_token(p);
+         return libAnalysis.injectedToken(p);
       }
 	   else
 		   return my_yylex(yylval_param, yyscanner, libAnalysis);
@@ -304,18 +304,18 @@ int yylex(YYSTYPE *yylval_param, \
 
 namespace Timinglib
 {
-   void LibSyn::__lib_scan_begin(FILE *fp)
+   void LibSyn::__libScanBegin(FILE *fp)
    {
       yylex_init(&scanner_);
       yyrestart (fp, scanner_);
    }
-   int LibSyn::__lib_parse()
+   int LibSyn::__libParse()
    {
       if (analysis_ == nullptr)
          return 2;
       return  yyparse(scanner_, *analysis_);;
    }
-   void LibSyn::__lib_scan_end(FILE *fp)
+   void LibSyn::__libScanEnd(FILE *fp)
    {
       if (scanner_ != nullptr)
          yylex_destroy(scanner_);
