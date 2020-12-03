@@ -17,17 +17,6 @@
 namespace open_edi {
 namespace db {
 
-std::ostream &operator<<(std::ostream &os, SdcCaseAnalysisContainer &rhs) {
-    for (auto& pin_case_analysis : rhs.pin_to_case_analysis_) {
-        auto& pin_id = pin_case_analysis.first;
-        auto& case_analysis = *(pin_case_analysis.second);
-        os << "set_case_analysis " << pin_id << " " << case_analysis;
-    }
-    return os;
-}
-
-
-
 
 }
 }

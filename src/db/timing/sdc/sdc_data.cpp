@@ -18,7 +18,23 @@ namespace open_edi {
 namespace db {
 
 // environment commands
-// set case analysis
+// create_clock
+void SdcClockContainer::add(const CreateClock &create_clock) {
+    auto& count = clock_ids_.size();
+    create_clocks_.emplace(count, create_clock);
+    clock_ids_.emplace_back(count+1);
+    
+
+
+}
+
+
+
+
+
+
+
+// set_case_analysis
 void SdcCaseAnalysisContainer::add(const ObjectId &pin_id, const SetCaseAnalysisPtr &case_analysis_ptr) {
     assert(case_analysis_ptr);
     pin_to_case_analysis_.emplace(pin_id, case_analysis_ptr);
@@ -76,6 +92,7 @@ std::ostream &operator<<(std::ostream &os, SdcCaseAnalysisContainer &rhs) {
     }
     return os;
 }
+
 
 //
 }

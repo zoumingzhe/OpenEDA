@@ -27,14 +27,26 @@ namespace db {
 
 class SetHierarchySeparator {
   public:
-    void setSeparator(const std::string& separator) { separator_ = separator; }
+    void setSeparator(const std::string& input);
     const std::string& getSeparator() const { return separator_; }
-    void checkSepartor();
 
   private:
     std::string separator_ = "/";
 };
 using SetHierarchySeparatorPtr = std::shared_ptr<SetHierarchySeparator>; 
+
+class SetUnits {
+  public:
+    //TODO unit check and set
+
+  private:
+    float capacitance_unit_;
+    float resistance_unit_;
+    float time_unit_;
+    float voltage_unit_;
+    float current_unit_;
+    float power_unit_; 
+}
 
 }
 }

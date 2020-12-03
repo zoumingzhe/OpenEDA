@@ -17,6 +17,14 @@
 namespace open_edi {
 namespace db {
 
+//set_hierarchy_separator
+void SetHierarchySeparator::setSeparator(const std::string& input) {
+    if ((input == "/") or (input == "@") or (input == "^") 
+        (input == "#") or (input == ".") or (input == "|")) {
+        separator_ = input
+    }
+    //TODO messages
+}
 
 }
 }
