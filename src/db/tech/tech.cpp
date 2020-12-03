@@ -14,7 +14,6 @@
 #include "db/core/cell.h"
 #include "db/util/array.h"
 #include "db/util/property_definition.h"
-#include "db/util/vector_object_var.h"
 
 namespace open_edi {
 namespace db {

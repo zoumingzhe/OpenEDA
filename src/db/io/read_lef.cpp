@@ -1388,24 +1388,20 @@ int readLef(int argc, const char **argv) {
 static void setMetalLayerMinEnclArea(lefiLayer *io_layer,
                                      RoutingLayerRule *rl) {
     UInt32 min_encl_area_num = io_layer->numMinenclosedarea();
+    Cell *current_top_cell = getTopCell();
+    if (!current_top_cell) return;
     if (min_encl_area_num) {
         Tech *lib = getTopCell()->getTechLib();
-        MinEnclArea *head_mea, *tail_mea;
-        head_mea = tail_mea = nullptr;
-
         for (UInt32 ii = 0; ii < min_encl_area_num; ++ii) {
-            MinEnclArea *mea = new MinEnclArea;
+            MinEnclArea *mea = current_top_cell->createObject<MinEnclArea>(kObjectTypeMinEnclArea);
             mea->setArea(static_cast<UInt32>(
                 lib->areaMicronsToDBU(io_layer->minenclosedarea(ii)) + 0.5));
             if (io_layer->hasMinenclosedareaWidth(ii)) {
                 mea->setWidth(
                     lib->micronsToDBU(io_layer->minenclosedareaWidth(ii)));
             }
-            if (!head_mea) head_mea = mea;
-            if (tail_mea) tail_mea->setNext(mea);
-            tail_mea = mea;
+            rl->addMinEnclArea(mea->getId());
         }
-        rl->setMinEnclAreaList(head_mea);
     }
 }
 
@@ -1419,12 +1415,14 @@ static void setMetalLayerMinEnclArea(lefiLayer *io_layer,
 static void setMetalLayerSpacing(lefiLayer *io_layer, RoutingLayerRule *rl) {
     if (io_layer->hasSpacingNumber()) {
         Tech *lib = getTopCell()->getTechLib();
-        RoutingSpacing *head_rs, *tail_rs;
-        head_rs = tail_rs = nullptr;
+        Cell *current_top_cell = getTopCell();
+        if (!current_top_cell) return;
+        //RoutingSpacing *head_rs, *tail_rs;
+        //head_rs = tail_rs = nullptr;
         UInt32 spacing_num = io_layer->numSpacing();
 
         for (UInt32 ii = 0; ii < spacing_num; ++ii) {
-            RoutingSpacing *rs = new RoutingSpacing;
+            RoutingSpacing *rs = current_top_cell->createObject<RoutingSpacing>(kObjectTypeRoutingSpacing);
             // SPACING minSpacing
             UInt32 spacing = lib->micronsToDBU(io_layer->spacing(ii));
             rs->setMinSpacing(spacing);
@@ -1511,13 +1509,9 @@ static void setMetalLayerSpacing(lefiLayer *io_layer, RoutingLayerRule *rl) {
                 rs->setEONLength(
                     lib->micronsToDBU(io_layer->spacingEndOfNotchLength(ii)));
             }
-
-            if (!head_rs) head_rs = rs;
-            if (tail_rs) tail_rs->setNext(rs);
-            tail_rs = rs;
+            rl->addSpacing(rs->getId());
         }
 
-        rl->setSpacingList(head_rs);
     }
 }
 
@@ -1533,10 +1527,10 @@ static void setMetalLayerMinCutRules(lefiLayer *io_layer,
     UInt32 min_cut_rules_num = io_layer->numMinimumcut();
     if (min_cut_rules_num) {
         Tech *lib = getTopCell()->getTechLib();
-        MinCut *head_mc, *tail_mc;
-        head_mc = tail_mc = nullptr;
+        Cell *current_top_cell = getTopCell();
+        if (!current_top_cell) return;
         for (UInt32 ii = 0; ii < min_cut_rules_num; ++ii) {
-            MinCut *mc = new MinCut;
+            MinCut *mc = current_top_cell->createObject<MinCut>(kObjectTypeMinCut);
             mc->setNumCuts(io_layer->minimumcut(ii));
             mc->setWidth(lib->micronsToDBU(io_layer->minimumcutWidth(ii)));
             if (io_layer->hasMinimumcutWithin(ii)) {
@@ -1558,12 +1552,8 @@ static void setMetalLayerMinCutRules(lefiLayer *io_layer,
                 mc->setLengthWithin(
                     lib->micronsToDBU(io_layer->minimumcutDistance(ii)));
             }
-            if (!head_mc) head_mc = mc;
-            if (tail_mc) tail_mc->setNext(mc);
-            tail_mc = mc;
+            rl->addMinCut(mc->getId());
         }
-
-        rl->setMinCutList(head_mc);
     }
 }
 
@@ -1578,12 +1568,14 @@ static void setMetalLayerProtrusionWidth(lefiLayer *io_layer,
                                          RoutingLayerRule *rl) {
     if (io_layer->hasProtrusion()) {
         Tech *lib = getTopCell()->getTechLib();
-        ProtrusionRule *pr = new ProtrusionRule;
+        Cell *current_top_cell = getTopCell();
+        if (!current_top_cell) return;
+        ProtrusionRule *pr = current_top_cell->createObject<ProtrusionRule>(kObjectTypeProtrusionRule);
         pr->setIsLength(true);
         pr->setWidth1(lib->micronsToDBU(io_layer->protrusionWidth1()));
         pr->setWidth2(lib->micronsToDBU(io_layer->protrusionWidth2()));
         pr->setLength(lib->micronsToDBU(io_layer->protrusionLength()));
-        rl->setProtrusionRuleList(pr);
+        rl->addProtrusionRule(pr->getId());
     }
 }
 
@@ -1599,13 +1591,13 @@ static void setMetalLayerSpacingTable(lefiLayer *io_layer,
     UInt32 io_tbl_num = io_layer->numSpacingTable();
     if (io_tbl_num) {
         Tech *lib = getTopCell()->getTechLib();
-        WidthSpTbl *head_wsp, *tail_wsp;
-        head_wsp = tail_wsp = nullptr;
+        Cell *current_top_cell = getTopCell();
+        if (!current_top_cell) return;
 
         for (UInt32 ii = 0; ii < io_tbl_num; ++ii) {
             lefiSpacingTable *io_tbl = io_layer->spacingTable(ii);
             if (io_tbl->isInfluence()) {  // SPACINGTABLE INFLUENCE
-                InfluenceSpTbl *edi_inf = new InfluenceSpTbl;
+                InfluenceSpTbl *edi_inf = current_top_cell->createObject<InfluenceSpTbl>(kObjectTypeInfluenceSpTbl);
                 lefiInfluence *io_inf = io_tbl->influence();
                 UInt32 num = io_inf->numInfluenceEntry();
                 edi_inf->setRowNum(num);
@@ -1613,11 +1605,11 @@ static void setMetalLayerSpacingTable(lefiLayer *io_layer,
                     UInt32 width = lib->micronsToDBU(io_inf->width(jj));
                     UInt32 within = lib->micronsToDBU(io_inf->distance(jj));
                     UInt32 spacing = lib->micronsToDBU(io_inf->spacing(jj));
-                    edi_inf->setRowElems(jj, width, within, spacing);
+                    edi_inf->addRowElems( width, within, spacing);
                 }
-                rl->setInfluenceSpTbl(edi_inf);
+                rl->addInfluenceSpTbl(edi_inf->getId());
             } else {
-                WidthSpTbl *w_tbl = new WidthSpTbl;
+                WidthSpTbl *w_tbl = current_top_cell->createObject<WidthSpTbl>(kObjectTypeWidthSpTbl);
                 UInt32 min_sp = INT_MAX, max_sp = INT_MIN;
 
                 if (io_tbl->isParallel()) {  // PARALLELRUNLENGTH
@@ -1628,12 +1620,12 @@ static void setMetalLayerSpacingTable(lefiLayer *io_layer,
                     w_tbl->setPRLDim(len_num);
                     w_tbl->setWidthDim(width_num);
                     for (UInt32 len_idx = 0; len_idx < len_num; ++len_idx) {
-                        w_tbl->setPRL(len_idx,
+                        w_tbl->addPRL(
                                       lib->micronsToDBU(prl->length(len_idx)));
                     }
                     for (UInt32 width_idx = 0; width_idx < width_num;
                          ++width_idx) {
-                        w_tbl->setWidth(width_idx, lib->micronsToDBU(
+                        w_tbl->addWidth(lib->micronsToDBU(
                                                        prl->width(width_idx)));
                     }
                     for (UInt32 width_idx = 0; width_idx < width_num;
@@ -1656,13 +1648,13 @@ static void setMetalLayerSpacingTable(lefiLayer *io_layer,
                          ++width_idx) {
                         UInt32 width =
                             lib->micronsToDBU(two_widths->width(width_idx));
-                        w_tbl->setWidth(width_idx, width);
+                        w_tbl->addWidth( width);
                         if (two_widths->hasWidthPRL(width_idx)) {
-                            w_tbl->setPRL(width_idx,
+                            w_tbl->addPRL(
                                           lib->micronsToDBU(
                                               two_widths->widthPRL(width_idx)));
                         } else {
-                            w_tbl->setPRL(width_idx, INT_MAX);
+                            w_tbl->addPRL(INT_MAX);
                         }
                         for (UInt32 col_idx = 0; col_idx < width_num;
                              ++col_idx) {
@@ -1674,14 +1666,12 @@ static void setMetalLayerSpacingTable(lefiLayer *io_layer,
                         }
                     }
                 }
-                if (!head_wsp) head_wsp = w_tbl;
-                if (tail_wsp) tail_wsp->setNext(w_tbl);
-                tail_wsp = w_tbl;
+
                 if (min_sp != INT_MAX) w_tbl->setMinSpacing(min_sp);
                 if (max_sp != INT_MIN) w_tbl->setMaxSpacing(max_sp);
+                rl->addWidthSpTabl(w_tbl->getId());
             }
         }
-        if (head_wsp) rl->setWidthSpTabl(head_wsp);
     }
 }
 
@@ -1696,14 +1686,16 @@ static void setMetalLayerMinSize(lefiLayer *io_layer, RoutingLayerRule *rl) {
     UInt32 min_size_num = io_layer->numMinSize();
     if (min_size_num) {
         Tech *lib = getTopCell()->getTechLib();
-        MinSize *ms = new MinSize;
+        Cell *current_top_cell = getTopCell();
+        if (!current_top_cell) return;
+        MinSize *ms = current_top_cell->createObject<MinSize>(kObjectTypeMinSize);
         ms->setMinSizeNum(min_size_num);
         for (UInt32 idx = 0; idx < min_size_num; ++idx) {
-            ms->addWidthLength(idx,
+            ms->addWidthLength(
                                lib->micronsToDBU(io_layer->minSizeWidth(idx)),
                                lib->micronsToDBU(io_layer->minSizeLength(idx)));
         }
-        rl->setMinSize(ms);
+        rl->addMinSize(ms->getId());
     }
 }
 
@@ -1719,11 +1711,11 @@ static void setMetalLayerMinStep(lefiLayer *io_layer, RoutingLayerRule *rl) {
     UInt32 minstep_num = io_layer->numMinstep();
     if (minstep_num) {
         Tech *lib = getTopCell()->getTechLib();
-        MinStep *head_ms, *tail_ms;
-        head_ms = tail_ms = nullptr;
+        Cell *current_top_cell = getTopCell();
+        if (!current_top_cell) return;
 
         for (UInt32 ii = 0; ii < minstep_num; ++ii) {
-            MinStep *ms = new MinStep;
+            MinStep *ms = current_top_cell->createObject<MinStep>(kObjectTypeMinStep);
             ms->setMinStepLength(lib->micronsToDBU(io_layer->minstep(ii)));
             if (io_layer->hasMinstepMaxedges(ii)) {
                 ms->setMaxEdges(io_layer->minstepMaxedges(ii));
@@ -1753,18 +1745,17 @@ static void setMetalLayerMinStep(lefiLayer *io_layer, RoutingLayerRule *rl) {
                         lib->micronsToDBU(io_layer->minstepLengthsum(ii)));
                 }
             }
-            if (!head_ms) head_ms = ms;
-            if (tail_ms) tail_ms->setNext(ms);
-            tail_ms = ms;
+            rl->addMinStep(ms->getId());
         }
-        rl->setMinStepList(head_ms);
     }
 }
 
 // APIs to parse lefi information to EDI DB(io to edi)
 static int setMetalLayerRule(lefiLayer *io_layer, Layer *edi_layer) {
-    RoutingLayerRule *rl = new RoutingLayerRule;
-    edi_layer->setRoutingLayerRule(rl);
+    Cell *current_top_cell = getTopCell();
+    if (!current_top_cell) return -1;
+    RoutingLayerRule *rl = current_top_cell->createObject<RoutingLayerRule>(kObjectTypeRoutingLayerRule);
+    edi_layer->setRoutingLayerRule(rl->getId());
     Tech *lib = getTopCell()->getTechLib();
 
     // DIRECTION
@@ -1914,31 +1905,34 @@ static int setMetalLayerRule(lefiLayer *io_layer, Layer *edi_layer) {
 }
 
 static int setImplantLayerRule(lefiLayer *io_layer, Layer *edi_layer) {
-    ImplantLayerRule *rule = new ImplantLayerRule;
-    edi_layer->setImplantLayerRule(rule);
+     Cell *current_top_cell = getTopCell();
+    if (!current_top_cell) return -1;
+    ImplantLayerRule *rule = current_top_cell->createObject<ImplantLayerRule>(kObjectTypeImplantLayerRule);
+    edi_layer->setImplantLayerRule(rule->getId());
     if (io_layer->hasSpacingNumber()) {
-        ImplantSpacing *head_is, *tail_is;
-        head_is = tail_is = nullptr;
+        //ImplantSpacing *head_is, *tail_is;
+        //head_is = tail_is = nullptr;
         Tech *lib = getTopCell()->getTechLib();
         UInt32 spacing_num = io_layer->numSpacing();
         for (UInt32 ii = 0; ii < spacing_num; ++ii) {
-            ImplantSpacing *is = new ImplantSpacing;
+            ImplantSpacing *is = current_top_cell->createObject<ImplantSpacing>(kObjectTypeImplantSpacing);
             UInt32 spacing = lib->micronsToDBU(io_layer->spacing(ii));
             is->setMinSpacing(spacing);
             if (io_layer->hasSpacingName(ii)) {
-                SecondLayer *sec_layer = new SecondLayer();
+                SecondLayer *sec_layer = current_top_cell->createObject<SecondLayer>(kObjectTypeSecondLayer);
                 sec_layer->setSecondLayerId(
                     lib->getLayerLEFIndexByName(io_layer->spacingName(ii)));
                 if (io_layer->hasSpacingLayerStack(ii)) {
                     sec_layer->setIsStack(true);
                 }
-                is->setLayer2(sec_layer);
+                is->setLayer2(sec_layer->getId());
             }
-            if (!head_is) head_is = is;
-            if (tail_is) tail_is->setNext(is);
-            tail_is = is;
+            // if (!head_is) head_is = is;
+            // if (tail_is) tail_is->setNext(is);
+            // tail_is = is;
+            rule->addSpacingList(is->getId());
         }
-        rule->setSpacingList(head_is);
+        //rule->setSpacingList(head_is);
     }
     return 0;
 }
@@ -2127,11 +2121,14 @@ static void setEdiCurrentDensity(lefiLayer *io_layer, Layer *edi_layer,
             is_accurrent ? edi_layer->getACCurrentDenContainer()
                          : edi_layer->getDCCurrentDenContainer();
         if (!den_con) {
-            den_con = new CurrentDenContainer;
+            //den_con = new CurrentDenContainer;
+            Cell *current_top_cell = getTopCell();
+            if (!current_top_cell) return;
+            den_con = current_top_cell->createObject<CurrentDenContainer>(kObjectTypeCurrentDenContainer);
             if (is_accurrent) {
-                edi_layer->setACCurrentDenContainer(den_con);
+                edi_layer->setACCurrentDenContainer(den_con->getId());
             } else {
-                edi_layer->setDCCurrentDenContainer(den_con);
+                edi_layer->setDCCurrentDenContainer(den_con->getId());
             }
         }
 
@@ -2170,7 +2167,7 @@ static void setEdiCurrentDensity(lefiLayer *io_layer, Layer *edi_layer,
                 num_freq = io_den->numFrequency();
                 den->setFrequenciesNum(num_freq);
                 for (UInt32 freq_idx = 0; freq_idx < num_freq; ++freq_idx) {
-                    den->setFrequency(io_den->frequency(freq_idx), freq_idx);
+                    den->addFrequency(io_den->frequency(freq_idx));
                 }
             }
             // WIDTH / CUTAREA
@@ -2180,17 +2177,17 @@ static void setEdiCurrentDensity(lefiLayer *io_layer, Layer *edi_layer,
                 den->setWidthsNum(width_or_area_num);
                 for (UInt32 width_idx = 0; width_idx < width_or_area_num;
                      ++width_idx) {
-                    den->setWidth(lib->micronsToDBU(io_den->width(width_idx)),
-                                  width_idx);
+                    den->addWidth(lib->micronsToDBU(io_den->width(width_idx))
+                                    );
                 }
             } else {
                 width_or_area_num = io_den->numCutareas();
                 den->setCutAreasNum(width_or_area_num);
                 for (UInt32 area_idx = 0; area_idx < width_or_area_num;
                      ++area_idx) {
-                    den->setCutArea(
-                        lib->areaMicronsToDBU(io_den->cutArea(area_idx)),
-                        area_idx);
+                    den->addCutArea(
+                        lib->areaMicronsToDBU(io_den->cutArea(area_idx))
+                        );
                 }
             }
             // TABLEENTRIES
@@ -2246,14 +2243,15 @@ static void setEdiCurrentDensity(lefiLayer *io_layer, Layer *edi_layer) {
 static int setTrimLayerRule(lefiLayer *io_layer, Layer *edi_layer) { return 0; }
 
 static int setCutLayerRule(lefiLayer *io_layer, Layer *edi_layer) {
-    CutLayerRule *cut_layer_rule = new CutLayerRule();
-    edi_layer->setCutLayerRule(cut_layer_rule);
+    Cell *current_top_cell = getTopCell();
+    if (!current_top_cell) return 0;
+    CutLayerRule *cut_layer_rule = current_top_cell->createObject<CutLayerRule>(kObjectTypeCutLayerRule);
+    edi_layer->setCutLayerRule(cut_layer_rule->getId());
     Tech *lib = getTopCell()->getTechLib();
     // SPACING
     if (io_layer->hasSpacingNumber()) {
-        CutSpacing *head_cut_sp = 0;
         for (int i = 0; i < io_layer->numSpacing(); i++) {
-            CutSpacing *cut_spacing = new CutSpacing();
+            CutSpacing *cut_spacing = current_top_cell->createObject<CutSpacing>(kObjectTypeCutSpacing);
             cut_spacing->setSpacing(lib->micronsToDBU(io_layer->spacing(i)));
             if (io_layer->hasSpacingCenterToCenter(i)) {
                 cut_spacing->setIsC2C(true);
@@ -2262,16 +2260,16 @@ static int setCutLayerRule(lefiLayer *io_layer, Layer *edi_layer) {
                 cut_spacing->setIsSameNet(true);
             }
             if (io_layer->hasSpacingName(i)) {
-                SecondLayer *sec_layer = new SecondLayer();
+                SecondLayer *sec_layer = current_top_cell->createObject<SecondLayer>(kObjectTypeSecondLayer);
                 sec_layer->setSecondLayerId(
                     lib->getLayerLEFIndexByName(io_layer->spacingName(i)));
                 if (io_layer->hasSpacingLayerStack(i)) {
                     sec_layer->setIsStack(true);
                 }
                 cut_spacing->setIsSecondLayer();
-                cut_spacing->setSecondLayer(sec_layer);
+                cut_spacing->setSecondLayer(sec_layer->getId());
             } else if (io_layer->hasSpacingAdjacent(i)) {
-                AdjacentCuts *adj_cuts = new AdjacentCuts();
+                AdjacentCuts *adj_cuts = current_top_cell->createObject<AdjacentCuts>(kObjectTypeAdjacentCuts);
                 adj_cuts->setCutNum(io_layer->spacingAdjacentCuts(i));
                 adj_cuts->setCutWithin(
                     lib->micronsToDBU(io_layer->spacingAdjacentWithin(i)));
@@ -2280,25 +2278,22 @@ static int setCutLayerRule(lefiLayer *io_layer, Layer *edi_layer) {
                 }
                 // to be enhanced, separate AdjCut into individual list
                 cut_spacing->setIsAdjCuts();
-                cut_spacing->setAdjCuts(adj_cuts);
+                cut_spacing->setAdjCuts(adj_cuts->getId());
             } else if (io_layer->hasSpacingArea(i)) {
                 cut_spacing->setCutArea(
                     lib->areaMicronsToDBU(io_layer->spacingArea(i)));
             } else if (io_layer->hasSpacingParallelOverlap(i)) {
-                CutSpacingPrlOvlp *prl_ovlp = new CutSpacingPrlOvlp();
+                CutSpacingPrlOvlp *prl_ovlp = current_top_cell->createObject<CutSpacingPrlOvlp>(kObjectTypeCutSpacingPrlOvlp);
                 prl_ovlp->setIsParallelOverlap(true);
                 cut_spacing->setIsParallelOverlap();
-                cut_spacing->setParallelOverlap(prl_ovlp);
+                cut_spacing->setParallelOverlap(prl_ovlp->getId());
             }
-            cut_spacing->setNext(head_cut_sp);
-            head_cut_sp = cut_spacing;
+            cut_layer_rule->addCutSpacing(cut_spacing->getId());
         }
-        cut_layer_rule->setCutSpacing(head_cut_sp);
     }
     // ENCLOSURE
-    Enclosure *head_enc = 0;
     for (int i = 0; i < io_layer->numEnclosure(); i++) {
-        Enclosure *enc = new Enclosure();
+        Enclosure *enc = current_top_cell->createObject<Enclosure>(kObjectTypeEnclosure);
         if (io_layer->hasEnclosureRule(i)) {
             if (strcmp(io_layer->enclosureRule(i), "ABOVE") == 0) {
                 enc->setIsAbove(true);
@@ -2307,8 +2302,8 @@ static int setCutLayerRule(lefiLayer *io_layer, Layer *edi_layer) {
             }
         }
         enc->setIsOverhang();
-        EnclosureOverhang *enc_overhang = new EnclosureOverhang();
-        enc->setOverhang(enc_overhang);
+        EnclosureOverhang *enc_overhang = current_top_cell->createObject<EnclosureOverhang>(kObjectTypeEnclosureOverhang);
+        enc->setOverhang(enc_overhang->getId());
         enc_overhang->setOverhang1(
             lib->micronsToDBU(io_layer->enclosureOverhang1(i)));
         enc_overhang->setOverhang2(
@@ -2325,17 +2320,14 @@ static int setCutLayerRule(lefiLayer *io_layer, Layer *edi_layer) {
             enc_overhang->setMinLength(
                 lib->micronsToDBU(io_layer->enclosureMinLength(i)));
         }
-        enc->setNext(head_enc);
-        head_enc = enc;
+        cut_layer_rule->addEnclosure(enc->getId());
     }
-    cut_layer_rule->setEnclosure(head_enc);
     // PREFERENCLOSURE
-    Enclosure *prefer_head_enc = 0;
     for (int i = 0; i < io_layer->numPreferEnclosure(); i++) {
-        Enclosure *enc = new Enclosure();
+        Enclosure *enc = current_top_cell->createObject<Enclosure>(kObjectTypeEnclosure);
         enc->setIsOverhang();
-        EnclosureOverhang *enc_overhang = new EnclosureOverhang();
-        enc->setOverhang(enc_overhang);
+        EnclosureOverhang *enc_overhang = current_top_cell->createObject<EnclosureOverhang>(kObjectTypeEnclosureOverhang);
+        enc->setOverhang(enc_overhang->getId());
         enc_overhang->setOverhang1(
             lib->micronsToDBU(io_layer->preferEnclosureOverhang1(i)));
         enc_overhang->setOverhang2(
@@ -2344,13 +2336,11 @@ static int setCutLayerRule(lefiLayer *io_layer, Layer *edi_layer) {
             enc_overhang->setMinWidth(
                 lib->micronsToDBU(io_layer->preferEnclosureMinWidth(i)));
         }
-        enc->setNext(prefer_head_enc);
-        prefer_head_enc = enc;
+        cut_layer_rule->addPreferEnclosure(enc->getId());
     }
-    cut_layer_rule->setPreferEnclosure(prefer_head_enc);
     // ARRAYSPACING
     if (io_layer->hasArraySpacing()) {
-        ArraySpacing *array_spacing = new ArraySpacing();
+        ArraySpacing *array_spacing = current_top_cell->createObject<ArraySpacing>(kObjectTypeArraySpacing);
         if (io_layer->hasLongArray()) {
             array_spacing->setIsLongArray(true);
         }
@@ -2360,11 +2350,11 @@ static int setCutLayerRule(lefiLayer *io_layer, Layer *edi_layer) {
         array_spacing->setCutSpacing(lib->micronsToDBU(io_layer->cutSpacing()));
         array_spacing->setNumArrayCuts(io_layer->numArrayCuts());
         for (int i = 0; i < io_layer->numArrayCuts(); i++) {
-            array_spacing->setArrayCuts(i, io_layer->arrayCuts(i));
-            array_spacing->setArraySpacing(
-                i, lib->micronsToDBU(io_layer->arraySpacing(i)));
+            array_spacing->addArrayCuts(io_layer->arrayCuts(i));
+            array_spacing->addArraySpacing(
+                lib->micronsToDBU(io_layer->arraySpacing(i)));
         }
-        cut_layer_rule->setArraySpacing(array_spacing);
+        cut_layer_rule->addArraySpacing(array_spacing->getId());
     }
     return 0;
 }

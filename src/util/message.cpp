@@ -138,6 +138,7 @@ int Message::printPrefix__(MessageType m, char* prefix) {
     if (m == kWarn) snprintf(prefix, sizeof(prefix), "WARNING");
     if (m == kError) snprintf(prefix, sizeof(prefix), "ERROR  ");
     if (m == kDebug) snprintf(prefix, sizeof(prefix), "DEBUG  ");
+    if (m == kInfo) snprintf(prefix, sizeof(prefix), "INFO  ");
     return 0;
 }
 

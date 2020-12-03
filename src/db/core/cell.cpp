@@ -798,6 +798,7 @@ void Cell::addIOPin(ObjectId id) {
 Pin *Cell::createIOPin(std::string &name) {
     // TODO(ly): naming conflicts check.
     Pin *pin = createObject<Pin>(kObjectTypePin);
+    pin->setIsPrimary(true);
     pin->setName(name);
     addIOPin(pin->getId());
     return pin;

@@ -14,6 +14,8 @@
 #include <string>
 
 #include "db/tech/layer.h"
+#include "util/util.h"
+#include "db/util/array.h"
 
 namespace open_edi {
 namespace db {
@@ -28,25 +30,29 @@ class ArraySpacing;
  * @brief
  * implementation of cut layer rules
  */
-class CutLayerRule {
+class CutLayerRule : public Object{
   public:
     CutLayerRule();
     ~CutLayerRule();
-    CutSpacing *getCutSpacing() const;
-    void setCutSpacing(CutSpacing *cut_spacing);
-    Enclosure *getEnclosure() const;
-    void setEnclosure(Enclosure *enc);
-    Enclosure *getPreferEnclosure() const;
-    void setPreferEnclosure(Enclosure *enc);
-    ArraySpacing *getArraySpacing() const;
-    void setArraySpacing(ArraySpacing *array_spacing);
+    ArrayObject<ObjectId> *getCutSpacingArray() const;
+    CutSpacing *getCutSpacing(int i) const;
+    void addCutSpacing(ObjectId id);
+    ArrayObject<ObjectId> *getEnclosureArray() const;
+    Enclosure *getEnclosure(int i) const;
+    void addEnclosure(ObjectId id);
+    ArrayObject<ObjectId> *getPreferEnclosureArray() const;
+    Enclosure *getPreferEnclosure(int i) const;
+    void addPreferEnclosure(ObjectId id);
+    ArrayObject<ObjectId> *getArraySpacingArray() const;
+    ArraySpacing *getArraySpacing(int i) const;
+    void addArraySpacing(ObjectId id);
 
   private:
     // firstly support above 40nm rules
-    CutSpacing *cut_spacing_;
-    Enclosure *enclosure_;
-    Enclosure *prefer_enclosure_;
-    ArraySpacing *array_spacing_;
+    ObjectId cut_spacings_;
+    ObjectId enclosures_;
+    ObjectId prefer_enclosures_;
+    ObjectId array_spacings_;
     // AC/DC CURRENT DENSITY
     // Antenna
 #if 0
@@ -139,7 +145,7 @@ class CutSpacingPrlOvlp;
  * ;..." ;]
  *
  */
-class CutSpacing {
+class CutSpacing : public Object{
   public:
     CutSpacing();
     ~CutSpacing();
@@ -156,17 +162,15 @@ class CutSpacing {
     bool getIsSecondLayer() const;
     void setIsSecondLayer();
     SecondLayer *getSecondLayer() const;
-    void setSecondLayer(SecondLayer *sec_layer);
+    void setSecondLayer(ObjectId id);
     bool getIsAdjCuts() const;
     void setIsAdjCuts();
     AdjacentCuts *getAdjCuts() const;
-    void setAdjCuts(AdjacentCuts *adj_cuts);
+    void setAdjCuts(ObjectId id);
     bool getIsParallelOverlap() const;
     void setIsParallelOverlap();
     CutSpacingPrlOvlp *getParallelOverlap() const;
-    void setParallelOverlap(CutSpacingPrlOvlp *prl_ovlp);
-    CutSpacing *getNext() const;
-    void setNext(CutSpacing *next);
+    void setParallelOverlap(ObjectId id);
 
   private:
     Bits is_c2c_ : 1;
@@ -174,15 +178,7 @@ class CutSpacing {
     Int32 spacing_;
     Int32 cut_area_;
     UInt32 cut_spacing_type_;  // bit map flags the cut spacing type
-    union {
-        SecondLayer *second_layer_;
-        AdjacentCuts *adj_cuts_;
-        CutSpacingPrlOvlp *prl_ovlp_;
-        // to be added
-        // PRLWITHIN
-        // SMSE
-    } cut_sp_rules_;
-    CutSpacing *next_;
+    ObjectId cut_sp_rules_;
 };
 
 /**
@@ -190,7 +186,7 @@ class CutSpacing {
  * @brief
  * implementation class of LAYER secondLayerName keyword in CUTSPAICNG rule
  */
-class SecondLayer {
+class SecondLayer : public Object{
   public:
     SecondLayer();
     ~SecondLayer();
@@ -210,7 +206,7 @@ class SecondLayer {
  * @brief
  * implementation class of ADJACENTCUTS keyword in CUTSPAICNG rule
  */
-class AdjacentCuts {
+class AdjacentCuts : public Object{
   public:
     AdjacentCuts();
     ~AdjacentCuts();
@@ -221,14 +217,11 @@ class AdjacentCuts {
     void setCutWithin(Int32 cut_within);
     bool getIsExceptSamePGNet() const;
     void setIsExceptSamePGNet(bool flag);
-    AdjacentCuts *getNext() const;
-    void setNext(AdjacentCuts *next);
 
   private:
     Bits is_except_same_pg_net_ : 1;
     Int32 cut_num_;
     Int32 cut_within_;
-    AdjacentCuts *next_;
 };
 
 /**
@@ -236,7 +229,7 @@ class AdjacentCuts {
  * @brief
  * implementation class of PARALLELOVERLAP keyword in CUTSPAICNG rule
  */
-class CutSpacingPrlOvlp {
+class CutSpacingPrlOvlp : public Object{
   public:
     CutSpacingPrlOvlp();
     ~CutSpacingPrlOvlp();
@@ -286,7 +279,7 @@ class EnclosureOverhang;
  *       }
  *   ;..." ;]
  */
-class Enclosure {
+class Enclosure : public Object{
   public:
     Enclosure();
     ~Enclosure();
@@ -298,23 +291,17 @@ class Enclosure {
     bool getIsEol() const;
     void setIsEol();
     EnclosureEol *getEol() const;
-    void setEol(EnclosureEol *enc_eol);
+    void setEol(ObjectId id);
     bool getIsOverhang() const;
     void setIsOverhang();
     EnclosureOverhang *getOverhang() const;
-    void setOverhang(EnclosureOverhang *enc_overhang);
-    Enclosure *getNext() const;
-    void setNext(Enclosure *next);
+    void setOverhang(ObjectId id);
 
   private:
     Bits is_above_ : 1;
     Bits is_below_ : 1;
     UInt32 enclosure_type_;  // bit map flags the enclosure type
-    union {
-        EnclosureEol *enc_eol_;
-        EnclosureOverhang *enc_overhang_;
-    } enclosure_rules_;
-    Enclosure *next_;
+    ObjectId enclosure_rules_;
 };
 
 /**
@@ -323,7 +310,7 @@ class Enclosure {
  * implementation class of EOL keyword in ENCLOSURE rule
  */
 // advaned node rules, supported later
-class EnclosureEol {
+class EnclosureEol : public Object{
   public:
     EnclosureEol();
     ~EnclosureEol();
@@ -336,7 +323,7 @@ class EnclosureEol {
  * @brief
  * implementation class of OVERHANG keyword in ENCLOSURE rule
  */
-class EnclosureOverhang {
+class EnclosureOverhang : public Object{
   public:
     EnclosureOverhang();
     ~EnclosureOverhang();
@@ -378,7 +365,7 @@ class EnclosureOverhang {
  *         {ARRAYCUTS  arrayCuts  SPACING  arraySpacing } ...
  *         ;..." ;]
  */
-class ArraySpacing {
+class ArraySpacing : public Object{
   public:
     ArraySpacing();
     ~ArraySpacing();
@@ -392,25 +379,22 @@ class ArraySpacing {
     void setCutSpacing(Int32 cut_spacing);
     Int32 getNumArrayCuts() const;
     void setNumArrayCuts(Int32 num);
-    Int32 *getArrayCuts() const;
+    ArrayObject<Int32> *getArrayCuts() const;
     Int32 getArrayCuts(Int32 idx) const;
-    void setArrayCuts(Int32 idx, Int32 array_cuts);
-    Int32 *getArraySpacing() const;
+    void addArrayCuts(Int32 array_cuts);
+    ArrayObject<Int32> *getArraySpacing() const;
     Int32 getArraySpacing(Int32 idx) const;
-    void setArraySpacing(Int32 idx, Int32 array_spacing);
+    void addArraySpacing(Int32 array_spacing);
     void setArray(Int32 num_array_cuts, Int32 *array_cuts,
                   Int32 *array_spacing);
-    ArraySpacing *getNext() const;
-    void setNext(ArraySpacing *next);
 
   private:
     Bits is_long_array_ : 1;
     Int32 via_width_;
     Int32 cut_spacing_;
     Int32 num_array_cuts_;
-    Int32 *array_cuts_;
-    Int32 *array_spacing_;
-    ArraySpacing *next_;
+    ObjectId array_cuts_;
+    ObjectId array_spacing_;
 };
 
 }  // namespace db
