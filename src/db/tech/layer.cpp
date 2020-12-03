@@ -1916,7 +1916,7 @@ bool CurrentDen::isValid() const {
  *
  * @param v
  */
-void CurrentDen::setIsValid(bool v) {
+void CurrentDen::setValid(bool v) {
     is_valid_ = v ? 1 : 0;
 }
 

@@ -529,7 +529,7 @@ class CurrentDen : public Object {
     void    setHoursPWL(float h, float m, UInt32 index);
 
     float   getTableElem(UInt32 row_idx, UInt32 col_index) const;
-    void    setIsValid(bool v);
+    void    setValid(bool v);
     void    setIsPeak(bool v);
     void    setIsAverage(bool v);
     void    setIsRMS(bool v);
