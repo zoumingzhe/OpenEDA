@@ -21,83 +21,223 @@
 #include <memory>
 
 #include "db/core/object.h"
+#include "db/timing/sdc/clock.h"
+#inlcude "db/timing/sdc/timing_exception.h"
 
 namespace open_edi {
 namespace db {
 
-//TODO use get set macro
-
 class CreateClock {
-  public:
-    void set_period(const float period) { period_ = period; }
-    void set_add(const bool add) { add_ = add; }
-    void set_name(const std::string& name) { name_ = name; }
-    void set_comment(const std::string& comment) { comment_ = comment;  }
-    void set_waveform(const float& edge) { waveform_.emplace_back(edge); }
-
-    const float get_period() { return period_; } 
-    const std::string& get_name() { return name_; } 
-    const std::vector<float>& get_waveform() { return waveform_; }
-
-    const bool get_add() { return add_; }
-
   private:
-    float period_ = 0.0;
-    std::string name_ = "";
     std::string comment_ = "";
-    std::vector<float> waveform_;
+    std::bitset<1> flags_;
 
-    bool add_ = false;
+  public:
+    COMMAND_GET_SET_VAR(comment, Comment)
+    COMMAND_GET_SET_FLAG(flags, 0, add, Add)
 };
 using CreateClockPtr = std::shared_ptr<CreateClock>;
 
 class CreateGeneratedClock {
   public:
-    void set_duty_cycle(const float duty_cycle) { duty_cycle_ = duty_cycle_; }
-    void set_source_master_pin(const ObjectId source) { source_master_pin_ = source; }
-    void set_master_clock(const ObjectId master_clock) { master_clock_ = master_clock; }
-    void set_divided_by(const int divided_by) { divided_by_ = divided_by; }
-    void set_multiply_by(const int multiply_by) { multiply_by_ = multiply_by; }
-    void set_invert(const bool invert) { invert_= invert; }
-    void set_add(const bool add) { add_ = add; }
-    void set_combinational(const bool combinational) { combinational_ = combinational; }
-    void set_name(const std::string& name) { name_ = name; }
-    void set_comment(const std::string& comment) { comment_ = comment; }
-    void set_edge_shift(const float edge_shift) { edge_shifts_.emplace_back(edge_shift); }
-    void set_source_objects(const ObjectId source_object) { source_objects_.emplace_back(source_object); }
-
-    const float get_duty_cycle() { return duty_cycle_; }
-    const ObjectId get_source_master_pin() { return source_master_pin_; }
-    const ObjectId get_master_clock() { return master_clock_; }
-    const int get_divided_by() { return divided_by_; }
-    const int get_multiply_by() { return multiply_by_; }
-    const std::string& get_name() { return name_; } 
-    const std::string& get_comment() { return comment_; } 
-    const std::vector<float>& get_edge_shifts() { return edge_shifts_; }
-    const std::vector<int>& get_edges() { return edges_; } 
-    const std::vector<ObjectId>& get_source_objects() { return source_objects_; }
-
-    const bool get_invert() { return invert_; }
-    const bool get_add() { return add_; }
-    const bool get_combinational() { return combinational_; }
+    void addEdgeShift(const float edge_shift) { edge_shifts_.emplace_back(edge_shift); }
+    void addSourceObject(const ObjectId source_object) { source_objects_.emplace_back(source_object); }
+    void addEdge(const int edge) { edges_.emplace_back(edge); }
 
   private:
+    std::string comment_ = "";
     float duty_cycle_ = 0.0;
     ObjectId source_master_pin_;
     ObjectId master_clock_;
     int divided_by_ = 0;
     int multiply_by_ = 0;
-    std::string name_ = "";
-    std::string comment_ = "";
     std::vector<float> edge_shifts_;
-    std::vector<int> edges_;
     std::vector<ObjectId> source_objects_;
+    std::vector<int> edges_;
+    std::bitset<3> flags_;
 
-    bool invert_ = false;
-    bool add_ = false;
-    bool combinational_ = false;
+  public:
+    COMMAND_GET_SET_VAR(comment, Comment)
+    COMMAND_GET_SET_VAR(duty_cycle, DutyCycle)
+    COMMAND_GET_SET_VAR(source_master_pin, SourceMasterPin)
+    COMMAND_GET_SET_VAR(master_clock, MasterClock)
+    COMMAND_GET_SET_VAR(divided_by, DividedBy)
+    COMMAND_GET_SET_VAR(multiply_by, MultiplyBy)
+    COMMAND_GET_SET_VAR(edge_shifts, EdgeShifts)
+    COMMAND_GET_SET_VAR(source_objects, SourceObjects)
+    COMMAND_GET_SET_VAR(edges, Edges)
+    COMMAND_GET_SET_FLAG(flags, 0, invert, Invert)
+    COMMAND_GET_SET_FLAG(flags, 1, add, Add)
+    COMMAND_GET_SET_FLAG(flags, 2, combinational, Combinational)
 };
 using CreateGeneratedClockPtr = std::shared_ptr<CreateGeneratedClock>;
+
+class GroupPath {
+  private:
+    std::string comment_ = "";
+    std::string name_ = "";
+    float weight_ = 0.0;
+    PathNodesPtr from_;
+    PathNodesPtr to_;
+    PathThroughNodesPtr through_;
+    std::bitset<1> flags_;
+  public:
+    COMMAND_GET_SET_VAR(comment, Comment)
+    COMMAND_GET_SET_VAR(name, Name)
+    COMMAND_GET_SET_VAR(weight, Weight)
+    COMMAND_GET_SET_VAR(from, From)
+    COMMAND_GET_SET_VAR(to, To)
+    COMMAND_GET_SET_VAR(through, Through)
+    COMMAND_GET_SET_FLAG(flags, 0, default_value, DefaultValue)
+};
+using GroupPathPtr = std::shared_ptr<GroupPath>; 
+
+class SetClockGatingCheck {
+  private:
+    float setup_ = 0.0;
+    float hold_ = 0.0;
+    std::bitset<4> flags_;
+  public:
+    COMMAND_GET_SET_VAR(setup, Setup)
+    COMMAND_GET_SET_VAR(hold, Hold)
+    COMMAND_GET_SET_FLAG(flags, 0, rise, Rise)
+    COMMAND_GET_SET_FLAG(flags, 1, fall, Fall)
+    COMMAND_GET_SET_FLAG(flags, 2, high, High)
+    COMMAND_GET_SET_FLAG(flags, 3, low, Low)
+};
+using SetClockGatingCheckPtr = std::shared_ptr<SetClockGatingCheck>;
+
+//TODO change the data structure for better data fetch, clock to get another clocks
+class SetClockGroups {
+  private:
+    string name_ = "";
+    string comment_ = "";
+    std::vector<ClockGroupId> groups_;
+    std::bitset<4> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(name, Name)
+    COMMAND_GET_SET_VAR(comment, Comment)
+    COMMAND_GET_SET_FLAG(flags, 0, physically_exclusive, PhysicallyExclusive)
+    COMMAND_GET_SET_FLAG(flags, 1, logically_exclusive, LogicallyExclusive)
+    COMMAND_GET_SET_FLAG(flags, 2, asynchronous, Asynchronous)
+    COMMAND_GET_SET_FLAG(flags, 3, allow_paths, AllowPaths)
+};
+using SetClockGroupsPtr = std::shared_ptr<SetClockGroups>;
+
+class SetClockLatency {
+  private:
+    float delay_ = 0.0;
+    std::bitset<8> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(delay, Delay)
+    COMMAND_GET_SET_FLAG(flags, 0, rise, Rise)
+    COMMAND_GET_SET_FLAG(flags, 1, fall, Fall)
+    COMMAND_GET_SET_FLAG(flags, 2, min, Min)
+    COMMAND_GET_SET_FLAG(flags, 3, max, Max)
+    COMMAND_GET_SET_FLAG(flags, 4, dynamic, Dynamic)
+    COMMAND_GET_SET_FLAG(flags, 5, source, Source)
+    COMMAND_GET_SET_FLAG(flags, 6, early, Early)
+    COMMAND_GET_SET_FLAG(flags, 7, late, Late)
+};
+using SetClockLatencyPtr = std::shared_ptr<SetClockLatency>;
+
+enum class DataType = { kClock=0, kData, kUnknown };
+enum class PulseType = { kRiseTriggeredHighPulse, kRiseTriggeredLowPulse, kFallTriggeredHighPulse, kFallTriggeredLowPulse, kUnknown}; 
+class SetSense {
+  private:
+    DataType type_ = DataType::kUnknown;
+    PulseType pulse_ = PulseType::kUnknown;  
+    std::bitset<5> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(type, Type)
+    COMMAND_GET_SET_VAR(pulse, Pulse)
+    COMMAND_GET_SET_FLAG(flags, 0, non_unate, NonUnate)
+    COMMAND_GET_SET_FLAG(flags, 1, positive, Positive)
+    COMMAND_GET_SET_FLAG(flags, 2, negative, Negative)
+    COMMAND_GET_SET_FLAG(flags, 3, clock_leaf, ClockLeaf)
+    COMMAND_GET_SET_FLAG(flags, 4, stop_propagation, StopPropation)
+}; 
+using SetSencePtr = std::shared_ptr<SetSence>;
+
+class SetClockTransition {
+  private:
+    float transition_ = 0.0;
+    std::bitset<4> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(transition, Transition)
+    COMMAND_GET_SET_FLAG(flags, 0, rise, Rise)
+    COMMAND_GET_SET_FLAG(flags, 1, fall, Fall)
+    COMMAND_GET_SET_FLAG(flags, 2, min, Min)
+    COMMAND_GET_SET_FLAG(flags, 3, max, Max)
+};
+using SetClockTransitionPtr = std::shared_ptr<SetClockTransition>;
+
+class SetClockUncertainty {
+  private:
+    float uncertainty_ = 0.0;
+    std::bitset<4> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(transition, Transition)
+    COMMAND_GET_SET_FLAG(flags, 0, consider_rise_from, ConsiderRiseFrom)
+    COMMAND_GET_SET_FLAG(flags, 1, consider_fall_from, ConsiderFallFrom)
+    COMMAND_GET_SET_FLAG(flags, 2, consider_rise_to, ConsiderRiseTo)
+    COMMAND_GET_SET_FLAG(flags, 3, consider_fall_to, ConsiderFallTo)
+    COMMAND_GET_SET_FLAG(flags, 4, setup, Setup)
+    COMMAND_GET_SET_FLAG(flags, 5, hold, Hold)
+};
+using SetClockUncertaintyPtr = std::shared_ptr<SetClockUncertainty>;
+
+class SetDataCheck {
+  public:
+    void addClock(const ClockId &id) { clocks_.emplace_back(id); };
+
+  private:
+    float value_ = 0.0;
+    std::vector<ClockId> clocks_;
+    std::bitset<6> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(value, Value)
+    COMMAND_GET_SET_VAR(clocks, Clocks)
+    COMMAND_GET_SET_FLAG(flags, 0, consider_rise_from, ConsiderRiseFrom)
+    COMMAND_GET_SET_FLAG(flags, 1, consider_fall_from, ConsiderFallFrom)
+    COMMAND_GET_SET_FLAG(flags, 2, consider_rise_to, ConsiderRiseTo)
+    COMMAND_GET_SET_FLAG(flags, 3, consider_fall_to, ConsiderFallTo)
+    COMMAND_GET_SET_FLAG(flags, 4, setup, Setup)
+    COMMAND_GET_SET_FLAG(flags, 5, hold, Hold)
+};
+using SetDataCheckPtr = std::shared_ptr<SetDataCheck>;
+
+class SetDiableTiming {
+  private:
+    ObjectId from_;
+    ObjectId to_;
+    std::bitset<1> flags_;
+  public:
+    COMMAND_GET_SET_VAR(from, From)
+    COMMAND_GET_SET_VAR(to, To)
+    COMMAND_GET_SET_FLAG(flags, 0, io_pin, IoPin)
+}; 
+using SetDisableTimingPtr = std::shared_ptr<SetDisableTiming>;
+
+class SetFalsePath : public ExceptionPath {
+  private:
+    std::string comment_ = ""; 
+    std::bitset<2> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(comment, Comment)
+    COMMAND_GET_SET_FLAG(flags, 0, setup, Setup)
+    COMMAND_GET_SET_FLAG(flags, 0, hold, Hold)
+
+}; 
+using SetFalsePathPtr = std::shared_ptr<SetFalsePath>;
+
 
 
 }

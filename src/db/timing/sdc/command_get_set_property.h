@@ -20,7 +20,7 @@
     const decltype(var##_)& get##Var () const { return var##_; } \
     decltype(var##_)& get##Var () {return var##_;}
 
-#define COMMAND_GET_SET_FLAGS(flags, id, var, Var)  \
+#define COMMAND_GET_SET_FLAG(flags, id, var, Var)  \
     void set##Var () { flags##_.set(id, 1); } \
     void reset##Var () { flags##_.set(id, 0); } \
     bool get##Var () { return flags##_.test(id) ;} \
