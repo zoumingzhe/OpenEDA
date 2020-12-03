@@ -2141,15 +2141,15 @@ static void setEdiCurrentDensity(lefiLayer *io_layer, Layer *edi_layer,
             char *type = io_den->type();
             if (strcmp(type, "PEAK") == 0) {
                 den = den_con->getInitACPeak();
-                if (den->isValid()) den->reset();
+                if (den->isDataValid()) den->reset();
                 den->setIsPeak(true);
             } else if (strcmp(type, "AVERAGE") == 0) {
                 den = den_con->getInitACAverage();
-                if (den->isValid()) den->reset();
+                if (den->isDataValid()) den->reset();
                 den->setIsAverage(true);
             } else if (strcmp(type, "RMS") == 0) {
                 den = den_con->getInitACRMS();
-                if (den->isValid()) den->reset();
+                if (den->isDataValid()) den->reset();
                 den->setIsRMS(true);
             }
             if (den) {

@@ -1906,7 +1906,7 @@ void CurrentDen::setTableElem(float value, UInt32 row_idx, UInt32 col_idx) {
  *
  * @return
  */
-bool CurrentDen::isValid() const {
+bool CurrentDen::isDataValid() const {
     return is_valid_;
 }
 
@@ -1916,7 +1916,7 @@ bool CurrentDen::isValid() const {
  *
  * @param v
  */
-void CurrentDen::setIsValid(bool v) {
+void CurrentDen::setDataValid(bool v) {
     is_valid_ = v ? 1 : 0;
 }
 
@@ -1942,7 +1942,7 @@ ACCurrentDen* CurrentDenContainer::getACPeak() const {
     if (vct) {
         ACCurrentDen *obj_data = addr<ACCurrentDen>((*vct)[kCurrentPeak]);
         if (obj_data) {
-            return obj_data->isValid() ? obj_data : nullptr;
+            return obj_data->isDataValid() ? obj_data : nullptr;
         }
     }
     return nullptr;
@@ -1964,7 +1964,7 @@ ACCurrentDen* CurrentDenContainer::getACAverage() const {
     if (vct) {
         ACCurrentDen *obj_data = addr<ACCurrentDen>((*vct)[kCurrentAverage]);
         if (obj_data) {
-            return obj_data->isValid() ? obj_data : nullptr;
+            return obj_data->isDataValid() ? obj_data : nullptr;
         }
     }
     return nullptr;
@@ -1986,7 +1986,7 @@ ACCurrentDen* CurrentDenContainer::getACRMS() const {
     if (vct) {
         ACCurrentDen *obj_data = addr<ACCurrentDen>((*vct)[kCurrentRMS]);
         if (obj_data) {
-            return obj_data->isValid() ? obj_data : nullptr;
+            return obj_data->isDataValid() ? obj_data : nullptr;
         }
     }
     return nullptr;
@@ -2038,7 +2038,7 @@ DCCurrentDen* CurrentDenContainer::getDCAverage() const {
     if (vct) {
         DCCurrentDen *obj_data = addr<DCCurrentDen>((*vct)[kCurrentAverage]);
         if (obj_data) {
-            return obj_data->isValid() ? obj_data : nullptr;
+            return obj_data->isDataValid() ? obj_data : nullptr;
         }
     }
     return nullptr;
