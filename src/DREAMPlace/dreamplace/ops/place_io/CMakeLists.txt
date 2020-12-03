@@ -5,6 +5,7 @@ if (NOT CMAKE_CUDA_FLAGS)
 endif()
 
 get_filename_component(COMMON_DB_LIBRARY_DIRS ${CMAKE_CURRENT_BINARY_DIR}/../flow ABSOLUTE)
+get_filename_component(DB_DIRS ${CMAKE_BINARY_DIR}/src ABSOLUTE)
 message(STATUS "COMMON_DB_LIBRARY_DIRS ${COMMON_DB_LIBRARY_DIRS}")
 
 if (PYTHON)
