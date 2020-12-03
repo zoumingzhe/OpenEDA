@@ -14,6 +14,7 @@
 #include <vector>
 #include <string>
 #include "db/tech/layer.h"
+#include "db/util/array.h"
 
 namespace open_edi {
 namespace db {
@@ -45,7 +46,7 @@ template<typename T> void FreeRuleList(T*& r) {
  *           [PARALLEL  parLength  WITHIN  parWithin  SPACING  spacing ]
  *           ;” ;]
  */
-class BoundaryEOLBlockage {
+class BoundaryEOLBlockage : public Object{
   public:
     BoundaryEOLBlockage() {
         memset(static_cast<void*>(this), 0, sizeof(BoundaryEOLBlockage));
@@ -82,7 +83,7 @@ class BoundaryEOLBlockage {
  *           | EXTENSION  backwardExt sideExt forwardExt  }
  *           ;” ; ...]
  */
-class CornerEOLKeepout {
+class CornerEOLKeepout : public Object{
   public:
     CornerEOLKeepout() {
         memset(static_cast<void*>(this), 0, sizeof(CornerEOLKeepout));
@@ -103,11 +104,7 @@ class CornerEOLKeepout {
 
     bool    isSpacing() const;
 
-    CornerEOLKeepout* getNext() const;
-    void    setNext(CornerEOLKeepout* next);
-
   private:
-    CornerEOLKeepout* next_;
     UInt32  eol_width_;
     UInt32  eol_spacing_;
     bool    is_spacing_;
@@ -136,7 +133,7 @@ class CornerEOLKeepout {
  *      "CORNERFILLSPACING  spacing  EDGELENGTH  length1   length2
  *      ADJACENTEOL  eolWidth  ;” ; ... ]
  */
-class CornerFillSpacing {
+class CornerFillSpacing : public Object {
   public:
     CornerFillSpacing() {
         memset(static_cast<void*>(this), 0, sizeof(CornerFillSpacing));
@@ -147,10 +144,8 @@ class CornerFillSpacing {
     UInt32  getLength1() const;
     UInt32  getLength2() const;
     UInt32  getEOLWidth() const;
-    CornerFillSpacing* getNext() const;
 
     void    setCornerFillSpacing(UInt32 sp, UInt32 len1, UInt32 len2, UInt32 eol_w);
-    void    setNext(CornerFillSpacing* next);
 
   private:
     UInt32  spacing_;
@@ -158,7 +153,6 @@ class CornerFillSpacing {
     UInt32  length2_;
     UInt32  eol_width_;
 
-    CornerFillSpacing* next_;
 };
 
 /**
@@ -180,7 +174,7 @@ class CornerFillSpacing {
  *          | WIDTH  width  SPACING  horizontalSpacing   verticalSpacing }...
  *          ; " ;]
  */
-class CornerSpacing {
+class CornerSpacing : public Object {
   public:
     CornerSpacing() {
         memset(static_cast<void*>(this), 0, sizeof(CornerSpacing));
@@ -212,22 +206,24 @@ class CornerSpacing {
     UInt32  getMinLength() const;
     UInt32  getNotchLength() const;
     UInt32  getWidth(UInt32 index) const;
+    ArrayObject<Int32> *getWidths() const;
     UInt32  getSpacing(UInt32 index) const;
     UInt32  getHorizontalSpacing(UInt32 index) const;
+    ArrayObject<Int32> *getHorizontalSpacings() const;
     UInt32  getVerticalSpacing(UInt32 index) const;
+    ArrayObject<Int32> *getVerticalSpacings() const;
+
     UInt32  getNumWidths() const;
-    CornerSpacing*  getNext() const;
     void  setCornerOnlyWithin(UInt32 within);
     void  setExceptEOLWidth(UInt32 eol_width);
     void  setExceptJogLength(UInt32 jog_len);
     void  setMinLength(UInt32 min_len);
     void  setNotchLength(UInt32 notch_len);
-    void  setWidth(UInt32 w, UInt32 index);
-    void  setSpacing(UInt32 spacing, UInt32 index);
-    void  setHorizontalSpacing(UInt32 hsp, UInt32 index);
-    void  setVertcialSpacing(UInt32 vsp, UInt32 index);
+    void  addWidth(UInt32 w);
+    void  addSpacing(UInt32 spacing);
+    void  addHorizontalSpacing(UInt32 hsp);
+    void  addVertcialSpacing(UInt32 vsp);
     void  setNumWidths(UInt32 num);
-    void  setNext(CornerSpacing* next);
 
   private:
     Bits  convex_corner_ : 1;
@@ -251,10 +247,9 @@ class CornerSpacing {
         UInt32  notch_length_;
     };
     UInt32  widths_num_;  // the num of widths, spacings
-    UInt32* widths_;
-    UInt32* horizontal_spacings_;
-    UInt32* vertical_spacings_;
-    CornerSpacing*  next_;
+    ObjectId widths_;
+    ObjectId horizontal_spacings_;
+    ObjectId vertical_spacings_;
 };
 
 /**
@@ -278,10 +273,10 @@ class CornerSpacing {
  *        [NOEXCEPTEOL|EOLSPACING  eolspacing ] { spacing }...}...
  *    ]; " ;
  */
-class DirSpanLengthSpTbl {
+class DirSpanLengthSpTbl : public Object {
   public:
     // EXACTSPANLENGTHSPACING
-    class ExactSLSpacing {
+    class ExactSLSpacing : public Object {
       public:
         ExactSLSpacing() {
             memset(static_cast<void*>(this), 0, sizeof(ExactSLSpacing));
@@ -293,26 +288,24 @@ class DirSpanLengthSpTbl {
         UInt32  getSpanLength2() const;
         UInt32  getPRL() const;
         UInt32  getSpacing(UInt32 idx) const;
+        ArrayObject<Int32> *getSpacings() const;
         UInt32  getNumSpacings() const;
-        ExactSLSpacing* getNext() const;
         void    setSpanLength1(UInt32 len);
         void    setSpanLength2(UInt32 len);
         void    setPRL(UInt32 prl);
-        void    setSpacing(UInt32 spacing, UInt32 index);
+        void    addSpacing(UInt32 sp);
         void    setNumSpacings(UInt32 num);
-        void    setNext(ExactSLSpacing* next);
 
       private:
-        ExactSLSpacing* next_;
         UInt32  span_len1_;
         UInt32  span_len2_;
         UInt32  prl_;
         UInt32  spacings_num_;
-        UInt32* exact_spacings_;
+        ObjectId exact_spacings_;
     };
 
     // SPANLENGTH
-    class SpanLength {
+    class SpanLength : public Object {
       public:
         SpanLength() {
             memset(static_cast<void*>(this), 0, sizeof(ExactSLSpacing));
@@ -329,7 +322,8 @@ class DirSpanLengthSpTbl {
         UInt32  getSpacingToMinSpan() const;
         UInt32  getExactSelfSpacing() const;
         UInt32  getEOLSpacing() const;
-        UInt32  getSpacing(UInt32 col_idx) const;
+        UInt32  getSpacing(UInt32 idx) const;
+        ArrayObject<Int32> *getSpacings() const;
         UInt32  getNumSpacings() const;
         void  setIsExactSpacing(bool v);
         void  setIsSpacingToMinSpan(bool v);
@@ -342,7 +336,7 @@ class DirSpanLengthSpTbl {
         void  setExactSelefSpacing(UInt32 sp);
         void  setEOLSpacing(UInt32 sp);
         void  setNumSpacings(UInt32 num);
-        void  setSpacing(UInt32 spacing, UInt32 index);
+        void  addSpacing(UInt32 spacing);
 
       private:
         Bits    is_exact_spacing_ : 1;
@@ -359,7 +353,7 @@ class DirSpanLengthSpTbl {
         UInt32  exact_self_spacing_;
         UInt32  eol_spacing_;
         UInt32  spacings_num_;
-        UInt32* row_spacings_;
+        ObjectId row_spacings_;
     };
 
   public:
@@ -377,12 +371,14 @@ class DirSpanLengthSpTbl {
     UInt32  getEOLWidth() const;
     UInt32  getNumPRLs() const;
     UInt32  getPRL(UInt32 col_idx) const;
+    ArrayObject<UInt32>* getPRLs() const;
+
     UInt32  getNumSpanLengths() const;
     UInt32  getSpanLength(UInt32 row_idx) const;
     UInt32  getSpacing(UInt32 row_idx, UInt32 col_idx) const;
-    const DirSpanLengthSpTbl::SpanLength* getSpanLengthRow(UInt32 row_idx) const;
-    ExactSLSpacing* getExactSLSpacingList() const;
-    DirSpanLengthSpTbl*  getNext() const;
+    DirSpanLengthSpTbl::SpanLength* getSpanLengthRow(UInt32 row_idx) const;
+    ExactSLSpacing* getExactSLSpacingList(int i) const;
+    ArrayObject<ObjectId>* getExactSLSpacingLists() const;
     void  setIsWrongDir(bool v);
     void  setIsSameMask(bool v);
     void  setIsEdgeLength(bool v);
@@ -390,10 +386,9 @@ class DirSpanLengthSpTbl {
     void  setJogLength(UInt32 len);
     void  setEOLWidth(UInt32 w);
     void  setNumPRLs(UInt32 num);
-    void  setPRL(UInt32 prl, UInt32 index);
+    void  addPRL(UInt32 prl);
     void  setNumSpanLengths(UInt32 num);
-    void  setExactSLSpacingList(ExactSLSpacing* l);
-    void  setNext(DirSpanLengthSpTbl* n);
+    void  addExactSLSpacingList(ObjectId id);
 
   private:
     Bits  wrong_dir_ : 1;
@@ -402,17 +397,16 @@ class DirSpanLengthSpTbl {
     Bits  include_lshape_ : 1;
     UInt32  jog_length_;
     UInt32  eol_width_;
-    ExactSLSpacing* exact_sl_spacings_;
+    ObjectId exact_sl_spacings_;
     UInt32 prls_num_;
+    ObjectId prls_;
     UInt32 span_length_rows_num_;
-    UInt32* prls_;
-    SpanLength* span_length_rows_;
+    ObjectId span_length_rows_;
     // might have 4 rules in the list
     // 1. without WRONGDIRECTION and SAMEMASK
     // 2. WRONGDIRECTION
     // 3. SAMEMASK
     // 4. WRONGDIRECTION and SAMEMASK
-    DirSpanLengthSpTbl*  next_;
 };
 
 /**
@@ -439,7 +433,7 @@ class DirSpanLengthSpTbl {
  *        ]
  *        [EXCEPTSAMEMETAL] ; " ; ... ]
  */
-class EOLKeepout {
+class EOLKeepout : public Object {
     enum EOLKeepoutExcetpFrom {
         kEOLKeepoutFromBothEdge,
         kEOLKeepoutFromBackEdge,
@@ -447,15 +441,8 @@ class EOLKeepout {
     };
 
   public:
-    EOLKeepout() {
-        memset(static_cast<void*>(this), 0, sizeof(EOLKeepout));
-        if (class_names_.size() == 0) {
-            class_names_.push_back("default_noclass");
-        }
-    }
+    EOLKeepout();
 
-    EOLKeepout* getNext() const;
-    void    setNext(EOLKeepout* n);
     // EOLKEEPOUT
     UInt32  getMinEOLWidth() const;
     UInt32  getMaxEOLWidth() const;
@@ -522,7 +509,6 @@ class EOLKeepout {
     void    setIsExcetpSameMetal(bool b);
 
   private:
-    EOLKeepout* next_;
     // EOLKEEPOUT { eolWidth  |  minEolWidth maxEolWidth }
     UInt32  min_eol_width_;
     UInt32  max_eol_width_;
@@ -566,7 +552,8 @@ class EOLKeepout {
     Bits    eol_within_cut_ : 1;  // EOLWITHINCUT
     Bits    has_eol_sp_ : 1;  // EXCEPTEOLSPACING
     Bits    except_same_metal_ : 1;  // EXCEPTSAMEMETAL
-    static std::vector<std::string> class_names_;
+    //static std::vector<std::string> class_names_;
+    static ObjectId class_names_;
 };
 
 /**
@@ -588,7 +575,7 @@ class EOLKeepout {
  *        | FULLYENCLOSED]
  *        ; " ;]
  */
-class MinCut {
+class MinCut : public Object {
   public:
     MinCut() {
         memset(static_cast<void*>(this), 0, sizeof(MinCut));
@@ -599,8 +586,8 @@ class MinCut {
     UInt32  getNumCuts() const;
     UInt32  getWidth() const;
     UInt32  getCutWithin() const;
-    std::vector<CutClass*>*  getCutClassArr();
-    std::vector<UInt32>*  getCutClassNumCutsArr();
+    ArrayObject<ObjectId>*  getCutClassArr();
+    ArrayObject<UInt32>*  getCutClassNumCutsArr();
     UInt32  getLength() const;
     UInt32  getLengthWithin() const;
     double  getArea() const;
@@ -609,12 +596,11 @@ class MinCut {
     bool    isFromBelow() const;
     bool    isSameMetalOverlap() const;
     bool    isFullyEnclosed() const;
-    MinCut*  getNext() const;
 
     void    setNumCuts(UInt32 num);
     void    setWidth(UInt32 w);
     void    setCutWithin(UInt32 dist);
-    void    appendCutClassCuts(CutClass* cs, UInt32 num);
+    void    appendCutClassCuts(ObjectId cs, UInt32 num);
     void    setLength(UInt32 len);
     void    setLengthWithin(UInt32 dist);
     void    setArea(double area);
@@ -623,11 +609,10 @@ class MinCut {
     void    setIsFromBelow(bool v);
     void    setIsSameMetalOverlap(bool v);
     void    setIsFullyEnclosed(bool v);
-    void    setNext(MinCut* n);
 
   private:
-    std::vector<CutClass*>  *cut_classes_;
-    std::vector<UInt32>  *cc_num_cuts_;
+    ObjectId  cut_classes_;
+    ObjectId  cc_num_cuts_;
     UInt32  num_cuts_;
     UInt32  width_;
     UInt32  cut_within_;
@@ -636,7 +621,6 @@ class MinCut {
         double  area_;
         UInt32  length_;
     };
-    MinCut*  next_;
 
     Bits  from_above_ : 1;
     Bits  from_below_ : 1;
@@ -652,7 +636,7 @@ class MinCut {
  * the implementation class of MINENCLOSEDAREA syntax
  * [ MINENCLOSEDAREA   area  [WIDTH  width ] ;] ...
  */
-class MinEnclArea {
+class MinEnclArea : public Object {
   public:
     MinEnclArea() {
         memset(static_cast<void*>(this), 0, sizeof(MinEnclArea));
@@ -660,15 +644,12 @@ class MinEnclArea {
 
     UInt32  getArea() const;
     UInt32 getWidth() const;
-    MinEnclArea* getNext() const;
     void  setArea(UInt32 area);
     void  setWidth(UInt32 w);
-    void  setNext(MinEnclArea* next);
 
   private:
     UInt32  area_;
     UInt32 width_;
-    MinEnclArea* next_;
 };
 
 /**
@@ -681,7 +662,7 @@ class MinEnclArea {
  *    "MINSIZE [RECTONLY]  minWidth   minLength  [ minWidth   minLength ]...
  *    ;..." ;]
  */
-class MinSize {
+class MinSize : public Object {
   public:
     MinSize() {
         memset(static_cast<void*>(this), 0, sizeof(MinSize));
@@ -695,14 +676,13 @@ class MinSize {
     bool    isRectOnly() const;
     void    setRectOnly(bool v);
     void    setMinSizeNum(UInt32 num);
-    void    addWidthLength(UInt32 index, UInt32 width, UInt32 length);
-    MinSize* getNext() const;  // to use template function to release rule
+    void    addWidthLength(UInt32 width, UInt32 length);
 
   private:
     bool    is_rect_only_;
     UInt32  minsize_num_;
-    UInt32* widths_;
-    UInt32* lengths_;
+    ObjectId widths_;
+    ObjectId lengths_;
 };
 
 /**
@@ -729,7 +709,7 @@ class MinSize {
  *         ] ;..." ;]
  *
  */
-class MinStep {
+class MinStep : public Object {
   public:
     MinStep() {
         memset(static_cast<void*>(this), 0, sizeof(MinStep));
@@ -764,7 +744,6 @@ class MinStep {
     UInt32  getNoAdjExceptAdjLength() const;
     UInt32  getNoAdjEOLMinAdjLength() const;
     UInt32  getNoBetweenEOLWidth() const;
-    MinStep*  getNext() const;
     void    setIsInsideCorner(bool v);
     void    setIsOutsideCorner(bool v);
     void    setIsStep(bool v);
@@ -785,7 +764,6 @@ class MinStep {
     void    setNoAdjEOLMinAdjLength(UInt32 len);
     void    setIsNoAdjEOLConcaveCorners(bool v);
     void    setNoBetweenEOLWidth(UInt32 w);
-    void    setNext(MinStep* ms);
 
   private:
     UInt32  min_step_length_;  //  MINSTEP minStepLength
@@ -820,7 +798,6 @@ class MinStep {
     Bits  is_no_adj_eol_min_adj_length_ : 1;
     Bits  is_no_adj_concave_corners_ : 1;
     Bits  is_no_between_eol_         : 1;
-    MinStep*  next_;
 };
 
 /**
@@ -875,7 +852,7 @@ class MinStep {
  * ;" ;]
  *
  */
-class WidthSpTbl {
+class WidthSpTbl : public Object {
   public:
     WidthSpTbl() {
         memset(static_cast<void*>(this), 0, sizeof(WidthSpTbl));
@@ -899,7 +876,6 @@ class WidthSpTbl {
     UInt32  getSpacing(UInt32 row_idx, UInt32 col_idx) const;
     UInt32  getMinSpacing() const;
     UInt32  getMaxSpacing() const;
-    WidthSpTbl* getNext() const;
 
     void  setIsWidthSpTbl(bool v);
     void  setIsPRLWidth(bool v);
@@ -910,13 +886,12 @@ class WidthSpTbl {
     void  setEOLWidth(UInt32 w);
     void  setWidthDim(UInt32 w_dim);
     void  setPRLDim(UInt32 prl_dim);
-    void  setPRL(UInt32 row_col_idx, UInt32 prl);
-    void  setWidth(UInt32 row_idx, UInt32 w);
-    void  setLoHiExclSpacing(UInt32 row_idx, UInt32 lo_excl_sp, UInt32 hi_excl_sp);
+    void  addPRL(UInt32 prl);
+    void  addWidth(UInt32 w);
+    void  addLoHiExclSpacing(UInt32 lo_excl_sp, UInt32 hi_excl_sp);
     void  setSpacing(UInt32 row_idx, UInt32 col_idx, UInt32 sp);
     void  setMinSpacing(UInt32 min_sp);
     void  setMaxSpacing(UInt32 max_sp);
-    void  setNext(WidthSpTbl* n);
 
   private:
     Bits  is_two_widths_ : 1;
@@ -932,13 +907,12 @@ class WidthSpTbl {
     UInt32  prl_num_;
     UInt32  width_num_;
     UInt32  spacing_num_;
-    UInt32* prls_;
-    UInt32* widths_;
-    UInt32* low_excl_spacing_;
-    UInt32* high_excl_spacing_;
-    UInt32* spacing_elems_;
+    ObjectId prls_;
+    ObjectId widths_;
+    ObjectId low_excl_spacing_;
+    ObjectId high_excl_spacing_;
+    ObjectId spacing_elems_;
 
-    WidthSpTbl* next_;
 };
 
 /**
@@ -956,7 +930,7 @@ class WidthSpTbl {
  * ;" ;]
  *
  */
-class InfluenceSpTbl {
+class InfluenceSpTbl : public Object {
   public:
     InfluenceSpTbl() {
         memset(static_cast<void*>(this), 0, sizeof(InfluenceSpTbl));
@@ -970,14 +944,13 @@ class InfluenceSpTbl {
     UInt32 getWidth(UInt32 row_idx) const;
     UInt32 getWithin(UInt32 row_idx) const;
     UInt32 getSpacing(UInt32 row_idx) const;
-    void   setRowElems(UInt32 row_idx, UInt32 w, UInt32 d, UInt32 sp);
-    InfluenceSpTbl* getNext() const;  // to use template function to release rule
+    void   addRowElems(UInt32 w, UInt32 d, UInt32 sp);
 
   private:
     UInt32   row_num_;
-    UInt32*  widths_;
-    UInt32*  withins_;
-    UInt32*  spacings_;
+    ObjectId  widths_;
+    ObjectId  withins_;
+    ObjectId  spacings_;
 };
 
 /**
@@ -992,7 +965,7 @@ class InfluenceSpTbl {
  * ;" ;]
  *
  */
-class ParaSpanLenTbl {
+class ParaSpanLenTbl : public Object {
   public:
     ParaSpanLenTbl() {
         memset(static_cast<void*>(this), 0, sizeof(ParaSpanLenTbl));
@@ -1004,11 +977,10 @@ class ParaSpanLenTbl {
     UInt32  getPRL() const;
     UInt32  getSpanLength(UInt32 row_idx) const;
     UInt32  getSpacing(UInt32 row_idx, UInt32 col_idx) const;
-    ParaSpanLenTbl* getNext() const;  // to use template function to release rule
 
     void    setDim(UInt32 dim);
     void    setPRL(UInt32 prl);
-    void    setSpanLength(UInt32 row_idx, UInt32 span_length);
+    void    addSpanLength(UInt32 span_length);
     void    setSpacing(UInt32 row_idx, UInt32 col_idx, UInt32 spacing);
 
   private:
@@ -1016,8 +988,8 @@ class ParaSpanLenTbl {
   private:
     UInt32  dim_;
     UInt32  prl_;
-    UInt32* span_lengths_;
-    UInt32* spacings_;  // dim_ x dim_ two-dimensional table
+    ObjectId span_lengths_;
+    ObjectId spacings_;  // dim_ x dim_ two-dimensional table
 };
 
 
@@ -1031,27 +1003,23 @@ class ParaSpanLenTbl {
  *
  * [ PROPERTY LEF58_PROTRUSIONWIDTH
  *    "PROTRUSIONWIDTH  width1
- *      {LENGTH  length  WIDTH  width2
+ *      {LENGTH  length  WIDTH   width2
  *      | {WIDTH  width2
  *          {MINSIZE { {minWidth minLength} | {minLength CUTCLASS className {FROMABOVE | FROMBELOW}} }
  *          | MINLENGTH  minLength [EXCEPTCUT  cutDistance [FROMABOVE | FROMBELOW]]}...
  *        } ... }
  *    ; " ... ;]
  */
-class ProtrusionRule {
+class ProtrusionRule : public Object {
   public:
     ProtrusionRule() {
-        memset(static_cast<void*>(this), 0, sizeof(ProtrusionRule));
-        protrusion_width_ = new std::vector<ProtrusionWidth*>;
+        //memset(static_cast<void*>(this), 0, sizeof(ProtrusionRule));
+        //protrusion_width_ = new std::vector<ProtrusionWidth*>;
     }
     ~ProtrusionRule() {
-        for (auto& pw : *protrusion_width_) {
-            delete pw;
-        }
-        delete protrusion_width_;
     }
 
-    class ProtrusionWidth {
+    class ProtrusionWidth : public Object  {
       public:
         ProtrusionWidth() {
             memset(static_cast<void*>(this), 0, sizeof(ProtrusionWidth));
@@ -1062,7 +1030,7 @@ class ProtrusionRule {
         UInt32  getMinWidth() const;
         UInt32  getMinLength() const;
         UInt32  getCutDistance() const;
-        CutClass* getCutClass() const;
+        ObjectId  getCutClass() const;
         bool    isMinSize() const;
         bool    isMinSizeMinWidth() const;
         bool    isFromAbove() const;
@@ -1074,7 +1042,7 @@ class ProtrusionRule {
         void    setMinSizeMinLength(UInt32 len);  // MINSIZE minLength
         void    setMinLength(UInt32 len);  // MINSIZE minLength
         void    setCutDistance(UInt32 d);
-        void    setCutClass(CutClass* cs);
+        void    setCutClass(ObjectId cs);
         void    setIsFromAbove(bool v);
         void    setIsFromBelow(bool v);
 
@@ -1095,7 +1063,7 @@ class ProtrusionRule {
         Bits  from_above_ : 1;
         Bits  from_below_ : 1;
         Bits  has_except_cut_ : 1;
-        CutClass*  cut_class_;
+        ObjectId  cut_class_;
     };
 
   public:
@@ -1104,23 +1072,21 @@ class ProtrusionRule {
     UInt32  getWidth2() const;
     bool    isLength() const;  // LENGTH length WIDTH width2
     bool    isWidth() const; // LEF58: WIDTH width2
-    std::vector<ProtrusionRule::ProtrusionWidth*>* getProtrusionWidth();
-    void    addProtrusionWidth(ProtrusionRule::ProtrusionWidth* pw);
-    ProtrusionRule* getNext() const;
+    ArrayObject<ObjectId>* getProtrusionWidths();
+    ProtrusionRule::ProtrusionWidth *getProtrusionWidth(int i) ;
+    void    addProtrusionWidth(ObjectId pw);
 
     void    setWidth1(UInt32 w);
     void    setLength(UInt32 len);
     void    setWidth2(UInt32 w);
     void    setIsLength(bool b);
-    void    setNext(ProtrusionRule* n);
 
   private:
     UInt32  width1_;
     UInt32  length_;
     UInt32  width2_;
     Bits    is_length_ : 1;
-    std::vector<ProtrusionWidth*>  *protrusion_width_;
-    ProtrusionRule* next_;
+    ObjectId  protrusion_width_;
 };
 
 /**
@@ -1201,7 +1167,7 @@ class ProtrusionRule {
  *            SPANLENGTH  spanLength  OPPOSITEWIDTH  oppWidth
  *            OPPOSITEEXTENSION  oppSideExt  oppForwardExt1   oppForwardExt2  ] ; " ;]
  */
-class RoutingSpacing {
+class RoutingSpacing : public Object {
   public:
     RoutingSpacing() {
         memset(static_cast<void*>(this), 0, sizeof(RoutingSpacing));
@@ -1452,8 +1418,6 @@ class RoutingSpacing {
     bool   isConvexCorners() const;
     void   setIsConvexCorners(bool v);
 
-    RoutingSpacing* getNext() const;
-    void   setNext(RoutingSpacing* n);
   private:
     bool   isType_(SpacingType type) const;
     void   setIsType_(SpacingType type, bool v);
@@ -1475,7 +1439,6 @@ class RoutingSpacing {
 
     UInt32  type_;
     UInt32  min_spacing_;
-    RoutingSpacing* next_;
 
     Bits    is_same_net_pg_only_ : 1;
     Bits    is_lef58_notch_length_ : 1;
@@ -1486,7 +1449,7 @@ class RoutingSpacing {
  * @brief
  * implementation of routing layer rules
  */
-class RoutingLayerRule {
+class RoutingLayerRule : public Object {
   public:
     RoutingLayerRule() {
         memset(static_cast<void*>(this), 0, sizeof(RoutingLayerRule));
@@ -1571,54 +1534,69 @@ class RoutingLayerRule {
     void    setEdgeCap(float c);
     void    setFillMinDensity(float d);
     void    setFillMaxDensity(float d);
-    void    setTrimLayer(Layer* trim_layer);
+    void    setTrimLayer(ObjectId trim_layer);
 
     void    setDirection(UInt32 v);
 
-    BoundaryEOLBlockage* getBoundaryEOLBlocakge() const;
-    void    setBoundaryEOLBlockage(BoundaryEOLBlockage* eol_blkg);
+    BoundaryEOLBlockage* getBoundaryEOLBlocakge(int i) const;
+    ArrayObject<ObjectId> *getBoundaryEOLBlocakges() const;
+    void    addBoundaryEOLBlockage(ObjectId id);
 
-    CornerEOLKeepout*  getCornerEOLKeepoutList() const;
-    void    setCornerEOLKeepoutList(CornerEOLKeepout* ceolk);
+    CornerEOLKeepout*  getCornerEOLKeepout(int i ) const;
+    ArrayObject<ObjectId> *getCornerEOLKeepouts() const;
+    void    addCornerEOLKeepout(ObjectId id);
 
-    CornerFillSpacing* getCornerFillSpacingList() const;
-    void    setCornerFillSpacingList(CornerFillSpacing* cfs);
+    CornerFillSpacing* getCornerFillSpacing(int i) const;
+    ArrayObject<ObjectId> *getCornerFillSpacings() const;
+    void    addCornerFillSpacing(ObjectId id);
 
-    CornerSpacing* getCornerSpacingList() const;
-    void    setCornerSpacingList(CornerSpacing* cs);
+    CornerSpacing* getCornerSpacing(int i) const;
+    ArrayObject<ObjectId> *getCornerSpacings() const;
+    void    addCornerSpacing(ObjectId id);
 
-    DirSpanLengthSpTbl* getDirSpanLengthSpTblList() const;
-    void  setDirSpanLengthSpTblList(DirSpanLengthSpTbl* dsl);
+    DirSpanLengthSpTbl* getDirSpanLengthSpTbl(int i) const;
+    ArrayObject<ObjectId> *getDirSpanLengthSpTbls() const;
+    void  addDirSpanLengthSpTbl(ObjectId id);
 
-    EOLKeepout* getEOLKeepoutList() const;
-    void    setEOLKeepoutList(EOLKeepout* eolk);
+    EOLKeepout* getEOLKeepout(int i) const;
+    ArrayObject<ObjectId> *getEOLKeepouts() const;
+    void    addEOLKeepout(ObjectId id);
 
-    MinCut* getMinCutList() const;
-    void    setMinCutList(MinCut* l);
+    MinCut* getMinCut(int i) const;
+    ArrayObject<ObjectId> *getMinCuts() const;
+    void    addMinCut(ObjectId id);
 
-    MinEnclArea*  getMinEnclAreaList() const;
-    void     setMinEnclAreaList(MinEnclArea* l);
+    MinEnclArea*  getMinEnclArea(int i) const;
+    ArrayObject<ObjectId> *getMinEnclAreas() const;
+    void     addMinEnclArea(ObjectId id);
 
-    MinSize* getMinSize() const;
-    void     setMinSize(MinSize* l);
+    MinSize* getMinSize(int i) const;
+    ArrayObject<ObjectId> *getMinSizes() const;
+    void     addMinSize(ObjectId id);
 
-    MinStep* getMinStepList() const;
-    void     setMinStepList(MinStep* l);
+    MinStep* getMinStep(int i) const;
+    ArrayObject<ObjectId> *getMinSteps() const;
+    void     addMinStep(ObjectId id);
 
-    ProtrusionRule* getProtrusionRuleList() const;
-    void     setProtrusionRuleList(ProtrusionRule* l);
+    ProtrusionRule* getProtrusionRule(int i) const;
+    ArrayObject<ObjectId> *getProtrusionRules() const;
+    void     addProtrusionRule(ObjectId id);
 
-    WidthSpTbl* getWidthSpTbl() const;
-    void     setWidthSpTabl(WidthSpTbl* l);
+    WidthSpTbl* getWidthSpTbl(int i) const;
+    ArrayObject<ObjectId> *getWidthSpTbls() const;
+    void     addWidthSpTabl(ObjectId id);
 
-    InfluenceSpTbl* getInfluenceSpTbl() const;
-    void     setInfluenceSpTbl(InfluenceSpTbl* t);
+    InfluenceSpTbl* getInfluenceSpTbl(int i) const;
+    ArrayObject<ObjectId> *getInfluenceSpTbls() const;
+    void     addInfluenceSpTbl(ObjectId id);
 
-    ParaSpanLenTbl* getParaSpanLenTbl() const;
-    void     setParaSpanLenTbl(ParaSpanLenTbl* t);
+    ParaSpanLenTbl* getParaSpanLenTbl(int i) const;
+    ArrayObject<ObjectId> *getParaSpanLenTbls() const;
+    void     addParaSpanLenTbl(ObjectId id);
 
-    RoutingSpacing* getSpacingList() const;
-    void     setSpacingList(RoutingSpacing* l);
+    RoutingSpacing* getSpacing(int i) const;
+    ArrayObject<ObjectId> *getSpacings() const;
+    void     addSpacing(ObjectId id);
 
   private:
     Bits     pref_direction_ : 3;  /**< DIRECTION HORIZONTAL | VETICAL | DIAG45 | DIAG135 */
@@ -1659,23 +1637,23 @@ class RoutingLayerRule {
     float   fill_min_density_;   /**< minimum metal density, as a percentage: MINIMUMDENSITY minDensity */
     float   fill_max_density_;   /**< maximum metal density, as a percentage: MAXIMUMDENSITY maxDensity */
 
-    Layer*   trim_layer_;        /**< trim layer */
+    ObjectId   trim_layer_;        /**< trim layer */
 
-    BoundaryEOLBlockage*       boundary_eol_blk_;  /**< BOUNDARYEOLBLOCKAGE */
-    CornerEOLKeepout*          corner_eol_keepout_list_;  /**< CORNEREOLKEEPOUT */
-    CornerFillSpacing*         corner_fill_spacing_list_; /**< CORNERFILLSPACING */
-    CornerSpacing*             corner_spacing_list_; /**< CORNERSPACING */
-    DirSpanLengthSpTbl*        dsl_list_;  /**< DIRECTIONALSPANLENGTH */
-    EOLKeepout*                eol_keepout_list_;  /**< EOLKeepout */
-    MinCut*                    min_cut_list_;  /**< MINIMUMCUT */
-    MinEnclArea*               min_enclosed_area_list_;  /**< MINENCLOSEDAREA */
-    MinSize*                   min_size_;  /**< MINSIZE */
-    MinStep*                   min_step_list_;  /**< MINSTEP */
-    ProtrusionRule*            protrusion_list_;  /**< PROTRUSIONWIDTH */
-    WidthSpTbl*                width_sp_tbl_list_;  /**< SPACINGTABLE PARALLELRUNLENGTH WIDTH | TWOWIDTHS */
-    InfluenceSpTbl*            influence_sp_tbl_;  /**< SPACINGTABLE INFLUENCE */
-    ParaSpanLenTbl*            para_span_len_sp_tbl_;  /**< SPACINGTABLE PARALLELSPANLENGTH */
-    RoutingSpacing*            spacing_list_;  /**< SPACING */
+    ObjectId       boundary_eol_blks_;  /**< BOUNDARYEOLBLOCKAGE */
+    ObjectId       corner_eol_keepouts_;  /**< CORNEREOLKEEPOUT */
+    ObjectId       corner_fill_spacings_; /**< CORNERFILLSPACING */
+    ObjectId       corner_spacings_; /**< CORNERSPACING */
+    ObjectId       dsls_;  /**< DIRECTIONALSPANLENGTH */
+    ObjectId       eol_keepouts_;  /**< EOLKeepout */
+    ObjectId       min_cuts_;  /**< MINIMUMCUT */
+    ObjectId       min_enclosed_areas_;  /**< MINENCLOSEDAREA */
+    ObjectId       min_sizes_;  /**< MINSIZE */
+    ObjectId       min_steps_;  /**< MINSTEP */
+    ObjectId       protrusions_;  /**< PROTRUSIONWIDTH */
+    ObjectId       width_sp_tbls_;  /**< SPACINGTABLE PARALLELRUNLENGTH WIDTH | TWOWIDTHS */
+    ObjectId       influence_sp_tbls_;  /**< SPACINGTABLE INFLUENCE */
+    ObjectId       para_span_len_sp_tbls_;  /**< SPACINGTABLE PARALLELSPANLENGTH */
+    ObjectId       spacings_;  /**< SPACING */
 };
 
 }  // namespace db

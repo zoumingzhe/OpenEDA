@@ -221,9 +221,11 @@ void ExportTechLef::exportImplantLayer(Layer* layer) {
         ofs_ << "    WIDTH " << tech_lib_->dbuToMicrons(layer->getWidth())
              << " ;\n";
     }
-    if (rule->getSpacingList()) {
-        for (ImplantSpacing* sp = rule->getSpacingList(); sp;
-             sp = sp->getNext()) {
+    ArrayObject<ObjectId> *array = rule->getSpacingLists();
+    if (array == nullptr)
+        return;
+    for (ArrayObject<ObjectId>::iterator iter = array->begin(); iter != array->end(); ++iter) {
+        ImplantSpacing* sp = Object::addr<ImplantSpacing>(*iter);
             ofs_ << "    SPACING "
                  << tech_lib_->dbuToMicrons(sp->getMinSpacing()) << " ";
             if (sp->getLayer2Id() > 0) {
@@ -233,7 +235,6 @@ void ExportTechLef::exportImplantLayer(Layer* layer) {
             }
             ofs_ << ";\n";
         }
-    }
     exportLayerProperty(layer);
     ofs_ << "END " << layer->getName() << "\n\n";
 }
@@ -266,8 +267,8 @@ void ExportTechLef::exportMinArea(const Layer* layer) {
                 UInt32 size = area->getExceptMinSizeSize();
                 for (UInt32 ii = 0; ii < size; ++ii) {
                     auto width_pair = area->getExceptMinSizePair(ii);
-                    ofs_ << tech_lib_->dbuToMicrons(width_pair->first) << " "
-                         << tech_lib_->dbuToMicrons(width_pair->second) << " ";
+                    ofs_ << tech_lib_->dbuToMicrons(width_pair->data_first) << " "
+                         << tech_lib_->dbuToMicrons(width_pair->data_second) << " ";
                 }
                 ofs_ << "\n";
             }
@@ -299,22 +300,34 @@ void ExportTechLef::exportMinArea(const Layer* layer) {
 void ExportTechLef::exportMinSize(const Layer* layer) {
     RoutingLayerRule* r = layer->getRoutingLayerRule();
     if (r) {
-        MinSize* m = r->getMinSize();
-        if (!m) return;
-        ofs_ << "   MINSIZE ";
-        if (m->isRectOnly()) ofs_ << "RECTONLY ";
-        UInt32 num = m->getMinSizeNum();
-        for (UInt32 ii = 0; ii < num; ++ii) {
-            ofs_ << tech_lib_->dbuToMicrons(m->getWidth(ii)) << " "
-                 << tech_lib_->dbuToMicrons(m->getLength(ii)) << " ";
+        ArrayObject<ObjectId> *array = r->getMinSizes();
+        if (array == nullptr)
+            return;
+        for (ArrayObject<ObjectId>::iterator iter = array->begin(); iter != array->end(); ++iter)
+        {
+            MinSize *m = Object::addr<MinSize>(*iter);
+            if (!m)
+                return;
+            ofs_ << "   MINSIZE ";
+            if (m->isRectOnly())
+                ofs_ << "RECTONLY ";
+            UInt32 num = m->getMinSizeNum();
+            for (UInt32 ii = 0; ii < num; ++ii)
+            {
+                ofs_ << tech_lib_->dbuToMicrons(m->getWidth(ii)) << " "
+                     << tech_lib_->dbuToMicrons(m->getLength(ii)) << " ";
+            }
+            ofs_ << ";\n";
         }
-        ofs_ << ";\n";
     }
 }
 
 void ExportTechLef::exportMinEnclosedArea(const RoutingLayerRule* layer) {
-    MinEnclArea* mea = layer->getMinEnclAreaList();
-    for (; mea; mea = mea->getNext()) {
+    ArrayObject<ObjectId> *array = layer->getMinEnclAreas();
+    if (array == nullptr)
+        return;
+    for (ArrayObject<ObjectId>::iterator iter = array->begin(); iter != array->end(); ++iter) {
+        MinEnclArea* mea = Object::addr<MinEnclArea>(*iter);
         ofs_ << "    MINENCLOSEDAREA "
              << tech_lib_->areaDBUToMicrons(mea->getArea()) << " ";
         if (mea->getWidth()) {
@@ -325,8 +338,11 @@ void ExportTechLef::exportMinEnclosedArea(const RoutingLayerRule* layer) {
 }
 
 void ExportTechLef::exportMinStep(const RoutingLayerRule* layer) {
-    MinStep* ms = layer->getMinStepList();
-    for (; ms; ms = ms->getNext()) {
+    ArrayObject<ObjectId> *array = layer->getMinSteps();
+    if (array == nullptr)
+        return;
+    for (ArrayObject<ObjectId>::iterator iter = array->begin(); iter != array->end(); ++iter) {
+        MinStep* ms = Object::addr<MinStep>(*iter);
         ofs_ << "    MINSTEP "
              << tech_lib_->dbuToMicrons(ms->getMinStepLength()) << " ";
         if (ms->isMaxEdges()) {
@@ -350,8 +366,11 @@ void ExportTechLef::exportMinStep(const RoutingLayerRule* layer) {
 }
 
 void ExportTechLef::exportProtrusionWidth(const RoutingLayerRule* layer) {
-    ProtrusionRule* rule = layer->getProtrusionRuleList();
-    for (; rule; rule = rule->getNext()) {
+    ArrayObject<ObjectId> *array = layer->getProtrusionRules();
+    if (array == nullptr)
+        return;
+    for (ArrayObject<ObjectId>::iterator iter = array->begin(); iter != array->end(); ++iter) {
+        ProtrusionRule* rule = Object::addr<ProtrusionRule>(*iter);
         if (rule->isLength()) {
             ofs_ << "    PROTRUSIONWIDTH "
                  << tech_lib_->dbuToMicrons(rule->getWidth1()) << " LENGTH "
@@ -363,10 +382,12 @@ void ExportTechLef::exportProtrusionWidth(const RoutingLayerRule* layer) {
 }
 
 void ExportTechLef::exportRoutingSpacing(RoutingLayerRule* r) {
-    RoutingSpacing* sp = r->getSpacingList();
-    if (!sp) return;
-
-    while (sp) {
+    ArrayObject<ObjectId> *array = r->getSpacings();
+    if (array == nullptr)
+        return;
+    for (ArrayObject<ObjectId>::iterator iter = array->begin(); iter != array->end(); ++iter) {
+        RoutingSpacing* sp = Object::addr<RoutingSpacing>(*iter);
+        if (!sp) return;
         if (sp->isRange()) {
             ofs_ << "    SPACING "
                  << tech_lib_->dbuToMicrons(sp->getMinSpacing()) << " "
@@ -534,7 +555,6 @@ void ExportTechLef::exportRoutingSpacing(RoutingLayerRule* r) {
                  << tech_lib_->dbuToMicrons(sp->getMinSpacing()) << " ;\n";
         }
 
-        sp = sp->getNext();
     }
 }
 
@@ -551,57 +571,61 @@ void ExportTechLef::exportSpacingTable(const RoutingLayerRule* r) {
     UInt32 j = 0;
 
     // PARALLELRUNLENGTH
-    WidthSpTbl* edi_sp = r->getWidthSpTbl();
-    // INFLUENCE
-    InfluenceSpTbl* edi_inf = r->getInfluenceSpTbl();
+    ArrayObject<ObjectId> *array = r->getWidthSpTbls();
+    if (array == nullptr) {
+        return;
+    } else {
+        for (ArrayObject<ObjectId>::iterator iter = array->begin(); iter != array->end(); ++iter) {
+            WidthSpTbl* edi_sp = Object::addr<WidthSpTbl>(*iter);
+            UInt32 prl_dim = edi_sp->getPRLDim();
+            ofs_ << four_space << "SPACINGTABLE" << line;
 
-    // PARALLELRUNLENGTH
-    while (nullptr != edi_sp) {
-        UInt32 prl_dim = edi_sp->getPRLDim();
-        ofs_ << four_space << "SPACINGTABLE" << line;
-
-        if (edi_sp->isPRLWidth()) {  // PARALLELRUNLENGTH
-            ofs_ << four_space << two_space << " PARALLELRUNLENGTH ";
-            for (i = 0; i < prl_dim; i++) {
-                ofs_ << tech_lib_->dbuToMicrons(edi_sp->getPRL(i)) << " ";
+            if (edi_sp->isPRLWidth()) {  // PARALLELRUNLENGTH
+                ofs_ << four_space << two_space << " PARALLELRUNLENGTH ";
+                for (i = 0; i < prl_dim; i++) {
+                    ofs_ << tech_lib_->dbuToMicrons(edi_sp->getPRL(i)) << " ";
+                }
+            } else if (edi_sp->isTwoWidths()) {  // TWOWIDTHS
+                ofs_ << four_space << two_space << " TWOWIDTHS ";
             }
-        } else if (edi_sp->isTwoWidths()) {  // TWOWIDTHS
-            ofs_ << four_space << two_space << " TWOWIDTHS ";
-        }
 
-        ofs_ << line;
+            ofs_ << line;
 
-        UInt32 width_dim = edi_sp->getWidthDim();
-        for (i = 0; i < width_dim; i++) {
-            ofs_ << four_space << four_space << " WIDTH "
-                 << tech_lib_->dbuToMicrons(edi_sp->getWidth(i));
+            UInt32 width_dim = edi_sp->getWidthDim();
+            for (i = 0; i < width_dim; i++) {
+                ofs_ << four_space << four_space << " WIDTH "
+                    << tech_lib_->dbuToMicrons(edi_sp->getWidth(i));
 
-            if (edi_sp->isTwoWidths()) {  // TWOWIDTHS
-                if (edi_sp->hasWidthPRL(i))
-                    ofs_ << " PRL "
+                if (edi_sp->isTwoWidths()) {  // TWOWIDTHS
+                    if (edi_sp->hasWidthPRL(i))
+                        ofs_ << " PRL "
                          << tech_lib_->dbuToMicrons(edi_sp->getPRL(i));
-                else
-                    ofs_ << four_space << four_space;
-            }
+                    else
+                        ofs_ << four_space << four_space;
+                }
 
-            ofs_ << four_space;
+                ofs_ << four_space;
 
-            for (j = 0; j < prl_dim; j++) {
-                ofs_ << tech_lib_->dbuToMicrons(edi_sp->getSpacing(i, j))
+                for (j = 0; j < prl_dim; j++) {
+                    ofs_ << tech_lib_->dbuToMicrons(edi_sp->getSpacing(i, j))
                      << " ";
+                }
+
+                if (i != width_dim - 1)
+                    ofs_ << line;
+                else
+                    ofs_ << end;
             }
 
-            if (i != width_dim - 1)
-                ofs_ << line;
-            else
-                ofs_ << end;
         }
-
-        edi_sp = edi_sp->getNext();
     }
 
     // INFLUENCE
-    while (nullptr != edi_inf) {
+    array = r->getInfluenceSpTbls();
+    if (array == nullptr)
+        return;
+    for (ArrayObject<ObjectId>::iterator iter = array->begin(); iter != array->end(); ++iter) {
+        InfluenceSpTbl* edi_inf = Object::addr<InfluenceSpTbl>(*iter);
         ofs_ << four_space << "SPACINGTABLE" << line;
         ofs_ << four_space << two_space << "INFLUENCE" << line;
 
@@ -620,7 +644,6 @@ void ExportTechLef::exportSpacingTable(const RoutingLayerRule* r) {
                 ofs_ << end;
         }
 
-        edi_inf = edi_inf->getNext();
     }
 }
 
@@ -628,8 +651,11 @@ void ExportTechLef::exportMinCut(const RoutingLayerRule* r) {
     std::string four_space = "    ";
     std::string end = " ; \n";
 
-    MinCut* min_cut = r->getMinCutList();
-    while (nullptr != min_cut) {
+    ArrayObject<ObjectId> *array = r->getMinCuts();
+    if (array == nullptr)
+        return;
+    for (ArrayObject<ObjectId>::iterator iter = array->begin(); iter != array->end(); ++iter) {
+        MinCut* min_cut = Object::addr<MinCut>(*iter);
         ofs_ << four_space << "MINIMUMCUT " << min_cut->getNumCuts();
         ofs_ << " WIDTH " << tech_lib_->dbuToMicrons(min_cut->getWidth());
 
@@ -654,8 +680,6 @@ void ExportTechLef::exportMinCut(const RoutingLayerRule* r) {
         }
 
         ofs_ << end;
-
-        min_cut = min_cut->getNext();
     }
 }
 
@@ -672,8 +696,8 @@ void ExportTechLef::exportLayerAntennaModel(const Layer* layer) {
         if (model->isDiffAreaRatioPWL()) {
             ofs_ << "    ANTENNADIFFAREARATIO PWL (";
             for (int kk = 0; kk < model->getDiffAreaRatioPWLSize(); ++kk) {
-                std::pair<float, float>* pwl = model->getDiffAreaRatioPWL(kk);
-                ofs_ << " ( " << pwl->first << " " << pwl->second << " ) ";
+                auto pwl = model->getDiffAreaRatioPWL(kk);
+                ofs_ << " ( " << pwl->data_first << " " << pwl->data_second << " ) ";
             }
             ofs_ << ") ;\n";
         } else if (model->getDiffAreaRatio() > epsilon) {
@@ -694,9 +718,9 @@ void ExportTechLef::exportLayerAntennaModel(const Layer* layer) {
         if (model->isCumDiffAreaRatioPWL()) {
             ofs_ << "    ANTENNACUMDIFFAREARATIO PWL (";
             for (int kk = 0; kk < model->getCumDiffAreaRatioPWLSize(); ++kk) {
-                std::pair<float, float>* pwl =
+                auto pwl =
                     model->getCumDiffAreaRatioPWL(kk);
-                ofs_ << " ( " << pwl->first << " " << pwl->second << " ) ";
+                ofs_ << " ( " << pwl->data_first << " " << pwl->data_second << " ) ";
             }
             ofs_ << ") ;\n";
         } else if (model->getCumDiffAreaRatio() > epsilon) {
@@ -713,9 +737,9 @@ void ExportTechLef::exportLayerAntennaModel(const Layer* layer) {
             if (model->getGatePlusDiffPWLSize()) {
                 ofs_ << "PWL (";
                 for (int kk = 0; kk < model->getGatePlusDiffPWLSize(); ++kk) {
-                    std::pair<float, float>* pwl =
+                    auto pwl =
                         model->getGatePlusDiffPWL(kk);
-                    ofs_ << "( " << pwl->first << " " << pwl->second << " ) ";
+                    ofs_ << "( " << pwl->data_first << " " << pwl->data_second << " ) ";
                 }
                 ofs_ << ")\" ;";
             } else {
@@ -732,8 +756,8 @@ void ExportTechLef::exportLayerAntennaModel(const Layer* layer) {
         if (model->getAreaDiffReducePWLSize()) {
             ofs_ << "    ANTENNAAREADIFFREDUCEPWL (";
             for (int kk = 0; kk < model->getAreaDiffReducePWLSize(); ++kk) {
-                std::pair<float, float>* pwl = model->getAreaDiffReducePWL(kk);
-                ofs_ << " ( " << pwl->first << " " << pwl->second << " ) ";
+                FloatPair* pwl = model->getAreaDiffReducePWL(kk);
+                ofs_ << " ( " << pwl->data_first << " " << pwl->data_second << " ) ";
             }
             ofs_ << ") ;\n";
         }
@@ -742,8 +766,8 @@ void ExportTechLef::exportLayerAntennaModel(const Layer* layer) {
                     "\"ANTENNADIFFGATEPWL OXIDE"
                  << model->getDiffGatePWLId() << " (";
             for (int kk = 0; kk < model->getDiffGatePWLSize(); ++kk) {
-                std::pair<float, float>* pwl = model->getDiffGatePWL(kk);
-                ofs_ << "( " << pwl->first << " " << pwl->second << " ) ";
+                auto pwl = model->getDiffGatePWL(kk);
+                ofs_ << "( " << pwl->data_first << " " << pwl->data_second << " ) ";
             }
             ofs_ << ")\" ;";
         }
@@ -751,8 +775,8 @@ void ExportTechLef::exportLayerAntennaModel(const Layer* layer) {
             ofs_ << "    PROPERTY LEF58_ANTENNAGATEPWL \"ANTENNAGATEPWL OXIDE"
                  << model->getDiffGatePWLId() << " (";
             for (int kk = 0; kk < model->getGatePWLSize(); ++kk) {
-                std::pair<float, float>* pwl = model->getGatePWL(kk);
-                ofs_ << "( " << pwl->first << " " << pwl->second << " ) ";
+                auto pwl = model->getGatePWL(kk);
+                ofs_ << "( " << pwl->data_first << " " << pwl->data_second << " ) ";
             }
             ofs_ << ")\" ;";
         }
@@ -765,9 +789,9 @@ void ExportTechLef::exportLayerAntennaModel(const Layer* layer) {
                 ofs_ << "    ANTENNADIFFSIDEAREARATIO PWL (";
                 for (int kk = 0; kk < model->getDiffSideAreaRatioPWLSize();
                      ++kk) {
-                    std::pair<float, float>* pwl =
+                    auto pwl =
                         model->getDiffSideAreaRatioPWL(kk);
-                    ofs_ << " ( " << pwl->first << " " << pwl->second << " ) ";
+                    ofs_ << " ( " << pwl->data_first << " " << pwl->data_second << " ) ";
                 }
                 ofs_ << ") ;\n";
             } else if (model->getDiffSideAreaRatio() > epsilon) {
@@ -782,9 +806,9 @@ void ExportTechLef::exportLayerAntennaModel(const Layer* layer) {
                 ofs_ << "    ANTENNACUMDIFFSIDEAREARATIO PWL (";
                 for (int kk = 0; kk < model->getCumDiffSideAreaRatioPWLSize();
                      ++kk) {
-                    std::pair<float, float>* pwl =
+                    auto pwl =
                         model->getCumDiffSideAreaRatioPWL(kk);
-                    ofs_ << " ( " << pwl->first << " " << pwl->second << " ) ";
+                    ofs_ << " ( " << pwl->data_first << " " << pwl->data_second << " ) ";
                 }
                 ofs_ << ") ;\n";
             } else if (model->getCumDiffSideAreaRatio() > epsilon) {
@@ -1067,9 +1091,14 @@ void ExportTechLef::exportCutLayer(Layer* layer) {
 }
 
 void ExportTechLef::exportCutSpacing(const CutLayerRule* cut_rule) {
-    CutSpacing* cut_spacing = cut_rule->getCutSpacing();
-    for (; cut_spacing; cut_spacing = cut_spacing->getNext()) {
-        ofs_ << "    SPACING  "
+    ArrayObject<ObjectId> *array = cut_rule->getCutSpacingArray();
+    if (array == nullptr)
+        return;
+    for (ArrayObject<ObjectId>::iterator iter = array->begin(); iter != array->end(); ++iter) {
+        CutSpacing* cut_spacing = Object::addr<CutSpacing>(*iter);
+        if (!cut_spacing)
+            return;
+        ofs_ << "    SPACING  " 
              << tech_lib_->dbuToMicrons(cut_spacing->getSpacing());
         if (cut_spacing->getIsC2C()) {
             ofs_ << " CENTERTOCENTER ";
@@ -1115,8 +1144,13 @@ void ExportTechLef::exportCutSpacing(const CutLayerRule* cut_rule) {
 }
 
 void ExportTechLef::exportEnclosure(const CutLayerRule* cut_rule) {
-    Enclosure* enclosure = cut_rule->getEnclosure();
-    for (; enclosure; enclosure = enclosure->getNext()) {
+    ArrayObject<ObjectId> *array = cut_rule->getEnclosureArray();
+    if (array == nullptr)
+        return;
+    for (ArrayObject<ObjectId>::iterator iter = array->begin(); iter != array->end(); ++iter) {
+        Enclosure* enclosure = Object::addr<Enclosure>(*iter);
+        if (!enclosure)
+            return;
         ofs_ << "    ENCLOSURE  ";
         if (enclosure->getIsAbove()) {
             ofs_ << "ABOVE  ";
@@ -1154,8 +1188,13 @@ void ExportTechLef::exportEnclosure(const CutLayerRule* cut_rule) {
 }
 
 void ExportTechLef::exportPreferEnclosure(const CutLayerRule* cut_rule) {
-    Enclosure* prefer_enclosure = cut_rule->getPreferEnclosure();
-    for (; prefer_enclosure; prefer_enclosure = prefer_enclosure->getNext()) {
+    ArrayObject<ObjectId> *array = cut_rule->getPreferEnclosureArray();
+    if (array == nullptr)
+        return;
+    for (ArrayObject<ObjectId>::iterator iter = array->begin(); iter != array->end(); ++iter) {
+        Enclosure* prefer_enclosure = Object::addr<Enclosure>(*iter);
+        if (!prefer_enclosure)
+            return;
         ofs_ << "    PREFERENCLOSURE  ";
         if (prefer_enclosure->getIsAbove()) {
             ofs_ << "ABOVE  ";
@@ -1181,8 +1220,13 @@ void ExportTechLef::exportPreferEnclosure(const CutLayerRule* cut_rule) {
 }
 
 void ExportTechLef::exportArraySpacing(const CutLayerRule* cut_rule) {
-    ArraySpacing* array_spacing = cut_rule->getArraySpacing();
-    for (; array_spacing; array_spacing = array_spacing->getNext()) {
+    ArrayObject<ObjectId> *array = cut_rule->getArraySpacingArray();
+    if (array == nullptr)
+        return;
+    for (ArrayObject<ObjectId>::iterator iter = array->begin(); iter != array->end(); ++iter) {
+        ArraySpacing* array_spacing = Object::addr<ArraySpacing>(*iter);
+        if (!array_spacing)
+            return;
         ofs_ << "    ARRAYSPACING  ";
         if (array_spacing->getIsLongArray()) {
             ofs_ << "LONGARRAY  ";
