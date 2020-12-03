@@ -115,7 +115,7 @@ class RoutingLayerRule;
 class CutLayerRule;
 class Cell;
 
-class TrimLayerRule {
+class TrimLayerRule : public Object {
   public:
     TrimLayerRule() {
         memset(static_cast<void*>(this), 0, sizeof(TrimLayerRule));
@@ -124,7 +124,7 @@ class TrimLayerRule {
   private:
 };
 
-class MEOLLayerRule {
+class MEOLLayerRule : public Object {
   public:
     MEOLLayerRule() {
         memset(static_cast<void*>(this), 0, sizeof(MEOLLayerRule));
@@ -179,7 +179,12 @@ class MEOLLayerRule {
  *   [ ANTENNACUMDIFFSIDEAREARATIO  { value  | PWL ( ( d1   r1 ) ( d2   r2 ) ...) } ;]
  *   [ ANTENNASIDEAREAFACTOR   value  [DIFFUSEONLY] ;]
  */
-class AntennaModel {
+struct FloatPair {
+    float data_first;
+    float data_second;
+};
+
+class AntennaModel : public Object {
   public:
     AntennaModel() {
         memset(static_cast<void*>(this), 0, sizeof(AntennaModel));
@@ -192,8 +197,8 @@ class AntennaModel {
     void reset();
 
   private:
-    void    release(std::vector<std::pair<float, float>>*& ptr, UInt32 is_ptr_set);
-    void    pushBackPair(std::vector<std::pair<float, float>>*& pairs, float first, float second);
+  //  void    release(std::vector<std::pair<float, float>>*& ptr, UInt32 is_ptr_set);
+  //  void    pushBackPair(std::vector<std::pair<float, float>>*& pairs, float first, float second);
 
   public:
     bool   isSet() const;
@@ -213,28 +218,28 @@ class AntennaModel {
     float  getCumSideAreaRatio() const;
     float  getSideAreaFactor() const;
     float  getDiffAreaRatio() const;
-    std::pair<float, float>* getDiffAreaRatioPWL(UInt32 index) const;
+    FloatPair* getDiffAreaRatioPWL(UInt32 index) const;
     UInt32 getDiffAreaRatioPWLSize() const;
     float  getCumDiffAreaRatio() const;
-    std::pair<float, float>* getCumDiffAreaRatioPWL(UInt32 index) const;
+    FloatPair* getCumDiffAreaRatioPWL(UInt32 index) const;
     UInt32 getCumDiffAreaRatioPWLSize() const;
     UInt32 getGatePlusDiffId() const;
     float  getGatePlusDiff() const;
-    std::pair<float, float>* getGatePlusDiffPWL(UInt32 index) const;
+    FloatPair* getGatePlusDiffPWL(UInt32 index) const;
     UInt32 getGatePlusDiffPWLSize() const;
-    std::pair<float, float>* getAreaDiffReducePWL(UInt32 index) const;
+    FloatPair* getAreaDiffReducePWL(UInt32 index) const;
     UInt32 getAreaDiffReducePWLSize() const;
     UInt32 getDiffGatePWLId() const;
-    std::pair<float, float>* getDiffGatePWL(UInt32 index) const;
+    FloatPair* getDiffGatePWL(UInt32 index) const;
     UInt32 getDiffGatePWLSize() const;
     UInt32 getGatePWLId() const;
-    std::pair<float, float>* getGatePWL(UInt32 index) const;
+    FloatPair* getGatePWL(UInt32 index) const;
     UInt32 getGatePWLSize() const;
     float  getDiffSideAreaRatio() const;
-    std::pair<float, float>* getDiffSideAreaRatioPWL(UInt32 index) const;
+    FloatPair* getDiffSideAreaRatioPWL(UInt32 index) const;
     UInt32 getDiffSideAreaRatioPWLSize() const;
     float  getCumDiffSideAreaRatio() const;
-    std::pair<float, float>* getCumDiffSideAreaRatioPWL(UInt32 index) const;
+    FloatPair* getCumDiffSideAreaRatioPWL(UInt32 index) const;
     UInt32 getCumDiffSideAreaRatioPWLSize() const;
 
     void   setIsSet(bool v);
@@ -282,43 +287,43 @@ class AntennaModel {
     // ANTENNADIFFAREARATIO  cut & routing layers share it
     union {
         float   diff_area_ratio_;  // ANTENNADIFFAREARATIO value
-        std::vector<std::pair<float, float>>* diff_area_ratio_pwl_;  // ANTENNADIFFAREARATIO PWL
+        ObjectId diff_area_ratio_pwl_;  // ANTENNADIFFAREARATIO PWL
     };
 
     // ANTENNACUMDIFFAREARATIO cut & routing layers share it
     union {
         float   cum_diff_area_ratio_; // ANTENNACUMDIFFAREARATIO value
-        std::vector<std::pair<float, float>>* cum_diff_area_ratio_pwl_;
+        ObjectId cum_diff_area_ratio_pwl_;
     };
 
     // ANTENNAGATEPLUSDIFF cut & routing layers share it
     int   gate_plus_diff_id_;  // ANTENNAGATEPLUSDIFF  OXIDE1 | ... | OXIDE32
     union {
         float   gate_plus_diff_;  // ANTENNAGATEPLUSDIFF
-        std::vector<std::pair<float, float>>* gate_plus_diff_pwl_; // ANTENNAGATEPLUSDIFF PWL
+        ObjectId gate_plus_diff_pwl_; // ANTENNAGATEPLUSDIFF PWL
     };
 
     // ANTENNAAREADIFFREDUCEPWL cut & routing layers share it
-    std::vector<std::pair<float, float>>* area_diff_reduce_pwl_; // ANTENNAAREADIFFREDUCEPWL
+    ObjectId area_diff_reduce_pwl_; // ANTENNAAREADIFFREDUCEPWL
 
     // ANTENNADIFFGATEPWL cut & routing layers share it
     int   diff_gate_pwl_id_;  // ANTENNADIFFGATEPWL OXIDE1 | ... | OXIDE32
-    std::vector<std::pair<float, float>>* diff_gate_pwl_; // ANTENNADIFFGATEPWL
+    ObjectId diff_gate_pwl_; // ANTENNADIFFGATEPWL
 
     // ANTENNAGATEPWL cut & routing layers share it
     int   gate_pwl_id_;  // ANTENNAGATEPWL OXIDE1 | ... | OXIDE32
-    std::vector<std::pair<float, float>>* gate_pwl_; // ANTENNAGATEPWL
+    ObjectId gate_pwl_; // ANTENNAGATEPWL
 
     // ANTENNADIFFSIDEAREARATIO routing layer only
     union {
         float   diff_side_area_ratio_;  // ANTENNADIFFSIDEAREARATIO value
-        std::vector<std::pair<float, float>>* diff_side_area_ratio_pwl_; // ANTENNADIFFSIDEAREARATIO PWL
+        ObjectId diff_side_area_ratio_pwl_; // ANTENNADIFFSIDEAREARATIO PWL
     };
 
     // ANTENNACUMDIFFSIDEAREARATIO routing layer only
     union {
         float   cum_diff_side_area_ratio_;  // ANTENNACUMDIFFSIDEAREARATIO value
-        std::vector<std::pair<float, float>>* cum_diff_side_area_ratio_pwl_; // ANTENNACUMDIFFSIDEAREARATIO PWL
+        ObjectId cum_diff_side_area_ratio_pwl_; // ANTENNACUMDIFFSIDEAREARATIO PWL
     };
 
     Bits    is_set_ : 1;  // whether current ANTENNAMODEL is alreayd set or not
@@ -351,6 +356,11 @@ class AntennaModel {
  *        | EXCEPTRECTANGLE
  *        | LAYER  trimLayer  OVERLAP {1 | 2} ] ;..." ;]
  */
+struct UintPair {
+  UInt32 data_first;
+  UInt32 data_second;
+};
+
 class MinArea : public Object {
   public:
     double    getArea() const;
@@ -363,7 +373,7 @@ class MinArea : public Object {
     UInt32    getExceptMaxEdgeLength() const;
     UInt32    getExceptEdgeLength() const;
     bool      isExceptMinSize() const;
-    std::pair<UInt32, UInt32>* getExceptMinSizePair(UInt32 index);
+    UintPair* getExceptMinSizePair(UInt32 index);
     UInt32    getExceptMinSizeSize() const;
     bool      isExceptStep() const;
     UInt32    getExceptStepLength1() const;
@@ -374,7 +384,6 @@ class MinArea : public Object {
     bool      isLayer() const;
     Layer*    getLayer() const;
     UInt32    getOverlap() const;
-    MinArea*  getNext() const;
 
     void      setArea(double area);
     void      setMaskNum(UInt32 num);
@@ -394,9 +403,8 @@ class MinArea : public Object {
     void      setIsRectWidth(bool v);
     void      setRectWidth(UInt32 w);
     void      setIsExceptRectangle(bool v);
-    void      setLayer(Layer* l);
+    void      setLayer(ObjectId l);
     void      setOverlap(UInt32 ol);
-    void      setNext(MinArea* n);
 
   private:
     double    min_area_;                    // AREA minArea
@@ -412,7 +420,7 @@ class MinArea : public Object {
     Bits      layer_overlap_          : 2;  // LAYER x OVERLAP
     Bits      unused_ : 9;
 
-    Layer*    layer_;                       // LAYER trimLayer
+    ObjectId    layer_;                       // LAYER trimLayer
 
     union {
         UInt32  min_width_;                   // EXCEPTMINWIDTH
@@ -421,7 +429,7 @@ class MinArea : public Object {
 
     UInt32 except_edge_min_length_;      // EXCEPTEDGELENGTH minEdgeLength  or edgeLength
     UInt32 except_edge_max_length_;      // EXCEPTEDGELENGTH x maxEdgeLength
-    std::vector<std::pair<UInt32, UInt32>> except_min_size_;  // EXCEPTMINSIZE  {min max} pairs
+    ObjectId except_min_size_;  // EXCEPTMINSIZE  {min max} pairs
     UInt32 except_step_length1_;         // EXCEPTSTEP length1
     UInt32 except_step_length2_;         // EXCEPTSTEP x length2
 };
@@ -467,7 +475,7 @@ class MinArea : public Object {
  *    | CUTAREA  cutArea_1   cutArea_2 ...  ;
  *        TABLEENTRIES  value_1 value_2 ...  } ;]
  */
-class CurrentDen {
+class CurrentDen : public Object {
   public:
     CurrentDen() {
         memset(static_cast<void*>(this), 0, sizeof(CurrentDen));
@@ -485,24 +493,24 @@ class CurrentDen {
     bool    hasTableEntries() const;
     float   getCurrentDen() const;
     // ACCURRENTDENSITY  routing or cut layer
-    float*  getFrequencies() const;
+    ArrayObject<float>* getFrequencies() const;
     float   getFrequency(UInt32 index) const;
     UInt32  getFrequenciesNum() const;
     void    setFrequecies(float* frequencies, UInt32 freq_num);
-    void    setFrequency(float frequency, UInt32 index);
+    void    addFrequency(float frequency);
     void    setFrequenciesNum(UInt32 freq_num);
     // ACCURRENTDENSITY + DCCURRENTDENSITY  routing layer
-    UInt32* getWidths() const;
+    ArrayObject<UInt32> *getWidths() const;
     UInt32  getWidth(UInt32 index) const;
     UInt32  getWidthsNum() const;
-    void    setWidth(UInt32 width, UInt32 index);
+    void    addWidth(UInt32 width);
     void    setWidthsNum(UInt32 widths_num);
     // ACCURRENTDENSITY + DCCURRENTDENSITY  cut layer
-    float* getCutAreas() const;
+    ArrayObject<float> *getCutAreas() const;
     float  getCutArea(UInt32 index) const;
     UInt32  getCutAreasNum() const;
     void    setCurrentDen(float den);
-    void    setCutArea(float cut_area, UInt32 index);
+    void    addCutArea(float cut_area);
     void    setCutAreasNum(UInt32 cut_area_num);
     // ACCURRENTDENSITY PWL
     UInt32  getTempPWLPairNum() const;
@@ -534,14 +542,14 @@ class CurrentDen {
   private:
     float  current_den_;
     union {
-        float  *frequencies_;
-        float  *temp_pwl_;
+        ObjectId  frequencies_;
+        ObjectId  temp_pwl_;
     };
-    float  *table_entries_;
+    ObjectId  table_entries_;
     union {
-        UInt32 *widths_;
-        float *cut_areas_;
-        float  *hours_pwl_;
+        ObjectId widths_;
+        ObjectId cut_areas_;
+        ObjectId hours_pwl_;
     };
     union {
         UInt32 freq_num_;
@@ -569,7 +577,7 @@ using DCCurrentDen = CurrentDen;
  * @brief
  * the container of peak, average, rms current density rules
  */
-class CurrentDenContainer {
+class CurrentDenContainer : public Object {
     enum CurrentDenType {
         kCurrentPeak     = 0,
         kCurrentAverage  = 1,
@@ -578,12 +586,9 @@ class CurrentDenContainer {
         kCurrentMax      = 4
     };
   public:
-    CurrentDenContainer() {
-        memset(static_cast<void*>(this), 0, sizeof(CurrentDenContainer));
-        current_dens_ = new CurrentDen[kCurrentMax];
-    }
+    CurrentDenContainer();
     ~CurrentDenContainer() {
-        delete[] current_dens_;
+        //delete[] current_dens_;
     }
 
   public:
@@ -602,16 +607,16 @@ class CurrentDenContainer {
 
   public:
     // used to set ACCURRENTDENSITY & DCCURRENTDENSITY when lefIn
-    ACCurrentDen* getInitACPeak() const;
-    ACCurrentDen* getInitACAverage() const;
-    ACCurrentDen* getInitACRMS() const;
-    ACCurrentDen* getInitACPeakPWL() const;
-    ACCurrentDen* getInitACAveragePWL() const;
-    ACCurrentDen* getInitACRMSPWL() const;
-    DCCurrentDen* getInitDCAverage() const;
+    ACCurrentDen* getInitACPeak() ;
+    ACCurrentDen* getInitACAverage() ;
+    ACCurrentDen* getInitACRMS() ;
+    ACCurrentDen* getInitACPeakPWL() ;
+    ACCurrentDen* getInitACAveragePWL() ;
+    ACCurrentDen* getInitACRMSPWL() ;
+    DCCurrentDen* getInitDCAverage() ;
 
   private:
-    CurrentDen *current_dens_;
+    ObjectId current_dens_;
 };
 
 template <typename ObjectClassName> class ArrayObjectIter {
@@ -717,35 +722,35 @@ class Layer : public Object {
     ObjectId getMinAreaRuleId() const;
 
     Layer* getRegionLayer() const;
-    void   setRegionLayer(Layer* v);
+    void   setRegionLayer(ObjectId v);
 
     Layer* getRegionBaseLayer() const;
-    void   setRegionBaseLayer(Layer* l);
+    void   setRegionBaseLayer(ObjectId l);
 
     const AntennaModel* getAntennaModel(UInt32 index) const;
 
     AntennaModel* getInitAntennaModel(UInt32 index);
 
     CurrentDenContainer* getACCurrentDenContainer() const;
-    void   setACCurrentDenContainer(CurrentDenContainer* den);
+    void   setACCurrentDenContainer(ObjectId den);
 
     CurrentDenContainer* getDCCurrentDenContainer() const;
-    void   setDCCurrentDenContainer(CurrentDenContainer* den);
+    void   setDCCurrentDenContainer(ObjectId den);
 
     ImplantLayerRule* getImplantLayerRule() const;
-    void   setImplantLayerRule(ImplantLayerRule* r);
+    void   setImplantLayerRule(ObjectId r);
 
     RoutingLayerRule* getRoutingLayerRule() const;
-    void   setRoutingLayerRule(RoutingLayerRule* r);
+    void   setRoutingLayerRule(ObjectId r);
 
     CutLayerRule* getCutLayerRule() const;
-    void   setCutLayerRule(CutLayerRule* r);
+    void   setCutLayerRule(ObjectId r);
 
     TrimLayerRule* getTrimLayerRule() const;
-    void   setTrimLayerRule(TrimLayerRule* r);
+    void   setTrimLayerRule(ObjectId r);
 
     MEOLLayerRule* getMEOLLayerRule() const;
-    void   setMEOLLayerRule(MEOLLayerRule* r);
+    void   setMEOLLayerRule(ObjectId r);
 
     void addProp(ObjectId obj_id);
     ObjectId getPropId() const;
@@ -776,21 +781,22 @@ class Layer : public Object {
     // UInt32   min_spacing_;
     UInt32   width_;              /**< cut size or default wire width: WIDTH */
     ObjectId min_area_id_;       /**< MINAREA for routing layer, implant layer and trim layer */
-    Layer*   region_layer_;      /**< cut/routing layer LEF58_REGION REGION regionLayerName */
-    Layer*   base_layer_;        /**< cut/routing/trim layer*/
-    AntennaModel antenna_[kMaxOxideNum];  /**< antennamodel, from index 1 and index 32 for OXIDE1, ..., OXIDE32, 0 is not used. default is OXIDE1 */
-    CurrentDenContainer* ac_dens_;  /**< ACCURRENTDENSITY */
-    CurrentDenContainer* dc_dens_;  /**< DCCURRENTDENSITY */
-    CurrentDenContainer* ac_pwl_;   /**< ACCURRENTDENSITY TEMPPWL or HOURSPWL */
+    ObjectId   region_layer_;      /**< cut/routing layer LEF58_REGION REGION regionLayerName */
+    ObjectId   base_layer_;        /**< cut/routing/trim layer*/
+    ObjectId antenna_;  /**< antennamodel, from index 1 and index 32 for OXIDE1, ..., OXIDE32, 0 is not used. default is OXIDE1 */
+    ObjectId ac_dens_;  /**< ACCURRENTDENSITY */
+    ObjectId dc_dens_;  /**< DCCURRENTDENSITY */
+    ObjectId ac_pwl_;   /**< ACCURRENTDENSITY TEMPPWL or HOURSPWL */
     ObjectId             properties_;
 
-    union {
-        ImplantLayerRule* implant_;
-        RoutingLayerRule* routing_; /**< routing layer rules */
-        CutLayerRule*     cut_;    /**< cut layer rules */
-        TrimLayerRule*    trim_;   /**< trimmetal layer rules */
-        MEOLLayerRule*    meol_;   /**< middle-end-of-line layer rules */
-    } layer_rule_;
+    // union {
+    //     ImplantLayerRule* implant_;
+    //     RoutingLayerRule* routing_; /**< routing layer rules */
+    //     CutLayerRule*     cut_;    /**< cut layer rules */
+    //     TrimLayerRule*    trim_;   /**< trimmetal layer rules */
+    //     MEOLLayerRule*    meol_;   /**< middle-end-of-line layer rules */
+    // } layer_rule_;
+    ObjectId layer_rule_;
 };
 
 }  // namespace db

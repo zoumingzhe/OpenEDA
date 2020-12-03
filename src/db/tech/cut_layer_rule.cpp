@@ -11,6 +11,7 @@
 #include "db/tech/cut_layer_rule.h"
 
 #include "db/util/vector_object_var.h"
+#include "db/core/cell.h"
 
 namespace open_edi {
 namespace db {
@@ -20,10 +21,10 @@ namespace db {
  * constructor of CutLayerRule
  */
 CutLayerRule::CutLayerRule() {
-    cut_spacing_ = 0;
-    enclosure_ = 0;
-    prefer_enclosure_ = 0;
-    array_spacing_ = 0;
+    cut_spacings_ = 0;
+    enclosures_ = 0;
+    prefer_enclosures_ = 0;
+    array_spacings_ = 0;
 }
 
 /**
@@ -38,16 +39,50 @@ CutLayerRule::~CutLayerRule() {}
  *
  * @return
  */
-CutSpacing *CutLayerRule::getCutSpacing() const { return cut_spacing_; }
 
+ArrayObject<ObjectId> *CutLayerRule::getCutSpacingArray() const {
+    if (cut_spacings_ != 0) {
+        ArrayObject<ObjectId> *cut_space_array = addr<ArrayObject<ObjectId>>(cut_spacings_);
+        return cut_space_array;
+    } else {
+        return nullptr;
+    }
+}
+
+CutSpacing *CutLayerRule::getCutSpacing(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (cut_spacings_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(cut_spacings_);
+    }
+    if (vct) {
+        CutSpacing *obj_data = addr<CutSpacing>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
 /**
  * @brief
  * set cut spacing rule
  *
  * @param cut_spacing
  */
-void CutLayerRule::setCutSpacing(CutSpacing *cut_spacing) {
-    cut_spacing_ = cut_spacing;
+
+void CutLayerRule::addCutSpacing(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (cut_spacings_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        cut_spacings_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(cut_spacings_);
+    }
+    if (vct) vct->pushBack(id);
 }
 
 /**
@@ -56,15 +91,50 @@ void CutLayerRule::setCutSpacing(CutSpacing *cut_spacing) {
  *
  * @return
  */
-Enclosure *CutLayerRule::getEnclosure() const { return enclosure_; }
+ArrayObject<ObjectId> *CutLayerRule::getEnclosureArray() const{
+    if (enclosures_ != 0) {
+        ArrayObject<ObjectId> *enclosure_array = addr<ArrayObject<ObjectId>>(enclosures_);
+        return enclosure_array;
+    } else {
+        return nullptr;
+    }
+}
 
+Enclosure *CutLayerRule::getEnclosure(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (enclosures_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(enclosures_);
+    }
+    if (vct) {
+        Enclosure *obj_data = addr<Enclosure>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
 /**
  * @brief
  * set enclosure rule
  *
  * @param enc
  */
-void CutLayerRule::setEnclosure(Enclosure *enc) { enclosure_ = enc; }
+
+void CutLayerRule::addEnclosure(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (enclosures_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        enclosures_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(enclosures_);
+    }
+    if (vct) vct->pushBack(id);
+}
 
 /**
  * @brief
@@ -72,8 +142,30 @@ void CutLayerRule::setEnclosure(Enclosure *enc) { enclosure_ = enc; }
  *
  * @return
  */
-Enclosure *CutLayerRule::getPreferEnclosure() const {
-    return prefer_enclosure_;
+
+ArrayObject<ObjectId> *CutLayerRule::getPreferEnclosureArray() const {
+    if (prefer_enclosures_ != 0) {
+        ArrayObject<ObjectId> *prefer_enclosure_array = addr<ArrayObject<ObjectId>>(prefer_enclosures_);
+        return prefer_enclosure_array;
+    } else {
+        return nullptr;
+    }
+}
+
+Enclosure *CutLayerRule::getPreferEnclosure(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (prefer_enclosures_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(prefer_enclosures_);
+    }
+    if (vct) {
+        Enclosure *obj_data = addr<Enclosure>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
 }
 
 /**
@@ -82,8 +174,18 @@ Enclosure *CutLayerRule::getPreferEnclosure() const {
  *
  * @param enc
  */
-void CutLayerRule::setPreferEnclosure(Enclosure *enc) {
-    prefer_enclosure_ = enc;
+void CutLayerRule::addPreferEnclosure(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (prefer_enclosures_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        prefer_enclosures_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(prefer_enclosures_);
+    }
+    if (vct) vct->pushBack(id);
 }
 
 /**
@@ -92,16 +194,48 @@ void CutLayerRule::setPreferEnclosure(Enclosure *enc) {
  *
  * @return
  */
-ArraySpacing *CutLayerRule::getArraySpacing() const { return array_spacing_; }
+ArrayObject<ObjectId> *CutLayerRule::getArraySpacingArray() const {
+    if (array_spacings_ != 0) {
+        ArrayObject<ObjectId> *array_spacings_array = addr<ArrayObject<ObjectId>>(array_spacings_);
+        return array_spacings_array;
+    } else {
+        return nullptr;
+    }
+}
 
+ArraySpacing *CutLayerRule::getArraySpacing(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (array_spacings_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(array_spacings_);
+    }
+    if (vct) {
+        ArraySpacing *obj_data = addr<ArraySpacing>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
 /**
  * @brief
  * set array spacing rule
  *
  * @param array_spacing
  */
-void CutLayerRule::setArraySpacing(ArraySpacing *array_spacing) {
-    array_spacing_ = array_spacing;
+void CutLayerRule::addArraySpacing(ObjectId id) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (array_spacings_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        array_spacings_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(array_spacings_);
+    }
+    if (vct) vct->pushBack(id);
 }
 
 /**
@@ -114,7 +248,7 @@ CutSpacing::CutSpacing() {
     is_same_net_ = false;
     cut_area_ = 0;
     cut_spacing_type_ = 0;
-    cut_sp_rules_.second_layer_ = 0;
+    cut_sp_rules_ = 0;
 }
 
 /**
@@ -222,7 +356,11 @@ void CutSpacing::setIsSecondLayer() {
  * @return
  */
 SecondLayer *CutSpacing::getSecondLayer() const {
-    return cut_sp_rules_.second_layer_;
+    if (getIsSecondLayer()) {
+        SecondLayer *obj_data = addr<SecondLayer>(cut_sp_rules_);
+        return obj_data;
+    }
+    return nullptr;
 }
 
 /**
@@ -231,8 +369,8 @@ SecondLayer *CutSpacing::getSecondLayer() const {
  *
  * @param sec_layer
  */
-void CutSpacing::setSecondLayer(SecondLayer *sec_layer) {
-    cut_sp_rules_.second_layer_ = sec_layer;
+void CutSpacing::setSecondLayer(ObjectId id) {
+    cut_sp_rules_ = id;
 }
 
 /**
@@ -261,7 +399,13 @@ void CutSpacing::setIsAdjCuts() {
  *
  * @return
  */
-AdjacentCuts *CutSpacing::getAdjCuts() const { return cut_sp_rules_.adj_cuts_; }
+AdjacentCuts *CutSpacing::getAdjCuts() const {
+    if (getIsAdjCuts()) {
+        AdjacentCuts *obj_data = addr<AdjacentCuts>(cut_sp_rules_);
+        return obj_data;
+    }
+    return nullptr;
+}
 
 /**
  * @brief
@@ -269,8 +413,8 @@ AdjacentCuts *CutSpacing::getAdjCuts() const { return cut_sp_rules_.adj_cuts_; }
  *
  * @param adj_cuts
  */
-void CutSpacing::setAdjCuts(AdjacentCuts *adj_cuts) {
-    cut_sp_rules_.adj_cuts_ = adj_cuts;
+void CutSpacing::setAdjCuts(ObjectId id) {
+    cut_sp_rules_ = id;
 }
 
 /**
@@ -300,7 +444,11 @@ void CutSpacing::setIsParallelOverlap() {
  * @return
  */
 CutSpacingPrlOvlp *CutSpacing::getParallelOverlap() const {
-    return cut_sp_rules_.prl_ovlp_;
+    if (getIsParallelOverlap()) {
+        CutSpacingPrlOvlp *obj_data = addr<CutSpacingPrlOvlp>(cut_sp_rules_);
+        return obj_data;
+    }
+    return nullptr;
 }
 
 /**
@@ -309,25 +457,9 @@ CutSpacingPrlOvlp *CutSpacing::getParallelOverlap() const {
  *
  * @param prl_ovlp
  */
-void CutSpacing::setParallelOverlap(CutSpacingPrlOvlp *prl_ovlp) {
-    cut_sp_rules_.prl_ovlp_ = prl_ovlp;
+void CutSpacing::setParallelOverlap(ObjectId id) {
+    cut_sp_rules_ = id;
 }
-
-/**
- * @brief
- * get next cut spacing class
- *
- * @return
- */
-CutSpacing *CutSpacing::getNext() const { return next_; }
-
-/**
- * @brief
- * set next cut spacing class
- *
- * @param next
- */
-void CutSpacing::setNext(CutSpacing *next) { next_ = next; }
 
 /**
  * @brief
@@ -385,7 +517,6 @@ AdjacentCuts::AdjacentCuts() {
     ;
     cut_within_ = 0;
     is_except_same_pg_net_ = false;
-    next_ = 0;
 }
 
 /**
@@ -448,22 +579,6 @@ void AdjacentCuts::setIsExceptSamePGNet(bool flag) {
 
 /**
  * @brief
- * get next AdjacentCuts class
- *
- * @return
- */
-AdjacentCuts *AdjacentCuts::getNext() const { return next_; }
-
-/**
- * @brief
- * set next AdjacentCuts class
- *
- * @param next
- */
-void AdjacentCuts::setNext(AdjacentCuts *next) { next_ = next; }
-
-/**
- * @brief
  * constructor of CutSpacingPrlOvlp
  */
 CutSpacingPrlOvlp::CutSpacingPrlOvlp() { is_parallel_overlap_ = false; }
@@ -502,8 +617,7 @@ Enclosure::Enclosure() {
     is_above_ = false;
     is_below_ = false;
     enclosure_type_ = 0;
-    enclosure_rules_.enc_eol_ = 0;
-    next_ = 0;
+    enclosure_rules_= 0;
 }
 
 /**
@@ -568,7 +682,13 @@ void Enclosure::setIsEol() { enclosure_type_ |= enclosure_is_eol; }
  *
  * @return
  */
-EnclosureEol *Enclosure::getEol() const { return enclosure_rules_.enc_eol_; }
+EnclosureEol *Enclosure::getEol() const {
+    if (getIsEol()) {
+        EnclosureEol *obj_data = addr<EnclosureEol>(enclosure_rules_);
+        return obj_data;
+    }
+    return nullptr;
+}
 
 /**
  * @brief
@@ -576,8 +696,8 @@ EnclosureEol *Enclosure::getEol() const { return enclosure_rules_.enc_eol_; }
  *
  * @param enc_eol
  */
-void Enclosure::setEol(EnclosureEol *enc_eol) {
-    enclosure_rules_.enc_eol_ = enc_eol;
+void Enclosure::setEol(ObjectId id) {
+    enclosure_rules_ = id;
 }
 
 /**
@@ -605,7 +725,11 @@ void Enclosure::setIsOverhang() { enclosure_type_ |= enclosure_is_overhang; }
  * @return
  */
 EnclosureOverhang *Enclosure::getOverhang() const {
-    return enclosure_rules_.enc_overhang_;
+    if (getIsOverhang()) {
+        EnclosureOverhang *obj_data = addr<EnclosureOverhang>(enclosure_rules_);
+        return obj_data;
+    }
+    return nullptr;
 }
 
 /**
@@ -614,25 +738,9 @@ EnclosureOverhang *Enclosure::getOverhang() const {
  *
  * @param enc_overhang
  */
-void Enclosure::setOverhang(EnclosureOverhang *enc_overhang) {
-    enclosure_rules_.enc_overhang_ = enc_overhang;
+void Enclosure::setOverhang(ObjectId id) {
+    enclosure_rules_ = id;
 }
-
-/**
- * @brief
- * get next Enclosure class
- *
- * @return
- */
-Enclosure *Enclosure::getNext() const { return next_; }
-
-/**
- * @brief
- * set next Enclosure class
- *
- * @param next
- */
-void Enclosure::setNext(Enclosure *next) { next_ = next; }
 
 /**
  * @brief
@@ -773,7 +881,6 @@ ArraySpacing::ArraySpacing() {
     num_array_cuts_ = 0;
     array_cuts_ = 0;
     array_spacing_ = 0;
-    next_ = 0;
 }
 
 /**
@@ -782,11 +889,9 @@ ArraySpacing::ArraySpacing() {
  */
 ArraySpacing::~ArraySpacing() {
     if (array_cuts_) {
-        delete[] array_cuts_;
         array_cuts_ = 0;
     }
     if (array_spacing_) {
-        delete[] array_spacing_;
         array_spacing_ = 0;
     }
 }
@@ -867,8 +972,8 @@ Int32 ArraySpacing::getNumArrayCuts() const { return num_array_cuts_; }
  */
 void ArraySpacing::setNumArrayCuts(Int32 num) {
     num_array_cuts_ = num;
-    array_cuts_ = new Int32[num];
-    array_spacing_ = new Int32[num];
+    //array_cuts_ = new Int32[num];
+    //array_spacing_ = new Int32[num];
 }
 
 /**
@@ -877,7 +982,14 @@ void ArraySpacing::setNumArrayCuts(Int32 num) {
  *
  * @return
  */
-Int32 *ArraySpacing::getArrayCuts() const { return array_cuts_; }
+ArrayObject<Int32> *ArraySpacing::getArrayCuts() const { 
+    if (array_cuts_ != 0) {
+        ArrayObject<Int32> *array_cuts_array = addr<ArrayObject<Int32>>(array_cuts_);
+        return array_cuts_array;
+    } else {
+        return nullptr;
+    }
+}
 
 /**
  * @brief
@@ -889,7 +1001,14 @@ Int32 ArraySpacing::getArrayCuts(Int32 idx) const {
     if (idx >= num_array_cuts_) {
         return -1;
     }
-    return array_cuts_[idx];
+    
+    if (array_cuts_ == 0) 
+        return -1;
+    ArrayObject<Int32> *array_ptr = addr< ArrayObject<Int32> >(array_cuts_);
+    if (array_ptr == nullptr)
+        return -1;
+
+    return (*array_ptr)[idx];
 }
 
 /**
@@ -898,11 +1017,19 @@ Int32 ArraySpacing::getArrayCuts(Int32 idx) const {
  *
  * @param idx, array_cuts
  */
-void ArraySpacing::setArrayCuts(Int32 idx, Int32 array_cuts) {
-    if (idx >= num_array_cuts_) {
-        return;
+void ArraySpacing::addArrayCuts(Int32 array_cuts) {
+    ArrayObject<Int32> *array_ptr = nullptr;
+    if (array_cuts_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        array_cuts_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<Int32> >(array_cuts_);
     }
-    array_cuts_[idx] = array_cuts;
+
+    if (array_ptr) array_ptr->pushBack(array_cuts);
 }
 
 /**
@@ -911,7 +1038,14 @@ void ArraySpacing::setArrayCuts(Int32 idx, Int32 array_cuts) {
  *
  * @return
  */
-Int32 *ArraySpacing::getArraySpacing() const { return array_spacing_; }
+ArrayObject<Int32> *ArraySpacing::getArraySpacing() const { 
+    if (array_spacing_ != 0) {
+        ArrayObject<Int32> *array_spacing_array = addr<ArrayObject<Int32>>(array_spacing_);
+        return array_spacing_array;
+    } else {
+        return nullptr;
+    }
+}
 
 /**
  * @brief
@@ -923,7 +1057,14 @@ Int32 ArraySpacing::getArraySpacing(Int32 idx) const {
     if (idx >= num_array_cuts_) {
         return -1;
     }
-    return array_spacing_[idx];
+    
+    if (array_spacing_ == 0) 
+        return -1;
+    ArrayObject<Int32> *array_ptr = addr< ArrayObject<Int32> >(array_spacing_);
+    if (array_ptr == nullptr)
+        return -1;
+
+    return (*array_ptr)[idx];
 }
 
 /**
@@ -932,11 +1073,19 @@ Int32 ArraySpacing::getArraySpacing(Int32 idx) const {
  *
  * @param idx, array_spacing
  */
-void ArraySpacing::setArraySpacing(Int32 idx, Int32 array_spacing) {
-    if (idx >= num_array_cuts_) {
-        return;
+void ArraySpacing::addArraySpacing(Int32 array_spacing) {
+    ArrayObject<Int32> *array_ptr = nullptr;
+    if (array_spacing_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        array_spacing_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<Int32> >(array_spacing_);
     }
-    array_spacing_[idx] = array_spacing;
+
+    if (array_ptr) array_ptr->pushBack(array_spacing);
 }
 
 /**
@@ -948,29 +1097,11 @@ void ArraySpacing::setArraySpacing(Int32 idx, Int32 array_spacing) {
 void ArraySpacing::setArray(Int32 num_array_cuts, Int32 *array_cuts,
                             Int32 *array_spacing) {
     num_array_cuts_ = num_array_cuts;
-    array_cuts_ = new Int32[num_array_cuts];
-    array_spacing_ = new Int32[num_array_cuts];
     for (Int32 i = 0; i < num_array_cuts; i++) {
-        array_cuts_[i] = array_cuts[i];
-        array_spacing_[i] = array_spacing[i];
+        addArrayCuts(array_cuts[i]);
+        addArraySpacing(array_spacing[i]);
     }
 }
-
-/**
- * @brief
- * get next ArraySpacing
- *
- * @return
- */
-ArraySpacing *ArraySpacing::getNext() const { return next_; }
-
-/**
- * @brief
- * set next ArraySpacing class
- *
- * @param next
- */
-void ArraySpacing::setNext(ArraySpacing *next) { next_ = next; }
 
 }  // namespace db
 }  // namespace open_edi
