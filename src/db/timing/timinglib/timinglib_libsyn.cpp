@@ -28,7 +28,7 @@
 namespace Timinglib {
 
 LibSyn::LibSyn(LibBuilder *lb) : libbuilder_(lb) {
-    if (libbuilder_) libbuilder_->set_lib_syn(this);
+    if (libbuilder_) libbuilder_->setLibSyn(this);
 }
 
 LibSyn::~LibSyn() {
@@ -51,37 +51,37 @@ bool LibSyn::parseLibertyFile(const char *const filename,
     analysis_->si2drPISetNocheckMode(&err);
 
     si2drMessageHandlerT msg = analysis_->si2drPIGetMessageHandler(&err);
-    std::string str = string_format("Reading %s...", filename);
+    std::string str = stringFormat("Reading %s...", filename);
     (analysis_->*msg)(kSI2DR_SEVERITY_NOTE, kSI2DR_NO_ERROR,
                       si2drStringT(str.c_str()), &err);
 
     FILE *fp = fp = fopen(filename, "r");
     if (fp == nullptr) {
-        str = string_format("Could not open %s for parsing.", filename);
+        str = stringFormat("Could not open %s for parsing.", filename);
         (analysis_->*msg)(kSI2DR_SEVERITY_ERR, kSI2DR_NO_ERROR,
                           si2drStringT(str.c_str()), &err);
         return false;
     }
 
-    __lib_scan_begin(fp);
+    __libScanBegin(fp);
     const int accept(0);
-    if (__lib_parse() != accept) {
+    if (__libParse() != accept) {
         if (msg != nullptr) {
-            str = string_format("Parsing %s failed.", filename);
+            str = stringFormat("Parsing %s failed.", filename);
             (analysis_->*msg)(kSI2DR_SEVERITY_ERR, kSI2DR_NO_ERROR,
                               si2drStringT(str.c_str()), &err);
         }
-        __lib_scan_end(fp);
+        __libScanEnd(fp);
         fclose(fp);
         return false;
     }
 
     if (msg != nullptr) {
-        str = string_format("Parsing %s finished.", filename);
+        str = stringFormat("Parsing %s finished.", filename);
         (analysis_->*msg)(kSI2DR_SEVERITY_NOTE, kSI2DR_NO_ERROR,
                           si2drStringT(str.c_str()), &err);
     }
-    __lib_scan_end(fp);
+    __libScanEnd(fp);
     fclose(fp);
 
     return true;
@@ -101,16 +101,15 @@ bool LibSyn::dumpLibFile(const char *const filename,
 
 LibAnalysis *LibSyn::getAnalysis(void) { return analysis_; }
 
-bool LibSyn::parse_desc_file() {
+bool LibSyn::parseDescFile() {
     if (analysis_ == nullptr) analysis_ = new LibAnalysis(libbuilder_);
 
     scandata *sd = analysis_->getScandata();
 
     DIR *dirp;
     struct dirent *dp;
-    sd->libsynt_allgroups =
-        LibHash::timinglib_hash_create_hash_table(503, 1, 0);
-    sd->libsynt_attrs = LibHash::timinglib_hash_create_hash_table(503, 1, 0);
+    sd->libsynt_allgroups = LibHash::timinglibHashCreateHashTable(503, 1, 0);
+    sd->libsynt_attrs = LibHash::timinglibHashCreateHashTable(503, 1, 0);
     dirp = opendir("./desc");
     while ((dp = readdir(dirp)) != NULL) {
         if (strncmp(dp->d_name, "syntax.", 7) == 0 && strlen(dp->d_name) > 8) {
@@ -118,7 +117,7 @@ bool LibSyn::parse_desc_file() {
             /* foreach file in the desc dir */
             /* form the master hash tables */
             sd->libsynt_techs[sd->libsynt_tech_count].group_hash =
-                LibHash::timinglib_hash_create_hash_table(503, 1, 0);
+                LibHash::timinglibHashCreateHashTable(503, 1, 0);
             sd->libsynt_groups =
                 sd->libsynt_techs[sd->libsynt_tech_count].group_hash;
             sd->libsynt_techs[sd->libsynt_tech_count].name =
@@ -138,16 +137,16 @@ bool LibSyn::parse_desc_file() {
                 closedir(dirp);
                 return false;
             }
-            __desc_scan_begin(fp);
+            __descScanBegin(fp);
             const int accept(0);
-            if (__desc_parse() != accept) {
+            if (__descParse() != accept) {
                 printf("Parse failed!!\n");
-                __desc_scan_end(fp);
+                __descScanEnd(fp);
                 fclose(fp);
                 closedir(dirp);
                 return false;
             }
-            __desc_scan_end(fp);
+            __descScanEnd(fp);
             fclose(fp);
         }
     }

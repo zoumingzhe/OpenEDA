@@ -91,10 +91,10 @@ void syntax_error(yyscan_t scanner, Timinglib::LibAnalysis &, const char *str);
 file	: group { SD->libsynt_techs[SD->libsynt_tech_count++].lib = $1; }
 		;
 
-group	: head LCURLY {libAnalysis.syntax_push_group($1);} statements RCURLY {$$ = SD->gsinfo[SD->gsindex-1];libAnalysis.syntax_pop_group();}
-        | head LCURLY {libAnalysis.syntax_push_group($1);} RCURLY {Timinglib::si2drObjectIdT toid;  $$ = SD->gsinfo[SD->gsindex-1]; Timinglib::LibHash::timinglib_hash_lookup(SD->libsynt_groups, SD->gsinfo[SD->gsindex-1]->type, &toid);
+group	: head LCURLY {libAnalysis.syntaxPushGroup($1);} statements RCURLY {$$ = SD->gsinfo[SD->gsindex-1];libAnalysis.syntaxPopGroup();}
+        | head LCURLY {libAnalysis.syntaxPushGroup($1);} RCURLY {Timinglib::si2drObjectIdT toid;  $$ = SD->gsinfo[SD->gsindex-1]; Timinglib::LibHash::timinglibHashLookup(SD->libsynt_groups, SD->gsinfo[SD->gsindex-1]->type, &toid);
                                                 if( toid.v1 != (void*)NULL )$$->ref =(Timinglib::libsynt_group_info*)toid.v1;
-                                                else {printf("Error: line %d: Couldn't find group %s\n",$1->lineno,$1->ident); } libAnalysis.syntax_pop_group();}
+                                                else {printf("Error: line %d: Couldn't find group %s\n",$1->lineno,$1->ident); } libAnalysis.syntaxPopGroup();}
 		;
 
 
@@ -103,22 +103,22 @@ statements 	: statement {}
 			;
 
 
-statement 	: simple_attr {Timinglib::si2drObjectIdT toid; toid.v1 = (void*)$1;Timinglib::LibHash::timinglib_hash_enter_oid(SD->gsinfo[SD->gsindex-1]->attr_hash, $1->name, toid);$1->next = SD->gsinfo[SD->gsindex-1]->attr_list; SD->gsinfo[SD->gsindex-1]->attr_list = $1; }
-			| complex_attr {Timinglib::si2drObjectIdT toid;toid.v1 = (void*)$1;Timinglib::LibHash::timinglib_hash_enter_oid(SD->gsinfo[SD->gsindex-1]->attr_hash, $1->name, toid);$1->next = SD->gsinfo[SD->gsindex-1]->attr_list; SD->gsinfo[SD->gsindex-1]->attr_list = $1;}
-			| group  {Timinglib::si2drObjectIdT toid;toid.v1 = (void*)$1;Timinglib::LibHash::timinglib_hash_enter_oid(SD->gsinfo[SD->gsindex-1]->group_hash, $1->type,toid);$1->next = SD->gsinfo[SD->gsindex-1]->group_list; SD->gsinfo[SD->gsindex-1]->group_list = $1;}
+statement 	: simple_attr {Timinglib::si2drObjectIdT toid; toid.v1 = (void*)$1;Timinglib::LibHash::timinglibHashEnterOid(SD->gsinfo[SD->gsindex-1]->attr_hash, $1->name, toid);$1->next = SD->gsinfo[SD->gsindex-1]->attr_list; SD->gsinfo[SD->gsindex-1]->attr_list = $1; }
+			| complex_attr {Timinglib::si2drObjectIdT toid;toid.v1 = (void*)$1;Timinglib::LibHash::timinglibHashEnterOid(SD->gsinfo[SD->gsindex-1]->attr_hash, $1->name, toid);$1->next = SD->gsinfo[SD->gsindex-1]->attr_list; SD->gsinfo[SD->gsindex-1]->attr_list = $1;}
+			| group  {Timinglib::si2drObjectIdT toid;toid.v1 = (void*)$1;Timinglib::LibHash::timinglibHashEnterOid(SD->gsinfo[SD->gsindex-1]->group_hash, $1->type,toid);$1->next = SD->gsinfo[SD->gsindex-1]->group_list; SD->gsinfo[SD->gsindex-1]->group_list = $1;}
 			;
 
-simple_attr	: IDENT COLON KW_VIRTATTR SEMI{ $$ = libAnalysis.syntax_make_simple($1,Timinglib::kSYNTAX_ATTRTYPE_VIRTUAL,0);} 
-            | IDENT COLON KW_STRING SEMI{ $$ = libAnalysis.syntax_make_simple($1,Timinglib::kSYNTAX_ATTRTYPE_STRING,0);} 
-            | IDENT COLON KW_STRING string_enum SEMI{ $$ = libAnalysis.syntax_make_simple($1,Timinglib::kSYNTAX_ATTRTYPE_ENUM, $4);} 
-            | IDENT COLON KW_FLOAT float_constraint  SEMI{ $$ = libAnalysis.syntax_make_simple($1,Timinglib::kSYNTAX_ATTRTYPE_FLOAT,$4);}
-            | IDENT COLON KW_FLOAT SEMI{ $$ = libAnalysis.syntax_make_simple($1,Timinglib::kSYNTAX_ATTRTYPE_FLOAT,0);}
-            | IDENT COLON KW_ENUM string_enum SEMI{ $$ = libAnalysis.syntax_make_simple($1,Timinglib::kSYNTAX_ATTRTYPE_ENUM, $4);} 
-            | IDENT COLON KW_SHORT SEMI{ $$ = libAnalysis.syntax_make_simple($1,Timinglib::kSYNTAX_ATTRTYPE_INT,0);} 
-            | IDENT COLON KW_SHORT int_constraint SEMI{ $$ = libAnalysis.syntax_make_simple($1,Timinglib::kSYNTAX_ATTRTYPE_INT,$4);} 
-            | IDENT COLON KW_INTEGER SEMI{ $$ = libAnalysis.syntax_make_simple($1,Timinglib::kSYNTAX_ATTRTYPE_INT,0);} 
-            | IDENT COLON KW_INTEGER int_constraint SEMI{ $$ = libAnalysis.syntax_make_simple($1,Timinglib::kSYNTAX_ATTRTYPE_INT,$4);} 
-            | IDENT COLON KW_BOOLEAN SEMI{ $$ = libAnalysis.syntax_make_simple($1,Timinglib::kSYNTAX_ATTRTYPE_BOOLEAN,0);} 
+simple_attr	: IDENT COLON KW_VIRTATTR SEMI{ $$ = libAnalysis.syntaxMakeSimple($1,Timinglib::kSYNTAX_ATTRTYPE_VIRTUAL,0);} 
+            | IDENT COLON KW_STRING SEMI{ $$ = libAnalysis.syntaxMakeSimple($1,Timinglib::kSYNTAX_ATTRTYPE_STRING,0);} 
+            | IDENT COLON KW_STRING string_enum SEMI{ $$ = libAnalysis.syntaxMakeSimple($1,Timinglib::kSYNTAX_ATTRTYPE_ENUM, $4);} 
+            | IDENT COLON KW_FLOAT float_constraint  SEMI{ $$ = libAnalysis.syntaxMakeSimple($1,Timinglib::kSYNTAX_ATTRTYPE_FLOAT,$4);}
+            | IDENT COLON KW_FLOAT SEMI{ $$ = libAnalysis.syntaxMakeSimple($1,Timinglib::kSYNTAX_ATTRTYPE_FLOAT,0);}
+            | IDENT COLON KW_ENUM string_enum SEMI{ $$ = libAnalysis.syntaxMakeSimple($1,Timinglib::kSYNTAX_ATTRTYPE_ENUM, $4);} 
+            | IDENT COLON KW_SHORT SEMI{ $$ = libAnalysis.syntaxMakeSimple($1,Timinglib::kSYNTAX_ATTRTYPE_INT,0);} 
+            | IDENT COLON KW_SHORT int_constraint SEMI{ $$ = libAnalysis.syntaxMakeSimple($1,Timinglib::kSYNTAX_ATTRTYPE_INT,$4);} 
+            | IDENT COLON KW_INTEGER SEMI{ $$ = libAnalysis.syntaxMakeSimple($1,Timinglib::kSYNTAX_ATTRTYPE_INT,0);} 
+            | IDENT COLON KW_INTEGER int_constraint SEMI{ $$ = libAnalysis.syntaxMakeSimple($1,Timinglib::kSYNTAX_ATTRTYPE_INT,$4);} 
+            | IDENT COLON KW_BOOLEAN SEMI{ $$ = libAnalysis.syntaxMakeSimple($1,Timinglib::kSYNTAX_ATTRTYPE_BOOLEAN,0);} 
             ;
 
 string_enum : LPAR s_or_i_list RPAR {
@@ -172,7 +172,7 @@ int_constraint :  LPAR GREATERTHAN NUM RPAR {$$ = (Timinglib::libsynt_int_constr
 
 
 
-complex_attr 	: head  SEMI  { $$= libAnalysis.syntax_make_complex($1);}
+complex_attr 	: head  SEMI  { $$= libAnalysis.syntaxMakeComplex($1);}
 				;
 
 head	: IDENT LPAR arg_or_namelist RPAR { $$ = $3; $$->ident = $1; $$->lineno = SD->lineno;}

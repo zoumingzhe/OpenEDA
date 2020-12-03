@@ -92,8 +92,8 @@ void yyerror(yyscan_t scanner, Timinglib::LibAnalysis &, const char *str);
 file : {SD->lineno = 1; SD->syntax_errors= 0;} group {}
      ;
 
-group	: head LCURLY {libAnalysis.push_group($1);} statements RCURLY {libAnalysis.pop_group($1);}
-        | head LCURLY {libAnalysis.push_group($1);} RCURLY {libAnalysis.pop_group($1);}
+group	: head LCURLY {libAnalysis.pushGroup($1);} statements RCURLY {libAnalysis.popGroup($1);}
+        | head LCURLY {libAnalysis.pushGroup($1);} RCURLY {libAnalysis.popGroup($1);}
 		;
 
 
@@ -109,13 +109,13 @@ statement 	: simple_attr {}
 			| group  {}
 			;
 
-simple_attr	: IDENT COLON attr_val_expr { libAnalysis.make_simple($1,$3);} SEMI
-			| IDENT COLON attr_val_expr { libAnalysis.make_simple($1,$3);}
-            | IDENT EQ    attr_val_expr { libAnalysis.make_simple($1,$3);libAnalysis.si2drSimpleAttrSetIsVar(SD->curr_attr,&SD->err); } SEMI
+simple_attr	: IDENT COLON attr_val_expr { libAnalysis.makeSimple($1,$3);} SEMI
+			| IDENT COLON attr_val_expr { libAnalysis.makeSimple($1,$3);}
+            | IDENT EQ    attr_val_expr { libAnalysis.makeSimple($1,$3);libAnalysis.si2drSimpleAttrSetIsVar(SD->curr_attr,&SD->err); } SEMI
 			;
 
-complex_attr 	: head  SEMI  {libAnalysis.make_complex($1);}
-                | head  {libAnalysis.make_complex($1);}
+complex_attr 	: head  SEMI  {libAnalysis.makeComplex($1);}
+                | head  {libAnalysis.makeComplex($1);}
 				;
 
 head	: IDENT LPAR {SD->tight_colon_ok =1;} param_list RPAR { $$ = (Timinglib::timinglib_head*)calloc(sizeof(Timinglib::timinglib_head),1); $$->name = $1; $$->list = $4; $$->lineno = SD->lineno;$$->filename = SD->curr_file; SD->tight_colon_ok =0;}
@@ -153,7 +153,7 @@ param_list  : attr_val {$$=$1;}
 			;
 
 define 	: KW_DEFINE LPAR s_or_i COMMA s_or_i COMMA s_or_i RPAR SEMI  
-		{SD->curr_def = libAnalysis.si2drGroupCreateDefine(SD->gs[SD->gsindex-1],$3,$5,libAnalysis.convert_vt($7),&SD->err);libAnalysis.si2drObjectSetLineNo(SD->curr_def,SD->lineno,&SD->err);libAnalysis.si2drObjectSetFileName(SD->curr_def,SD->curr_file,&SD->err);
+		{SD->curr_def = libAnalysis.si2drGroupCreateDefine(SD->gs[SD->gsindex-1],$3,$5,libAnalysis.convertVt($7),&SD->err);libAnalysis.si2drObjectSetLineNo(SD->curr_def,SD->lineno,&SD->err);libAnalysis.si2drObjectSetFileName(SD->curr_def,SD->curr_file,&SD->err);
 		if( SD->token_comment_buf[0] ) { libAnalysis.si2drDefineSetComment(SD->curr_def, SD->token_comment_buf,&SD->err); SD->token_comment_buf[0]=0;} 
 		if( SD->token_comment_buf2[0] )	{strcpy(SD->token_comment_buf, SD->token_comment_buf2);SD->token_comment_buf2[0] = 0;}
 		SD->tok_encountered = 0;
@@ -200,7 +200,7 @@ attr_val : NUM { $$= (Timinglib::timinglib_attribute_value*)calloc(sizeof(Timing
 				   $$->type = Timinglib::kTIMINGLIB__VAL_STRING;
 				   x = (char*)alloca(strlen($1) + strlen($3) + 2); /* get a scratchpad */
 				   sprintf(x, "%s:%s", $1,$3);
-				   $$->u.string_val = STRTAB->timinglib_strtable_enter_string(SD->master_string_table, x); /* scratchpad goes away after this */
+				   $$->u.string_val = STRTAB->timinglibStrtableEnterString(SD->master_string_table, x); /* scratchpad goes away after this */
 			   }
          | KW_TRUE
                {

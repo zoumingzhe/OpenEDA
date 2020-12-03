@@ -54,7 +54,7 @@ class LibSet : public Object {
     IndexType memory() const;
 
     /// set
-    void set_name(const std::string &name);
+    void setName(const std::string &name);
 
     /// @brief number of tlibs
     IndexType numTLibs() const;
@@ -63,9 +63,9 @@ class LibSet : public Object {
     TLib *addTLib(const std::string &filename, const std::string &name);
 
     /// get
-    SymbolIndex get_name_index(void);
-    std::string get_name(void) const;
-    std::vector<TLib *> get_timing_libs(void);
+    SymbolIndex getNameIndex(void);
+    std::string getName(void) const;
+    std::vector<TLib *> getTimingLibs(void);
 
     /// @brief output the information
     void print(std::ostream &stream);

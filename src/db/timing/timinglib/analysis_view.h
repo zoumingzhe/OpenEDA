@@ -55,37 +55,37 @@ class AnalysisView : public Object {
     IndexType memory() const;
 
     /// set
-    void set_name(const std::string &name);
+    void setName(const std::string &name);
 
-    void set_analysis_corner(ObjectId id);
-    void set_analysis_mode(ObjectId id);
-    void set_active(bool b);
-    void set_setup(bool b);
-    void set_hold(bool b);
-    void set_max_cap(bool b);
-    void set_max_tran(bool b);
-    void set_min_cap(bool b);
-    void set_leakage_power(bool b);
-    void set_dynamic_power(bool b);
-    void set_cell_em(bool b);
-    void set_signal_em(bool b);
+    void setAnalysisCorner(ObjectId id);
+    void setAnalysisMode(ObjectId id);
+    void setActive(bool b);
+    void setSetup(bool b);
+    void setHold(bool b);
+    void setMaxCap(bool b);
+    void setMaxTran(bool b);
+    void setMinCap(bool b);
+    void setLeakagePower(bool b);
+    void setDynamicPower(bool b);
+    void setCellEm(bool b);
+    void setSignalEm(bool b);
 
     /// get
-    SymbolIndex get_name_index(void);
-    std::string get_name(void) const;
+    SymbolIndex getNameIndex(void);
+    std::string getName(void) const;
 
-    AnalysisCorner *get_analysis_corner(void);
-    AnalysisMode *get_analysis_mode(void);
-    bool is_active(void);
-    bool is_setup(void);
-    bool is_hold(void);
-    bool is_max_cap(void);
-    bool is_max_tran(void);
-    bool is_min_cap(void);
-    bool is_leakage_power(void);
-    bool is_dynamic_power(void);
-    bool is_cell_em(void);
-    bool is_signal_em(void);
+    AnalysisCorner *getAnalysisCorner(void);
+    AnalysisMode *getAnalysisMode(void);
+    bool isActive(void);
+    bool isSetup(void);
+    bool isHold(void);
+    bool isMaxCap(void);
+    bool isMaxTran(void);
+    bool isMinCap(void);
+    bool isLeakagePower(void);
+    bool isDynamicPower(void);
+    bool isCellEm(void);
+    bool isSignalEm(void);
 
   protected:
     /// @brief copy object

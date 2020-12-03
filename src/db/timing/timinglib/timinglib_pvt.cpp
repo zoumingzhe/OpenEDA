@@ -79,13 +79,13 @@ TPvt::IndexType TPvt::memory() const {
     return ret;
 }
 
-void TPvt::set_process(float c) { process_ = c; }
-void TPvt::set_temperature(float t) { temperature_ = t; }
-void TPvt::set_voltage(float v) { voltage_ = v; }
+void TPvt::setProcess(float c) { process_ = c; }
+void TPvt::setTemperature(float t) { temperature_ = t; }
+void TPvt::setVoltage(float v) { voltage_ = v; }
 
-float TPvt::get_process(void) { return process_; }
-float TPvt::get_temperature(void) { return temperature_; }
-float TPvt::get_voltage(void) { return voltage_; }
+float TPvt::getProcess(void) { return process_; }
+float TPvt::getTemperature(void) { return temperature_; }
+float TPvt::getVoltage(void) { return voltage_; }
 
 OStreamBase& operator<<(OStreamBase& os, TPvt const& rhs) {
     os << DataTypeName(className(rhs)) << DataBegin("(");
