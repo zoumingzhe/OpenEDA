@@ -49,9 +49,9 @@ add_executable(${_SUBBINNAME} app_main.cpp)
 
 if (CMAKE_PLACE) 
   target_link_libraries(${_SUBBINNAME} PUBLIC 
-      openedi_tcl openedi_db openedi_util z boost_system boost_filesystem openedi_parser
+      openedi_tcl openedi_db openedi_opt openedi_util z boost_system boost_filesystem openedi_parser
       openedi_lefrw openedi_lef openedi_defrw openedi_def openedi_tcl openedi_verilog
-      tcl8.6 profiler tcmalloc pthread openedi_gui openedi_opt openedi_DREAMPlace openedi_infra)
+      tcl8.6 profiler tcmalloc pthread openedi_gui openedi_DREAMPlace openedi_infra)
   
   target_include_directories(${_SUBBINNAME} PUBLIC
       ${CMAKE_CURRENT_SOURCE_DIR}/.
@@ -61,9 +61,9 @@ if (CMAKE_PLACE)
       ${TCL_DIR}/include)
 else (CMAKE_PLACE)
   target_link_libraries(${_SUBBINNAME} PUBLIC 
-      openedi_tcl openedi_db openedi_util z boost_system boost_filesystem openedi_parser
+      openedi_tcl openedi_db openedi_opt openedi_util z boost_system boost_filesystem openedi_parser
       openedi_lefrw openedi_lef openedi_defrw openedi_def openedi_tcl openedi_verilog
-      tcl8.6 profiler tcmalloc pthread openedi_gui openedi_opt openedi_infra)
+      tcl8.6 profiler tcmalloc pthread openedi_gui openedi_infra)
   
   target_include_directories(${_SUBBINNAME} PUBLIC
       ${CMAKE_CURRENT_SOURCE_DIR}/.

@@ -8,7 +8,7 @@ namespace open_edi {
 namespace opt {
 
 void registerOptTclCommands(Tcl_Interp *itp);
-
+void printMemoryInfo();
 
 } // namespace opt
 } // namespace open_edi

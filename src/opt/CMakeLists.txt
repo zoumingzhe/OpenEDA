@@ -6,11 +6,15 @@ set(_SUBBINNAME "")
 
 file(GLOB_RECURSE SRCS *.cpp)
 
-add_library(${_SUBLIBNAME} STATIC ${SRCS})
+#target_link_libraries(${PROJECT_NAME_LOWERCASE}_util)
+add_library(${_SUBLIBNAME} STATIC
+            ${SRCS}
+            )
 target_include_directories(${_SUBLIBNAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/.. 
     ${PROFILER_DIR}/include
-    ${TCL_DIR}/include)
+    ${TCL_DIR}/include
+    )
 
 
 set_target_properties(${_SUBLIBNAME} PROPERTIES POSITION_INDEPENDENT_CODE TRUE)

@@ -147,5 +147,61 @@ double IO::getC0() {
     return c0_;
 }
 
+void IO::getTreeCopy(vector<Node *> &array) {
+    unordered_map<uint64_t, Node *> nodes_copy;
+    for(auto &node : nodes_){
+        Node *node_src = node.second;
+        Node *node_dst = new Node();
+        node_dst->id = node_src->id;
+        node_dst->x = node_src->x;
+        node_dst->y = node_src->y;
+        node_dst->type = node_src->type;
+        VanNode *solution_src = node_src->solutions[0];
+        if(solution_src){
+            VanNode *solution_dst = new VanNode();
+            solution_dst->area = solution_src->area;
+            solution_dst->buffer_location = solution_src->buffer_location;
+            solution_dst->capacitance = solution_src->capacitance;
+            solution_dst->next = solution_src->next;
+            solution_dst->polarity = solution_src->polarity;
+            solution_dst->time = solution_src->time;
+            node_dst->solutions[0] = solution_dst;
+        }else{
+            node_dst->solutions[0] = NULL;
+        }
+        solution_src = node_src->solutions[1];
+        if(solution_src){
+            VanNode *solution_dst = new VanNode();
+            solution_dst->area = solution_src->area;
+            solution_dst->buffer_location = solution_src->buffer_location;
+            solution_dst->capacitance = solution_src->capacitance;
+            solution_dst->next = solution_src->next;
+            solution_dst->polarity = solution_src->polarity;
+            solution_dst->time = solution_src->time;
+            node_dst->solutions[1] = solution_dst;
+        }else{
+            node_dst->solutions[1] = NULL;
+        }
+        nodes_copy[node.first] = node_dst;
+    }
+    queue<Node *> nodes_queue;
+    Node *front = NULL;
+    nodes_queue.push(nodes_[0]);
+    while(nodes_queue.size() > 0) {
+	    front = nodes_queue.front();
+        Node *front_copy = nodes_copy[front->id];
+        if(front->parent){
+            front_copy->parent = nodes_copy[front->parent->id];
+        }else{
+            front_copy->parent = NULL;
+        }
+        array.push_back(front_copy);
+	    nodes_queue.pop();
+        for (int i = 0; i < front->children.size(); i++) {
+            nodes_queue.push(front->children[i]);
+        }
+    }
+}
+
 }//namespace opt
 }//namespace open_edi

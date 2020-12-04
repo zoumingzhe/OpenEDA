@@ -1,7 +1,9 @@
 #ifndef VAN_H
 #define VAN_H
 
-#include "IO.h"
+#include <limits>
+#include <math.h>
+#include "Def.h"
 
 #define DEBUG_VAN 0
 #if DEBUG_VAN
@@ -30,7 +32,6 @@ class Van {
     double c0_;           //wire unit capacitance
     VanSizing *solutions_;  //final solutions
     std::vector<Buffer> buffers_;
-    std::vector<Buffer> drivers_;
     BufferNode *location_head_;
     double pin_capacitance_limits_;
 

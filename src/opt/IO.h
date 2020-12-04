@@ -4,7 +4,6 @@
 #include <fstream>
 #include <queue>
 #include <unordered_map>
-#include <limits>
 #include <algorithm>
 #include <math.h>
 #include <string>
@@ -31,6 +30,7 @@ class IO {
 
     double getR0();
     double getC0();
+    void getTreeCopy(std::vector<Node *> &array);
   private:
     std::ifstream fin_;
     std::ofstream fout_;
