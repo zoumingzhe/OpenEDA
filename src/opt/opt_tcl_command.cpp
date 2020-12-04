@@ -1,6 +1,6 @@
 #include "opt_tcl_command.h"
-#include "OptimizeNet.h"
-#include "OptimizeNets.h"
+#include "optimize_net.h"
+#include "optimize_nets.h"
 
 using namespace std;
 

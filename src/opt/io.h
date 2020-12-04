@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <math.h>
 #include <string>
-#include "Def.h"
+#include "optimize.h"
 
 #define DEBUG_IO 0
 #if DEBUG_IO

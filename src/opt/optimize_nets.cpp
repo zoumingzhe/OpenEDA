@@ -1,6 +1,6 @@
 #include <unistd.h>
-#include "OptimizeNets.h"
-#include "OptimizeNet.h"
+#include "optimize_nets.h"
+#include "optimize_net.h"
 
 using namespace std;
 

@@ -1,8 +1,8 @@
 #ifndef OPTIMIZENET_H
 #define OPTIMIZENET_H
 
-#include "IO.h"
-#include "Van.h"
+#include "io.h"
+#include "van.h"
 
 #include <unistd.h>
 #include <string>
