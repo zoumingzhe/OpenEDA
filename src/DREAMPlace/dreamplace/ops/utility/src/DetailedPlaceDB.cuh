@@ -115,7 +115,7 @@ struct DetailedPlaceDB
         by = min(by, num_bins_y-1); 
         return by; 
     }
-    inline __device__ void shift_box_to_layout(Box<T>& box) const  
+    inline __device__ void shift_box_to_layout(UBox<T>& box) const  
     {
         box.xl = max(box.xl, xl);
         box.xl = min(box.xl, xh);
