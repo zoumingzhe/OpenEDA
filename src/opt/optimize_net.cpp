@@ -1,4 +1,4 @@
-#include "OptimizeNet.h"
+#include "optimize_net.h"
 
 using namespace std;
 

@@ -3,7 +3,7 @@
 
 #include <limits>
 #include <math.h>
-#include "Def.h"
+#include "optimize.h"
 
 #define DEBUG_VAN 0
 #if DEBUG_VAN

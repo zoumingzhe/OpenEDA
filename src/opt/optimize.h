@@ -1,5 +1,5 @@
-#ifndef DEF_H
-#define DEF_H
+#ifndef OPTIMIZE_H
+#define OPTIMIZE_H
 
 #include <vector>
 #include <stdint.h>

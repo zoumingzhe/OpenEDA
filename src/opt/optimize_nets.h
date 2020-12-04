@@ -2,7 +2,7 @@
 #define OPTIMIZENETS_H
 
 #include "util/map_reduce.h"
-#include "IO.h"
+#include "io.h"
 
 #define DEBUG_NETS 0
 #if DEBUG_NETS
