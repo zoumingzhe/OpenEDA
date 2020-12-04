@@ -39,6 +39,43 @@ namespace db {
 class SpecialNet;
 class StorageUtil;
 
+enum CellClassType {
+    kNoClass = 0,
+    kCover = 1,
+    kRing = 2,
+    kBlock = 3,
+    kPad = 4,
+    kCore = 5,
+    kEndcap = 6, 
+    kUnknownClass
+};
+
+enum CellSubClassType {
+    kNoSubClass = 0,
+    kCoverBump = 1,
+    kBlockBox = 2,
+    kBlockSoft = 3,
+    kPadInput = 4,
+    kPadOutput = 5,
+    kPadInout = 6,
+    kPadPower = 7,
+    kPadSpacer = 8,
+    kPadAreaIO = 9,
+    kCoreFeedthru = 10,
+    kCoreTiehigh = 11,
+    kCoreTielow = 12,
+    kCoreSpacer = 13,
+    kCoreAntennaCell = 14,
+    kCoreWelltap = 15,
+    kEndcapPre = 16,
+    kEndcapPost = 17,
+    kEndcapTopLeft = 18,
+    kEndcapTopRight = 19,
+    kEndcapBottomLeft = 20,
+    kEndcapBottomRight = 21, 
+    kUnknownSubClass
+};
+
 class Foreign : public Object {
   public:
     Foreign() {}
@@ -394,7 +431,35 @@ class Cell : public Object {
     // void setNumForeigns(int value) { foreign_num_ = value; }
 
     void setClass(const char *cls);
-    std::string const &getClass();
+    std::string const getClass();
+    bool isClassCover() { return class_type_ == kCover? true : false;}
+    bool isClassRing() { return class_type_ == kRing? true : false;}
+    bool isClassBlock() { return class_type_ == kBlock? true : false;}
+    bool isClassPad() { return class_type_ == kPad? true : false;}
+    bool isClassCore() { return class_type_ == kCore? true : false;}
+    bool isClassEndCap() { return class_type_ == kEndcap? true : false;}
+    bool isSubClassCoverBump() { return sub_class_type_ == kCoverBump? true : false;}
+    bool isSubClassBlockBox() { return sub_class_type_ == kBlockBox? true : false;}
+    bool isSubClassBlockSoft() { return sub_class_type_ == kBlockSoft? true : false;}
+    bool isSubClassPadInput() { return sub_class_type_ == kPadInput? true : false;}
+    bool isSubClassPadOutput() { return sub_class_type_ == kPadOutput? true : false;}
+    bool isSubClassPadInout() { return sub_class_type_ == kPadInout? true : false;}
+    bool isSubClassPadPower() { return sub_class_type_ == kPadPower? true : false;}
+    bool isSubClassPadSpacer() { return sub_class_type_ == kPadSpacer? true : false;}
+    bool isSubClassPadAreaIO() { return sub_class_type_ == kPadAreaIO? true : false;}
+    bool isSubClassCoreFeedthru() { return sub_class_type_ == kCoreFeedthru? true : false;}
+    bool isSubClassCoreTiehigh() { return sub_class_type_ == kCoreTiehigh? true : false;}
+    bool isSubClassCoreTielow() { return sub_class_type_ == kCoreTielow? true : false;}
+    bool isSubClassCoreSpacer() { return sub_class_type_ == kCoreSpacer? true : false;}
+    bool isSubClassCoreAntennaCell() { return sub_class_type_ == kCoreAntennaCell? true : false;}
+    bool isSubClassCoreWelltap() { return sub_class_type_ == kCoreWelltap? true : false;}
+    bool isSubClassEndcapPre() { return sub_class_type_ == kEndcapPre? true : false;}
+    bool isSubClassEndcapPost() { return sub_class_type_ == kEndcapPost? true : false;}
+    bool isSubClassEndcapTopLeft() { return sub_class_type_ == kEndcapTopLeft? true : false;}
+    bool isSubClassEndcapTopRight() { return sub_class_type_ == kEndcapTopRight? true : false;}
+    bool isSubClassEndcapBottomLeft() { return sub_class_type_ == kEndcapBottomLeft? true : false;}
+    bool isSubClassEndcapBottomRight() { return sub_class_type_ == kEndcapBottomRight? true : false;}
+
     void setIsFixedMask(int mask) { is_fixed_mask_ = mask; }
     int getIsFixedMask() { return is_fixed_mask_; }
     void setHasEEQ(int value) { has_eeq_ = value; }
@@ -419,6 +484,8 @@ class Cell : public Object {
 
     SymbolIndex name_index_;  ///< cell name
     CellType cell_type_;      ///< cell type
+    CellClassType class_type_;
+    CellSubClassType sub_class_type_;
     ObjectId hier_data_id_;   ///< hier only data: check with is_hierarchical_;
 
     int originX_;
@@ -429,7 +496,6 @@ class Cell : public Object {
     ObjectId terms_;  ///< corresponding to Verilog module port definition or
                       ///< LEF macro pin definitions.
 
-    SymbolIndex class_index_;
     SymbolIndex eeq_index_;
     ObjectId site_;
     ObjectId site_patterns_;
