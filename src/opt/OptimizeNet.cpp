@@ -1,62 +1,25 @@
-#include "Optimize.h"
+#include "OptimizeNet.h"
 
 using namespace std;
 
 namespace open_edi {
 namespace opt {
 
-Optimize::Optimize() {
+OptimizeNet::OptimizeNet() {
     io_ = NULL;
     van_ = NULL;
 }
 
-Optimize::~Optimize() {
+OptimizeNet::~OptimizeNet() {
     if(van_)
         delete van_;
     if(io_){
         io_->destroyTree();
         delete io_;
     }
-    printMemoryInfo();
 }
 
-void Optimize::printMemoryInfo() {
-    ifstream fin("/proc/self/status");
-    if(!fin){
-        cout << "memory info unknown!" << endl;
-    }else{
-        string part;
-        double value;
-        string memory_unit[4] = {" [KB]"," [MB]"," [GB]", " [TB]"};
-        cout << fixed;
-        while(fin >> part){
-            if(part == "VmHWM:"){
-                fin >> value;
-                int index = 0;
-                while(value>900){
-                    value /= 1024;
-                    index++;
-                }
-                value<2 ? cout<<setprecision(2) : cout<<setprecision(1);
-                cout << "peak real memory usage: " << value << memory_unit[index] << endl;
-            }else if(part == "VmPeak:"){
-                fin >> value;
-                int index = 0;
-                while(value>900){
-                    value /= 1024;
-                    index++;
-                }
-                value<2 ? cout<<setprecision(2) : cout<<setprecision(1);
-                cout << "peak virtual memory usage: " << value << memory_unit[index] << endl;
-            }
-        }
-        fin.close();
-        cout.unsetf(ios::fixed);
-        cout.precision(6);
-    }
-}
-
-void Optimize::printBufferSolution(BufferNode *root,uint64_t id_upBound, ofstream &fout) {
+void OptimizeNet::printBufferSolution(BufferNode *root,uint64_t id_upBound, ofstream &fout) {
     queue<BufferNode *> nodes;
     if(root)
         nodes.push(root);
@@ -75,7 +38,7 @@ void Optimize::printBufferSolution(BufferNode *root,uint64_t id_upBound, ofstrea
     }
 }
 
-void Optimize::outputSolution(const string output_file, vector<VanSizing *> &solutions, uint64_t id_upBound, bool all) {
+void OptimizeNet::outputSolution(const string output_file, vector<VanSizing *> &solutions, uint64_t id_upBound, bool all) {
     ofstream fout(output_file,fstream::out);
     if ( !fout ) {
         cout << "open file '" << output_file << "' failed!" << endl;
@@ -107,10 +70,7 @@ void Optimize::outputSolution(const string output_file, vector<VanSizing *> &sol
     fout.close();
 }
 
-int Optimize::optimize_net (int argc, char **argv) {
-    for(int i=0;i<argc;i++){
-        cout << "param[" << i << "]:" << argv[i] << endl;
-    }
+int OptimizeNet::optimize_net (int argc, char **argv) {
     int param;
     string buffer_file, net_file, output_file;
     bool outputAllResults = false;
@@ -147,12 +107,24 @@ int Optimize::optimize_net (int argc, char **argv) {
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
     van_->optimization(io_->nodes_array,buffers,drivers);
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
-    std::chrono::duration<double, std::milli> elapsed = end - begin;
+    chrono::duration<double, std::milli> elapsed = end - begin;
     cout << "elapsed time: " << elapsed.count() << " [ms]" << endl;
     vector<VanSizing *> solutions;
     van_->getSolutions(solutions);
     outputSolution(output_file,solutions,buffers.size(),outputAllResults);
     return 0;
+}
+
+int OptimizeNet::optimize_net (double r0, double c0, int id,
+                            const std::vector<Node *> &nodes_array,
+                            const std::vector<Buffer> &buffers,
+                            const std::vector<Buffer> &drivers) {
+    van_ = new Van(r0,c0);
+    van_->optimization(nodes_array,buffers,drivers);
+    vector<VanSizing *> solutions;
+    van_->getSolutions(solutions);
+    outputSolution("/home/yemy/Documents/testbench/result"+to_string(id)+".out",solutions,buffers.size(),false);
+    return id+1;
 }
 
 

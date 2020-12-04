@@ -6,7 +6,7 @@ namespace open_edi {
 namespace opt {
 
 Van::Van(double r0, double c0) : r0_(r0), c0_(c0) {
-    solutions_ = NULL;
+    solutions_ = nullptr;
     pin_capacitance_limits_ = max_double_;
 }
 
@@ -34,13 +34,13 @@ void Van::clearSolutions() {
     #endif
     //delete final solutions
     VanSizing *solution = solutions_;
-    VanSizing *next = NULL;
+    VanSizing *next = nullptr;
     while(solution) {
         next = solution->next;
         deleteSolution(solution);
         solution = next;
     }
-    solutions_ = NULL;
+    solutions_ = nullptr;
 }
 
 void Van::setPinCapacitanceLimits(double cap_limits, bool overwrite) {
@@ -59,7 +59,7 @@ void Van::insertNonRedundantVanSizing(VanSizing *node, VanSizing *head) {
     VanSizing *pred = head;
     VanSizing *curr = pred->next;
     VanSizing *x;
-    while (curr != NULL) {
+    while (curr != nullptr) {
         if (node->time > curr->time) {//insert here
             x = new VanSizing(node);
             pred->next = x;
@@ -76,7 +76,7 @@ void Van::insertNonRedundantVanSizing(VanSizing *node, VanSizing *head) {
         }
     }
     //check redundant
-    while (curr != NULL) {
+    while (curr != nullptr) {
         if (node->capacitance<=curr->capacitance && node->area<=curr->area) {//dominate other
             pred->next = curr->next;
             deleteSolution(curr);
@@ -96,7 +96,7 @@ void Van::optimization(const vector<Node *> &nodes_array,
     vanGinneken(nodes_array);
     //clear negative polarity solutions
     deleteSolutions(nodes_array[0]->solutions[1]);
-    nodes_array[0]->solutions[1] = NULL;
+    nodes_array[0]->solutions[1] = nullptr;
     //add driver
     VanSizing dummy_head;
     dummy_head.time = max_double_;
@@ -106,15 +106,15 @@ void Van::optimization(const vector<Node *> &nodes_array,
     dummy_tail->time = min_double_;
     dummy_tail->capacitance = min_double_;
     dummy_tail->area = min_double_;
-    dummy_tail->buffer_location = NULL;
+    dummy_tail->buffer_location = nullptr;
     dummy_head.next = dummy_tail;
-    dummy_tail->next = NULL;
+    dummy_tail->next = nullptr;
     VanSizing potential;
     for(uint64_t i=0;i<drivers.size();i++) {
         Buffer driver = drivers[i];
         potential.driver_id = i;
         VanNode *solution = nodes_array[0]->solutions[0];
-        while(solution != NULL) {//update solutions
+        while(solution != nullptr) {//update solutions
             potential.time = solution->time-driver.resistance*solution->capacitance-driver.delay;
             potential.area = solution->area + driver.area;
             potential.capacitance = solution->capacitance;
@@ -131,7 +131,7 @@ void Van::optimization(const vector<Node *> &nodes_array,
         deleteSolution(solution);
         solution = next;
     }
-    nodes_array[0]->solutions[0] = NULL;
+    nodes_array[0]->solutions[0] = nullptr;
 }
 
 void Van::mergeNonRedundantVanNode(VanNode *node, BufferNode *location, VanNode *list) {
@@ -141,7 +141,7 @@ void Van::mergeNonRedundantVanNode(VanNode *node, BufferNode *location, VanNode 
     VanNode *mark_pred = pred;
     VanNode *mark_curr = curr;
     bool dominate = false;
-    while(curr != NULL) {
+    while(curr != nullptr) {
         if ( node->time > curr->time ) {
             if (node->capacitance<=curr->capacitance && node->area<=curr->area) {//dominate curr
                 dominate = true;
@@ -156,7 +156,7 @@ void Van::mergeNonRedundantVanNode(VanNode *node, BufferNode *location, VanNode 
             mark_pred = pred;
             mark_curr = curr;
             if (!dominate) {//check dominated
-                while (curr != NULL) {
+                while (curr != nullptr) {
                     if (node->capacitance>=curr->capacitance && node->area>=curr->area) {//dominated
                         return;
                     } else {
@@ -178,7 +178,7 @@ void Van::mergeNonRedundantVanNode(VanNode *node, BufferNode *location, VanNode 
     }
     p->bufferType = buffers_.size();//no buffer, ignore direction
     node->buffer_location = p;
-    if (curr == NULL) {//insert last
+    if (curr == nullptr) {//insert last
         pred->next = node;
         node->next = curr;
     } else {
@@ -208,7 +208,7 @@ void Van::vanGinneken(const vector<Node *> &nodes_array) {
             dummy_head.capacitance = min_double_;
             dummy_head.area = min_double_;
             for (int polarity=0;polarity<2;polarity++) {
-                dummy_head.next = NULL;
+                dummy_head.next = nullptr;
                 VanNode *solution_parent = parent_node->solutions[polarity];
                 VanNode *solution_child = child_node->solutions[polarity];
                 VanNode *small_time;
@@ -238,7 +238,7 @@ void Van::vanGinneken(const vector<Node *> &nodes_array) {
                     mergeNonRedundantVanNode(small_time,location,&dummy_head);
                 }
                 parent_node->solutions[polarity] = dummy_head.next;
-                child_node->solutions[polarity] = NULL;
+                child_node->solutions[polarity] = nullptr;
                 deleteSolutions(solution_parent);
                 deleteSolutions(solution_child);
             }
@@ -252,8 +252,8 @@ void Van::vanGinneken(const vector<Node *> &nodes_array) {
         } else {
             parent_node->solutions[0] = child_node->solutions[0];
             parent_node->solutions[1] = child_node->solutions[1];
-            child_node->solutions[0] = NULL;
-            child_node->solutions[1] = NULL;
+            child_node->solutions[0] = nullptr;
+            child_node->solutions[1] = nullptr;
         }
     }
 }
@@ -269,7 +269,7 @@ void Van::insertNonRedundantVanNode(VanNode *node, VanNode *list) {
     VanNode *mark_pred = pred;
     VanNode *mark_curr = curr;
     bool dominate = false;
-    while(curr != NULL) {
+    while(curr != nullptr) {
         if ( node->time > curr->time ) {
             if (node->capacitance<=curr->capacitance && node->area<=curr->area) {//dominate curr
                 dominate = true;
@@ -284,7 +284,7 @@ void Van::insertNonRedundantVanNode(VanNode *node, VanNode *list) {
             mark_pred = pred;
             mark_curr = curr;
             if(!dominate) {
-                while(curr != NULL){
+                while(curr != nullptr){
                     if (node->capacitance>=curr->capacitance && node->area>=curr->area) {//dominated
                         deleteSolution(node);
                         return;
@@ -298,7 +298,7 @@ void Van::insertNonRedundantVanNode(VanNode *node, VanNode *list) {
             break;
         }
     }
-    if (curr == NULL) {//insert last
+    if (curr == nullptr) {//insert last
         pred->next = node;
         node->next = curr;
     } else {
@@ -316,9 +316,9 @@ void Van::addWire(double wire_length, Node *node) {
     dummy_head.capacitance = min_double_;
     dummy_head.area = min_double_;
     for (int polarity=0;polarity<2;polarity++) {
-        dummy_head.next = NULL;
+        dummy_head.next = nullptr;
         VanNode *origin = node->solutions[polarity];
-        while( origin != NULL ) {//resort by updated time
+        while( origin != nullptr ) {//resort by updated time
             double r = wire_length * r0_;
             double c = wire_length * c0_;
             origin->time = origin->time - 0.5*r*c - r*origin->capacitance;
@@ -345,7 +345,7 @@ void Van::insertNonRedundantBuffer(VanNode *node, VanNode *list) {
     VanNode *mark_pred = pred;
     VanNode *mark_curr = curr;
     bool dominate = false;
-    while(curr != NULL) {
+    while(curr != nullptr) {
         if (node->time > curr->time) {
             if (node->area <= curr->area) {//dominate curr
                 dominate = true;
@@ -360,7 +360,7 @@ void Van::insertNonRedundantBuffer(VanNode *node, VanNode *list) {
             mark_pred = pred;
             mark_curr = curr;
             if(!dominate){//check dominated
-                while(curr != NULL){
+                while(curr != nullptr){
                     if (node->area>=curr->area) {//dominated
                         return;
                     } else {//check next
@@ -383,9 +383,9 @@ void Van::insertNonRedundantBuffer(VanNode *node, VanNode *list) {
     if(p->left){
         p->left->count++;
     }
-    p->right = NULL;
+    p->right = nullptr;
     solution->buffer_location = p;
-    if (curr == NULL) {//insert last
+    if (curr == nullptr) {//insert last
         pred->next = solution;
         solution->next = curr;
     } else {
@@ -429,7 +429,7 @@ void Van::addBuffer(Node *from, Node *to) {
         for(uint64_t i=0;i<buffers_.size();i++) {
             Buffer buffer = buffers_[i];
             bool add_buffer_polarity = polarity^buffer.inverter;
-            dummy_head.next = NULL;
+            dummy_head.next = nullptr;
             generateSolutionsByAddingBuffer(buffer, to->solutions[polarity], &dummy_head);
             z[add_buffer_polarity][i] = dummy_head.next;
         }
@@ -442,7 +442,7 @@ void Van::addBuffer(Node *from, Node *to) {
         dummy_head.next = to->solutions[polarity];
         for (uint64_t i=0;i<buffers_.size();i++) {
             VanNode *node = z[polarity][i];
-            while(node != NULL) {
+            while(node != nullptr) {
                 node->polarity = polarity;
                 VanNode *single_node = node;
                 node = node->next;
@@ -469,7 +469,7 @@ void Van::deleteBufferLocation(BufferNode *location) {
         location->count--;
         location_head_ = location;
         BufferNode *curr = location;
-        curr->next = NULL;
+        curr->next = nullptr;
         do {
             if(location_head_->count==0){
                 if(location_head_->left){
@@ -482,7 +482,7 @@ void Van::deleteBufferLocation(BufferNode *location) {
                     curr->next = location_head_->right;
                     curr = curr->next;
                 }
-                curr->next = NULL;
+                curr->next = nullptr;
                 BufferNode *head_node = location_head_->next;
                 delete location_head_;
                 location_head_ = head_node;
@@ -500,7 +500,7 @@ template<typename T> void Van::deleteSolution(T *solution) {
 
 void Van::deleteSolutions(VanNode *solutions) {
     VanNode *solution = solutions;
-    VanNode *next = NULL;
+    VanNode *next = nullptr;
     while(solution) {
         next = solution->next;
         deleteSolution(solution);
@@ -510,7 +510,7 @@ void Van::deleteSolutions(VanNode *solutions) {
 
 #if DEBUG_VAN
 void Van::printBuffer(BufferNode *root) {
-    if ( root == NULL) {
+    if ( root == nullptr) {
         return;
     }
     if ( root->bufferType > -1 ) {

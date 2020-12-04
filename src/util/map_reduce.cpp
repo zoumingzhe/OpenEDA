@@ -136,10 +136,13 @@ void MTMRApp::run(int mapper_cnt, int worker_cnt, int reducer_cnt) {
 
     task_queue_.reset();
     solution_queue_.reset();
+    for (int i = 0; i < reducer_cnt_; ++i) {
+        solution_queue_vec_[i]->reset();
+    }
 
     preRun();
 
-    for (int i = 0; i < mapper_cnt; i++) {
+    for (int i = 0; i < mapper_cnt_; i++) {
         pthread_create(&mappers_[i], NULL, mapperFunc, this);
     }
     // joinMappers();
@@ -154,13 +157,13 @@ void MTMRApp::run(int mapper_cnt, int worker_cnt, int reducer_cnt) {
     // rs = pthread_attr_getschedparam(&attr, &param);
     // nimbus_info("priority = %d\n", param.__sched_priority);
 
-    for (int i = 0; i < worker_cnt; i++) {
+    for (int i = 0; i < worker_cnt_; i++) {
         pthread_create(&workers_[i], NULL, workerFunc, this);
     }
 
     pthread_attr_destroy(&attr);
 
-    for (int i = 0; i < reducer_cnt; ++i) {
+    for (int i = 0; i < reducer_cnt_; ++i) {
         pthread_create(&reducer_[i], NULL, reducerFunc, this);
     }
 
@@ -171,18 +174,19 @@ void MTMRApp::run(int mapper_cnt, int worker_cnt, int reducer_cnt) {
     joinWorkers();
 
     solution_queue_.end();
-    for (int i = 0; i < reducer_cnt; ++i) {
+    for (int i = 0; i < reducer_cnt_; ++i) {
         solution_queue_vec_[i]->end();
     }
 
     joinReducer();
 
     // fixed bug by sifei
-    task_queue_.set_ended(false);
-    solution_queue_.set_ended(false);
-    for (int i = 0; i < reducer_cnt; ++i) {
-        solution_queue_vec_[i]->set_ended(false);
-    }
+    // not bug by yemy
+    //task_queue_.set_ended(false);
+    //solution_queue_.set_ended(false);
+    //for (int i = 0; i < reducer_cnt; ++i) {
+    //    solution_queue_vec_[i]->set_ended(false);
+    //}
 
     postRun();
 }
