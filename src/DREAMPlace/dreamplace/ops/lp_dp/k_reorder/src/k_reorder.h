@@ -14,6 +14,9 @@
 
 DREAMPLACE_BEGIN_NAMESPACE
 
+#ifdef _CUDA_FOUND
+int kreorderCUDARun(DetailedPlaceDB<int>& db, int K, int maxIters, int numThreads);
+#endif
 /// @brief a wrapper class of required data for edi db
 class KReorder
 {

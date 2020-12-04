@@ -14,6 +14,14 @@
 
 DREAMPLACE_BEGIN_NAMESPACE
 
+/// @brief global swap algorithm for detailed placement 
+#ifdef _CUDA_FOUND
+int globalSwapCUDARun(DetailedPlaceDB<int>& db, int batchSize, int maxIters, int numThreads);
+#endif
+// concurrent
+int globalSwapCPURun(DetailedPlaceDB<int>& db, int batchSize, int maxIters, int numThreads);
+int globalSwapCPURun(DetailedPlaceDB<int>& db, int maxIters);
+
 /// @brief a wrapper class of required data for edi db
 class GlobalSwap
 {

@@ -10,6 +10,7 @@
 #include "utility/src/Msg.h"
 #include "utility/src/Box.h"
 #include "legality_check/src/legality_check.h"
+#include "math.h"
 //#include "draw_place/src/draw_place.h"
 
 DREAMPLACE_BEGIN_NAMESPACE

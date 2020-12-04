@@ -15,10 +15,10 @@ if (CUDA_FOUND)
     list(APPEND CUDA_NVCC_FLAGS
         -O3 -std=c++14 ${CMAKE_CUDA_FLAGS} 
         )
-    list(APPEND CUDA_NVCC_FLAGS --compiler-options -fPIC)
+    list(APPEND CUDA_NVCC_FLAGS --compiler-options -fPIC --expt-relaxed-constexpr)
 
     cuda_add_library(
-        ${CUDA_LINKED} STATIC 
+        ${CUDA_LINKED} SHARED
         ${CUDA_SOURCES}
         )
 
@@ -45,7 +45,6 @@ endif(CUDA_FOUND)
 
 file(GLOB SOURCES 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cu"
     )
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../.."
@@ -56,6 +55,12 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../.."
     "${LIMBO_SOURCE_DIR}"
     "${Boost_INCLUDE_DIRS}"
     )
+link_directories(${UTILITY_LIBRARY_DIRS} ${CUB_DIR})
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
+if (CUDA_FOUND)
+  target_link_libraries(${PROJECT_NAME} PUBLIC ${CUDA_LINKED} utility ${CUDA_curand_LIBRARY})
+else (CUDA_FOUND)
+  target_link_libraries(${PROJECT_NAME} PUBLIC utility)
+endif(CUDA_FOUND)

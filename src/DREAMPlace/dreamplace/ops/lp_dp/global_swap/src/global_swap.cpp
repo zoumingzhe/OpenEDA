@@ -13,31 +13,22 @@
 
 DREAMPLACE_BEGIN_NAMESPACE
 
-/// @brief global swap algorithm for detailed placement 
-template <typename T>
-int globalSwapCUDALauncher(DetailedPlaceDB<T> db, int batch_size, int max_iters, int num_threads);
-// concurrent
-template <typename T>
-int globalSwapCPULauncher(DetailedPlaceDB<T> db, int batch_size, int max_iters, int num_threads);
-template <typename T>
-int globalSwapCPULauncher(DetailedPlaceDB<T> db, int max_iters);
-
 void GlobalSwap::run_cpu()
 {
     //make DetailedPlaceDB db.
     DetailedPlaceDB<int> db;
-    db_->initDetailedPlaceDB(db, false); //cpu version.
+    db_->initDetailedPlaceDB(db); //cpu version.
     if (alg_concurrent_)
     {
-        //globalSwapCPULauncher(db, batch_size_, max_iters_, num_threads_);
+      globalSwapCPURun(db, batch_size_, max_iters_, num_threads_);
     }
     else
     {
-        //globalSwapCPULauncher(db, max_iters_);
+      globalSwapCPURun(db, max_iters_);
     }
     //update common db_ using db.x, db.y
     //todo: db_->update(db.x, db.y);
-    db_->freeDetailedPlaceDB(db, false);
+    db_->freeDetailedPlaceDB(db);
 
     return;
 }
@@ -46,9 +37,9 @@ void GlobalSwap::run_gpu()
 {
     //make DetailedPlaceDB db.
     DetailedPlaceDB<int> db;
-    db_->initDetailedPlaceDB(db, true); //gpu version.
+    db_->initDetailedPlaceDB(db); //gpu version.
 #ifdef _CUDA_FOUND
-    //globalSwapCUDALauncher(db, batch_size_, max_iters_, num_threads_);
+    globalSwapCUDARun(db, batch_size_, max_iters_, num_threads_);
 #endif
     //update common db_ using db.x, db.y
     /*
@@ -61,7 +52,7 @@ void GlobalSwap::run_gpu()
     destroyCPU(cpu_dbx);
     destroyCPU(cpu_dby);
     */
-    db_->freeDetailedPlaceDB(db, true);
+    db_->freeDetailedPlaceDB(db);
 
     return;
 }
