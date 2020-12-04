@@ -10,11 +10,16 @@ OptimizeNet::OptimizeNet() {
     van_ = NULL;
 }
 
+OptimizeNet::OptimizeNet(string output_dir) {
+    io_ = NULL;
+    van_ = NULL;
+    output_dir_ = output_dir+"/result";
+}
+
 OptimizeNet::~OptimizeNet() {
     if(van_)
         delete van_;
     if(io_){
-        io_->destroyTree();
         delete io_;
     }
 }
@@ -123,7 +128,7 @@ int OptimizeNet::optimize_net (double r0, double c0, int id,
     van_->optimization(nodes_array,buffers,drivers);
     vector<VanSizing *> solutions;
     van_->getSolutions(solutions);
-    outputSolution("/home/yemy/Documents/testbench/result"+to_string(id)+".out",solutions,buffers.size(),false);
+    outputSolution(output_dir_+to_string(id)+".out",solutions,buffers.size(),false);
     return id+1;
 }
 

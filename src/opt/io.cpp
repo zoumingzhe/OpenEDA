@@ -1,4 +1,4 @@
-#include "IO.h"
+#include "io.h"
 
 using namespace std;
 
@@ -10,7 +10,7 @@ IO::IO() {
 }
 
 IO::~IO() {
-    nodes_.clear();
+    destroyTree();
 }
 
 void IO::readBufferLibrary(const string file_name, vector<Buffer> &buffers) {
@@ -132,8 +132,16 @@ int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
 }
 
 void IO::destroyTree() {
-    for(auto &o : nodes_) {
-        delete o.second;
+    for(auto &node : nodes_array) {
+        if(node->type == SINK){
+            if(node->solutions[0]){
+                delete node->solutions[0];
+            }
+            if(node->solutions[1]){
+                delete node->solutions[1];
+            }
+        }
+        delete node;
     }
     nodes_.clear();
     nodes_array.clear();

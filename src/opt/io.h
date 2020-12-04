@@ -26,7 +26,6 @@ class IO {
 
     void readBufferLibrary(const std::string file_name, std::vector<Buffer> &buffers);
     int readInputTree(const std::string file_name, std::vector<Buffer> &drivers);
-    void destroyTree();
 
     double getR0();
     double getC0();
@@ -39,6 +38,8 @@ class IO {
     double r0_;     //wire unit resistance
     double c0_;     //wire unit capacitance
     uint64_t used_id_;
+    
+    void destroyTree();
 };
 
 }//namespace opt
