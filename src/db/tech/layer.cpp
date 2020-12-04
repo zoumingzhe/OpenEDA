@@ -432,8 +432,7 @@ FloatPair* AntennaModel::getDiffAreaRatioPWL(UInt32 index) const {
         vct = addr<ArrayObject<FloatPair>>(diff_area_ratio_pwl_);
     }
     if (vct) {
-        FloatPair obj_data = (*vct)[index];
-        FloatPair* ptr = &obj_data;
+        FloatPair* ptr = &((*vct)[index]);
         return ptr;
     }
     return nullptr;
@@ -521,8 +520,7 @@ FloatPair* AntennaModel::getCumDiffAreaRatioPWL(UInt32 index) const {
         vct = addr<ArrayObject<FloatPair>>(cum_diff_area_ratio_pwl_);
     }
     if (vct) {
-        FloatPair obj_data = (*vct)[index];
-        FloatPair* ptr = &obj_data;
+        FloatPair* ptr = &((*vct)[index]);
         return ptr;
     }
     return nullptr;
@@ -634,8 +632,7 @@ FloatPair* AntennaModel::getGatePlusDiffPWL(UInt32 index) const {
         vct = addr<ArrayObject<FloatPair>>(gate_plus_diff_pwl_);
     }
     if (vct) {
-        FloatPair obj_data = (*vct)[index];
-        FloatPair* ptr = &obj_data;
+        FloatPair* ptr = &((*vct)[index]);
         return ptr;
     }
     return nullptr;
@@ -696,8 +693,9 @@ void AntennaModel::addGatePlusDiffPWL(float d, float p) {
  * @return
  */
 FloatPair* AntennaModel::getAreaDiffReducePWL(UInt32 index) const {
-    if ( index >= getAreaDiffReducePWLSize())
+    if ( index >= getAreaDiffReducePWLSize()) {
         return nullptr;
+    }
 
     ArrayObject<FloatPair> *vct = nullptr;
     if (area_diff_reduce_pwl_ == 0) {
@@ -706,8 +704,7 @@ FloatPair* AntennaModel::getAreaDiffReducePWL(UInt32 index) const {
         vct = addr<ArrayObject<FloatPair>>(area_diff_reduce_pwl_);
     }
     if (vct) {
-        FloatPair obj_data = (*vct)[index];
-        FloatPair* ptr = &obj_data;
+        FloatPair* ptr = &((*vct)[index]);
         return ptr;
     }
     return nullptr;
@@ -796,8 +793,7 @@ FloatPair* AntennaModel::getDiffGatePWL(UInt32 index) const {
         vct = addr<ArrayObject<FloatPair>>(diff_gate_pwl_);
     }
     if (vct) {
-        FloatPair obj_data = (*vct)[index];
-        FloatPair* ptr = &obj_data;
+        FloatPair* ptr = &((*vct)[index]);
         return ptr;
     }
     return nullptr;
@@ -887,8 +883,7 @@ FloatPair* AntennaModel::getGatePWL(UInt32 index) const {
         vct = addr<ArrayObject<FloatPair>>(gate_pwl_);
     }
     if (vct) {
-        FloatPair obj_data = (*vct)[index];
-        FloatPair* ptr = &obj_data;
+        FloatPair* ptr = &((*vct)[index]);
         return ptr;
     }
     return nullptr;
@@ -977,8 +972,7 @@ FloatPair* AntennaModel::getDiffSideAreaRatioPWL(UInt32 index) const {
         vct = addr<ArrayObject<FloatPair>>(diff_side_area_ratio_pwl_);
     }
     if (vct) {
-        FloatPair obj_data = (*vct)[index];
-        FloatPair* ptr = &obj_data;
+        FloatPair* ptr = &((*vct)[index]);
         return ptr;
     }
     return nullptr;
@@ -1069,8 +1063,7 @@ FloatPair* AntennaModel::getCumDiffSideAreaRatioPWL(UInt32 index) const {
         vct = addr<ArrayObject<FloatPair>>(cum_diff_side_area_ratio_pwl_);
     }
     if (vct) {
-        FloatPair obj_data = (*vct)[index];
-        FloatPair* ptr = &obj_data;
+        FloatPair* ptr = &((*vct)[index]);
         return ptr;
     }
     return nullptr;
@@ -2445,8 +2438,7 @@ UintPair* MinArea::getExceptMinSizePair(UInt32 index) {
         vct = addr<ArrayObject<UintPair>>(except_min_size_);
     }
     if (vct) {
-        UintPair obj_data = (*vct)[index];
-        UintPair* ptr = &obj_data;
+        UintPair* ptr = &((*vct)[index]);
         return ptr;
     }
     return nullptr;

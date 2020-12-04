@@ -756,7 +756,7 @@ void ExportTechLef::exportLayerAntennaModel(const Layer* layer) {
         if (model->getAreaDiffReducePWLSize()) {
             ofs_ << "    ANTENNAAREADIFFREDUCEPWL (";
             for (int kk = 0; kk < model->getAreaDiffReducePWLSize(); ++kk) {
-                FloatPair* pwl = model->getAreaDiffReducePWL(kk);
+                auto pwl = model->getAreaDiffReducePWL(kk);
                 ofs_ << " ( " << pwl->data_first << " " << pwl->data_second << " ) ";
             }
             ofs_ << ") ;\n";
