@@ -38,9 +38,66 @@ class SetCaseAnalysis {
     CaseAnalysisValue value_ = CaseAnalysisValue::kUnknown;
 
   public:
-    COMMAND_GET_SET_VAR(value, Value);
+    COMMAND_GET_SET_VAR(value, Value)
 };
 using SetCaseAnalysisPtr = std::shared_ptr<SetCaseAnalysis>;
+
+class SetDrive {
+  private:
+    float resistance_  = 0.0;
+    std::bitset<4> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(resistance, Resistance)
+    COMMAND_GET_SET_FLAG(flags, 0, rise, Rise)
+    COMMAND_GET_SET_FLAG(flags, 1, fall, Fall)
+    COMMAND_GET_SET_FLAG(flags, 2, min, Min)
+    COMMAND_GET_SET_FLAG(flags, 3, max, Max)
+};
+using SetDrivePtr = std::shared_ptr<SetDrive>;
+
+class SetDrivingCell {
+  private:
+    ObjectId from_term_;
+    ObjectId to_term_;
+    std::bitset<7> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(from_term, FromTerm)
+    COMMAND_GET_SET_VAR(to_term, ToTerm)
+    COMMAND_GET_SET_FLAG(flags, 0, rise, Rise)
+    COMMAND_GET_SET_FLAG(flags, 1, fall, Fall)
+    COMMAND_GET_SET_FLAG(flags, 2, dont_scale, DontScale)
+    COMMAND_GET_SET_FLAG(flags, 3, no_design_rule, NoDesignRule)
+    COMMAND_GET_SET_FLAG(flags, 4, min, Min)
+    COMMAND_GET_SET_FLAG(flags, 5, max, Max)
+    COMMAND_GET_SET_FLAG(flags, 6, clock_fall, ClockFall)
+};
+using SetDrivingCellPtr = std::shared_ptr<SetDrivingCell>;
+
+// not used
+class SetFanoutLoad {
+
+}; 
+using SetFanoutLoadPtr = std::shared_ptr<SetFanoutLoad>;
+
+class SetInputTransition {
+  private:
+    float transition_ = 0.0;
+    std::vector<ClockId> clocks_;
+    std::bitset<5> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(transition, Transition)
+    COMMAND_GET_SET_VAR(clocks, Clocks)
+    COMMAND_GET_SET_FLAG(flags, 0, rise, Rise)
+    COMMAND_GET_SET_FLAG(flags, 1, fall, Fall)
+    COMMAND_GET_SET_FLAG(flags, 2, min, Min)
+    COMMAND_GET_SET_FLAG(flags, 3, max, Max)
+    COMMAND_GET_SET_FLAG(flags, 4, clock_fall, ClockFall)
+}; 
+using SetInputTransitionPtr = std::shared_ptr<SetInputTransition>;
+
 
 }
 }
