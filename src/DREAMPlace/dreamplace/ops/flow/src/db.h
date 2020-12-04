@@ -95,7 +95,7 @@ inline PlNet*         getPinNet(PlPin* pin)              { return pin->getNet();
 inline String const&  getPinName(PlPin* pin)             { return pin->getName(); }
 inline PlInst*        getPinInst(PlPin* pin)             { return pin->getInst(); }
 inline PlTerm*        getPinTerm(PlPin* pin)             { return pin->getTerm(); }
-inline bool           isPinSpecial(PlPin* pin)           { return pin->getHasSpecial(); }
+inline bool           isPinSpecial(PlPin* pin)           { return pin->getIsSpecial(); }
 inline bool           isConnectNets(PlPin* pin)          { return pin->getIsConnectNets(); }
 inline PlArrayObj*    getPinNetArray(PlPin* net)         { return net->getNetArray(); }
 inline PlPoint        getPinLoc(PlPin* pin)              { return getTermLoc(getPinTerm(pin)); }
