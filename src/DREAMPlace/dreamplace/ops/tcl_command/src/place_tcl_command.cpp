@@ -39,7 +39,7 @@ static int placeDesignWrap(ClientData cld, Tcl_Interp *itp, int argc, const char
   } else {
     char* pathCopy = strdup(dest);
     std::string srcdir(dirname(pathCopy));
-    std::string dreamPlaceBinPath = srcdir + "/../../../dreamplace";
+    std::string dreamPlaceBinPath = srcdir + "/../dreamplace";
     //std::cout<<dreamPlaceBinPath<<std::endl;
     
     std::string dreamPlaceBin = dreamPlaceBinPath + "/Placer.py";
