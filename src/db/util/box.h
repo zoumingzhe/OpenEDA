@@ -21,6 +21,7 @@ class Box : public Object {
     Box();
     Box(int llx, int lly, int urx, int ury);
     ~Box(){};
+    bool isInvalid() const {return (llx_ >= lly_ || urx_ >= ury_); }
     int getLLX() const { return llx_; }
     int getLLY() const { return lly_; }
     int getURX() const { return urx_; }

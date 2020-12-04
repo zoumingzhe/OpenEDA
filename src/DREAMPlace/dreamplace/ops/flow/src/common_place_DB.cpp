@@ -52,11 +52,25 @@ CommonDB::__init()
     return;
   }
 
-  num_nodes_ = getNumOfInsts();
-  init_x_ = new PlInt[num_nodes_];
-  init_y_ = new PlInt[num_nodes_];
-  node_size_x_ = new PlInt[num_nodes_];
-  node_size_y_ = new PlInt[num_nodes_];
+ // collect IO as fixed nodes
+  PlPin* ioPin = nullptr;
+  forEachIOPin(ioPin) {
+    if (getPinNet(ioPin)) {
+      PlTerm* term = getPinTerm(ioPin); 
+      if (term && isTermHasPort(term)) {
+        PlPort* port = getTermPortById(term, 0);
+        if (port && isPortHasLGeometry(port)) {
+          num_io_pins_++;
+        }
+      }
+    }
+  } endForEachIOPin
+
+  num_nodes_ = getNumOfInsts() + num_io_pins_;
+  init_x_.resize(num_nodes_);
+  init_y_.resize(num_nodes_);
+  node_size_x_.resize(num_nodes_);
+  node_size_y_.resize(num_nodes_);
 
   /* TODO
   flat_region_boxes_ = new int[];
@@ -76,17 +90,17 @@ CommonDB::__init()
 
   if (num_pins_ > 0) {
     // init net to pin
-    pin2net_map_ = new PlInt[num_pins_];
-    flat_net2pin_map_ = new PlInt[num_pins_];
-    flat_net2pin_start_map_ = new PlInt[num_nets_];
+    pin2net_map_.resize(num_pins_);
+    flat_net2pin_map_.resize(num_pins_);
+    flat_net2pin_start_map_.resize(num_nets_);
     // init inst(node) to pin
-    pin2node_map_ = new PlInt[num_pins_];
-    flat_node2pin_map_ = new PlInt[num_pins_];
-    flat_node2pin_start_map_ = new PlInt[num_nodes_];
+    pin2node_map_.resize(num_pins_);
+    flat_node2pin_map_.resize(num_pins_);
+    flat_node2pin_start_map_.resize(num_nodes_);
     // init pin offset
-    pin_offset_x_ = new PlInt[num_pins_];
-    pin_offset_y_ = new PlInt[num_pins_];
-    net_mask_ = new unsigned char[num_nets_];
+    pin_offset_x_.resize(num_pins_);
+    pin_offset_y_.resize(num_pins_);
+    net_mask_.resize(num_nets_);
   }
 
   idx_to_instId_.resize(num_nodes_);
@@ -94,6 +108,7 @@ CommonDB::__init()
   int idx = 0;
   int pinIdx = 0;
   // moveable insts at the beginning
+  std::unordered_map<PlPin*, PlInt> pin2Idx;
   forEachInst() {
     if (isInstMoveable(inst)) {
       PlBox box = getInstBox(inst);
@@ -106,10 +121,13 @@ CommonDB::__init()
       if (getInstNumPins(inst) > 0) { 
         flat_node2pin_start_map_[idx] = pinIdx;
         forEachInstPin(inst) {
-          flat_node2pin_map_[pinIdx] = pinId;
-          pin2node_map_[static_cast<PlInt>(pinId)] = idx;
-          pin_offset_x_[static_cast<PlInt>(pinId)] = getPinLocX(pin);
-          pin_offset_y_[static_cast<PlInt>(pinId)] = getPinLocY(pin);
+          pin2Idx.insert(std::make_pair(pin, pinIdx));
+          flat_node2pin_map_[pinIdx] = pinIdx;
+          pin2node_map_[pinIdx] = idx;
+          PlBox pinBox;
+          getPin1Box(pin, pinBox);
+          pin_offset_x_[pinIdx] = getBoxLLX(pinBox);
+          pin_offset_y_[pinIdx] = getBoxLLY(pinBox);
           pinIdx++;
         } endForEachInstPin
       }
@@ -131,16 +149,41 @@ CommonDB::__init()
       if (getInstNumPins(inst) > 0) { 
         flat_node2pin_start_map_[idx] = pinIdx;
         forEachInstPin(inst) {
-          flat_node2pin_map_[pinIdx] = pinId;
-          pin2node_map_[static_cast<PlInt>(pinId)] = idx;
-          pin_offset_x_[static_cast<PlInt>(pinId)] = getPinLocX(pin);
-          pin_offset_y_[static_cast<PlInt>(pinId)] = getPinLocY(pin);
+          pin2Idx.insert(std::make_pair(pin, pinIdx));
+          flat_node2pin_map_[pinIdx] = pinIdx;
+          pin2node_map_[pinIdx] = idx;
+          PlBox pinBox;
+          getPin1Box(pin, pinBox);
+          pin_offset_x_[pinIdx] = getBoxLLX(pinBox);
+          pin_offset_y_[pinIdx] = getBoxLLY(pinBox);
           pinIdx++;
         } endForEachInstPin
       }
       idx++;
     }
   } endForEachInst
+
+    // treat IOs as fixed insts as well
+    ioPin = nullptr;
+    forEachIOPin(ioPin) {
+      if (getPinNet(ioPin)) {
+        PlBox box;
+        if (getPin1Box(ioPin, box)) {
+          pin2Idx.insert(std::make_pair(ioPin, pinIdx));
+          init_x_[idx] = getBoxLLX(box);
+          init_y_[idx] = getBoxLLY(box);
+          node_size_x_[idx] = getBoxWidth(box);
+          node_size_y_[idx] = getBoxHeight(box);
+          flat_node2pin_start_map_[idx] = pinIdx;
+          flat_node2pin_map_[pinIdx] = pinIdx;
+          pin2node_map_[pinIdx] = idx;
+          pin_offset_x_[pinIdx] = 0;
+          pin_offset_y_[pinIdx] = 0;
+          pinIdx++;
+          idx++;
+        }
+      }
+    } endForEachIOPin
 
   // pins of same net to be abutted
   if (num_pins_ > 0) {
@@ -151,8 +194,8 @@ CommonDB::__init()
       flat_net2pin_start_map_[netIdx] = pinIdx;
       if (getNetPinArray(net) == nullptr) continue;
       forEachNetPin(net) {
-        flat_net2pin_map_[pinIdx] = pinId;
-        pin2net_map_[static_cast<PlInt>(pinId)] = netIdx;
+        flat_net2pin_map_[pinIdx] = pin2Idx[pin];
+        pin2net_map_[pin2Idx[pin]] = netIdx;
         pinIdx++; 
       } endForEachNetPin
       netIdx++;
@@ -167,7 +210,7 @@ CommonDB::__init()
       if (con && isRegionFence(con)) {
         num_fences_++;
         forEachRegionBox(con) {
-          numBox += 4;
+          numBox += 4;       // region has 4 locs
         } endForEachRegionBox
       }
     } endForEachGroup
@@ -175,10 +218,9 @@ CommonDB::__init()
     // inst(node) to fence
     if (numBox > 0) {
       // init fence
-      flat_fence_boxes_ = new int[numBox];
-      flat_fence_boxes_start_ = new int[num_fences_];
-      node2fence_map_ = new int[num_movable_nodes_];
-
+      flat_fence_boxes_.resize(numBox);
+      flat_fence_boxes_start_.resize(num_fences_);
+      node2fence_map_.resize(num_movable_nodes_);
       std::unordered_map<PlConstraint*, int> regionId;
       idx = 0;
       int bIdx = 0;
@@ -210,13 +252,23 @@ CommonDB::__init()
     }
   }
 
-  dreamplacePrint(kINFO, "Total %d instance%c, %d moveable instance%c, %d cell%c, %d net%c, %d  pin%c, %d io pin%c \n", 
+  if (getNumOfRow() > 0) {
+    rows_.resize(getNumOfRow());
+    PlRow* row = nullptr;
+    forEachRow(row) {
+       rows_.push_back(row);
+    } endForEachRows 
+  }
+
+  dreamplacePrint(kINFO, "Total %d instance%c, %d moveable instance%c, %d cell%c, %d net%c, %d  pin%c, %d io pin%c, %d io pin instance%c, %d row%c \n", 
     num_nodes_, num_nodes_ > 1 ? 's' : ' ',
     num_movable_nodes_, num_movable_nodes_ > 1 ? 's' : ' ',
     getNumOfCells(), getNumOfCells() > 1 ? 's' : ' ',
     num_nets_, num_nets_ > 1 ? 's' : ' ',
     num_pins_, num_pins_ > 1 ? 's' : ' ',
-    getNumOfIOPins(), getNumOfIOPins() > 1 ? 's' : ' '
+    getNumOfIOPins(), getNumOfIOPins() > 1 ? 's' : ' ',
+    num_io_pins_, num_io_pins_ > 1 ? 's' : ' ',
+    getNumOfRow(), getNumOfRow() > 1 ? 's' : ' '
   );
 
   isCommonDBReady_ = true;
@@ -228,73 +280,133 @@ CommonDB::__init()
 void
 CommonDB::__free()
 {
-  // free edi db
-  if (init_x_) {
-    delete [] init_x_;
-    init_x_ = nullptr;
-  }
-  if (init_y_) {
-    delete [] init_y_;
-    init_y_ = nullptr;
-  }
-  if (node_size_x_) {
-    delete [] node_size_x_;
-    node_size_x_ = nullptr;
-  }
-  if (node_size_y_) {
-    delete [] node_size_y_;
-    node_size_y_ = nullptr;
-  }
-  if (flat_net2pin_map_) {
-    delete [] flat_net2pin_map_;
-    flat_net2pin_map_ = nullptr;
-  }
-  if (flat_net2pin_start_map_) {
-    delete [] flat_net2pin_start_map_;
-    flat_net2pin_start_map_ = nullptr;
-  }
-  if (pin2net_map_) {
-    delete [] pin2net_map_;
-    pin2net_map_ = nullptr;
-  }
-  if (flat_node2pin_map_) {
-    delete [] flat_node2pin_map_;
-    flat_node2pin_map_ = nullptr;
-  }
-  if (flat_node2pin_start_map_) {
-    delete [] flat_node2pin_start_map_;
-    flat_node2pin_start_map_ = nullptr;
-  }
-  if (pin2node_map_) {
-    delete [] pin2node_map_;
-    pin2node_map_ = nullptr;
-  }
-  if (pin_offset_x_) {
-    delete [] pin_offset_x_;
-    pin_offset_x_ = nullptr;
-  }
-  if (pin_offset_y_) {
-    delete [] pin_offset_y_;
-    pin_offset_y_ = nullptr;
-  }
-  if (net_mask_) {
-    delete [] net_mask_;
-    net_mask_ = nullptr;
-  }
-  return;
 }
 
 // class CommonPlaceDB member functions
+void
+CommonPlaceDB::updateDB2EDI()
+{
+  // update all moveable instances
+  for (int i = 0; i < getNumMoveableNodes(); ++i) 
+  { 
+    PlObjId id = getInstId(i);
+    PlInst* inst = getInstance(id);
+    PlPoint loc(getCurXV().at(i), getCurYV().at(i));
+    setInstLoc(inst, loc);
+    setInstPStatus(inst, kPlStatus::kPlaced);
+  } 
+}
+
+void
+CommonPlaceDB::summaryMovement()
+{
+  // summary all moveable instances
+  PlUInt totalMove = 0;
+  PlUInt maxMove = 0;
+  PlUInt meanMove = 0;
+  PlInt instNum = getNumMoveableNodes();
+  if (instNum > 0) {
+    for (int i = 0; i < instNum; ++i) 
+    { 
+      PlUInt detalX = std::abs(getInitXV()[i]- getCurXV()[i]);
+      PlUInt detaly = std::abs(getInitYV()[i]- getCurYV()[i]);
+      PlUInt move = detalX + detaly;
+      totalMove += move;
+      if (maxMove < move) {
+        maxMove = move;
+      }
+    } 
+    meanMove = static_cast<PlDouble>(totalMove) / instNum;
+  }
+
+  dreamplacePrint(kINFO, "Dreamplace movement summary: moved insts %d mean move %.3f, max move %.3f",
+                  instNum, dbuToMicrons(meanMove), dbuToMicrons(maxMove));
+}
+
 void
 CommonPlaceDB::__buildInternalDB()
 {
   // create internal db for LP-DP
   if (!isCommonDBReady()) return;
+  // copy core box
+  if (!getParaBox().isInvalid()) {
+    setArea(getParaBox());
+  } else if (!getCoreBox().isInvalid()) {
+    setArea(getCoreBox());
+  }
+  // copy currnt locations
+  cur_x_ = getInitXV();
+  cur_y_ = getInitYV();
+  // copy site  
+  PlSite* site = getCoreSite();
+  if (site) {
+    setRowHight(getSiteH(site));
+    setSiteWidth(getSiteW(site));
+  }
 }
 
+void
+CommonPlaceDB::__freeInternalDB() 
+{ 
+}
+
+void 
+CommonPlaceDB::initLegalizationDBGPU(LegalizationDB<int>& db)
+{
+}
+
+void 
+CommonPlaceDB::initLegalizationDBCPU(LegalizationDB<int>& db)
+{
+  hr_clock_rep total_time_start, total_time_stop;
+  total_time_start = get_globaltime(); 
+
+// DB for CPU flow
+  db.xl = getAreaLLX();
+  db.yl = getAreaLLY();
+  db.xh = getAreaURX();
+  db.yh = getAreaURY();
+  db.site_width = site_width_;
+  db.row_height = row_height_;
+  db.bin_size_x = (db.xh-db.xl)/num_bins_x_;
+  db.bin_size_y = (db.yh-db.yl)/num_bins_y_;
+  db.num_bins_x = num_bins_x_;
+  db.num_bins_y = num_bins_y_;
+  db.num_sites_x = (db.xh-db.xl)/site_width_;
+  db.num_sites_y = (db.yh-db.yl)/row_height_;
+  db.num_nodes = getNumNodes(); 
+  db.num_movable_nodes = getNumMoveableNodes();
+  db.num_regions = getNumFences();
+
+  db.init_x = getInitX();
+  db.init_y = getInitY();
+  db.node_size_x = getNodeSizeX();
+  db.node_size_y = getNodeSizeY();
+  db.flat_region_boxes = getFlatFenceBoxes();
+  db.flat_region_boxes_start = getFlatFenceBoxesStart();
+  db.node2fence_region_map = getNode2FenceMap();
+  db.x = getCurX();
+  db.y = getCurY();
+
+  total_time_stop = get_globaltime();
+  dreamplacePrint(kINFO, "Init Legalization DB time: %g ms\n", get_timer_period()*(total_time_stop-total_time_start));
+  return;
+}
+
+void 
+CommonPlaceDB::initLegalizationDB(LegalizationDB<int>& db)
+{
+  if (isGPU()) {
+#ifdef _CUDA_FOUND
+    initLegalizationDBGPU(db);
+#endif
+  } else {
+    initLegalizationDBCPU(db);
+  }
+}
 
 // class CommonPlaceDB member functions
-void CommonPlaceDB::initDetailedPlaceDB(DetailedPlaceDB<int>& db, bool gpu=true)
+void CommonPlaceDB::initDetailedPlaceDB(DetailedPlaceDB<int>& db)
 {
     hr_clock_rep total_time_start, total_time_stop;
     total_time_start = get_globaltime(); 
@@ -317,7 +429,7 @@ void CommonPlaceDB::initDetailedPlaceDB(DetailedPlaceDB<int>& db, bool gpu=true)
     db.num_pins = getNumPins();
     db.num_regions = getNumFences();
 
-    if (!gpu)
+    if (!isGPU())
     {
         db.init_x = getInitX();
         db.init_y = getInitY();
@@ -341,7 +453,7 @@ void CommonPlaceDB::initDetailedPlaceDB(DetailedPlaceDB<int>& db, bool gpu=true)
     else
     {
 #ifdef _CUDA_FOUND
-        //initDetailedPlaceDBGPU(db);
+       initDetailedPlaceDBGPU(db);
 #endif
     }
 
@@ -351,14 +463,14 @@ void CommonPlaceDB::initDetailedPlaceDB(DetailedPlaceDB<int>& db, bool gpu=true)
 }
 
 // class CommonPlaceDB member functions
-void CommonPlaceDB::freeDetailedPlaceDB(DetailedPlaceDB<int>& db, bool gpu=true)
+void CommonPlaceDB::freeDetailedPlaceDB(DetailedPlaceDB<int>& db)
 {
     hr_clock_rep total_time_start, total_time_stop;
     total_time_start = get_globaltime(); 
-    if (gpu)
+    if (isGPU())
     {
 #ifdef _CUDA_FOUND
-        //freeDetailedPlaceDBGPU(db);
+      freeDetailedPlaceDBGPU(db);
 #endif
     }
     else

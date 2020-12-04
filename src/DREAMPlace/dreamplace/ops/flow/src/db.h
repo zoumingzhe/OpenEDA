@@ -58,10 +58,21 @@ typedef dbi::PlaceStatus PlStatus;
 typedef dbi::Constraint PlConstraint;
 typedef dbi::SignalType PlSignalType;
 typedef dbi::Port PlPort;
-typedef dbi::Constraint::ConstraintSubType PlConType;
+typedef dbi::Constraint::ConstraintType PlConType;
+typedef dbi::Constraint::ConstraintSubType PlConSubType;
 typedef uti::PlaceStatus kPlStatus;
-typedef dbi::Constraint::ConstraintSubType kPlConType;
+typedef dbi::Constraint::ConstraintType kPlConType;
+typedef dbi::Constraint::ConstraintSubType kPlConSubType;
+typedef dbi::LayerGeometry PlLGeometry;
+typedef dbi::Geometry PlGeometry;
+typedef dbi::Row PlRow;
+typedef dbi::Root PlRoot;
 // interface to edi DB 
+// root
+inline PlRoot*        getRoot()                          { return dbi::getRoot(); }
+// tech
+inline PlTech*        getTechLib()                       { return getRoot()->getTechLib(); }
+inline PlDouble       dbuToMicrons(PlInt i)              { return getTechLib()->dbuToMicrons(i); }
 // top cell
 inline PlCell*        getPlTopCell()                     { return dbi::getTopCell(); }
 // net
@@ -84,13 +95,20 @@ inline bool           isTermUsed(PlTerm* term)           { return term->hasUse()
 inline bool           isTermPG(PlTerm* term)             { return term->isPGType(); }
 inline PlSignalType   getTermPinType(PlTerm* term)       { return term->getPinType(); }
 inline int            getTermPortNum(PlTerm* term)       { return term->getPortNum(); }
-inline PlPort*        getTermPort(PlTerm* term, int idx) { return term->getPort(idx); }
-inline PlPoint        getPortLoc(PlPort* port)           { return port->getLocation(); }
-inline PlPoint        getTermLoc(PlTerm* term)           { return getPortLoc(getTermPort(term, 0)); }
+inline bool           isTermHasPort(PlTerm* term)        { return getTermPortNum(term) > 0 ? true : false; }     
+inline PlPort*        getTermPortById(PlTerm* term, int idx)      { return term->getPort(idx); }
+inline PlPoint        getPortLoc(PlPort* port)                    { return port->getLocation(); }
+inline PlPoint        getTermLoc(PlTerm* term)                    { return getPortLoc(getTermPortById(term, 0)); }
+inline PlInt          getPortLayerGeometryNum(PlPort* port)       { return port->getLayerGeometryNum(); }
+inline bool           isPortHasLGeometry(PlPort* port)            { return getPortLayerGeometryNum(port) > 0 ? true : false; }     
+inline PlLGeometry*   getPortLGeometryById(PlPort* port, int idx) { return port->getLayerGeometry(idx); }
+inline PlGeometry*    getGeometry(PlLGeometry* lGeo, int idx)     { return lGeo->getGeometry(idx); }
+inline PlBox          getGeometryBox(PlGeometry* geo)             { return geo->getBox(); }
 // pin
 inline PlUInt         getNumOfIOPins()                   { return getPlTopCell()->getNumOfIOPins(); }
 inline PlArrayObj*    getNetPinArray(PlNet* net)         { return net->getPinArray(); }
 inline PlPin*         getPin(PlObjId idx)                { return PlObj::addr<PlPin>(idx); } // need API
+inline PlPin*         getIOPin(PlObjId idx)              { return getPlTopCell()->getIOPin(idx); } // need API
 inline PlNet*         getPinNet(PlPin* pin)              { return pin->getNet(); }
 inline String const&  getPinName(PlPin* pin)             { return pin->getName(); }
 inline PlInst*        getPinInst(PlPin* pin)             { return pin->getInst(); }
@@ -105,7 +123,7 @@ inline PlInt          getPinLocY(PlPin* pin)             { return getPinLoc(pin)
 inline PlUInt         getNumOfInsts()                    { return getPlTopCell()->getNumOfInsts(); }
 inline PlArrayObj*    getInstanceArray()                 { return getPlTopCell()->getInstanceArray(); }
 inline PlInst*        getInstance(PlObjId idx)           { return PlObj::addr<PlInst>(idx); }
-inline PlCell*        getInstCell(PlInst* inst)          { return inst->getMaster(); } 
+inline PlCell*        getInstCell(PlInst* inst)          { return inst->getParent(); } 
 inline String         getInstName(PlInst* inst)          { return inst->getName(); }
 inline PlBox          getInstBox(PlInst* inst)           { return inst->getBox(); }
 inline PlBox          getInstHaloBox(PlInst* inst)       { return inst->getHalo(); }
@@ -125,9 +143,9 @@ inline bool           isInstLocked(PlInst* inst)         { return getInstStatus(
 inline bool           isInstCover(PlInst* inst)          { return getInstStatus(inst) == kPlStatus::kCover; }
 inline bool           isInstMoveable(PlInst* inst)       { return (isInstUnplaced(inst) || isInstPlaced(inst) || isInstSuggested(inst)); }
 // cell
-inline PlUInt         getNumOfCells()                    { return getPlTopCell()->getNumOfCells(); }
-inline PlArrayObj*    getCellArray()                     { return getPlTopCell()->getCellArray(); }
-inline PlCell*        getCell(PlInt idx)                 { return getPlTopCell()->getCell(idx); }
+inline PlUInt         getNumOfCells()                    { return getRoot()->getTechLib()->getNumOfCells(); }
+inline PlArrayObj*    getCellArray()                     { return getRoot()->getTechLib()->getCellArray(); }
+inline PlCell*        getCell(PlInt idx)                 { return PlObj::addr<PlCell>(idx); }
 inline PlUInt         getCellNumOfTerms(PlCell* cell)    { return cell->getNumOfTerms(); }
 inline PlArrayObj*    getCellTerms(PlCell* cell)         { return cell->getTermArray(); }
 inline String const&  getCellName(PlCell* cell)          { return cell->getName(); }
@@ -136,9 +154,11 @@ inline PlUInt         getNumOfGroups()                   { return getPlTopCell()
 inline PlArrayObj*    getGroupArray()                    { return getPlTopCell()->getGroupArray(); }
 inline PlGroup*       getGroup(size_t idx)               { return getPlTopCell()->getGroup(idx); }
 inline PlConstraint*  getRegion(PlGroup* group)          { return group->getRegion(); }
-inline PlConType      getConType(PlConstraint* con)      { return con->getConstraintSubType(); }
-inline bool           isRegionFence(PlConstraint* con)   { return getConType(con) == kPlConType::kRegionFence; }
-inline bool           isRrgionGuide(PlConstraint* con)   { return getConType(con) == kPlConType::kRegionGuide; }
+inline PlConType      getConType(PlConstraint* con)      { return con->getConstraintType(); }
+inline PlConSubType   getSubConType(PlConstraint* con)   { return con->getConstraintSubType(); }
+inline bool           isRegionFence(PlConstraint* con)   { return getSubConType(con) == kPlConSubType::kRegionFence; }
+inline bool           isRrgionGuide(PlConstraint* con)   { return getSubConType(con) == kPlConSubType::kRegionGuide; }
+inline bool           isRegionPlaceBlk(PlConstraint* con)  { return getConType(con) == kPlConType::kConstraintPBlkg; }
 inline PlArrayObj*    getRegionBoxArray(PlConstraint* con) { return PlObj::addr<PlArrayObj>(con->getBoxesId()); }
 inline PlBox*         getBox(PlObjId idx)                  { return PlObj::addr<PlBox>(idx); }
 // floor plan
@@ -147,9 +167,14 @@ inline PlBox          getCoreBox()                       { return getFloorplan()
 inline PlSite*        getCoreSite()                      { return getFloorplan()->getCoreSite(); }
 inline PlInt          getCoreXOffset()                   { return getFloorplan()->getXOffset(); }
 inline PlInt          getCoreYOffset()                   { return getFloorplan()->getYOffset(); }
-// tech
-inline PlTech*        getTechLib()                       { return getPlTopCell()->getTechLib(); }
-inline PlDouble       dbuToMicrons(PlInt i)              { return getTechLib()->dbuToMicrons(i); }
+inline PlInt          getSiteH(PlSite* site)             { return site->getHeight(); }
+inline PlInt          getSiteW(PlSite* site)             { return site->getWidth(); }
+inline PlUInt         getFPNumOfRow(PlFloorplan* fp)     { return fp->getNumOfRows(); }
+inline PlUInt         getNumOfRow()                      { return getFloorplan()->getNumOfRows(); }
+inline PlObjId        getRowsId(PlFloorplan* fp)         { return fp->getRows(); }
+inline PlArrayObj*    getRowArray()                      { return PlObj::addr<PlArrayObj>(getFloorplan()->getRows()); }
+inline PlRow*         getRow(PlObjId idx)                { return PlObj::addr<PlRow>(idx); } // need API
+inline PlBox          getRowBox(PlRow* row)              { return row->getBox(); }
 // Box
 inline PlInt          getBoxLLX(PlBox& box)              { return box.getLLX(); }
 inline PlInt          getBoxLLY(PlBox& box)              { return box.getLLY(); }
@@ -157,49 +182,104 @@ inline PlInt          getBoxURX(PlBox& box)              { return box.getURX(); 
 inline PlInt          getBoxURY(PlBox& box)              { return box.getURY(); }
 inline PlInt          getBoxHeight(PlBox& box)           { return box.getHeight(); }
 inline PlInt          getBoxWidth(PlBox& box)            { return box.getWidth(); }
+inline void           setBoxLLX(PlBox& box, PlInt lx)    { box.setLLX(lx); }
+inline void           setBoxLLY(PlBox& box, PlInt ly)    { box.setLLY(ly); }
+inline void           setBoxURX(PlBox& box, PlInt ux)    { box.setURX(ux); }
+inline void           setBoxURY(PlBox& box, PlInt uy)    { box.setURY(uy); }
+inline bool           isBoxInvalid(PlBox& box)           { return box.isInvalid(); }
+// db set API
+inline void           setInstLoc(PlInst* inst, PlPoint loc)         { inst->setLocation(loc); }
+inline void           setInstCell(PlInst* inst, PlCell* cell)       { inst->setParent(cell); } 
+inline void           setInstOri(PlInst* inst, PlOrient ori)        { inst->setOrient(ori); }
+inline void           setInstPStatus(PlInst* inst, PlStatus status) { inst->setStatus(status); } 
+
+inline bool
+getPin1Box(PlPin* pin, PlBox& box)
+{
+    PlTerm* term = getPinTerm(pin); 
+    if (term && isTermHasPort(term)) {
+        // get first port
+        PlPort* port = getTermPortById(term, 0);
+        if (port && isPortHasLGeometry(port)) {
+            // get first geometry
+            PlLGeometry* lGeo = getPortLGeometryById(port, 0);
+            PlGeometry* geo = getGeometry(lGeo, 0);
+            box = getGeometryBox(geo);
+            return true;
+        }
+    }
+    return false;
+}
 
 // iterations
 #define forEachNet()                                                                     \
         for (auto iter = getNetArray()->begin(); iter != getNetArray()->end(); ++iter) { \
           PlObjId netId = *iter;                                                         \
-          PlNet* net = getNet(netId); 
+          PlNet* net = getNet(netId);                                                    \
+          if (nullptr == net) continue;
 #define endForEachNet }
 
 #define forEachNetPin(net) \
         for (auto iter = getNetPinArray(net)->begin(); iter != getNetPinArray(net)->end(); ++iter) { \
           PlObjId pinId = *iter;                                                                     \
-          PlPin* pin = getPin(pinId); 
+          PlPin* pin = getPin(pinId);                                                                \
+          if (nullptr == pin) continue;
 #define endForEachNetPin }
 
 #define forEachInst()                                                                              \
         for (auto iter = getInstanceArray()->begin(); iter != getInstanceArray()->end(); ++iter) { \
           PlObjId instId = *iter;                                                                  \
-          PlInst* inst = getInstance(instId); 
+          PlInst* inst = getInstance(instId);                                                      \
+          if (nullptr == inst) continue;
 #define endForEachInst }
 
 #define forEachInstPin(inst)                                                                             \
         for (auto iter = getInstPinArray(inst)->begin(); iter != getInstPinArray(inst)->end(); ++iter) { \
           PlObjId pinId = *iter;                                                                         \
-          PlPin* pin = getPin(pinId); 
+          PlPin* pin = getPin(pinId);                                                                    \
+          if (nullptr == pin) continue;
 #define endForEachInstPin }
 
 #define forEachCell()                                                                      \
         for (auto iter = getCellArray()->begin(); iter != getCellArray()->end(); ++iter) { \
           PlObjId cellId = *iter;                                                          \
-          PlCell* cell = getCell(cellId); 
+          PlCell* cell = getCell(cellId);                                                  \
+          if (nullptr == cell) continue;
 #define endForEachCell }
 
 #define forEachGruop()                                                                       \
         for (auto iter = getGroupArray()->begin(); iter != getGroupArray()->end(); ++iter) { \
           PlObjId groupId = *iter;                                                           \
-          PlGroup* group = getGroup(groupId);   
+          PlGroup* group = getGroup(groupId);                                                \
+          if (nullptr == group) continue;
 #define endForEachGroup }
 
-#define forEachRegionBox(con)                                \
+#define forEachPlaceBlockage()                                                               \
+        for (auto iter = getGroupArray()->begin(); iter != getGroupArray()->end(); ++iter) { \
+          PlGroup* group = getGroup(*iter);                                                  \
+          PlConstraint* con = getRegion(group);                                              \
+          if (nullptr == con || !isRegionPlaceBlk(con)) continue;
+#define endForEachPlaceBlockage }
+
+#define forEachRegionBox(con)                                                                              \
         for (auto iter = getRegionBoxArray(con)->begin(); iter != getRegionBoxArray(con)->end(); ++iter) { \
-          PlObjId boxId = *iter;                                                          \
-          PlBox* box = getBox(boxId);
+          PlObjId boxId = *iter;                                                                           \
+          PlBox* box = getBox(boxId);                                                                      \
+          if (nullptr == box) continue;
 #define endForEachRegionBox }
+
+#define forEachIOPin(pin)                                             \
+        for (int pinId = 0; pinId < getNumOfIOPins(); ++pinId) {      \
+          pin = getIOPin(pinId);                                      \
+          if (nullptr == pin) continue;
+#define endForEachIOPin }
+
+#define forEachRow(row)                                                                  \
+        for (auto iter = getRowArray()->begin(); iter != getRowArray()->end(); ++iter) { \
+          PlObjId rowId = *iter;                                                         \
+          row = getRow(rowId);                                                           \
+          if (nullptr == row) continue;
+#define endForEachRows }
                          
 DREAMPLACE_END_NAMESPACE 
 

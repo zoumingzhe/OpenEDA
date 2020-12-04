@@ -1032,7 +1032,7 @@ void k_reorder(DetailedPlaceDB<T>& db, KReorderState<T>& state, const std::vecto
 }
 
 template <typename T>
-int kreorderCUDALauncherNew(DetailedPlaceDB<T> db, int K, int max_iters, int num_threads)
+int kreorderCUDALauncherNew(DetailedPlaceDB<T>& db, int K, int max_iters, int num_threads)
 {
     dreamplacePrint(kDEBUG, "%d-reorder\n", K);
     hr_clock_rep total_time_start, total_time_stop; 
@@ -1235,6 +1235,11 @@ int kreorderCUDALauncherNew(DetailedPlaceDB<T> db, int K, int max_iters, int num
     dreamplacePrint(kINFO, "K-reorder time: %g ms\n", get_timer_period()*(total_time_stop-total_time_start));
 
     return 0; 
+}
+
+int kreorderCUDARun(DetailedPlaceDB<int>& db, int K, int maxIters, int numThreads)
+{
+  return kreorderCUDALauncherNew(db, K, maxIters, numThreads);
 }
 
 #define REGISTER_KERNEL_LAUNCHER(T) \

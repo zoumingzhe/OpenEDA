@@ -12,14 +12,27 @@
 
 DREAMPLACE_BEGIN_NAMESPACE
 
-void MacroLegal::run()
+inline void
+MacroLegal::initLegalizationDB(LegalizationDB<int>& db)
 {
+  db_->initLegalizationDB(db);
+}
+
+void
+MacroLegal::run()
+{
+  hr_clock_rep timer_start = get_globaltime(); 
   dreamplacePrint(kINFO, "Starting Macro Legalization\n");
   // exit if no DB
   if (!isCommonDBReady()) {
     dreamplacePrint(kINFO, "Error out\n");
     return;
   }
+  LegalizationDB<int> db;
+  initLegalizationDB(db);
+  macroLegalizationRun(db);
+  hr_clock_rep timer_stop = get_globaltime(); 
+  dreamplacePrint(kINFO, "Macro legalization takes %g ms\n", (timer_stop-timer_start)*get_timer_period());
 }
 
 DREAMPLACE_END_NAMESPACE

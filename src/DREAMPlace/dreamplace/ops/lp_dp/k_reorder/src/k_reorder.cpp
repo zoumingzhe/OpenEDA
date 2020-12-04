@@ -20,8 +20,6 @@
 #include "lp_dp/k_reorder/src/k_reorder.h"
 
 DREAMPLACE_BEGIN_NAMESPACE
-template <typename T>
-int kreorderCUDALauncherNew(DetailedPlaceDB<T> db, int K, int max_iters, int num_threads);
 #define MAX_NUM_THREADS 128 
 
 template <typename T>
@@ -214,7 +212,7 @@ void apply_reorder(DetailedPlaceDB<T>& db, KReorderState<T>& state, int row_id, 
 
 /// @brief global swap algorithm for detailed placement 
 template <typename T>
-int kreorderCPULauncherNew(DetailedPlaceDB<T>& db, int K, int max_iters, int
+int kreorderCPURun(DetailedPlaceDB<T>& db, int K, int max_iters, int
                         num_threads)
 {
     dreamplacePrint(kDEBUG, "%d-reorder\n", K);
@@ -411,11 +409,11 @@ void KReorder::run_cpu()
 {
     //make DetailedPlaceDB db.
     DetailedPlaceDB<int> db;
-    db_->initDetailedPlaceDB(db, false); //cpu version.
-    kreorderCPULauncherNew(db, K_, max_iters_, num_threads_);
+    db_->initDetailedPlaceDB(db); //cpu version.
+    kreorderCPURun(db, K_, max_iters_, num_threads_);
     //update common db_ using db.x, db.y
     //todo: db_->update(db.x, db.y);
-    db_->freeDetailedPlaceDB(db, false);
+    db_->freeDetailedPlaceDB(db);
 
     return;
 }
@@ -424,9 +422,9 @@ void KReorder::run_gpu()
 {
     //make DetailedPlaceDB db.
     DetailedPlaceDB<int> db;
-    db_->initDetailedPlaceDB(db, true); //gpu version.
+    db_->initDetailedPlaceDB(db); //gpu version.
 #ifdef _CUDA_FOUND
-    //kreorderCUDALauncherNew(db, K_, max_iters_, num_threads_);
+    kreorderCUDARun(db, K_, max_iters_, num_threads_);
 #endif
     //update common db_ using db.x, db.y
     /*
@@ -439,7 +437,7 @@ void KReorder::run_gpu()
     destroyCPU(cpu_dbx);
     destroyCPU(cpu_dby);
     */
-    db_->freeDetailedPlaceDB(db, true);
+    db_->freeDetailedPlaceDB(db);
 
     return;
 }
