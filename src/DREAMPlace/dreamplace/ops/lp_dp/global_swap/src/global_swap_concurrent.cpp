@@ -57,13 +57,13 @@ void compute_search_bins(const DetailedPlaceDB<T>& db, SwapState<T>& state, int 
     for (int node_id = begin; node_id < end; node_id += 1)
     {
         // compute optimal region 
-        Box<T> opt_box = (state.search_bin_strategy)? 
+        UBox<T> opt_box = (state.search_bin_strategy)? 
             db.compute_optimal_region(node_id) 
-            : Box<T>(db.x[node_id], 
+            : UBox<T>(db.x[node_id], 
                 db.y[node_id], 
                 db.x[node_id]+db.node_size_x[node_id], 
                 db.y[node_id]+db.node_size_y[node_id]);
-        //Box<T> opt_box = Box<T>(db.x[node_id], 
+        //Box<T> opt_box = UBox<T>(db.x[node_id], 
         //        db.y[node_id], 
         //        db.x[node_id]+db.node_size_x[node_id], 
         //        db.y[node_id]+db.node_size_y[node_id]);
@@ -241,7 +241,7 @@ T compute_pair_hpwl_general (const DetailedPlaceDB<T>& db, const SwapState<T>& s
         int net_id = db.pin2net_map[node_pin_id];
         if (db.net_mask[net_id])
         {
-            Box<T> box (
+            UBox<T> box (
                     db.xh, 
                     db.yh, 
                     db.xl, 

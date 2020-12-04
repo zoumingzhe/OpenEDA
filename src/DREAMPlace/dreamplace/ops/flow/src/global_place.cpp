@@ -44,7 +44,7 @@ int GlobalPlace::run()
     }
     int rtn_value = 0;
     std::string json_file; // = getPara()->getJsonFile();
-    //const std::wstring kModulePath(L"/home/zhoufei/code/edi-1126/open-edi/dreamplace");
+    //const std::wstring kModulePath(L"/home/zhoufei/code/edi-1204/open-edi/src/DREAMPlace/build/bin/dreamplace");
     std::wstring kSitePaths(L"/home/opt/Anaconda3-5.2.0-Linux-x86_64/lib/python3.6/site-packages");
     std::wstring kSitePathsOrig(kSitePaths);
     const std::wstring kLib64(L"lib64");
