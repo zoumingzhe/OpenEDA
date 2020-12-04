@@ -233,11 +233,162 @@ class SetFalsePath : public ExceptionPath {
   public:
     COMMAND_GET_SET_VAR(comment, Comment)
     COMMAND_GET_SET_FLAG(flags, 0, setup, Setup)
-    COMMAND_GET_SET_FLAG(flags, 0, hold, Hold)
+    COMMAND_GET_SET_FLAG(flags, 1, hold, Hold)
 
 }; 
 using SetFalsePathPtr = std::shared_ptr<SetFalsePath>;
 
+class SetIdealLatency {
+  private:
+    float delay_;
+    std::bitset<4> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(delay, Delay)
+    COMMAND_GET_SET_FLAG(flags, 0, rise, Rise)
+    COMMAND_GET_SET_FLAG(flags, 1, fall, Fall)
+    COMMAND_GET_SET_FLAG(flags, 2, min, Min)
+    COMMAND_GET_SET_FLAG(flags, 3, max, Max)
+};
+using SetIdealLatencyPtr = std::shared_ptr<SetIdealLatency>;
+
+class SetIdealNetwork {
+  public:
+    void addPin(ObjectId &pin_id) { pins_.emplace_back(pin_id); };
+    void addNet(ObjectId &net_id) { nets_.emplace_back(net_id); };
+
+  private:
+    std::vector<ObjectId> pins_;
+    std::vector<ObjectId> nets_;
+    std::bitset<1> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(pins, Pins)
+    COMMAND_GET_SET_VAR(nets, Nets)
+    COMMAND_GET_SET_FLAG(flags, 0, no_propagate, NoPropagate)
+};
+using SetIdealNetworkPtr = std::shared_ptr<SetIdealNetwork>;
+
+class SetIdealTransition {
+  private:
+    float value_ = 0.0;
+    std::bitset<4> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(value, Value)
+    COMMAND_GET_SET_FLAG(flags, 0, rise, Rise)
+    COMMAND_GET_SET_FLAG(flags, 1, fall, Fall)
+    COMMAND_GET_SET_FLAG(flags, 2, min, Min)
+    COMMAND_GET_SET_FLAG(flags, 3, max, Max)
+};
+using SetIdealTransitionPtr = std::shared_ptr<SetIdealTransition>;
+
+class PortDelay {
+  private:
+    float delay_value_ = 0.0;
+    std::vector<ClockId> clocks_;
+    std::bitset<9> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(delay_value, DelayValue);
+    COMMAND_GET_SET_VAR(clocks, Clocks)
+    COMMAND_GET_SET_FLAG(flags, 0, clock_fall, ClockFall)
+    COMMAND_GET_SET_FLAG(flags, 1, level_sensitive, LevelSensitive)
+    COMMAND_GET_SET_FLAG(flags, 2, rise, Rise)
+    COMMAND_GET_SET_FLAG(flags, 3, fall, Fall)
+    COMMAND_GET_SET_FLAG(flags, 4, min, Min)
+    COMMAND_GET_SET_FLAG(flags, 5, max, Max)
+    COMMAND_GET_SET_FLAG(flags, 6, add_delay, AddDelay)
+    COMMAND_GET_SET_FLAG(flags, 7, network_latency_included, NetworkLatencyIncluded)
+    COMMAND_GET_SET_FLAG(flags, 8, source_latency_included, SourceLatencyIncluded)
+};
+using PortDelayPtr = std::shared_ptr<PortDelay>;
+
+class SetInputDelay : public PortDelay {
+
+};
+using SetInputDelayPtr = std::shared_ptr<SetInputDelay>;
+
+class SetMaxDelay : public ExceptionPath {
+  private:
+    float delay_value_ = 0.0;
+    std::string comment = "";
+    std::bitset<3> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(delay_value, DelayValue)
+    COMMAND_GET_SET_VAR(comment, Comment)
+    COMMAND_GET_SET_FLAG(flags, 0, rise, Rise)
+    COMMAND_GET_SET_FLAG(flags, 1, fall, Fall)
+    COMMAND_GET_SET_FLAG(flags, 2, ignore_clock_latency, IgnoreClockLatency)
+};
+using SetMaxDelayPtr = std::shared_ptr<SetMaxDelay>;
+
+class SetMaxTimeBorrow {
+  private:
+    float value_ = 0.0;
+
+  public:
+    COMMAND_GET_SET_VAR(value, Value)
+};
+using SetMaxTimeBorrowPtr = std::shared_ptr<SetMaxTimeBorrow>;
+
+class SetMinDelay : public ExceptionPath {
+  private:
+    float delay_value_ = 0.0;
+    std::string comment = "";
+    std::bitset<3> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(delay_value, DelayValue)
+    COMMAND_GET_SET_VAR(comment, Comment)
+    COMMAND_GET_SET_FLAG(flags, 0, rise, Rise)
+    COMMAND_GET_SET_FLAG(flags, 1, fall, Fall)
+    COMMAND_GET_SET_FLAG(flags, 2, ignore_clock_latency, IgnoreClockLatency)
+};
+using SetMinDelayPtr = std::shared_ptr<SetMinDelay>;
+
+class SetMinPulseWidth {
+  private:
+    float value_ = 0.0;
+    std::bitset<2> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(value, Value)
+    COMMAND_GET_SET_FLAG(flags, 0, low, Low)
+    COMMAND_GET_SET_FLAG(flags, 1, high, High)
+};
+using SetMinPulseWidthPtr = std::shared_ptr<SetMinPulseWidth>;
+
+class SetMulticyclePath : public ExceptionPath {
+  private:
+    std::string comment_ = "";
+    UInt32 path_multiplier = 0;
+    std::bitset<6> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(comment, Comment)
+    COMMAND_GET_SET_FLAG(flags, 0, setup, Setup)
+    COMMAND_GET_SET_FLAG(flags, 1, hold, Hold)
+    COMMAND_GET_SET_FLAG(flags, 2, rise, Rise)
+    COMMAND_GET_SET_FLAG(flags, 3, fall, Fall)
+    COMMAND_GET_SET_FLAG(flags, 4, start, Start)
+    COMMAND_GET_SET_FLAG(flags, 5, end, End)
+
+}; 
+using SetMulticyclePathPtr = std::shared_ptr<SetMulticyclePath>;
+
+class SetOutputDelay : public PortDelay {
+
+};
+using SetOutputDelayPtr = std::shared_ptr<SetOutputDelay>;
+
+//not used
+class SetPropagatedClock {
+
+
+};
+using SetPropagatedClockPtr = std::shared_ptr<SetPropagatedClock>;
 
 
 }

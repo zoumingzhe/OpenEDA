@@ -151,8 +151,80 @@ class SdcFalsePathContainer {
 };
 using SdcFalsePathContainerPtr = std::shared_ptr<SdcFalsePathContainer>; 
 
+class SdcIdealLatencyContainer {
 
+  private:
+    std::vector<ObjectId> pins_;
+}; 
+using SdcIdealLatencyContainerPtr = std::shared_ptr<SdcIdealLatencyContainer>;
 
+class SdcIdealNetworkContainer {
+  public:
+    void add(SetIdealNetwork& network);
+
+  private:
+    std::vector<ObjectId> pins_;
+    std::vector<ObjectId> nets_;
+}; 
+using SdcIdealNetworkContainerPtr = std::shared_ptr<SdcIdealNetworkContainer>;
+
+class SdcIdealTransitionContainer {
+
+  private:
+    std::unordered_map<ObjectId, SetIdealTransitionPtr> pin_ideal_transitions_;
+}; 
+using SdcIdealTransitionContainerPtr = std::shared_ptr<SdcIdealTransitionContainer>;
+
+class SdcInputDelayContainer {
+
+  private:
+    std::unordered_map<PinPairPtr, SetInputDelayPtr> pin_input_delays_;
+};
+using SdcInputDelayContainerPtr = std::shared_ptr<SdcInputDelayContainer>;
+
+class SdcMaxDelayContainer {
+
+  private:
+    std::vector<SetMaxDelay> max_delays_;
+};
+using SdcMaxDelayContainerPtr = std::shared_ptr<SdcMaxDelayContainer>;
+
+class SdcMaxTimeBorrowContainer {
+
+  private:
+    std::unordered_map<ObjectId, SetMaxTimeBorrowPtr> pin_max_time_borrow_;
+    std::unordered_map<ClockId, SetMaxTimeBorrowPtr> clock_max_time_borrow_;
+};
+using SdcMaxTimeBorrowContainerPtr = std::shared_ptr<SdcMaxTimeBorrowContainer>;
+
+class SdcMinPulseWidthContainer {
+
+  private:
+    std::unordered_map<ObjectId, SetMinPulseWidthPtr> pin_min_pulse_width_;
+    std::unordered_map<ClockId, SetMinPulseWidthPtr> clock_min_pulse_width_;
+};
+using SdcMinPulseWidthContainerPtr = std::shared_ptr<SdcMinPulseWidthContainer>;
+
+class SdcMulticyclePathContainer {
+
+  private:
+    std::vector<SetMulticyclePathPtr> multi_cycle_paths_;
+};
+using SdcMulticyclePathContainerPtr = std::shared_ptr<SdcMulticyclePathContainer>;
+
+class SdcOutputDelayContainer {
+
+  private:
+    std::unordered_map<PinPairPtr, SetOutDelayPtr> pin_output_delays_;
+};
+using SdcOutputDelayContainerPtr = std::shared_ptr<SdcOutputDelayContainer>;
+
+class SdcPropagatedClockContainer {
+  private:
+    std::set<ObjectId> pins_;
+    std::set<ClockId> clocks_;
+};
+using SdcPropagatedClockContainerPtr = std::shared_ptr<SdcPropagatedClockContainer>;
 
 
 //environment commands
@@ -174,6 +246,31 @@ class SdcCaseAnalysisContainer {
     PinCaseAnalysisMap pin_to_case_analysis_;
 };
 using SdcCaseAnalysisContainerPtr = std::shared_ptr<SdcCaseAnalysisContainer>;
+
+class SdcDriveContainer {
+  private:
+    std::unordered_map<ObjectId, SetDrivePtr> pin_drives_;
+};
+using SdcDriveContainerPtr = std::shared_ptr<SdcDriveContainer>;
+
+class SdcDrivingCellContainer {
+  private:
+    std::unordered_map<ObjectId, SetDrivingCellPtr> port_driving_cell_;
+};
+using SdcDrivingCellContainerPtr = std::shared_ptr<SdcDrivingCellContainer>;
+
+class SdcFanoutLoadContainer {
+  private:
+    std::unordered_map<ObjectId, Uint32> pin_fanout_load_;
+};
+using SdcFanoutLoadContainerPtr = std::shared_ptr<SdcFanoutLoadContainer>;
+
+class SdcInputTransitionContainer {
+  private:
+    std::unordered_map<ObjectId, SetInputTransitionPtr> port_input_transitions_;
+};
+using SdcInputTransitionContainerPtr = std::shared_ptr<SdcInputTransitionContainer>;
+
 
 ;//multivoltage power commands
 
