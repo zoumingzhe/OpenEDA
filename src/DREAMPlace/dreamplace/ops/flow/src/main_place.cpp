@@ -25,7 +25,7 @@ MainPlace::run()
 
   /// global place
   GlobalPlace gplace;
-  if (!gplace.run())
+  if (gplace.run() != 0)
   {
       return;
   }
