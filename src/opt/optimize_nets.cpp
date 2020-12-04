@@ -9,21 +9,21 @@ namespace opt {
 
 OptimizeNets::OptimizeNets() {
     j_ = 1;
+    simulate_nets_ = 1;
     io_ = NULL;
 }
 
 OptimizeNets::~OptimizeNets() {
     if(io_){
-        io_->destroyTree();
         delete io_;
     }
 }
 
 int OptimizeNets::parseCommand(int argc, char *argv[]) {
     int param;
-    string buffer_file, net_file, output_file;
+    string buffer_file, net_file;
     bool outputAllResults = false;
-    while ( (param = getopt(argc, argv, "an:b:o:j::")) != -1 ) {
+    while ( (param = getopt(argc, argv, "an:b:o:j::s::")) != -1 ) {
         switch (param) {
             case 'a':
                 outputAllResults = true;
@@ -35,10 +35,13 @@ int OptimizeNets::parseCommand(int argc, char *argv[]) {
                 buffer_file.assign(optarg);
                 break;
             case 'o':
-                output_file.assign(optarg);
+                output_dir_.assign(optarg);
                 break;
             case 'j':
                 j_ = max(j_,atoi(optarg));
+                break;
+            case 's':
+                simulate_nets_ = atoi(optarg);
                 break;
             default:
                 break;
@@ -57,19 +60,19 @@ int OptimizeNets::parseCommand(int argc, char *argv[]) {
 
 void OptimizeNets::preRun() {
     worker_cnt_ = j_;
-    for(int i=0;i<simulate_nets;i++){
-        vector<Node *> array;
-        //deep copy
-        io_->getTreeCopy(array);
-        p_input_.push_back(array);
-    }
     #if DEBUG_NETS
     cout << "prepare to run " << worker_cnt_ << "x!" << endl;
     #endif
 }
 
 void *OptimizeNets::runMapper() {
-    for(int i=0;i<simulate_nets;i++){
+    for(int i=0;i<simulate_nets_;i++){
+        vector<Node *> array;
+        //deep copy
+        io_->getTreeCopy(array);
+        mutex_.lock();
+        p_input_.push_back(array);
+        mutex_.unlock();
         #if DEBUG_NETS
         cout << "mapper[" << i << "]" << endl;
         #endif
@@ -87,11 +90,17 @@ void *OptimizeNets::runWorker() {
         #if DEBUG_NETS
         cout << "worker[" << net->net_id << "]" << endl;
         #endif
-        OptimizeNet *opt = new OptimizeNet();
-        int result = opt->optimize_net(r0_,c0_,net->net_id,p_input_[net->net_id],buffers_,drivers_);
+        OptimizeNet *opt = new OptimizeNet(output_dir_);
+        mutex_.lock_shared();
+        vector<Node *> array = p_input_[net->net_id];
+        mutex_.unlock_shared();
+        int result = opt->optimize_net(r0_,c0_,net->net_id,array,buffers_,drivers_);
         solution_queue_.push(new VanSolution(result));
         delete opt;
         delete net;
+        for(auto &node : array){
+            delete node;
+        }
     }
     return NULL;
 }
@@ -118,7 +127,6 @@ void OptimizeNets::postRun() {
     // TODO
     // destroy copy tree
     if(io_){
-        io_->destroyTree();
         delete io_;
     }
     io_ = NULL;
