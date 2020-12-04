@@ -11,18 +11,78 @@
  */
 
 //#include <gperftools/profiler.h>
+
+#include <codecvt>
+#include <libgen.h>
 #include "flow/src/main_place.h"
 #include "tcl_command/src/place_tcl_command.h"
 #include "infra/command_manager.h"
 #include "wire_length/src/wire_length.h"
 
+
 DREAMPLACE_BEGIN_NAMESPACE
 using namespace open_edi::infra;
 
-// place_design
-static int placeDesignCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[])
-{
+static int placeDesignMain(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]);
+
+static int placeDesignWrap(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
+ 
+  //write lef def out for dream place
+  Tcl_Eval(itp, "write_lef place_input_db.lef");
+  Tcl_Eval(itp, "write_def place_input_db.def");
+  
+  char dest[PATH_MAX];
+  memset(dest,0,sizeof(dest)); // readlink does not null terminate!
+  if (readlink("/proc/self/exe", dest, PATH_MAX) == -1) {
+    perror("readlink");
+    return -1;
+  } else {
+    char* pathCopy = strdup(dest);
+    std::string srcdir(dirname(pathCopy));
+    std::string dreamPlaceBinPath = srcdir + "/../dreamplace";
+    //std::cout<<dreamPlaceBinPath<<std::endl;
+    
+    std::string dreamPlaceBin = dreamPlaceBinPath + "/Placer.py";
+    //std::cout<<dreamPlaceBin<<std::endl;
+    
+    std::string jsonfile = dreamPlaceBinPath + "/run.json";
+    //std::cout<<jsonfile<<std::endl;
+ 
+    std::string cmd = "python " + dreamPlaceBin + " " + jsonfile + " | tee place.log";
+    //std::cout<<cmd<<std::endl;
+
+    Tcl_Eval(itp, cmd.c_str());
+    Tcl_Eval(itp, "read_def place_output_db.def");
+
+  }
+  return TCL_OK;
+}
+
+static int placeDesignCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
   dreamplacePrint(kINFO, "Starting place_design\n");
+  
+  bool isNormalFlow = true;
+  //TODO: 
+  //Command* cmd = CommandManager::parseCommand(argc, argv);
+  //   if (cmd->isOptionSet("-wrapflow")) //default is true 
+  //   bool res = cmd->getOptionValue("-global_place", value_bool);
+  //   if(!res) {
+  //   isNormalFlow = true;
+  //   }
+  
+  int s = TCL_OK;
+  if(isNormalFlow) {
+    s = placeDesignMain(cld, itp, argc, argv);
+  } else {
+    s = placeDesignWrap(cld, itp, argc, argv);
+  }
+  dreamplacePrint(kINFO, "End place_design\n");
+  return s;
+}
+
+// place_design
+static int placeDesignMain(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[])
+{
   std::string jsonFile ;
   int flow_steps = 0x1FF;
   if (argc > 1) {
