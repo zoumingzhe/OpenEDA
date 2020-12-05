@@ -1530,6 +1530,8 @@ std::string const Cell::getClassString() {
 }
 
 void Cell::setClass(const char *v) {
+    if (v == nullptr)
+        return;
     std::string tmp = v;
     std::string class_string;
     std::string sub_class_string;
@@ -1555,6 +1557,7 @@ void Cell::setClass(const char *v) {
     } else if (class_string == "ENDCAP") {
         class_type_ = kEndcap;
     } else {
+        message->issueMsg(kError, "Class type %s not supported.\n", sub_class_string.c_str());
     }
 
     if (has_sub_class) {
@@ -1573,10 +1576,12 @@ void Cell::setClass(const char *v) {
         }else if (sub_class_string == "POWER") {
             sub_class_type_ = CellSubClassType::kPadPower;
         } else if (sub_class_string == "SPACER") {
-            if (class_type_ == kPad)
+            if (class_type_ == kPad) {
                 sub_class_type_ = CellSubClassType::kPadSpacer;
-            else if (class_type_ == kCore)
+            }
+            else if (class_type_ == kCore) {
                 sub_class_type_ = CellSubClassType::kCoreSpacer;
+            }
         } else if (sub_class_string == "AREAIO") {
             sub_class_type_ = CellSubClassType::kPadAreaIO;
         } else if (sub_class_string == "FEEDTHRU") {
@@ -1601,6 +1606,8 @@ void Cell::setClass(const char *v) {
             sub_class_type_ = CellSubClassType::kEndcapBottomLeft;
         } else if (sub_class_string == "BOTTOMRIGHT") {
             sub_class_type_ = CellSubClassType::kEndcapBottomRight;
+        } else {
+            message->issueMsg(kError, "sub class type %s not supported.\n", sub_class_string.c_str());
         }
     }
 }
