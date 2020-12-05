@@ -431,7 +431,7 @@ class Cell : public Object {
     // void setNumForeigns(int value) { foreign_num_ = value; }
 
     void setClass(const char *cls);
-    std::string const getClass();
+    std::string const getClassString();
     bool isClassCover() { return class_type_ == kCover? true : false;}
     bool isClassRing() { return class_type_ == kRing? true : false;}
     bool isClassBlock() { return class_type_ == kBlock? true : false;}

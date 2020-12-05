@@ -1431,7 +1431,7 @@ void Cell::resetTerms(const std::vector<Term *> &terms) {
     }
 }
 
-std::string const Cell::getClass() {
+std::string const Cell::getClassString() {
     //return getSymbolByIndex(class_index_);
     std::string tmp = std::string("");
     switch (class_type_) {
@@ -1793,7 +1793,7 @@ Density *Cell::getDensity(int index) {
 void Cell::print() {
     Tech *lib = getOwnerCell()->getTechLib();
     message->info("MACRO %s \n", getName().c_str());
-    message->info("CLASS %s ;\n", getClass().c_str());
+    message->info("CLASS %s ;\n", getClassString().c_str());
     if (getIsFixedMask()) {
         message->info("   FIXEDMASK ;\n");
     }
@@ -1911,9 +1911,9 @@ void Cell::printLEF(std::ofstream &ofs) {
     Tech *lib = getTechLib();
     ofs << "MACRO"
         << " " << getName().c_str() << " \n";
-    if (getClass().size() > 0) {
+    if (getClassString().size() > 0) {
         ofs << "   CLASS"
-            << " " << getClass().c_str() << " ;\n";
+            << " " << getClassString().c_str() << " ;\n";
     }
     if (getIsFixedMask()) {
         ofs << "   FIXEDMASK ;\n";
