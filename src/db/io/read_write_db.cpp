@@ -301,10 +301,7 @@ bool WriteDesign::__preWork() {
     return true;
 }
 
-bool WriteDesign::__writeDBFile(
-    MemPagePool *pool, 
-    std::string &filename
-) {
+bool WriteDesign::__writeDBFile( MemPagePool *pool, std::string &filename) {
     ediAssert(pool != nullptr);
     std::string db_file = filename;
     db_file.append(kDBFilePostFix);
@@ -496,21 +493,18 @@ int WriteDesign::run() {
     if (!__preWork()) {
         return ERROR;
     }
-    if (!__writeDBFile()) {
+    if (!__writeTimingLib()) {
         return ERROR;
     }
 
-    if (!__writePolyFile()) {
+    if (!__writeTechLib()) {
         return ERROR;
     }
 
-    if (!__writeSymFile()) {
+    if (!__writeCell()) {
         return ERROR;
     }
 
-    if (!__setAfterWrite()) {
-        return ERROR;
-    }
     if (!__postWork()) {
         return ERROR;
     }
