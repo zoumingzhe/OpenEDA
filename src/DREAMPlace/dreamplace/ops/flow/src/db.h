@@ -60,19 +60,25 @@ typedef dbi::SignalType PlSignalType;
 typedef dbi::Port PlPort;
 typedef dbi::Constraint::ConstraintType PlConType;
 typedef dbi::Constraint::ConstraintSubType PlConSubType;
-typedef uti::PlaceStatus kPlStatus;
 typedef dbi::Constraint::ConstraintType kPlConType;
 typedef dbi::Constraint::ConstraintSubType kPlConSubType;
 typedef dbi::LayerGeometry PlLGeometry;
 typedef dbi::Geometry PlGeometry;
 typedef dbi::Row PlRow;
 typedef dbi::Root PlRoot;
+
+typedef uti::PlaceStatus kPlStatus;
+typedef uti::Polygon PlPolygon;
 // interface to edi DB 
 // root
 inline PlRoot*        getRoot()                          { return dbi::getRoot(); }
 // tech
 inline PlTech*        getTechLib()                       { return getRoot()->getTechLib(); }
 inline PlDouble       dbuToMicrons(PlInt i)              { return getTechLib()->dbuToMicrons(i); }
+inline PlArrayObj*    getSiteArray()                     { return getTechLib()->getSiteArray(); }
+inline PlSite*        getCoreSite()                      { return PlObj::addr<PlSite>(*(getSiteArray()->begin())); }    // frist is core site
+inline PlInt          getSiteH(PlSite* site)             { return site->getHeight(); }
+inline PlInt          getSiteW(PlSite* site)             { return site->getWidth(); }
 // top cell
 inline PlCell*        getPlTopCell()                     { return dbi::getTopCell(); }
 // net
@@ -163,12 +169,11 @@ inline PlArrayObj*    getRegionBoxArray(PlConstraint* con) { return PlObj::addr<
 inline PlBox*         getBox(PlObjId idx)                  { return PlObj::addr<PlBox>(idx); }
 // floor plan
 inline PlFloorplan*   getFloorplan()                     { return getPlTopCell()->getFloorplan(); }
+inline PlPolygon*     getCorePolygon()                   { return getFloorplan()->getDieAreaPolygon(); }
+inline PlInt          getPolygonNumPoint(PlPolygon* pl)  { return pl->getNumPoints(); } 
 inline PlBox          getCoreBox()                       { return getFloorplan()->getCoreBox(); }
-inline PlSite*        getCoreSite()                      { return getFloorplan()->getCoreSite(); }
 inline PlInt          getCoreXOffset()                   { return getFloorplan()->getXOffset(); }
 inline PlInt          getCoreYOffset()                   { return getFloorplan()->getYOffset(); }
-inline PlInt          getSiteH(PlSite* site)             { return site->getHeight(); }
-inline PlInt          getSiteW(PlSite* site)             { return site->getWidth(); }
 inline PlUInt         getFPNumOfRow(PlFloorplan* fp)     { return fp->getNumOfRows(); }
 inline PlUInt         getNumOfRow()                      { return getFloorplan()->getNumOfRows(); }
 inline PlObjId        getRowsId(PlFloorplan* fp)         { return fp->getRows(); }
@@ -186,6 +191,8 @@ inline void           setBoxLLX(PlBox& box, PlInt lx)    { box.setLLX(lx); }
 inline void           setBoxLLY(PlBox& box, PlInt ly)    { box.setLLY(ly); }
 inline void           setBoxURX(PlBox& box, PlInt ux)    { box.setURX(ux); }
 inline void           setBoxURY(PlBox& box, PlInt uy)    { box.setURY(uy); }
+inline void           setBox(PlBox& box, PlInt lx, PlInt ly, PlInt ux, PlInt uy)
+                      { box.setBox(lx, ly, ux, uy); }
 inline bool           isBoxInvalid(PlBox& box)           { return box.isInvalid(); }
 // db set API
 inline void           setInstLoc(PlInst* inst, PlPoint loc)         { inst->setLocation(loc); }
@@ -211,6 +218,8 @@ getPin1Box(PlPin* pin, PlBox& box)
     return false;
 }
 
+#define setMin2(a, b) if (a < b) b = a;
+#define setMax2(a, b) if (a > b) b = a;
 // iterations
 #define forEachNet()                                                                     \
         for (auto iter = getNetArray()->begin(); iter != getNetArray()->end(); ++iter) { \

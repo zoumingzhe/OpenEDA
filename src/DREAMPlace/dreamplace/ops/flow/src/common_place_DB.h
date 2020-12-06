@@ -217,9 +217,9 @@ class CommonPlaceDB
   public:
     static CommonPlaceDB* getPlaceDBInstance()
     {
-      if (place_db_instance_ == nullptr) {
-        place_db_instance_ = new CommonPlaceDB();
-      }
+      //if (place_db_instance_ == nullptr) {
+      //  place_db_instance_ = new CommonPlaceDB();
+      //}
       return place_db_instance_;
     }
     static CommonPlaceDB* getPlaceDBInstance(Para& para)
@@ -320,6 +320,7 @@ class CommonPlaceDB
     // internal DB interface: set
     void     setNodeWeight(const int id, const double w) { node_weights_[id] = w;             }
     void     setArea(PlBox box)                          { box_ = box;                        }
+    void     setArea(PlInt lx, PlInt ly, PlInt ux, PlInt uy)  { setBox(box_, lx, ly, ux, uy); }
     void     setAreaLLX(const Coord llx)                 { box_.setLLX(llx);                  }
     void     setAreaLLY(const Coord lly)                 { box_.setLLY(lly);                  }
     void     setAreaURX(const Coord urx)                 { box_.setURX(urx);                  }
@@ -363,8 +364,8 @@ __attribute__ ((visibility("default")))
     Coord               row_height_         = 0;           // row height  
     Coord               bin_size_x_         = 0;           // bin size x
     Coord               bin_size_y_         = 0;           // bin size y
-    int                 num_bins_x_         = 0;           // num of bins in x
-    int                 num_bins_y_         = 0;           // num of bins in y
+    int                 num_bins_x_         = 1;           // num of bins in x
+    int                 num_bins_y_         = 1;           // num of bins in y
     int                 num_sites_x_        = 0;           // num of sites in x
     int                 num_sites_y_        = 0;           // num of sites in y
 

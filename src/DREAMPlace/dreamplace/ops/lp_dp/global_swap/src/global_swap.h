@@ -28,7 +28,7 @@ class GlobalSwap
   public:
     GlobalSwap()
     {
-        CommonPlaceDB* db_ = CommonPlaceDB::getPlaceDBInstance();
+        db_ = CommonPlaceDB::getPlaceDBInstance();
         is_gpu_ = db_->getPara().isGPU();
         num_threads_ = db_->getPara().getNumThreads();
     }

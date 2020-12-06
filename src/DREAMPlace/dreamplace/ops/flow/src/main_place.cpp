@@ -40,7 +40,7 @@ MainPlace::run()
   GlobalPlace gplace;
   if (gplace.run() != 0)
   {
-      return;
+      //return;
   }
 
   /// lpdp place 

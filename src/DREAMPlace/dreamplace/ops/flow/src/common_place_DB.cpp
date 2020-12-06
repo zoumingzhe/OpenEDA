@@ -203,6 +203,7 @@ CommonDB::__init()
   }
 
   // collect fence num and fence box num for new memory
+  node2fence_map_.resize(num_nodes_, std::numeric_limits<PlInt>::max());
   if(getNumOfGroups() > 0) {
     int numBox = 0;
     forEachGruop() {
@@ -220,7 +221,6 @@ CommonDB::__init()
       // init fence
       flat_fence_boxes_.resize(numBox);
       flat_fence_boxes_start_.resize(num_fences_);
-      node2fence_map_.resize(num_movable_nodes_);
       std::unordered_map<PlConstraint*, int> regionId;
       idx = 0;
       int bIdx = 0;
@@ -343,6 +343,27 @@ CommonPlaceDB::__buildInternalDB()
     setArea(getParaBox());
   } else if (!getCoreBox().isInvalid()) {
     setArea(getCoreBox());
+  } else {
+    PlPolygon* poly = getCorePolygon();
+    PlInt numPoly = getPolygonNumPoint(poly);
+    if (numPoly >= 2) {   // area needs 2 points at least
+      setArea(poly->getPoint(0).getX(), poly->getPoint(0).getY(),
+             poly->getPoint(1).getX(), poly->getPoint(1).getY());
+      for (int i = 2; i < numPoly; ++i) 
+      {
+        if (poly->getPoint(i).getX() < getAreaLLX()) {
+          setAreaLLX(poly->getPoint(i).getX());
+        } else if (poly->getPoint(i).getX() > getAreaURX()) {
+          setAreaURX(poly->getPoint(i).getX());
+        }
+        if (poly->getPoint(i).getY() < getAreaLLY()) {
+          setAreaLLY(poly->getPoint(i).getY());
+        } else if (poly->getPoint(i).getY() > getAreaURY()) {
+          setAreaURY(poly->getPoint(i).getY());
+        }
+      }
+    }
+
   }
   // copy currnt locations
   cur_x_ = getInitXV();
@@ -352,6 +373,12 @@ CommonPlaceDB::__buildInternalDB()
   if (site) {
     setRowHight(getSiteH(site));
     setSiteWidth(getSiteW(site));
+  }
+  if (getParaNumBinsX() > 1) {
+    setNumBinsX(getParaNumBinsX());
+  }
+  if (getParaNumBinsY() > 1) {
+    setNumBinsY(getParaNumBinsY());
   }
 }
 
