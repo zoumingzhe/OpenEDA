@@ -13,7 +13,7 @@ list(FILTER SRCS EXCLUDE REGEX ".*hv_tree.cpp$")
 link_directories(${TCL_DIR}/lib /lib64)
 
 add_library(${_SUBLIBNAME} STATIC ${SRCS})
-target_link_libraries(${_SUBLIBNAME} PUBLIC lz4)
+target_link_libraries(${_SUBLIBNAME} PUBLIC lz4 z)
 target_include_directories(${_SUBLIBNAME} PUBLIC
     ${PROJECT_BINARY_DIR} 
     ${CMAKE_CURRENT_SOURCE_DIR}/..

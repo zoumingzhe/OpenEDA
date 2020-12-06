@@ -19,6 +19,7 @@
 
 #include "util/checksum.h"
 #include "util/util.h"
+#include "util/io_handler.h"
 
 namespace open_edi {
 namespace db {
@@ -307,19 +308,29 @@ bool WriteDesign::__writeDBFile(
     ediAssert(pool != nullptr);
     std::string db_file = filename;
     db_file.append(kDBFilePostFix);
-    // open:
-    std::ofstream out_dbfile(db_file.c_str(), std::ofstream::binary);
-    if (out_dbfile.good() == false) {
-        util::message->issueMsg(kMsgCategoryDB, 
-            OpenFileError, kError, db_file.c_str());      
-        //std::cout << "ERROR: Failed to open output db file "
-                  //<< db_file << ".\n";
+
+    IOHandler io_handler;
+    if (false == io_handler.open(db_file.c_str(), "wb")) {
+        message->issueMsg(kError, "Failed to open output db file %s.\n",
+                          db_file.c_str());
         return false;
     }
+
     // write version:
     Version &v = getCurrentVersion();
-    v.writeToFile(out_dbfile, getDebug());
 
+    v.writeToFile(io_handler, getDebug());
+    /*
+    // check cell name:
+    top_cell_ = getTopCell();
+    cell_name_ = top_cell_->getName();
+    if (cell_name_.compare(saved_name_) != 0) {
+        if (getDebug()) {
+            std::cout << "DEBUGINFO: rename top cell name " << cell_name_
+                      << " to " << saved_name_ << std::endl;
+        }
+        top_cell_->setName(saved_name_);
+    }
     // write mem pool:
     size_t pool_id = pool->getPoolNo();
     out_dbfile.write(reinterpret_cast<char *>(&pool_id), sizeof(size_t));
@@ -339,13 +350,13 @@ bool WriteDesign::__writeDBFile(
     if (getDebug()) {
         pool->printUsage();
     }
+    */
+    io_handler.close();
     return true;
 }
 
-bool WriteDesign::__writePolyFile(
-    PolygonTable *polygon_table, 
-    std::string &filename
-) {
+bool WriteDesign::__writePolyFile( PolygonTable *polygon_table, 
+                                                      std::string &filename) {
     ediAssert(polygon_table != nullptr);
     std::string poly_file = filename;
     poly_file.append(kPolyFilePostFix);

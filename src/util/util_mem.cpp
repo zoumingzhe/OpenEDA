@@ -18,10 +18,10 @@
 #include <iostream>
 
 #include "lz4.h"
+#include "util/util.h"
 #include "util/util_mem.h"
 #include "util/message.h"
-#include "util/compress.h"
-#include "util/decompress.h"
+#include "util/io_handler.h"
 
 namespace open_edi {
 namespace util {
@@ -123,13 +123,18 @@ void MemPagePool::__release() {
     __reset();
 }
 
+/// @brief MemPagePool 
 MemPagePool::MemPagePool() { __reset(); }
 
+/// @brief ~MemPagePool 
 MemPagePool::~MemPagePool() {
     std::lock_guard<std::mutex> sg(mutex_);
     __release();
 }
 
+/// @brief __nextPage 
+///
+/// @return 
 MemPage *MemPagePool::__nextPage() {
     if (curr_page_id_ < (num_pages_ - 1)) {
         return pages_[++curr_page_id_];
@@ -206,20 +211,18 @@ void MemPagePool::printUsage() {
          << "Avg page utilize rate- " << ur / num_pages_ << endl;
 }
 
+/// @brief __writeChunkSizeInfo output chunks number and size
+/// @param outfile
+/// @param debug
 void MemPagePool::__writeChunkSizeInfo(std::ofstream &outfile, bool debug) {
     if (debug) cout << "RWDBGINFO: write size " << num_chunks_ << endl;
     outfile.write((char *)&(num_chunks_), sizeof(uint64_t));
     outfile.write((char *)&(chunk_size_), sizeof(uint64_t));
-    /*
-    int i = 0;
-    for (auto &mem_chunk : chunks_) {
-        uint64_t size = mem_chunk->getSize();
-        if (debug) cout << "RWDBGINFO: write chunk_size " << size << endl;
-        outfile.write((char *)&size, sizeof(uint64_t));
-    }
-    */
 }
 
+/// @brief __readChunkSizeInfo read chunk number and size, initialize all chunks
+/// @param infile
+/// @param debug
 void MemPagePool::__readChunkSizeInfo(std::ifstream &infile, bool debug) {
     infile.read((char *)(&num_chunks_), sizeof(uint64_t));
     infile.read((char *)(&chunk_size_), sizeof(uint64_t));
@@ -233,6 +236,10 @@ void MemPagePool::__readChunkSizeInfo(std::ifstream &infile, bool debug) {
     }
 }
 
+/// @brief __writePageInfo Output page size and number, and all pages
+///
+/// @param outfile
+/// @param debug
 void MemPagePool::__writePageInfo(std::ofstream &outfile, bool debug) {
     outfile.write((char *)&(curr_page_id_), sizeof(size_t));
     outfile.write((char *)&(page_size_), sizeof(size_t));
@@ -249,6 +256,10 @@ void MemPagePool::__writePageInfo(std::ofstream &outfile, bool debug) {
     }
 }
 
+/// @brief __readPageInfo Read page information and set correct internal 
+/// information.
+/// @param infile
+/// @param debug
 void MemPagePool::__readPageInfo(std::ifstream &infile, bool debug) {
     infile.read((char *)&(curr_page_id_), sizeof(size_t));
     infile.read((char *)&(page_size_), sizeof(size_t));
@@ -285,6 +296,10 @@ void MemPagePool::__readPageInfo(std::ifstream &infile, bool debug) {
     }
 }
 
+/// @brief __writeFreeListInfo Output free list
+///
+/// @param outfile
+/// @param debug
 void MemPagePool::__writeFreeListInfo(std::ofstream &outfile, bool debug) {
     outfile.write((char *)&(mem_free_), sizeof(uint64_t));
 
@@ -319,6 +334,10 @@ void MemPagePool::__writeFreeListInfo(std::ofstream &outfile, bool debug) {
     }
 }
 
+/// @brief __readFreeListInfo Read free list
+///
+/// @param infile
+/// @param debug
 void MemPagePool::__readFreeListInfo(std::ifstream &infile, bool debug) {
     infile.read((char *)&(mem_free_), sizeof(uint64_t));
 
@@ -353,31 +372,14 @@ void MemPagePool::__readFreeListInfo(std::ifstream &infile, bool debug) {
     }
 }
 
-static uint32_t calcThreadNumber(uint64_t num_tasks) {
-    uint32_t max_num_thread = std::thread::hardware_concurrency();
-    if (max_num_thread == 0) {
-        return 1;
-    }
-
-    if (num_tasks > max_num_thread * 8) {
-        return (max_num_thread + 1) / 2;
-    } else if (num_tasks > max_num_thread * 4) {
-        return (max_num_thread + 3) / 4;
-    } else if (num_tasks > max_num_thread * 2) {
-        return (max_num_thread + 7) / 8;
-    } else {
-        return (num_tasks + 3) / 4;
-    }
-}
-
-void MemPagePool::__writeChunks(std::ofstream &outfile, bool debug) {
+/// @brief __writeChunks Ouput chunks
+///
+/// @param outfile
+/// @param debug
+void MemPagePool::__writeChunks(IOHandler &io_handler, bool debug) {
+    /*
     if (num_chunks_ <= 0) {
         return;
-    }
-    struct timeval start, current;
-    double timeuse;
-    if (debug) {
-        gettimeofday(&start, NULL);
     }
 
     int i = 0;
@@ -439,15 +441,15 @@ void MemPagePool::__writeChunks(std::ofstream &outfile, bool debug) {
     for (auto mem_chunk : dst_chunks) {
         delete mem_chunk;
     }
-    if (debug) {
-        gettimeofday(&current, NULL);
-        timeuse = (current.tv_sec - start.tv_sec) +
-            (double)(current.tv_usec - start.tv_usec)/1000000.0;
-        std::cout << "__writeChunks time : " << timeuse << std::endl;
-    }
+    */
 }
 
+/// @brief __readChunks Read chunks
+///
+/// @param infile
+/// @param debug
 void MemPagePool::__readChunks(std::ifstream &infile, bool debug) {
+    /*
     int num_thread = calcThreadNumber(num_chunks_);
     size_t src_size = LZ4F_compressFrameBound(chunk_size_, NULL);
     std::vector<MemChunk*> src_chunks;
@@ -461,7 +463,7 @@ void MemPagePool::__readChunks(std::ifstream &infile, bool debug) {
     decompressed_sizes.resize(num_thread, 0);
 
     Decompressor decompressor;
-    decompressor.setDecompressType(kDecompressLz4);
+    decompressor.setDecompressType(kCompressLz4);
 
     int i = 0;
     for (i = 0; i + num_thread < num_chunks_; i += num_thread) {
@@ -517,6 +519,7 @@ void MemPagePool::__readChunks(std::ifstream &infile, bool debug) {
     for (auto mem_chunk : src_chunks) {
         delete mem_chunk;
     }
+    */
 }
 
 /// @brief write header to a file
@@ -533,12 +536,9 @@ void MemPagePool::writeHeaderToFile(std::ofstream &outfile, bool debug) {
 }
 
 /// @brief write chunk/content to a file
-void MemPagePool::writeContentToFile(std::ofstream &outfile, bool debug) {
-    if (!outfile) {
-        return;
-    }
+void MemPagePool::writeContentToFile(IOHandler &io_handler, bool debug) {
     // 5. write chunks
-    __writeChunks(outfile, debug);
+    __writeChunks(io_handler, debug);
     // close-file moved to the UI callback.
     // outfile.close();
 }

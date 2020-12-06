@@ -50,7 +50,10 @@ static int writeLefCommand(ClientData cld, Tcl_Interp *itp, int argc, const char
 
 // read DEF file
 static int readDefCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
-    return util::runCommandWithProcessBar(readDef, argc, argv);
+    ProfilerStart("read_def.prof");
+    int result = util::runCommandWithProcessBar(readDef, argc, argv);
+    ProfilerStop();
+    return result;
 }
 
 static int writeDefCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
@@ -96,7 +99,9 @@ static int readDBCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *
     ReadDesign read_design(cell_name);
     read_design.setTop();
     read_design.setDebug(debug);
+    ProfilerStart("read_design.prof");
     int result = read_design.run();
+    ProfilerStop();
 
     outputMonitor(monitor_id, kElapsedTime, "read_design ");
     destroyMonitor(monitor_id);
@@ -140,9 +145,9 @@ static int writeDBCommand(ClientData cld, Tcl_Interp *itp, int argc, const char 
     }
     WriteDesign write_design(cell_name);
     write_design.setDebug(debug);
-    //ProfilerStart("test_compress_mr.prof");
+    ProfilerStart("write_design.prof");
     write_design.run();
-    //ProfilerStop();
+    ProfilerStop();
 
     outputMonitor(monitor_id, kElapsedTime, "write_design ");
     destroyMonitor(monitor_id);

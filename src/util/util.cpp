@@ -105,6 +105,11 @@ int utilInit() {
 }
 
 
+/// @brief processBar Create a new thread to update system information per
+/// second.
+/// @param arg
+///
+/// @return 
 void* processBar(void* arg) {
     MonitorId monitor_id = createMonitor();
     while (true) {
@@ -114,6 +119,13 @@ void* processBar(void* arg) {
     destroyMonitor(monitor_id);
 }
 
+/// @brief runCommandWithProcessBar Run command with a process bar
+///
+/// @param command
+/// @param argc
+/// @param argv
+///
+/// @return 
 int runCommandWithProcessBar(command_t command, int argc, const char **argv) {
     int result = 0;
     pthread_t process_bar_thread = 0;
@@ -130,6 +142,28 @@ int runCommandWithProcessBar(command_t command, int argc, const char **argv) {
     }
 
     return result;
+}
+
+/// @brief calcThreadNumber Calculate how many threads is needed for the taskes.
+///
+/// @param num_tasks
+///
+/// @return 
+uint32_t calcThreadNumber(uint64_t num_tasks) {
+    uint32_t max_num_thread = std::thread::hardware_concurrency();
+    if (max_num_thread == 0) {
+        return 1;
+    }
+
+    if (num_tasks > max_num_thread * 8) {
+        return (max_num_thread + 1) / 2;
+    } else if (num_tasks > max_num_thread * 4) {
+        return (max_num_thread + 3) / 4;
+    } else if (num_tasks > max_num_thread * 2) {
+        return (max_num_thread + 7) / 8;
+    } else {
+        return (num_tasks + 3) / 4;
+    }
 }
 
 }  // namespace util

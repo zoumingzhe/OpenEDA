@@ -14,6 +14,7 @@
 #define EDI_DB_TECH_VERSION_H_
 
 #include "util/util.h"
+#include "util/io_handler.h"
 
 namespace open_edi {
 namespace util {
@@ -27,7 +28,7 @@ class Version {
     void reset();
     void set(Version & v);
     const std::string &getVersionString();
-    void writeToFile(std::ofstream & outfile, bool debug = false);
+    void writeToFile(IOHandler &io_handler, bool debug = false);
     void readFromFile(std::ifstream & infile, bool debug = false);
     
   private:

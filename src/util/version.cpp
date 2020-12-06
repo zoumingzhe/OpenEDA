@@ -51,20 +51,20 @@ const std::string & Version::getVersionString() {
     return version_string_;
 }
 
-void Version::writeToFile(std::ofstream & outfile, bool debug)
+void Version::writeToFile(IOHandler & io_handler, bool debug)
 {
     const char *version = getVersionString().c_str();
     Bits8 size = strlen(version);
-    if (debug) { 
+    if (debug) {
         cout << "RWDBGINFO: version size " << (int)size << endl;
     }
     if (size == 0) return;
 
-    outfile.write((char *) &(size), sizeof(Bits8));
+    io_handler.write((char *) &(size), sizeof(Bits8));
     if (debug) { 
         cout << "RWDBGINFO: version string: " << version << endl;
     }
-    outfile.write((char *)version, size);
+    io_handler.write((char *)version, size);
 }
 
 void Version::readFromFile(std::ifstream & infile, bool debug)

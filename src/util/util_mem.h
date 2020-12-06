@@ -18,6 +18,7 @@
 #include <mutex>
 #include <iostream>
 #include "util/namespace.h"
+#include "util/io_handler.h"
 
 #ifndef EDI_UITIL_MEM_HPP_
 #define EDI_UITIL_MEM_HPP_
@@ -173,7 +174,7 @@ class MemPagePool {
     size_t      getPoolNo() {return pool_no_;}
     void        printUsage();
     void        writeHeaderToFile(std::ofstream & outfile, bool debug = false);
-    void        writeContentToFile(std::ofstream & outfile, bool debug = false);
+    void        writeContentToFile(IOHandler & io_handler, bool debug = false);
     void        readFromFile(std::ifstream & infile, bool debug = false);
 
   private:
@@ -205,7 +206,7 @@ class MemPagePool {
     void __readPageInfo(std::ifstream & infile, bool debug = false);
     void __writeFreeListInfo(std::ofstream & outfile, bool debug = false);
     void __readFreeListInfo(std::ifstream & infile, bool debug = false);
-    void __writeChunks(std::ofstream & outfile, bool debug = false);
+    void __writeChunks(IOHandler & io_handler, bool debug = false);
     void __readChunks(std::ifstream & infile, bool debug = false);
   private:
     std::mutex mutex_;

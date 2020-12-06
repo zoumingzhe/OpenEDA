@@ -43,6 +43,7 @@ const char* getSpaceStr(uint32_t num_spaces);
 typedef int (*command_t)(int, const char **);
 void *processBar(void *arg);
 int runCommandWithProcessBar(command_t command, int argc, const char **argv);
+uint32_t calcThreadNumber(uint64_t num_tasks);
 }  // namespace util
 }  // namespace open_edi
 
