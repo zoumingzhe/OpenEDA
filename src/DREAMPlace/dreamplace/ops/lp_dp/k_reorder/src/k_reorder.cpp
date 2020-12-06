@@ -411,8 +411,7 @@ void KReorder::run_cpu()
     DetailedPlaceDB<int> db;
     db_->initDetailedPlaceDB(db); //cpu version.
     kreorderCPURun(db, K_, max_iters_, num_threads_);
-    //update common db_ using db.x, db.y
-    //todo: db_->update(db.x, db.y);
+    db_->updateXY(db.x, db.y);
     db_->freeDetailedPlaceDB(db);
 
     return;
@@ -425,18 +424,8 @@ void KReorder::run_gpu()
     db_->initDetailedPlaceDB(db); //gpu version.
 #ifdef _CUDA_FOUND
     kreorderCUDARun(db, K_, max_iters_, num_threads_);
+    db_->updateXYGPU(db.x, db.y);
 #endif
-    //update common db_ using db.x, db.y
-    /*
-    int* cpu_dbx; int* cpu_dby;
-    allocateCopyCPU(cpu_dbx, db.x, db.num_nodes, int);
-    allocateCopyCPU(cpu_dby, db.y, db.num_nodes, int);
-    */
-    //todo: db_->updateGPU(db.x, db.y);
-    /*
-    destroyCPU(cpu_dbx);
-    destroyCPU(cpu_dby);
-    */
     db_->freeDetailedPlaceDB(db);
 
     return;

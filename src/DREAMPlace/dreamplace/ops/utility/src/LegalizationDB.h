@@ -9,7 +9,9 @@
 
 #include <algorithm>
 #include "utility/src/Msg.h"
-#include "utility/src/utils.h"
+//looks like no components with legaldb rely on dream::min/max and it conflict with utils.cuh
+//disable this include by now.
+//#include "utility/src/utils.h"
 #include "legality_check/src/legality_check.h"
 
 DREAMPLACE_BEGIN_NAMESPACE

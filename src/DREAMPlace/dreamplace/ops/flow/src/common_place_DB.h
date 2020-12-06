@@ -333,6 +333,8 @@ class CommonPlaceDB
     void     setNumSitesX(const int num_sites_x)         { num_sites_x_ = num_sites_x;        }
     void     setNumSitesY(const int num_sites_y)         { num_sites_y_ = num_sites_y;        }
 
+__attribute__ ((visibility("default")))
+    void     updateXY(const int* x, const int* y);
     //  detailedDB interface
     void     initDetailedPlaceDB(DetailedPlaceDB<int>& db);
     void     freeDetailedPlaceDB(DetailedPlaceDB<int>& db);
@@ -343,6 +345,7 @@ class CommonPlaceDB
     void     initLegalizationDBCPU(LegalizationDB<int>& db);
     void     initLegalizationDB(LegalizationDB<int>& db);
 #ifdef _CUDA_FOUND
+    void     updateXYGPU(const int* x, const int* y);
   private:
     void     initDetailedPlaceDBGPU(DetailedPlaceDB<int>& db);
     void     freeDetailedPlaceDBGPU(DetailedPlaceDB<int>& db);

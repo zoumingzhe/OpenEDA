@@ -1,6 +1,7 @@
 project(place_flow)
 
 if (CUDA_FOUND)
+    add_definitions(-D_CUDA_FOUND)
     file(GLOB CUDA_SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cu"
         )
@@ -14,7 +15,7 @@ if (CUDA_FOUND)
     list(APPEND CUDA_NVCC_FLAGS --compiler-options -fPIC)
 
     cuda_add_library(
-        ${CUDA_LINKED} SHARED 
+        ${CUDA_LINKED} STATIC
         ${CUDA_SOURCES}
         )
 

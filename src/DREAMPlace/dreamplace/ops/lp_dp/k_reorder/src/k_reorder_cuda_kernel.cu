@@ -28,7 +28,7 @@
 #include "utility/src/DetailedPlaceDB.cuh"
 #include "utility/src/FlatNestedVector.cuh"
 #include "utility/src/PitchNestedVector.cuh"
-#include "k_reorder/src/quick_perm.h"
+//#include "k_reorder/src/quick_perm.h"
 #include "k_reorder/src/row2node_map.h"
 #include "k_reorder/src/compute_independent_rows.h"
 #include "k_reorder/src/compute_reorder_instances.h"
@@ -47,6 +47,11 @@ DREAMPLACE_BEGIN_NAMESPACE
 /// A group contains independent rows. 
 /// An KReorderInstance contains an adjacent sequence of cells to be solved. 
 /// 
+
+//for historical reason, quick_perm() was defined in both k_reorder.cpp & k_xxx.cu. As we combine .cu with .cpp, now
+//.cu remove this def, and rely on .cpp (corresponding .a) to provide a unique one. So extern here.
+extern void print_perm(const std::vector<int> &a);
+extern std::vector<std::vector<int> > quick_perm(int N);
 
 /// a net for a reorder instance 
 template <typename T>

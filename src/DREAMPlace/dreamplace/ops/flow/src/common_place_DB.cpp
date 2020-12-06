@@ -298,6 +298,16 @@ CommonPlaceDB::updateDB2EDI()
 }
 
 void
+CommonPlaceDB::updateXY(const int* x, const int* y)
+{
+  for (int i=0; i < getNumMoveableNodes(); ++i)
+  {
+    cur_x_.at(i) = x[i];
+    cur_y_.at(i) = y[i];
+  }
+}
+
+void
 CommonPlaceDB::summaryMovement()
 {
   // summary all moveable instances
