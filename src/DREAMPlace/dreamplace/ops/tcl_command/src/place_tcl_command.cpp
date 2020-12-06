@@ -120,7 +120,10 @@ static int placeDesignMain(ClientData cld, Tcl_Interp *itp, int argc, const char
   int num_bins_x = 1;
   int num_bins_y = 1;
   bool save_db   = false;
-  bool gpu       = true;
+  bool gpu       = false;
+#ifdef _CUDA_FOUND
+   gpu = true;
+#endif  
   Para para(num_bins_x, num_bins_y, flow_steps, save_db, gpu, jsonFile);
   MainPlace place(para);
   place.run();
