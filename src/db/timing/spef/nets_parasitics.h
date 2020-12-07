@@ -64,27 +64,38 @@ class NetsParasitics : public Object {
     char getDivider() const { return divider_; }
     void setDelimiter(char delimiter) { delimiter_ = delimiter; }
     char getDelimiter() const { return delimiter_; }
-    void setPreBusDel(char prebusdel) { preBusDel_ = prebusdel; }
-    void setSufBusDel(char sufbusdel) { sufBusDel_ = sufbusdel; }
-    char getPreBusDel() const { return preBusDel_; }
-    char getSufBusDel() const { return sufBusDel_; }
-    void setCellId(ObjectId cellId) { cellId_ = cellId; }
-    ObjectId getCellId() const { return cellId_; }
-    void addDesignFlow(std::string flowStr) { designFlowVec_.push_back(flowStr); }
-    //const std::vector<std::string> getDesignFlow(void) { return designFlowVec_; }
-    void setTimeScale(float scale) { timeScale_ = scale; }
-    float getTimeScale() const { return timeScale_; }
-    void setCapScale(float scale) { capScale_ = scale; }
-    float getCapScale() const { return capScale_; }
-    void setResScale(float scale) { resScale_ = scale; }
-    float getResScale() const { return resScale_; }
-    void setInductScale(float scale) { inductScale_ = scale; }
-    float getInductScale() const { return inductScale_; }
-    void addNameMap(uint32_t index, SymbolIndex symIdx) { nameMap_[index] = symIdx; }
-    void addPort(ObjectId portId) { portsVec_.push_back(portId); }
-    //std::unordered_map<uint32_t, SymbolIndex> getNameMap() { return nameMap_; } 
-    //void addPowerNet(ObjectId sNetId) { pwrNetVec_.push_back(sNetId); }
-    //void addGroundNet(ObjectId sNetId) { gndNetVec_.push_back(sNetId); }
+    void setPreBusDel(char prebusdel) { pre_bus_del_ = prebusdel; }
+    void setSufBusDel(char sufbusdel) { suf_bus_del_ = sufbusdel; }
+    char getPreBusDel() const { return pre_bus_del_; }
+    char getSufBusDel() const { return suf_bus_del_; }
+    void setCellId(ObjectId cellId) { cell_id_ = cellId; }
+    ObjectId getCellId() const { return cell_id_; }
+    void addDesignFlow(std::string flowStr);
+    ObjectId getDesignFlows() const { return design_flow_vec_id_; }
+    void setTimeScale(float scale) { time_scale_ = scale; }
+    float getTimeScale() const { return time_scale_; }
+    void setCapScale(float scale) { cap_scale_ = scale; }
+    float getCapScale() const { return cap_scale_; }
+    void setResScale(float scale) { res_scale_ = scale; }
+    float getResScale() const { return res_scale_; }
+    void setInductScale(float scale) { induct_scale_ = scale; }
+    float getInductScale() const { return induct_scale_; }
+    void addNameMapIdx(uint32_t index);
+    //Get name map idx vector id;
+    ObjectId getNameMapIdxs() const { return nameid_vec_id_; }
+    void addNameMapSymIdx(SymbolIndex symIdx);
+    //Get name map SymbolIndex vector id;
+    ObjectId getNameMapSymIdxs() const { return symidx_vec_id_; }
+    void addNameMap(uint32_t index, SymbolIndex symIdx);
+    void addPort(ObjectId portId);
+    //Get ports vector Id;
+    ObjectId getPorts() const { return ports_vec_id_; }
+    void addNet(ObjectId netId);
+    //Get nets vector Id;
+    //ObjectId getNets() const { return net_vec_id_; }
+    //void addNetParasitics(ObjectId netParaId);
+    //Get net parasitics vector Id;
+    ObjectId getNetParasitics() const { return netparasitics_vec_id_; }
     bool isDigits(const char *str);
     Net* getNetBySymbol(SymbolIndex index);
     Net* findNet(const char *netName);
@@ -124,31 +135,26 @@ class NetsParasitics : public Object {
     friend std::ofstream &operator<<(std::ofstream &os, NetsParasitics &rhs);
 
   private:
-    /// Net ObjectId and NetParasitics ObjectId Map
-    std::unordered_map<ObjectId, ObjectId> netParasiticsMap_;
-    /// The map to save name mapping defined in SPEF
-    std::unordered_map<uint32_t, SymbolIndex> nameMap_;
-    /// The vector to save definition in design flow
-    std::vector<std::string> designFlowVec_;
-    /// The vector to save Power nets, dont to save it for now
-    //std::vector<ObjectId> pwrNetVec_;
-    /// The vector to save Ground nets dont to save it for now
-    //std::vector<ObjectId> gndNetVec_;
+    /// The map to save name mapping defined in SPEF, only use it on the fly
+    std::unordered_map<uint32_t, SymbolIndex> name_map_;
     //  Name map used for spef dumpping, keep it empty after spef dumpping done
-    std::unordered_map<std::string, uint32_t> revertNameMap_;
+    std::unordered_map<std::string, uint32_t> revert_name_map_;
     //  Ports name map used for spef dumpping, keep it empty after spef dumpping done
-    std::unordered_map<std::string, uint32_t> revertPortsMap_;
-    /// The vector to save ports
-    std::vector<ObjectId> portsVec_;
+    std::unordered_map<std::string, uint32_t> revert_ports_map_;
+    ObjectId netparasitics_vec_id_;
+    ObjectId nameid_vec_id_;
+    ObjectId symidx_vec_id_;
+    ObjectId design_flow_vec_id_;
+    ObjectId ports_vec_id_;
+    ObjectId cell_id_;
+    float time_scale_;
+    float res_scale_;
+    float cap_scale_;
+    float induct_scale_;
     char divider_;
     char delimiter_;
-    char preBusDel_;
-    char sufBusDel_;
-    ObjectId cellId_;
-    float timeScale_;
-    float resScale_;
-    float capScale_;
-    float inductScale_;
+    char pre_bus_del_;
+    char suf_bus_del_;
 };
 
 }  // namespace db
