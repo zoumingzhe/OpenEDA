@@ -90,10 +90,10 @@ class NetsParasitics : public Object {
     void addPort(ObjectId portId);
     //Get ports vector Id;
     ObjectId getPorts() const { return ports_vec_id_; }
-    void addNet(ObjectId netId);
+    //void addNet(ObjectId netId);
     //Get nets vector Id;
     //ObjectId getNets() const { return net_vec_id_; }
-    //void addNetParasitics(ObjectId netParaId);
+    void addNetParasitics(ObjectId netParaId);
     //Get net parasitics vector Id;
     ObjectId getNetParasitics() const { return netparasitics_vec_id_; }
     bool isDigits(const char *str);

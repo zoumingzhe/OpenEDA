@@ -167,7 +167,7 @@ void NetsParasitics::addNameMapIdx(uint32_t index) {
             if (vctIdx == nullptr)
                 return;
             vctIdx->setPool(timingdb->getPool());
-	    vctIdx->reserve(100);
+	    vctIdx->reserve(1000);
             nameid_vec_id_ = vctIdx->getId();
 	} else {
 	    vctIdx = addr< ArrayObject<uint32_t> >(nameid_vec_id_);
@@ -186,7 +186,7 @@ void NetsParasitics::addNameMapSymIdx(SymbolIndex symIdx) {
             if (vctSym == nullptr)
                 return;
             vctSym->setPool(timingdb->getPool());
-	    vctSym->reserve(100);
+	    vctSym->reserve(1000);
             symidx_vec_id_ = vctSym->getId();
         } else {
             vctSym = addr< ArrayObject<SymbolIndex> >(symidx_vec_id_);
@@ -204,7 +204,6 @@ void NetsParasitics::addNameMap(uint32_t index, SymbolIndex symIdx) {
     addNameMapSymIdx(symIdx);
 }
     
-
 void NetsParasitics::addPort(ObjectId portId) { 
     Timing *timingdb = getTimingLib();
     if (timingdb) {
@@ -214,7 +213,7 @@ void NetsParasitics::addPort(ObjectId portId) {
             if (vctPort == nullptr)
                 return;
             vctPort->setPool(timingdb->getPool());
-	    vctPort->reserve(10);
+	    vctPort->reserve(100);
             ports_vec_id_ = vctPort->getId();
         } else {
             vctPort = addr< ArrayObject<ObjectId> >(ports_vec_id_);
@@ -225,6 +224,25 @@ void NetsParasitics::addPort(ObjectId portId) {
 
 }
 
+void NetsParasitics::addNetParasitics(ObjectId netParaId) {
+    Timing *timingdb = getTimingLib();
+    if (timingdb) {
+        ArrayObject<ObjectId> *vctNetPara = nullptr;
+        if (netparasitics_vec_id_ == UNINIT_OBJECT_ID) {
+            vctNetPara = timingdb->createObject< ArrayObject<ObjectId> >(kObjectTypeArray, timingdb->getId());
+            if (vctNetPara == nullptr)
+                return;
+            vctNetPara->setPool(timingdb->getPool());
+            vctNetPara->reserve(1000);
+            netparasitics_vec_id_ = vctNetPara->getId();
+        } else {
+            vctNetPara = addr< ArrayObject<ObjectId> >(netparasitics_vec_id_);
+        }
+        if (vctNetPara != nullptr)
+            vctNetPara->pushBack(netParaId);
+    }
+
+}
 
 bool NetsParasitics::isDigits(const char *str)
 {
@@ -378,8 +396,8 @@ DNetParasitics* NetsParasitics::addDNetParasitics(ObjectId netId, float totCap) 
             netPara->setNetId(netId);
 	    netPara->setNetTotalCap(totCap);
             ObjectId netParaId = netPara->getId();
-            addNet(netId);
-            //addNetParasitics(netParaId);
+            //addNet(netId);
+            addNetParasitics(netParaId);
             return netPara;
 	}
     }
@@ -395,8 +413,8 @@ RNetParasitics* NetsParasitics::addRNetParasitics(ObjectId netId, float totCap) 
             netPara->setNetId(netId);
             netPara->setNetTotalCap(totCap);
             ObjectId netParaId = netPara->getId();
-            addNet(netId);
-	    //addNetParasitics(netParaId);
+            //addNet(netId);
+	    addNetParasitics(netParaId);
             return netPara;
         }
     }
