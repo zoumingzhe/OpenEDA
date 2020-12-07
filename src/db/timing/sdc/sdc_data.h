@@ -261,7 +261,7 @@ using SdcDrivingCellContainerPtr = std::shared_ptr<SdcDrivingCellContainer>;
 
 class SdcFanoutLoadContainer {
   private:
-    std::unordered_map<ObjectId, Uint32> pin_fanout_load_;
+    std::unordered_map<ObjectId, SetFanoutLoadPtr> pin_fanout_load_;
 };
 using SdcFanoutLoadContainerPtr = std::shared_ptr<SdcFanoutLoadContainer>;
 
@@ -271,8 +271,87 @@ class SdcInputTransitionContainer {
 };
 using SdcInputTransitionContainerPtr = std::shared_ptr<SdcInputTransitionContainer>;
 
+class SdcLoadContainer {
 
-;//multivoltage power commands
+  private:
+    std::unordered_map<ObjectId, SetLoadPtr> pin_load_caps_;
+    std::unordered_map<ObjectId, SetLoadPtr> net_load_caps_;
+};
+using SdcLoadContainerPtr = std::shared_ptr<SdcLoadContainer>;
+
+class SdcLogicContainer {
+
+  private:
+    std::unordered_map<ObjectId, SetLogicPtr> port_logic_value_;
+};
+using SdcLogicContainerPtr = std::shared_ptr<SdcLogicContainer>;
+
+class SdcMaxAreaContainer : public SetMaxArea {
+
+};
+using SdcMaxAreaContainerPtr = std::shared_ptr<SdcMaxAreaContainer>;
+
+class SdcMaxCapacitanceContainer {
+  private:
+    std::unordered_map<ObjectId, SetMaxCapacitancePtr> pin_max_caps_; 
+    std::unordered_map<ObjectId, SetMaxCapacitancePtr> cell_max_caps_; 
+};
+using SdcMaxCapacitanceContainerPtr = std::shared_ptr<SdcMaxCapacitanceContainer>;
+
+class SdcMaxFanoutContainer {
+  private:
+    std::unordered_map<ObjectId, SetMaxFanoutPtr> pin_max_fanout_;
+    std::unordered_map<ObjectId, SetMaxFanoutPtr> cell_max_fanout_;
+};
+using SdcMaxFanoutContainerPtr = std::shared_ptr<SdcMaxFanoutContainer>;
+
+class SdcMaxTransitionContainer {
+  private:
+    std::unordered_map<ClockId, SetMaxTransitionPtr> clock_max_transition_;
+    std::unordered_map<ObjectId, SetMaxTransitionPtr> cell_max_transition_;
+    std::unordered_map<ObjectId, SetMaxTransitionPtr> pin_max_transition_;
+};
+using SdcMaxTransitionContainerPtr = std::shared_ptr<SdcMaxTransitionContainer>;
+
+class SdcMinCapacitanceContainer {
+  private:
+    std::unordered_map<ObjectId, SetMinCapacitancePtr> pin_min_caps_; 
+    std::unordered_map<ObjectId, SetMinCapacitancePtr> cell_min_caps_; 
+};
+using SdcMinCapacitanceContainerPtr = std::shared_ptr<SdcMinCapacitanceContainer>;
+
+class SdcOperatingConditionsContainer {
+  private:
+    std::vector<SetOperatingConditionsPtr> operate_conditions_;
+};
+using SdcOperatingConditionsContainerPtr = std::shared_ptr<SdcOperatingConditionsContainer>;
+
+class SdcPortFanoutNumberContainer {
+  private:
+    std::unordered_map<ObjectId, SetPortFanoutNumberPtr> port_fanout_number_;
+}; 
+using SdcPortFanoutNumberContainerPtr = std::shared_ptr<SdcPortFanoutNumberContainer>;
+
+class SdcNetResistanceContainer {
+  private:
+    std::unordered_map<ObjectId, SetResistancePtr> net_resistance_;
+};
+using SdcNetResistanceContainerPtr = std::shared_ptr<SdcResistanceContainer>;
+
+class SdcTimingDerateContainer {
+  private:
+    std::unordered_map<ObjectId, SetTimingDeratePtr> net_timing_derate_;
+    std::unordered_map<ObjectId, SetTimingDeratePtr> inst_timing_derate_;
+    std::unordered_map<ObjectId, SetTimingDeratePtr> cell_timing_derate_;
+};
+using SdcTimingDerateContainerPtr = std::shared_ptr<SdcTimingDerateContainer>;
+
+
+
+
+
+
+//multivoltage power commands
 
 
 }

@@ -75,9 +75,12 @@ class SetDrivingCell {
 };
 using SetDrivingCellPtr = std::shared_ptr<SetDrivingCell>;
 
-// not used
 class SetFanoutLoad {
+  private:
+    float value_ = 0.0;
 
+  public:
+    COMMAND_GET_SET_VAR(value, Value)
 }; 
 using SetFanoutLoadPtr = std::shared_ptr<SetFanoutLoad>;
 
@@ -97,6 +100,140 @@ class SetInputTransition {
     COMMAND_GET_SET_FLAG(flags, 4, clock_fall, ClockFall)
 }; 
 using SetInputTransitionPtr = std::shared_ptr<SetInputTransition>;
+
+class SetLoad {
+  private:
+    float cap_ = 0.0;
+    std::bitset<5> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(cap, Cap)
+    COMMAND_GET_SET_FLAG(flags, 0, min, Min)
+    COMMAND_GET_SET_FLAG(flags, 1, max, Max)
+    COMMAND_GET_SET_FLAG(flags, 2, substract_pin_load, SubstractPinLoad)
+    COMMAND_GET_SET_FLAG(flags, 3, pin_load, PinLoad)
+    COMMAND_GET_SET_FLAG(flags, 4, wire_load, WireLoad)
+};
+using SetLoadPtr = std::shared_ptr<SetLoad>;
+
+enum class LogicValue {kZero, kOne, kDontCare, kUnknown};
+class SetLogic {
+  private:
+    LogicValue value_ = LogicValue::kUnknown;
+
+  public:
+    COMMAND_GET_SET_VAR(value, Value)
+};
+using SetLogicPtr = std::shared_ptr<SetLogic>;
+
+class SetMaxArea {
+  private:
+    float area_value_ = 0.0;
+  public:
+    COMMAND_GET_SET_VAR(area_value, AreaValue)
+};
+using SetMaxAreaPtr= std::shared_ptr<SetMaxArea>;
+
+class SetMaxCapacitance {
+  private:
+    float cap_value_ = 0.0;
+
+  public:
+    COMMAND_GET_SET_VAR(cap_value, CapValue)
+};
+using SetMaxCapacitancePtr = std::shared_ptr<SetMaxCapacitance>;
+
+class SetMaxFanout {
+  private:
+    float fanout_value_ = 0.0; 
+
+  public:
+    COMMAND_GET_SET_VAR(fanout_value, FanoutValue)
+};
+using SetMaxFanoutPtr = std::shared_ptr<SetMaxFanout>;
+
+class SetMaxTransition {
+  private:
+    float transition_value_ = 0.0;
+    std::bitset<3> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(transition_value, TransitionValue)
+    COMMAND_GET_SET_FLAG(flags, 0, clock_path, ClockPath)
+    COMMAND_GET_SET_FLAG(flags, 1, fall, Fall)
+    COMMAND_GET_SET_FLAG(flags, 2, rise, Rise)
+}; 
+using SetMaxTransitionPtr = std::shared_ptr<SetMaxTransition>;
+
+class SetMinCapacitance {
+  private:
+    float cap_value_ = 0.0;
+
+  public:
+    COMMAND_GET_SET_VAR(cap_value, CapValue)
+};
+using SetMinCapacitancePtr = std::shared_ptr<SetMinCapacitance>;
+
+enum class AnalysisType {kSingle = 0, kBcWc, kOnChipVariation, kUnknown};
+class SetOperatingConditions {
+  private:
+    AnalysisType analysis_type_ = AnalysisType::kUnknown;
+    OperatingConditions condition_;
+};
+using SetOperatingConditionsPtr = std::shared_ptr<SetOperatingConditions>;
+
+class SetPortFanoutNumber {
+  private:
+    Uint32 fanout_number_ = 0;
+
+  public:
+    COMMAND_GET_SET_VAR(fanout_number, FanoutNumber)
+};
+using SetPortFanoutNumberPtr = std::shared_ptr<SetPortFanoutNumber>;
+
+class SetResistance {
+  private:
+    float value_ = 0.0;
+    std::bitset<2> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(value, Value)
+    COMMAND_GET_SET_FLAG(flags, 0, min, Min)
+    COMMAND_GET_SET_FLAG(flags, 1, max, Max)
+};
+using SetResistancePtr = std::shared_ptr<SetResistance>;
+
+class SetTimingDerate {
+  private:
+    float derate_value_ = 0.0;
+    std::bitset<14> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(derate_value, DerateValue)
+    COMMAND_GET_SET_FLAG(flags, 0, min, Min)
+    COMMAND_GET_SET_FLAG(flags, 1, max, Max)
+    COMMAND_GET_SET_FLAG(flags, 2, rise, Rise)
+    COMMAND_GET_SET_FLAG(flags, 3, fall, Fall)
+    COMMAND_GET_SET_FLAG(flags, 4, early, Early)
+    COMMAND_GET_SET_FLAG(flags, 5, late, Late)
+    COMMAND_GET_SET_FLAG(flags, 6, static_type, StaticType)
+    COMMAND_GET_SET_FLAG(flags, 7, dynamic_type, DynamicType)
+    COMMAND_GET_SET_FLAG(flags, 8, increment, Increment)
+    COMMAND_GET_SET_FLAG(flags, 9, clock, Clock)
+    COMMAND_GET_SET_FLAG(flags, 10, data, Data)
+    COMMAND_GET_SET_FLAG(flags, 11, net_delay, NetDelay)
+    COMMAND_GET_SET_FLAG(flags, 12, cell_delay, CellDelay)
+    COMMAND_GET_SET_FLAG(flags, 13, cell_check, CellCheck)
+};
+using SetTimingDeratePtr = std::shared_ptr<SetTimingDerate>;
+
+class SetVoltage {
+  private:
+    float value_ = 0.0;
+
+
+};
+using SetVoltagePtr = std::shared_ptr<SetVoltage>; 
 
 
 }
