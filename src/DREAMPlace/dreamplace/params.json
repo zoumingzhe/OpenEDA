@@ -48,6 +48,10 @@
     "descripton" : "random seed", 
     "default" : 1000
     },
+"place_output_db_name" : {
+    "descripton" : "user specify output db name", 
+    "default" : ""
+    },
 "result_dir" : {
     "descripton" : "result directory for output", 
     "default" : "results"

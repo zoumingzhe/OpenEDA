@@ -12,6 +12,7 @@
 
 DREAMPLACE_BEGIN_NAMESPACE
 
+__attribute__ ((visibility("default")))
 int dreamplacePrint(MessageType m, const char* format, ...)
 {
 	va_list args;
@@ -22,6 +23,7 @@ int dreamplacePrint(MessageType m, const char* format, ...)
 	return ret;
 }
 
+__attribute__ ((visibility("default")))
 int dreamplacePrintStream(MessageType m, FILE* stream, const char* format, ...)
 {
 	va_list args;
@@ -90,6 +92,7 @@ int dreamplaceSPrintPrefix(MessageType m, char* prefix)
     return 0;
 }
 
+__attribute__ ((visibility("default")))
 void dreamplacePrintAssertMsg(const char* expr, const char* fileName, unsigned lineNum, const char* funcName, const char* format, ...)
 {
     // construct message 
@@ -103,6 +106,7 @@ void dreamplacePrintAssertMsg(const char* expr, const char* fileName, unsigned l
     dreamplacePrintStream(kASSERT, stderr, "%s:%u: %s: Assertion `%s' failed: %s\n", fileName, lineNum, funcName, expr, buf);
 }
 
+__attribute__ ((visibility("default")))
 void dreamplacePrintAssertMsg(const char* expr, const char* fileName, unsigned lineNum, const char* funcName)
 {
     // print message
