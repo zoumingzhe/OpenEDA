@@ -25,6 +25,15 @@
 namespace open_edi {
 namespace db {
 
+class CurrentInstance {
+  private:
+    ObjectId instance_;
+
+  public:
+    COMMAND_GET_SET_VAR(instance_, Instance)
+};
+using CurrentInstancePtr = std::shared_ptr<CurrentInstance>;
+
 class SetHierarchySeparator {
   public:
     void setSeparator(const std::string& input);
@@ -47,6 +56,7 @@ class SetUnits {
     float current_unit_;
     float power_unit_; 
 }
+using SetUnitsPtr = std::shared_ptr<SetUnits>;
 
 }
 }

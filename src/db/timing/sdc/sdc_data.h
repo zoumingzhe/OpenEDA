@@ -26,14 +26,111 @@ namespace open_edi {
 namespace db {
 
 //general purpose commands
-using SdcHierarchySeparator = SetHierarchySeparator;
-using SdcHierarchySeparatorPtr = SetHierarchySeparatorPtr;
+class SdcCurrentInstance {
+  private:
+    CurrentInstancePtr instance_;
+};
+using SdcCurrentInstanceContainer = std::shared_ptr<SdcCurrentInstance>;
 
+class SdcHierarchySeparatorContainer {
+  private:
+    SetHierarchySeparatorPtr separator_;
+};
+using SdcHierarchySeparatorContainer = std::shared_ptr<SdcHierarchySeparatorContainer>;
+
+class SdcUnitsContainer {
+  private:
+    SetUnits units_;
+};
+using SdcUnitsContainerPtr = std::shared_ptr<SdcUnitsContainer>;
 
 //object access commands
-using SdcCurrentDesign = CurrentDesign;
-using SdcCurrentDesignPtr = CurrentDesignPtr;
+class SdcAllClocksContainer {
+  private:
+    AllClockPtr all_locks_;
+};
+using SdcAllClocksContainerPtr = std::shared_ptr<SdcAllClocksContainer>;
 
+class SdcAllInputsContainer {
+  public:
+    std::vector<std::string> get_all_inputs(AllInputsPtr conditions);
+};
+using SdcAllInputsContainerPtr = std::shared_ptr<SdcAllInputsContainer>;
+
+class SdcAllOutputsContainer {
+  private:
+    std::vector<std::string> get_all_outputs(AllOutputsPtr conditions);
+};
+using SdcAllOutputsContainerPtr = std::shared_ptr<SdcAllOutputsContainer>;
+
+class SdcAllRegistersContainer {
+  public:
+    std::vector<std::string> get_all_register_pins(AllRegistersPtr conditions);
+    std::vector<std::string> get_all_register_cells(AllRegistersPtr conditions);
+};
+using SdcAllRegistersContainerPtr = std::shared_ptr<SdcAllRegistersContainer>;
+
+class SdcCurrentDesignContainer {
+  private:
+    CurrentDesignPtr current_design_;
+}
+using SdcCurrentDesignPtr = std::shared_ptr<SdcCurrentDesignContainer>;
+
+class SdcGetCellsContainer {
+  public:
+    std::vector<ObjectId> get_cells_ids(GetCellsPtr conditions);
+    std::vector<std::string> get_cells_names(GetCellsPtr conditions);
+};
+using SdcGetCellContainerPtr = std::shared_ptr<SdcGetCellsContainer>;
+
+class SdcGetClocksContainer {
+  public:
+    std::vector<ClockId> get_clocks_ids(GetClocksPtr conditions);
+    std::vector<std::string> get_clocks_names(GetClocksPtr conditions);
+};
+using SdcGetClocksContainerPtr = std::shared_ptr<SdcGetClocksContainer>;
+
+class SdcGetLibCellsContainer {
+  public:
+    std::vector<ObjectId> get_lib_cells_ids(GetLibCellsPtr conditions);
+    std::vector<std::string> get_lib_cells_names(GetLibCellsPtr conditions);
+};
+using SdcGetLibCellsContainerPtr = std::shared_ptr<SdcGetLibCellsContainer>;
+
+class SdcGetLibPinsContainer {
+  public:
+    std::vector<ObjectId> get_lib_pins_ids(GetLibPinsPtr conditions);
+    std::vector<std::string> get_lib_pins_names(GetLibPinsPtr conditions);
+};
+using SdcGetLibPinsContainerPtr = std::shared_ptr<SdcGetLibPinsContainer>;
+
+class SdcGetLibsContainer {
+  public:
+    std::vector<ObjectId> get_libs_ids(GetLibsPtr conditions);
+    std::vector<std::string> get_libs_names(GetLibsPtr conditions);
+};
+using SdcGetLibsContainerPtr = std::shared_ptr<SdcGetLibsContainer>;
+
+class SdcGetNetsContainer {
+  public:
+    std::vector<ObjectId> get_nets_ids(GetNetsPtr conditions);
+    std::vector<std::string> get_nets_names(GetNetsPtr conditions);
+};
+using SdcGetNetsContainerPtr = std::shared_ptr<SdcGetNetsContainer>;
+
+class SdcGetPinsContainer {
+  public:
+    std::vector<ObjectId> get_pins_ids(GetPinsPtr conditions);
+    std::vector<std::string> get_pins_names(GetPinsPtr conditions);
+};
+using SdcGetPinsContainerPtr = std::shared_ptr<SdcGetPinsContainer>;
+
+class SdcGetPortsContainer {
+  public:
+    std::vector<ObjectId> get_ports_ids(GetPortsPtr conditions);
+    std::vector<std::string> get_ports_names(GetPortsPtr conditions);
+}; 
+using SdcGetPortsContainerPtr = std::shared_ptr<SdcGetPortsContainer>;
 
 //timing constraint commands
 class SdcClockContainer {
@@ -65,7 +162,7 @@ class SdcGroupPathContainer {
     const std::vector<GroupPath> &get() { return paths_; }
 
   private:
-    std::vector<GroupPath> paths_;
+    std::vector<GroupPathPtr> paths_;
 };
 using SdcGroupPathContinerPtr = std::shared_ptr<SdcGroupPathContainer>;
 
@@ -76,9 +173,9 @@ class SdcClockGatingCheckContainer {
     void addToClock(const ObjectId pin_id, const SetClockGatingCheck &check) { clock_to_gating_check_.emplace(pin_id, check); }
 
   private:
-    std::unordered_map<ObjectId, SetClockGatingCheck> pin_clock_gating_check_;
-    std::unordered_map<ObjectId, SetClockGatingCheck> inst_clock_gating_check_;
-    std::unordered_map<ClockId, SetClockGatingCheck> clock_to_gating_check_; 
+    std::unordered_map<ObjectId, SetClockGatingCheckPtr> pin_clock_gating_check_;
+    std::unordered_map<ObjectId, SetClockGatingCheckPtr> inst_clock_gating_check_;
+    std::unordered_map<ClockId, SetClockGatingCheckPtr> clock_to_gating_check_; 
 };
 using SdcClockGatingCheckContainerPtr = std::shared_ptr<SdcClockGatingCheckContainer>;
 
@@ -393,24 +490,15 @@ using SdcLevelShifterThresholdPtr = std::shared_ptr<SdcLevelShifterThreshold>;
 
 class SdcMaxDynamicPowerContainer {
   private:
-    SetMaxDynamicPower value_;
+      std::unordered_map<ObjectId, SetMaxDynamicPowerPtr> dynamic_power_;
 };
 using SdcMaxDynamicPowerContainerPtr = std::shared_ptr<SdcMaxDynamicPowerContainer>; 
 
 class SdcMaxLeakagePowerContainer {
   private:
-    SetMaxLeakagePower value_;
+    std::unordered_map<ObjectId, SetMaxLeakagePowerPtr> leakage_power_;
 };
-
-
-
-
-
-
-
-
-
-
+using SdcMaxLeakagePowerContainerPtr = std::shared_ptr<SdcMaxLeakagePowerContainer>;
 
 
 }
