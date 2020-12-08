@@ -57,11 +57,11 @@ int parseSdcSetCaseAnalysis(ClientData cld, Tcl_Interp *itp, int argc, const cha
         return TCL_ERROR;
     }
     SdcCaseAnalysisContainerPtr container_ptr = std::make_shared<SdcCaseAnalysisContainer>();
-    assert(container_ptr);
-    if (container_ptr == nullptr) {
-        //TODO messages
-        return TCL_ERROR;
-    }
+    //assert(container_ptr);
+    //if (container_ptr == nullptr) {
+    //    //TODO messages
+    //    return TCL_ERROR;
+    //}
     sdc_ptr->set_case_analysis_container(container_ptr);
     Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
