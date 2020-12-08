@@ -83,4 +83,16 @@ void CommonPlaceDB::freeDetailedPlaceDBGPU(DetailedPlaceDB<int>& db)
     }
 }
 
+void CommonPlaceDB::updateXYGPU(const int* x, const int* y)
+{
+    int* cpu_dbx;
+    int* cpu_dby;
+    int num_nodes = getNumNodes();
+    allocateCopyCPU(cpu_dbx, x, num_nodes, int);
+    allocateCopyCPU(cpu_dby, y, num_nodes, int);
+    updateXY(cpu_dbx, cpu_dby);
+    destroyCPU(cpu_dbx);
+    destroyCPU(cpu_dby);
+}
+
 DREAMPLACE_END_NAMESPACE

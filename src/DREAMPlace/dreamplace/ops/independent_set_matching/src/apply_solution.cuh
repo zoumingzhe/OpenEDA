@@ -274,7 +274,7 @@ __global__ void check_hpwl_kernel(DetailedPlaceDBType db, IndependentSetMatching
                     if (db.net_mask[net_id])
                     {
                         {
-                            Box<typename DetailedPlaceDBType::type> box;
+                            UBox<typename DetailedPlaceDBType::type> box;
                             box.xl = db.xh; 
                             box.yl = db.yh; 
                             box.xh = db.xl; 

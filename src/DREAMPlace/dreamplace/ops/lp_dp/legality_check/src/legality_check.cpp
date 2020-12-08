@@ -14,12 +14,16 @@ DREAMPLACE_BEGIN_NAMESPACE
 
 void LegalityCheck::run()
 {
+  hr_clock_rep timer_start = get_globaltime(); 
   dreamplacePrint(kINFO, "Starting Legality Check\n");
   // exit if no DB
   if (!isCommonDBReady()) {
     dreamplacePrint(kINFO, "Error out\n");
     return;
   }
+  legalityCheckRun(getDB());
+  hr_clock_rep timer_stop = get_globaltime(); 
+  dreamplacePrint(kINFO, "Legality check takes %g ms\n", (timer_stop-timer_start)*get_timer_period());
 }
 
 DREAMPLACE_END_NAMESPACE

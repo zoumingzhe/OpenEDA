@@ -474,13 +474,35 @@ class PlaceDB (object):
         self.rawdb = place_io.PlaceIOFunction.read(params)
         self.initialize_from_rawdb(params)
 
+    def read_common_db(self, params):
+        """
+        @brief read commonDB using c++
+        @param params parmeters
+        """
+        self.dtype = datatypes[params.dtype]
+        self.initialize_from_common_db(params)
+
+    def initialize_from_common_db(self, params):
+        """
+        @brief initialize from common db
+        @param params parameters
+        """
+        pydb = place_io.PlaceIOFunction.pydb(None)
+        self.initialize_from_pydb(pydb, params)
+
     def initialize_from_rawdb(self, params):
         """
         @brief initialize data members from raw database 
         @param params parameters 
         """
         pydb = place_io.PlaceIOFunction.pydb(self.rawdb)
+        self.initialize_from_pydb(pydb, params)
         
+    def initialize_from_pydb(self, pydb, params):
+        """
+        @brief initialize from pydb
+        @param pydb
+        """
         self.num_physical_nodes = pydb.num_nodes
         self.num_terminals = pydb.num_terminals
         self.num_terminal_NIs = pydb.num_terminal_NIs
@@ -583,14 +605,17 @@ class PlaceDB (object):
             self.net2pin_map[i] = np.array(self.net2pin_map[i], dtype=np.int32)
         self.net2pin_map = np.array(self.net2pin_map)
 
-    def __call__(self, params):
+    def __call__(self, params, from_open_edi=False):
         """
         @brief top API to read placement files 
         @param params parameters 
         """
         tt = time.time()
 
-        self.read(params)
+        if (not from_open_edi):
+            self.read(params)
+        else:
+            self.read_common_db(params)
         self.initialize(params)
 
         logging.info("reading benchmark takes %g seconds" % (time.time()-tt))
@@ -604,7 +629,7 @@ class PlaceDB (object):
         # scale 
         # adjust scale_factor if not set 
         if params.scale_factor == 0.0 or self.site_width != 1.0:
-            if params.scale_unit_flag:
+            if False: # disable params.scale_unit_flag, everything scale to site as it was.
                 params.scale_factor = math.pow(2, -(math.ceil(math.log(self.site_width,2))))
             else:
                 params.scale_factor = 1.0 / self.site_width
@@ -812,7 +837,7 @@ row height = %g, site width = %g
             f.write(content)
         logging.info("write_nets takes %.3f seconds" % (time.time()-tt))
 
-    def apply(self, params, node_x, node_y):
+    def apply(self, params, node_x, node_y, for_open_edi=False):
         """
         @brief apply placement solution and update database 
         """
@@ -829,8 +854,11 @@ row height = %g, site width = %g
             node_x = self.node_x * unscale_factor
             node_y = self.node_y * unscale_factor
 
-        # update raw database 
-        place_io.PlaceIOFunction.apply(self.rawdb, node_x, node_y)
+        if (not for_open_edi):
+            # update raw database 
+            place_io.PlaceIOFunction.apply(self.rawdb, node_x, node_y)
+        else:
+            place_io.PlaceIOFunction.apply(None, node_x, node_y)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

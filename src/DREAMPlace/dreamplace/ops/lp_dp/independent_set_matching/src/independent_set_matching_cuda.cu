@@ -210,7 +210,7 @@ __global__ void print_solution(const T* solution, int n)
 }
 
 template <typename T>
-int independentSetMatchingCUDALauncherNew(DetailedPlaceDB<T> db, 
+int independentSetMatchingCUDALauncherNew(DetailedPlaceDB<T>& db, 
         int batch_size, int set_size, int max_iters, int num_threads)
 {
     //size_t printf_size = 0; 
@@ -519,6 +519,12 @@ int independentSetMatchingCUDALauncherNew(DetailedPlaceDB<T> db,
     dreamplacePrint(kINFO, "Independent set matching time %g ms\n", get_timer_period()*(total_timer_stop-total_timer_start));
 
     return 0; 
+}
+
+int independentSetMatchingCUDARun(DetailedPlaceDB<int>& db, 
+    int batchSize, int setSize, int maxIters, int numThreads)
+{
+  return independentSetMatchingCUDALauncherNew(db, batchSize, setSize, maxIters, numThreads); 
 }
 
 #define REGISTER_KERNEL_LAUNCHER(T) \

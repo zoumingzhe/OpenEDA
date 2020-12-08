@@ -203,7 +203,7 @@ void apply_solution_sequential(DetailedPlaceDBType& db, IndependentSetMatchingSt
 }
 
 template <typename T>
-extern void independentSetMatchingCPULauncherNew(DetailedPlaceDB<T> db, 
+void independentSetMatchingCPULauncherNew(DetailedPlaceDB<T> db, 
         int set_size, int max_iters)
 {
     // fix random seed 
@@ -390,6 +390,11 @@ extern void independentSetMatchingCPULauncherNew(DetailedPlaceDB<T> db,
             break; 
         }
     }
+}
+void
+independentSetMatchingCPU(DetailedPlaceDB<int>& db, int setSize, int maxIters)
+{
+   independentSetMatchingCPULauncherNew(db, setSize, maxIters);
 }
 
 DREAMPLACE_END_NAMESPACE

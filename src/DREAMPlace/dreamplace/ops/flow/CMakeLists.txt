@@ -1,6 +1,7 @@
 project(place_flow)
 
 if (CUDA_FOUND)
+    add_definitions(-D_CUDA_FOUND)
     file(GLOB CUDA_SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cu"
         )
@@ -14,7 +15,7 @@ if (CUDA_FOUND)
     list(APPEND CUDA_NVCC_FLAGS --compiler-options -fPIC)
 
     cuda_add_library(
-        ${CUDA_LINKED} STATIC 
+        ${CUDA_LINKED} STATIC
         ${CUDA_SOURCES}
         )
 
@@ -56,15 +57,16 @@ add_library(${PROJECT_NAME} STATIC ${SOURCES})
 #add_executable(test_p ${SOURCES})
 #target_link_libraries(test_p ${UTILITY_LIBRARY_DIRS}/libutility.a)
 #target_link_libraries(test_p ${Python_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${Python_LIBRARIES})
 
 link_directories(${Python_LIBRARY_DIRS})
 link_directories(${Python_SITELIB})
 link_directories(${UTILITY_LIBRARY_DIRS})
 
-#if (CUDA_FOUND)
-#    target_link_libraries(test_p ${CUDA_LINKED})
-#endif(CUDA_FOUND)
+if (CUDA_FOUND)
+  target_link_libraries(${PROJECT_NAME} PUBLIC ${Python_LIBRARIES} ${CUDA_LINKED})
+else (CUDA_FOUND)
+  target_link_libraries(${PROJECT_NAME} PUBLIC ${Python_LIBRARIES})
+endif(CUDA_FOUND)
 #install ( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/test_p DESTINATION dreamplace )
 
 
