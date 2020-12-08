@@ -141,14 +141,12 @@ void DesignParasitics::move(DesignParasitics&& rhs) {
 
 std::ofstream &operator<<(std::ofstream &os, DesignParasitics const &rhs) {
     if (rhs.netsparasitics_vec_id_ != UNINIT_OBJECT_ID) {
-        ArrayObject<ObjectId> *vct =  Object::addr< ArrayObject<ObjectId> >(rhs.netsparasitics_vec_id_);
-	if (vct) {
-   	    for (size_t i=0; i < vct->getSize(); i++) { 
-                NetsParasitics *netsParasitics = Object::addr<NetsParasitics>((*vct)[i]);
-		if (netsParasitics)
-                    os << *netsParasitics;
-                break;         ///Currently only support dump out first spef file	
-	    }
+        ArrayObject<ObjectId> *objVector =  Object::addr< ArrayObject<ObjectId> >(rhs.netsparasitics_vec_id_);
+	for (auto obj : *objVector) {
+            NetsParasitics *netsParasitics = Object::addr<NetsParasitics>(obj);
+	    if (netsParasitics)
+		os << *netsParasitics;
+            break;         ///Currently only support dump out first spef file	
 	}
     }
     return os;

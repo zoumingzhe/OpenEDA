@@ -422,6 +422,12 @@ RNetParasitics* NetsParasitics::addRNetParasitics(ObjectId netId, float totCap) 
 }
 
 ///Functions for SPEF dumpping
+void NetsParasitics::clearTempMapContent() {
+    revert_name_map_.clear();
+    revert_ports_map_.clear();
+}
+
+
 std::string NetsParasitics::getNetDumpName(Net *net) {
     std::string netName = net->getName();
     if (revert_name_map_.find(netName) != revert_name_map_.end())
@@ -600,7 +606,7 @@ void NetsParasitics::dumpDNetConn(std::ofstream& os, DNetParasitics *dNetPara) {
                     else
                         os << ("*I ");
 
-                    os << (getPinDumpName(pin)) << (" "); // << ("\n");
+                    os << (getPinDumpName(pin)) << (" ");
                     os << (getTermDirDumpName(pin)) << ("\n");
 	        }
             }
@@ -714,6 +720,8 @@ std::ofstream& operator<<(std::ofstream& os, NetsParasitics &rhs) {
     rhs.dumpPorts(os);
 
     rhs.dumpNets(os);
+
+    rhs.clearTempMapContent();
 
     return os;
 }

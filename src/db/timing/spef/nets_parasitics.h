@@ -109,6 +109,7 @@ class NetsParasitics : public Object {
     void addResistor(ObjectId netId, char *nodeName1, char *nodeName2, float resValue);
     RNetParasitics* addRNetParasitics(ObjectId netId, float totCap);
     ///functions for spef dumpping
+    void clearTempMapContent();
     std::string getNetDumpName(Net *net);
     std::string getCellDumpName(Cell *cell);
     std::string getIntNodeDumpName(Net *net, ParasiticIntNode *intNode);

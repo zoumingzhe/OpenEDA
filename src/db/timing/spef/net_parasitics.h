@@ -68,7 +68,7 @@ class DNetParasitics : public NetParasitics {
 
   private:
     /// The vector to store Pin Node pointer belongs to this net
-    /// To use net to get connecting pins
+    /// Don't need this any more and to use net to get connecting pins instead
     //ObjectId pin_node_vec_id_;
     /// The vector to store Grounded Cap pointer belongs to this net
     ObjectId gcap_vec_id_;
