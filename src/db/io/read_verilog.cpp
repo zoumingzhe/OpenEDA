@@ -31,15 +31,23 @@ bool kFirstRunReadVerilog = false;
 std::map<Inst*, std::string> kInstMasterMap;
 
 int kModuleNameHeaderLength = 10;
+static const char *kDefaultTopDesignName = "top";
 
 int readVerilog(int argc, const char **argv) {
     FILE *fp = NULL;
+    bool is_top_set = false;
+    Cell *top_cell = getTopCell();
 
     std::vector<std::string> args;
     for (int i = 0; i < argc; ++i) {
         std::string token = argv[i];
         if (i > 0) {
-            if (argv[i][0] != '-') {
+          if (!strcmp(argv[i], "-top")) {
+              ++i;
+              std::string top_name(argv[i]);
+              top_cell->setName(top_name);
+              is_top_set = true;
+          } else if (argv[i][0] != '-') {
                 fp = fopen(argv[i], "r");
                 if (NULL == fp) {
                     message->issueMsg(kError, "Cannot open file %s\n", argv[i]);
@@ -63,6 +71,10 @@ int readVerilog(int argc, const char **argv) {
         kFirstRunReadVerilog = true;
         Yosys::log_files.push_back(stdout);
         Yosys::Pass::init_register();
+        if (!is_top_set) {
+            std::string default_name(kDefaultTopDesignName);
+            top_cell->setName(default_name);
+        }
     }
 
     if (NULL == yosys_design) {
@@ -481,7 +493,6 @@ bool readVerilogToDB(struct Yosys::AST::AstNode *ast_node) {
         message->issueMsg(kError, "input ast node is null\n");
         return false;
     }
-
     std::queue<Yosys::AST::AstNode*> ast_nodes;
     ast_nodes.push(ast_node);
 
@@ -499,7 +510,11 @@ bool readVerilogToDB(struct Yosys::AST::AstNode *ast_node) {
             switch (current_ast->type) {
                 case Yosys::AST::AstNodeType::AST_MODULE:
                     module_name = id2vl(current_ast->str);
-                    current_hcell = top_cell->createCell(module_name, true);
+                    if (!module_name.compare(top_cell->getName())) {
+                        current_hcell = top_cell;
+                    } else {
+                        current_hcell = top_cell->createCell(module_name, true);
+                    }
                     if (!current_hcell) {
                         message->issueMsg(kError,
                                 "Create cell failed for module %s.\n",

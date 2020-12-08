@@ -1033,18 +1033,16 @@ Cell *Cell::getCellFromTechLib(std::string name) {
 }
 
 Cell *Cell::getCell(std::string name) {
-    if (getCells() != 0) {
-        SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
-        if (symbol_index == kInvalidSymbolIndex) return nullptr;
+    SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
+    if (symbol_index == kInvalidSymbolIndex) return nullptr;
 
-        std::vector<ObjectId> object_vector =
-              this->getSymbolTable()->getReferences(symbol_index);
-        for (auto iter = object_vector.begin(); iter != object_vector.end();
-            iter++) {
-            Cell *target = addr<Cell>(*iter);
-            if (target && (target->getObjectType() == kObjectTypeCell))
-                return target;
-        }
+    std::vector<ObjectId> object_vector =
+        this->getSymbolTable()->getReferences(symbol_index);
+    for (auto iter = object_vector.begin(); iter != object_vector.end();
+        iter++) {
+        Cell *target = addr<Cell>(*iter);
+        if (target && (target->getObjectType() == kObjectTypeCell))
+            return target;
     }
 
     return getCellFromTechLib(name);
