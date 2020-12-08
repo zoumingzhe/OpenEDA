@@ -346,12 +346,71 @@ class SdcTimingDerateContainer {
 };
 using SdcTimingDerateContainerPtr = std::shared_ptr<SdcTimingDerateContainer>;
 
+class SdcPowerNetVoltageContainer {
+  private:
+    std::unordered_map<ObjectId, SetVoltagePtr> net_voltage_;
+};
+using SdcPowerNetVoltageContainerPtr = std::shared_ptr<SdcPowerNetVoltageContainer>;
 
+class SdcWireLoadModeContainer {
+  private:
+    std::unordered_map<ObjectId, SetWireLoadModePtr> cell_wire_load_mode_;
+};
+using SdcWireLoadModeContainerPtr = std::shared_ptr<SdcWireLoadModeContainer>; 
 
+class SdcWireLoadModelContainer {
+  private:
+    std::unordered_map<ObjectId, SetWireLoadModelPtr> cell_wire_load_model_;
+    std::unordered_map<ObjectId, SetWireLoadModelPtr> port_wire_load_model_;
+};
+using SdcWireLoadModelContainerPtr = std::shared_ptr<SdcWireLoadModelContainer>;
 
+class SdcWireLoadSelectionGroupContainer {
+  private:
+    std::vector<SetWireLoadSelectionGroup> selections_;
+};
+using SdcWireLoadSelectionGroupContainerPtr= std::shared_ptr<SdcWireLoadSelectionGroupContainer>;
 
 
 //multivoltage power commands
+class SdcVoltageAreaContainer {
+  private:
+    std::unordered_map<ObjectId, createVoltageAreaPtr> cell_voltage_area_;
+}; 
+using SdcVoltageAreaContainerPtr = std::shared_ptr<SdcVoltageAreaContainer>;
+
+class SdcLevelShifterStrategy {
+  private:
+    SetLevelShifterStrategyPtr strategy_;
+};
+using SdcLevelShifterStrategyPtr = std::shared_ptr<SdcLevelShifterStrategy>;
+
+class SdcLevelShifterThreshold {
+  private:
+    SetLevelShifterThreshold threshold_;
+}; 
+using SdcLevelShifterThresholdPtr = std::shared_ptr<SdcLevelShifterThreshold>;
+
+class SdcMaxDynamicPowerContainer {
+  private:
+    SetMaxDynamicPower value_;
+};
+using SdcMaxDynamicPowerContainerPtr = std::shared_ptr<SdcMaxDynamicPowerContainer>; 
+
+class SdcMaxLeakagePowerContainer {
+  private:
+    SetMaxLeakagePower value_;
+};
+
+
+
+
+
+
+
+
+
+
 
 
 }
