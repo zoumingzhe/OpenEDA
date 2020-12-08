@@ -17,9 +17,8 @@
 #include <utility>
 #include <vector>
 
-#include "db/core/attr_object.h"
+#include "db/core/object.h"
 #include "db/timing/timinglib/timinglib_commondef.h"
-#include "db/timing/timinglib/timinglib_libattr.h"
 #include "db/util/array.h"
 
 namespace open_edi {
@@ -34,9 +33,14 @@ class TableTemplate;
 class TUnits;
 class ScaleFactors;
 
-class TLib : public AttrObject<TLibAttr> {
+typedef struct supply_voltage__pair {
+    SymbolIndex name = 0;
+    float value = 0.0f;
+} SupplyVoltagePair;
+
+class TLib : public Object {
   public:
-    using BaseType = AttrObject<TLibAttr>;
+    using BaseType = Object;
 
     /// @brief default constructor
     TLib();
@@ -59,6 +63,34 @@ class TLib : public AttrObject<TLibAttr> {
     /// @brief move constructor
     TLib &operator=(TLib &&rhs) noexcept;
 
+    void setName(const std::string &name);
+    void setTimingModelType(TimingModel tm);
+    void setNominalVoltage(float f);
+    void setNominalProcess(float f);
+    void setNominalTemperature(float f);
+    void setInputThresholdPctFall(float f);
+    void setInputThresholdPctRise(float f);
+    void setOutputThresholdPctFall(float f);
+    void setOutputThresholdPctRise(float f);
+    void setSlewLowerThresholdPctFall(float f);
+    void setSlewLowerThresholdPctRise(float f);
+    void setSlewUpperThresholdPctFall(float f);
+    void setSlewUpperThresholdPctRise(float f);
+    void setSlewDerateFromLibrary(float f);
+    void setDefaultWireLoadArea(float f);
+    void setDefaultWireLoadMode(WireLoadMode w);
+    void setDefaultWireLoadCapacitance(float f);
+    void setDefaultWireLoadResistance(float f);
+    void setDefaultInputPinCap(float f);
+    void setDefaultOutputPinCap(float f);
+    void setDefaultInoutPinCap(float f);
+    void setDefaultMaxCapacitance(float f);
+    void setDefaultMaxFanout(float f);
+    void setDefaultMaxTransition(float f);
+    void setDefaultFanoutLoad(float f);
+    void setDefaultCellLeakagePower(float f);
+    void addSupplyVoltage(const std::string &name, float f);
+
     /// @brief number of cells
     IndexType numTCells() const;
 
@@ -66,34 +98,60 @@ class TLib : public AttrObject<TLibAttr> {
     IndexType numOperatingConditions() const;
 
     /// @brief add a instance tcell
-    TCell *add_timing_cell(const std::string &name);
+    TCell *addTimingCell(const std::string &name);
 
     /// @brief add a instance operatingconditions
-    OperatingConditions *add_operating_conditions(const std::string &name);
-    WireLoad *add_wire_load(const std::string &name);
-    WireLoadTable *add_wire_load_table(const std::string &name);
-    WireLoadSelection *add_wire_load_selection(const std::string &name);
-    TableTemplate *add_table_template(const std::string &name);
+    OperatingConditions *addOperatingConditions(const std::string &name);
+    WireLoad *addWireLoad(const std::string &name);
+    WireLoadTable *addWireLoadTable(const std::string &name);
+    WireLoadSelection *addWireLoadSelection(const std::string &name);
+    TableTemplate *addTableTemplate(const std::string &name);
 
-    void set_default_operating_conditions(ObjectId id);
-    ScaleFactors *get_or_create_scaling_factors(const std::string &name);
-    TUnits *get_or_create_units();
-    void set_default_wire_load(ObjectId id);
-    void set_default_wire_load_selection(ObjectId id);
+    void setDefaultOperatingConditions(ObjectId id);
+    ScaleFactors *getOrCreateScalingFactors(const std::string &name);
+    TUnits *getOrCreateUnits();
+    void setDefaultWireLoad(ObjectId id);
+    void setDefaultWireLoadSelection(ObjectId id);
 
-    OperatingConditions *get_default_operating_conditions(void) const;
-    ScaleFactors *get_scaling_factors(void);
-    TUnits *get_units(void);
-    WireLoad *get_default_wire_load(void) const;
-    WireLoadSelection *get_default_wire_load_selection(void) const;
-    OperatingConditions *get_operating_conditions(
-        const std::string &name) const;
-    WireLoad *get_wire_load(const std::string &name) const;
-    WireLoadTable *get_wire_load_table(const std::string &name);
-    WireLoadSelection *get_wire_load_selection(const std::string &name) const;
-    TableTemplate *get_table_template(const std::string &name);
-    TCell *get_timing_cell(const std::string &name);
-    std::vector<TCell *> get_timing_cells(void);
+    std::string getName(void) const;
+    TimingModel getTimingModelType(void);
+    float getNominalVoltage(void);
+    float getNominalProcess(void);
+    float getNominalTemperature(void);
+    float getInputThresholdPctFall(void);
+    float getInputThresholdPctRise(void);
+    float getOutputThresholdPctFall(void);
+    float getOutputThresholdPctRise(void);
+    float getSlewLowerThresholdPctFall(void);
+    float getSlewLowerThresholdPctRise(void);
+    float getSlewUpperThresholdPctFall(void);
+    float getSlewUpperThresholdPctRise(void);
+    float getSlewDerateFromLibrary(void);
+    float getDefaultWireLoadArea(void);
+    WireLoadMode getDefaultWireLoadMode(void);
+    float getDefaultWireLoadCapacitance(void);
+    float getDefaultWireLoadResistance(void);
+    float getDefaultInputPinCap(void);
+    float getDefaultOutputPinCap(void);
+    float getDefaultInoutPinCap(void);
+    float getDefaultMaxCapacitance(void);
+    float getDefaultMaxFanout(void);
+    float getDefaultMaxTransition(void);
+    float getDefaultFanoutLoad(void);
+    float getDefaultCellLeakagePower(void);
+    float getSupplyVoltage(const std::string &name);
+    OperatingConditions *getDefaultOperatingConditions(void) const;
+    ScaleFactors *getScalingFactors(void);
+    TUnits *getUnits(void);
+    WireLoad *getDefaultWireLoad(void) const;
+    WireLoadSelection *getDefaultWireLoadSelection(void) const;
+    OperatingConditions *getOperatingConditions(const std::string &name) const;
+    WireLoad *getWireLoad(const std::string &name) const;
+    WireLoadTable *getWireLoadTable(const std::string &name);
+    WireLoadSelection *getWireLoadSelection(const std::string &name) const;
+    TableTemplate *getTableTemplate(const std::string &name);
+    TCell *getTimingCell(const std::string &name);
+    std::vector<TCell *> getTimingCells(void);
 
     /// @brief summarize memory usage of the object in bytes
     IndexType memory() const;
@@ -118,6 +176,33 @@ class TLib : public AttrObject<TLibAttr> {
     /// @return the added operatingconditions
     OperatingConditions *__addOperatingConditionsImpl();
 
+    SymbolIndex name_;
+    TimingModel timing_model_type_;
+    float nominal_voltage_;
+    float nominal_process_;
+    float nominal_temperature_;
+    float input_threshold_pct_fall_;
+    float input_threshold_pct_rise_;
+    float output_threshold_pct_fall_;
+    float output_threshold_pct_rise_;
+    float slew_lower_threshold_pct_fall_;
+    float slew_lower_threshold_pct_rise_;
+    float slew_upper_threshold_pct_fall_;
+    float slew_upper_threshold_pct_rise_;
+    float slew_derate_from_library_;
+    float default_wire_load_area_;
+    WireLoadMode default_wire_load_mode_;
+    float default_wire_load_capacitance_;
+    float default_wire_load_resistance_;
+    float default_input_pin_cap_;
+    float default_output_pin_cap_;
+    float default_inout_pin_cap_;
+    float default_max_capacitance_;
+    float default_max_fanout_;
+    float default_max_transition_;
+    float default_fanout_load_;
+    float default_cell_leakage_power_;
+    ObjectId supply_voltages_;
     ObjectId default_operating_conditions_;
     ObjectId scaling_factors_;
     ObjectId units_;
@@ -129,6 +214,7 @@ class TLib : public AttrObject<TLibAttr> {
     ObjectId wire_load_selections_;
     ObjectId table_templates_;
     ObjectId timing_cells_;
+    std::unordered_map<SymbolIndex, float> supply_voltage_map_;
     std::unordered_map<SymbolIndex, ObjectId> operating_conditions_map_;
     std::unordered_map<SymbolIndex, ObjectId> wire_loads_map_;
     std::unordered_map<SymbolIndex, ObjectId> wire_load_tables_map_;

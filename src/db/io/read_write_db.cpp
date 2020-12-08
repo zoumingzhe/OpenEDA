@@ -10,9 +10,9 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 #include "db/io/read_write_db.h"
-
+#include <sys/stat.h>
 #include <unistd.h>
-
+#include <dirent.h>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -24,46 +24,68 @@ namespace open_edi {
 namespace db {
 
 // Class ReadDesign
-bool ReadDesign::__readSymFile() {
-    std::string sym_file = cell_name_;
+bool ReadDesign::__preWork() {
+    if (is_top_) {
+        Cell *top_cell = getTopCell();
+        if (top_cell) {
+            resetTopCell();
+            MemPool::destroyMemPool();
+        }
+        MemPool::initMemPool();
+    }
+    return true;
+}
+
+bool ReadDesign::__readSymFile(
+    SymbolTable *symbol_table, 
+    std::string &filename
+) {
+    std::string sym_file = filename;
     sym_file.append(kSymFilePostFix);
-    symbol_table_ = new SymbolTable;
     std::ifstream in_symfile(sym_file.c_str(), std::ifstream::binary);
     if (!in_symfile.good()) {
-        message->issueMsg(kError, "Failed to open symbol file %s.\n",
-                          sym_file.c_str());
+        util::message->issueMsg(kMsgCategoryDB, 
+            OpenFileError, kError, sym_file.c_str());
+        //std::cout << "Failed to open sym file " << sym_file << ".\n";
         return false;
     }
     in_symfile.seekg(0, in_symfile.beg);
-    symbol_table_->readFromFile(in_symfile, getDebug());
+    symbol_table->readFromFile(in_symfile, getDebug());
     in_symfile.close();
     return true;
 }
 
-bool ReadDesign::__readPolyFile() {
-    std::string poly_file = cell_name_;
+bool ReadDesign::__readPolyFile(
+    PolygonTable *polygon_table, 
+    std::string &filename
+) {
+    std::string poly_file = filename;
     poly_file.append(kPolyFilePostFix);
-    polygon_table_ = new PolygonTable;
     std::ifstream in_polyfile(poly_file.c_str(), std::ifstream::binary);
     if (!in_polyfile.good()) {
-        message->issueMsg(kError, "Failed to open symbol file %s.\n",
-                          poly_file.c_str());
+        util::message->issueMsg(kMsgCategoryDB, 
+            OpenFileError, kError, poly_file.c_str());
+        //std::cout << "Failed to open poly file " << poly_file << ".\n";
         return false;
     }
     in_polyfile.seekg(0, in_polyfile.beg);
-    polygon_table_->readFromFile(in_polyfile, getDebug());
+    polygon_table->readFromFile(in_polyfile, getDebug());
     in_polyfile.close();
     return true;
 }
 
-bool ReadDesign::__readDBFile() {
-    std::string db_file = cell_name_;
+bool ReadDesign::__readDBFile(
+    MemPagePool *pool, 
+    std::string &filename
+) {
+    std::string db_file = filename;
     db_file.append(kDBFilePostFix);
     // open:
     std::ifstream in_dbfile(db_file.c_str(), std::ifstream::binary);
     if (!in_dbfile) {
-        message->issueMsg(kError, "Failed to open design file %s.\n",
-                          db_file.c_str());
+        util::message->issueMsg(kMsgCategoryDB, 
+            OpenFileError, kError, db_file.c_str());
+        //std::cout << "Failed to open DB file " << db_file << ".\n";
         return false;
     }
     in_dbfile.seekg(0, in_dbfile.beg);
@@ -73,18 +95,13 @@ bool ReadDesign::__readDBFile() {
     size_t pool_id = 0;
     // TODO(luoying): pool_id is unused in object ID.
     in_dbfile.read(reinterpret_cast<char *>(&(pool_id)), sizeof(size_t));
-    in_dbfile.read(reinterpret_cast<char *>(&(top_cell_id_)), sizeof(ObjectId));
-    Cell *top_cell = getTopCell();
-    if (top_cell) {
-        MemPool::destroyMemPool();  // here, we need to set the right mempool
-                                    // for the new db.
-        resetTopCell();
-    }
-    MemPool::initMemPool();
-    pool_ = MemPool::newPagePool();
-    pool_->readFromFile(in_dbfile, getDebug());
+    in_dbfile.read(reinterpret_cast<char *>(&(current_id_)), sizeof(ObjectId));
+
+    //pool_ = MemPool::newPagePool();
+    MemPool::insertPagePool(current_id_, pool);
+    pool->readFromFile(in_dbfile, getDebug());
     if (getDebug()) {
-        pool_->printUsage();
+        pool->printUsage();
     }
     // read checksum:
     CheckSum csum;
@@ -99,77 +116,214 @@ bool ReadDesign::__readDBFile() {
     uint32_t sum = csum.summary(db_file, file_header_size, getDebug());
     if (csum.check(sum, ref_value, getDebug())) {
         if (getDebug()) {
-            std::cout << "Succeeded in checksum.\n";
+          util::message->issueMsg(kMsgCategoryDB, 
+                CheckSumOk, kInfo);          
+            //std::cout << "Succeeded in checksum.\n";
         }
     } else {
-        std::cout << "Failed in checksum: " << sum << " VS ref_value "
-                  << ref_value << std::endl;
+        util::message->issueMsg(kMsgCategoryDB, 
+                CheckSumError, kError, sum, ref_value);
+        //std::cout << "Failed in checksum: " << sum << " VS ref_value "
+                  //<< ref_value << std::endl;
         return false;
     }
 
     return true;
 }
 
-bool ReadDesign::__setCurrentTopCell() {
-    // set top cell and its tables.
-    setTopCell(top_cell_id_);
-    Cell *top_cell = getTopCell();
-    top_cell->setPool(pool_);
-    top_cell->setSymbolTable(symbol_table_);
-    top_cell->setPolygonTable(polygon_table_);
-    setCurrentVersion(v_);
-    if (getDebug()) {
-        std::cout << "DEBUGINFO: read_design top cell name "
-                  << top_cell->getName() << " with id#" << top_cell->getId()
-                  << std::endl;
+bool ReadDesign::__postWork() {
+    if (getDebug() && is_top_) {
+        Cell *top_cell = getTopCell();
+        Tech *tech_lib = getTechLib();
+        Timing *timing_lib = getTimingLib();
+        ediAssert(top_cell != nullptr && 
+                  tech_lib != nullptr &&
+                  timing_lib != nullptr);
+        util::message->issueMsg(kMsgCategoryDB, 
+                ReadDesignOkVerbose, kDebug,
+                top_cell->getName().c_str(),
+                top_cell->getId(),
+                tech_lib->getId(),
+                static_cast<int>(tech_lib->getObjectType()),
+                timing_lib->getId(),
+                static_cast<int>(timing_lib->getObjectType()));  
     }
-    if (!top_cell || !top_cell->getPool()) {
-        message->issueMsg(kError, "Failed to init top cell.\n");
+    return true;
+}
+
+bool ReadDesign::__readCell() {
+    std::string dirname = cell_name_;
+    std::string filename(dirname);
+    filename.append("/");
+    filename.append(cell_name_);
+
+    StorageUtil *storage_util = new StorageUtil(0);
+    if (!__readSymFile(storage_util->getSymbolTable(), filename) ||
+        !__readPolyFile(storage_util->getPolygonTable(), filename) ||
+        !__readDBFile(storage_util->getPool(), filename)) {
+        delete storage_util;
         return false;
     }
+    if (is_top_) {
+        setTopCell(current_id_);
+        setCurrentVersion(v_);
+    }
+    Cell *read_cell = (Cell *)Object::addr<Cell>(current_id_);
+    ediAssert(read_cell != nullptr);
+    read_cell->setStorageUtil(storage_util);
+    if (!read_cell->getPool()) {
+        util::message->issueMsg(kMsgCategoryDB, 
+                ReadDesignInitError, kError, "cell");
+        //std::cout << "Failed to init cell.\n";
+        delete storage_util;
+        return false;
+    }
+    return true;    
+}
 
+bool ReadDesign::__readTechLib() {
+    if (!is_top_) {
+        return true;
+    }
+    std::string dirname = cell_name_;
+    dirname.append(kLibSubDirName);
+    std::string filename(dirname);
+    filename.append("/");
+    filename.append(kTechLibName);
+
+    StorageUtil *storage_util = new StorageUtil(0);
+    if (!__readSymFile(storage_util->getSymbolTable(), filename) ||
+        !__readPolyFile(storage_util->getPolygonTable(), filename) ||
+        !__readDBFile(storage_util->getPool(), filename)) {
+        delete storage_util;
+        return false;
+    }
+    setTechLib(current_id_);
+    Tech *tech_lib = getTechLib();
+    if (!tech_lib) {
+        util::message->issueMsg(kMsgCategoryDB, 
+                ReadDesignInitError, kError, "tech lib");      
+        //std::cout << "Failed to init tech lib.\n";
+        delete storage_util;
+        return false;        
+    }
+    tech_lib->setStorageUtil(storage_util);
     return true;
+}
+
+bool ReadDesign::__readTimingLib() {
+    if (!is_top_) {
+        return true;
+    }
+    std::string dirname = cell_name_;
+    dirname.append(kLibSubDirName);
+    std::string filename(dirname);
+    filename.append("/");
+    filename.append(kTimingLibName);
+
+    StorageUtil *storage_util = new StorageUtil(0);
+    if (!__readSymFile(storage_util->getSymbolTable(), filename) ||
+        !__readPolyFile(storage_util->getPolygonTable(), filename) ||
+        !__readDBFile(storage_util->getPool(), filename)) {
+        delete storage_util;
+        return false;
+    }
+    setTimingLib(current_id_);
+    Timing *timing_lib = getTimingLib();
+    if (!timing_lib) {
+        util::message->issueMsg(kMsgCategoryDB, 
+                ReadDesignInitError, kError, "timing lib");      
+        //std::cout << "Failed to init timing lib.\n";
+        delete storage_util;
+        return false;        
+    }
+    timing_lib->setStorageUtil(storage_util);
+    return true;    
 }
 
 int ReadDesign::run() {
-    if (!__readSymFile() || !__readPolyFile() || !__readDBFile() ||
-        !__setCurrentTopCell()) {
+    if (!__preWork()) {
         return ERROR;
     }
-    std::cout << "INFO: Successfully read design " << cell_name_ << ".\n";
+    if (!__readCell() || !__readTechLib() || !__readTimingLib()) {
+        return ERROR;
+    }
+    if (!__postWork()) {
+        return ERROR;
+    }
+    util::message->issueMsg(kMsgCategoryDB, 
+        ReadDesignOk, kInfo, cell_name_.c_str());
+    //std::cout << "INFO: Successfully read design " << cell_name_ << ".\n";
     return OK;
 }
 
 // Class WriteDesign
-bool WriteDesign::__writeDBFile() {
-    std::string db_file = saved_name_;
+bool WriteDesign::__createDir(const char *dir_name) {
+    DIR *dir = opendir(dir_name);
+    if (!dir) {
+        if (mkdir(dir_name, 0755) != 0) {
+            util::message->issueMsg(kMsgCategoryDB, 
+                CreateDirError, kError, dir_name);            
+            //std::cout << "ERROR: Failed to create dir " 
+              //<< dir_name << " for save_design.\n";
+            return false;
+        }
+    }
+    closedir(dir);
+    return true;
+}
+
+bool WriteDesign::__preWork() {
+    // TODO Need renaming?
+    write_cell_ = getTopCell();
+    original_cell_name_ = write_cell_->getName();
+    if (original_cell_name_.compare(saved_name_) != 0) {
+        if (getDebug()) {
+            util::message->issueMsg(kMsgCategoryDB, 
+                RenameCellVerbose, kDebug, 
+                original_cell_name_.c_str(),
+                saved_name_.c_str());          
+            //std::cout << "DEBUGINFO: rename top cell name " 
+                      //<< original_cell_name_
+                      //<< " to " << saved_name_ << std::endl;
+        }
+        write_cell_->setName(saved_name_);
+    }
+    std::string dirname = getTopCell()->getName();
+    if (!__createDir(dirname.c_str())) {
+        return false;
+    }
+    dirname.append(kLibSubDirName);
+    if (!__createDir(dirname.c_str())) {
+        return false;
+    }
+    return true;
+}
+
+bool WriteDesign::__writeDBFile(
+    MemPagePool *pool, 
+    std::string &filename
+) {
+    ediAssert(pool != nullptr);
+    std::string db_file = filename;
     db_file.append(kDBFilePostFix);
     // open:
     std::ofstream out_dbfile(db_file.c_str(), std::ofstream::binary);
     if (out_dbfile.good() == false) {
-        message->issueMsg(kError, "Failed to open output db file %s.\n",
-                          db_file.c_str());
+        util::message->issueMsg(kMsgCategoryDB, 
+            OpenFileError, kError, db_file.c_str());      
+        //std::cout << "ERROR: Failed to open output db file "
+                  //<< db_file << ".\n";
         return false;
     }
     // write version:
     Version &v = getCurrentVersion();
     v.writeToFile(out_dbfile, getDebug());
-    // check cell name:
-    top_cell_ = getTopCell();
-    cell_name_ = top_cell_->getName();
-    if (cell_name_.compare(saved_name_) != 0) {
-        if (getDebug()) {
-            std::cout << "DEBUGINFO: rename top cell name " << cell_name_
-                      << " to " << saved_name_ << std::endl;
-        }
-        top_cell_->setName(saved_name_);
-    }
+
     // write mem pool:
-    MemPagePool *pool = top_cell_->getPool();
     size_t pool_id = pool->getPoolNo();
-    ObjectId top_cell_id = top_cell_->getId();
     out_dbfile.write(reinterpret_cast<char *>(&pool_id), sizeof(size_t));
-    out_dbfile.write(reinterpret_cast<char *>(&top_cell_id), sizeof(ObjectId));
+    out_dbfile.write(reinterpret_cast<char *>(&current_id_), sizeof(ObjectId));
     pool->writeHeaderToFile(out_dbfile, getDebug());
     uint32_t file_header_size = out_dbfile.tellp();
     pool->writeContentToFile(out_dbfile, getDebug());
@@ -188,14 +342,19 @@ bool WriteDesign::__writeDBFile() {
     return true;
 }
 
-bool WriteDesign::__writePolyFile() {
-    std::string poly_file = saved_name_;
+bool WriteDesign::__writePolyFile(
+    PolygonTable *polygon_table, 
+    std::string &filename
+) {
+    ediAssert(polygon_table != nullptr);
+    std::string poly_file = filename;
     poly_file.append(kPolyFilePostFix);
-    PolygonTable *polygon_table = top_cell_->getPolygonTable();
     std::ofstream out_polyfile(poly_file.c_str(), std::ofstream::binary);
     if (out_polyfile.good() == false) {
-        message->issueMsg(kError, "Failed to open output polygon file %s.\n",
-                          poly_file.c_str());
+        util::message->issueMsg(kMsgCategoryDB, 
+            OpenFileError, kError, poly_file.c_str());      
+        //std::cout << "ERROR: Failed to open output polygon file "
+                  //<< poly_file << ".\n";      
         return false;
     }
     polygon_table->writeToFile(out_polyfile, getDebug());
@@ -203,14 +362,19 @@ bool WriteDesign::__writePolyFile() {
     return true;
 }
 
-bool WriteDesign::__writeSymFile() {
-    std::string sym_file = saved_name_;
+bool WriteDesign::__writeSymFile(
+    SymbolTable *symbol_table, 
+    std::string &filename
+) {
+    ediAssert(symbol_table != nullptr);
+    std::string sym_file = filename;
     sym_file.append(kSymFilePostFix);
-    SymbolTable *symbol_table = top_cell_->getSymbolTable();
     std::ofstream out_symfile(sym_file.c_str(), std::ofstream::binary);
     if (out_symfile.good() == false) {
-        message->issueMsg(kError, "Failed to open output symbol file %s.\n",
-                          sym_file.c_str());
+        util::message->issueMsg(kMsgCategoryDB, 
+            OpenFileError, kError, sym_file.c_str());
+        //std::cout << "ERROR: Failed to open output symbol file "
+                  //<< sym_file << ".\n";
         return false;
     }
     symbol_table->writeToFile(out_symfile, getDebug());
@@ -218,19 +382,118 @@ bool WriteDesign::__writeSymFile() {
     return true;
 }
 
-bool WriteDesign::__setAfterWrite() {
-    if (cell_name_.compare(saved_name_) != 0) {
-        top_cell_->setName(cell_name_);
+bool WriteDesign::__postWork() {
+    if (original_cell_name_.compare(saved_name_) != 0) {
+        write_cell_->setName(original_cell_name_);
     }
     return true;
 }
 
+bool WriteDesign::__writeCell() {
+    std::string dirname = getTopCell()->getName();
+    std::string filename(dirname);
+    filename.append("/");
+    filename.append(saved_name_);
+
+    current_id_ = write_cell_->getId();
+    MemPagePool *pool = write_cell_->getPool();
+    if (!__writeDBFile(pool, filename)) {
+        util::message->issueMsg(kMsgCategoryDB, 
+            WriteFileError, kError, "DB file", 
+            write_cell_->getName().c_str());      
+        //std::cout << "ERROR: failed to write DB file for cell.\n";
+        return false;
+    }
+    PolygonTable *polygon_table = write_cell_->getPolygonTable();
+    if (!__writePolyFile(polygon_table, filename)) {
+        util::message->issueMsg(kMsgCategoryDB, 
+            WriteFileError, kError, "polygon table", 
+            write_cell_->getName().c_str());      
+        //std::cout << "ERROR: failed to write polygon table for cell.\n";
+        return false;
+    }
+    SymbolTable *symbol_table = write_cell_->getSymbolTable();
+    if (!__writeSymFile(symbol_table, filename)) {
+        util::message->issueMsg(kMsgCategoryDB, 
+            WriteFileError, kError, "symbol table", 
+            write_cell_->getName().c_str());      
+        //std::cout << "ERROR: failed to write symbol table for cell.\n";
+        return false;
+    }
+    return true;
+}
+
+bool WriteDesign::__writeTechLib() {
+    std::string dirname = getTopCell()->getName();
+    dirname.append(kLibSubDirName);
+    std::string filename(dirname);
+    filename.append("/");
+    filename.append(kTechLibName);
+
+    current_id_ = getRoot()->getTechLib()->getId();
+    MemPagePool *pool = getRoot()->getTechLib()->getPool();
+    if (!__writeDBFile(pool, filename)) {
+        util::message->issueMsg(kMsgCategoryDB, 
+            WriteFileError, kError, "DB file", "tech lib");      
+        return false;
+    }
+    PolygonTable *polygon_table = getRoot()->getTechLib()->getPolygonTable();
+    if (!__writePolyFile(polygon_table, filename)) {
+        util::message->issueMsg(kMsgCategoryDB, 
+            WriteFileError, kError, "polygon table", "tech lib");      
+        return false;
+    }
+    SymbolTable *symbol_table = getRoot()->getTechLib()->getSymbolTable();
+    if (!__writeSymFile(symbol_table, filename)) {
+        util::message->issueMsg(kMsgCategoryDB, 
+            WriteFileError, kError, "symbol table", "tech lib");      
+        return false;
+    }
+    return true;
+}
+
+bool WriteDesign::__writeTimingLib() {
+    std::string dirname = getTopCell()->getName();
+    dirname.append(kLibSubDirName);
+    std::string filename(dirname);  
+    filename.append("/");
+    filename.append(kTimingLibName);  
+
+    current_id_ = getRoot()->getTimingLib()->getId();
+    MemPagePool *pool = getRoot()->getTimingLib()->getPool();
+    if (!__writeDBFile(pool, filename)) {
+        util::message->issueMsg(kMsgCategoryDB, 
+            WriteFileError, kError, "DB file", "timing lib");      
+        return false;
+    }
+    PolygonTable *polygon_table = getRoot()->getTimingLib()->getPolygonTable();
+    if (!__writePolyFile(polygon_table, filename)) {
+        util::message->issueMsg(kMsgCategoryDB, 
+            WriteFileError, kError, "polygon table", "timing lib");      
+        return false;
+    }
+    SymbolTable *symbol_table = getRoot()->getTimingLib()->getSymbolTable();
+    if (!__writeSymFile(symbol_table, filename)) {
+        util::message->issueMsg(kMsgCategoryDB, 
+            WriteFileError, kError, "symbol table", "timing lib");      
+        return false;
+    }
+    return true;  
+}
+
 int WriteDesign::run() {
-    if (!__writeDBFile() || !__writePolyFile() || !__writeSymFile() ||
-        !__setAfterWrite()) {
+    if (!__preWork()) {
         return ERROR;
     }
-    std::cout << "INFO: Successfully write design " << saved_name_ << ".\n";
+    if (!__writeTimingLib() || !__writeTechLib() || !__writeCell()) {
+        return ERROR;
+    }
+    if (!__postWork()) {
+        return ERROR;
+    }
+    util::message->issueMsg(kMsgCategoryDB, 
+        WriteDesignOk, kInfo, saved_name_.c_str());
+    //std::cout << "INFO: Successfully write design " << saved_name_ << ".\n";
     return OK;
 }
 

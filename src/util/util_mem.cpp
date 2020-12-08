@@ -275,6 +275,7 @@ void MemPagePool::__readPageInfo(std::ifstream &infile, bool debug) {
         }
         // set the right chunk data to page's frame
         mem_page->setFrame(&(chunk_data[offset_in_chunk * sizeof(char)]));
+        mem_page->adjustFree();
         offset_in_chunk += page_size_;
         pages_[i] = mem_page;
         if (debug) {
@@ -465,7 +466,8 @@ bool MemPool::destroyMemPool() {
 
     indexed_page_pools_.fill(nullptr);
     page_pools_.clear();
-    initMemPool();
+    initialized_ = 0;
+    //initMemPool();
     return true;
 }
 

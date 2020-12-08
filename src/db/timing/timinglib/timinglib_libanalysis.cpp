@@ -70,7 +70,7 @@ void LibAnalysis::setLibertyParseLogStr(std::string *parseLogStr) {
 }
 scandata *LibAnalysis::getScandata(void) { return sd_; }
 Timinglib::LibStrtab *LibAnalysis::getStrtab(void) { return strtab_; }
-char *LibAnalysis::search_string_for_linefeeds(char *str) {
+char *LibAnalysis::searchStringForLinefeeds(char *str) {
     char *s;
     s = str;
     while (*s) {
@@ -169,8 +169,8 @@ void LibAnalysis::generateSyntaxDeclsHAndCPP() {
                 sd_->libsynt_techs[i].name);
         fprintf(outC, "\n\n/* Technology: %s       */\n\n",
                 sd_->libsynt_techs[i].name);
-        __dump_group(sd_->libsynt_techs[i].lib, outC, outH);
-        LibHash::dump_group_hash(sd_->libsynt_techs[i].group_hash, outC, outH);
+        __dumpGroup(sd_->libsynt_techs[i].lib, outC, outH);
+        LibHash::dumpGroupHash(sd_->libsynt_techs[i].group_hash, outC, outH);
     }
     fprintf(outH, "extern libsynt_technology libsynt_techs[%d];\n",
             sd_->libsynt_tech_count);
@@ -179,8 +179,8 @@ void LibAnalysis::generateSyntaxDeclsHAndCPP() {
     for (int i = 0; i < sd_->libsynt_tech_count; i++) {
         fprintf(
             outC, "{(char*)(\"%s\"), %s, %s },\n", sd_->libsynt_techs[i].name,
-            LibHash::make_rep("group", sd_->libsynt_techs[i].lib).c_str(),
-            LibHash::make_rep("ht", sd_->libsynt_techs[i].group_hash).c_str());
+            LibHash::makeRep("group", sd_->libsynt_techs[i].lib).c_str(),
+            LibHash::makeRep("ht", sd_->libsynt_techs[i].group_hash).c_str());
     }
     fprintf(outC, "};\n");
     fprintf(outH, "extern int libsynt_tech_num;\n");
@@ -243,15 +243,15 @@ void LibAnalysis::generateAttrAndGroupLookup() {
     fprintf(outC, "%%%%\n");
     fclose(outC);
 }
-int LibAnalysis::token_q_empty(void) {
+int LibAnalysis::tokenQEmpty(void) {
     if (sd_->token_q_front == sd_->token_q_rear)
         return 1;
     else
         return 0;
 }
-void LibAnalysis::__remove_token(int *retval, int *set_num, int *intnum,
-                                 double *floatnum, char **str) {
-    if (token_q_empty()) return;
+void LibAnalysis::__removeToken(int *retval, int *set_num, int *intnum,
+                                double *floatnum, char **str) {
+    if (tokenQEmpty()) return;
     if (sd_->token_q_front == 9)
         sd_->token_q_front = 0;
     else
@@ -264,8 +264,8 @@ void LibAnalysis::__remove_token(int *retval, int *set_num, int *intnum,
         *str = sd_->token_q_buf[sd_->token_q_front].str;
     }
 }
-void LibAnalysis::add_token(int retval, int set_num, int intnum,
-                            double floatnum, char *str) {
+void LibAnalysis::addToken(int retval, int set_num, int intnum, double floatnum,
+                           char *str) {
     if (sd_->token_q_rear == 9)
         sd_->token_q_rear = 0;
     else
@@ -280,14 +280,14 @@ void LibAnalysis::add_token(int retval, int set_num, int intnum,
     sd_->token_q_buf[sd_->token_q_rear].intnum = intnum;
     sd_->token_q_buf[sd_->token_q_rear].set_num = set_num;
 }
-int LibAnalysis::injected_token(void *val) {
+int LibAnalysis::injectedToken(void *val) {
     YYSTYPE *lval = static_cast<YYSTYPE *>(val);
     char *str;
     double num;
     int intnum;
     int retval;
     int set_num;
-    __remove_token(&retval, &set_num, &intnum, &num, &str);
+    __removeToken(&retval, &set_num, &intnum, &num, &str);
     if (set_num == -1) {
         xnumber x;
         x.type = 0;
@@ -303,10 +303,10 @@ int LibAnalysis::injected_token(void *val) {
     }
     return retval;
 }
-void LibAnalysis::set_tok(void) {
+void LibAnalysis::setTok(void) {
     if (sd_->token_comment_buf[0]) sd_->tok_encountered++;
 }
-void LibAnalysis::push_group(Timinglib::timinglib_head *h) {
+void LibAnalysis::pushGroup(Timinglib::timinglib_head *h) {
     Timinglib::timinglib_attribute_value *v, *vn;
     si2drErrorT err;
     si2drMessageHandlerT MsgPrinter;
@@ -352,7 +352,7 @@ void LibAnalysis::push_group(Timinglib::timinglib_head *h) {
     sd_->gsindex++;
     si2drObjectSetLineNo(sd_->gs[sd_->gsindex - 1], h->lineno, &err);
     si2drObjectSetFileName(sd_->gs[sd_->gsindex - 1], h->filename, &err);
-    if (libbuilder_) libbuilder_->begin_group(h);
+    if (libbuilder_) libbuilder_->beginGroup(h);
     for (v = h->list; v; v = vn) {
         if (v->type != kTIMINGLIB__VAL_STRING) {
             char buf[1000];
@@ -416,12 +416,12 @@ void LibAnalysis::push_group(Timinglib::timinglib_head *h) {
         free(v);
     }
 }
-void LibAnalysis::pop_group(timinglib_head *h) {
+void LibAnalysis::popGroup(timinglib_head *h) {
     sd_->gsindex--;
     free(h);
-    if (libbuilder_) libbuilder_->end_group();
+    if (libbuilder_) libbuilder_->endGroup();
 }
-void LibAnalysis::make_complex(timinglib_head *h) {
+void LibAnalysis::makeComplex(timinglib_head *h) {
     Timinglib::timinglib_attribute_value *v, *vn;
     sd_->curr_attr = __si2drGroupCreateAttr(sd_->gs[sd_->gsindex - 1], h->name,
                                             kSI2DR_COMPLEX, &sd_->err);
@@ -433,7 +433,7 @@ void LibAnalysis::make_complex(timinglib_head *h) {
     }
     si2drObjectSetLineNo(sd_->curr_attr, h->lineno, &sd_->err);
     si2drObjectSetFileName(sd_->curr_attr, h->filename, &sd_->err);
-    if (libbuilder_) libbuilder_->build_attribute(h->name, h->list);
+    if (libbuilder_) libbuilder_->buildAttribute(h->name, h->list);
     for (v = h->list; v; v = vn) {
         if (v->type == kTIMINGLIB__VAL_BOOLEAN)
             __si2drComplexAttrAddBooleanValue(
@@ -454,7 +454,7 @@ void LibAnalysis::make_complex(timinglib_head *h) {
     }
     free(h);
 }
-void LibAnalysis::make_simple(char *name, timinglib_attribute_value *v) {
+void LibAnalysis::makeSimple(char *name, timinglib_attribute_value *v) {
     sd_->curr_attr = __si2drGroupCreateAttr(sd_->gs[sd_->gsindex - 1], name,
                                             kSI2DR_SIMPLE, &sd_->err);
     if (sd_->token_comment_buf[0]) {
@@ -482,10 +482,10 @@ void LibAnalysis::make_simple(char *name, timinglib_attribute_value *v) {
                                          &sd_->err);
     else
         __si2drSimpleAttrSetInt32Value(sd_->curr_attr, v->u.int_val, &sd_->err);
-    if (libbuilder_) libbuilder_->build_attribute(name, v);
+    if (libbuilder_) libbuilder_->buildAttribute(name, v);
     free(v);
 }
-void LibAnalysis::syntax_push_group(libsynt_head *h) {
+void LibAnalysis::syntaxPushGroup(libsynt_head *h) {
     si2drObjectIdT toid, noid;
     sd_->gsinfo[sd_->gsindex] = static_cast<libsynt_group_info *>(
         calloc(sizeof(libsynt_group_info), 1));
@@ -494,20 +494,19 @@ void LibAnalysis::syntax_push_group(libsynt_head *h) {
     sd_->gsinfo[sd_->gsindex]->type = h->ident;
     sd_->gsinfo[sd_->gsindex]->name_constraints = h->namecons;
     sd_->gsinfo[sd_->gsindex]->attr_hash =
-        LibHash::timinglib_hash_create_hash_table(41, 1, 0);
+        LibHash::timinglibHashCreateHashTable(41, 1, 0);
     sd_->gsinfo[sd_->gsindex]->group_hash =
-        LibHash::timinglib_hash_create_hash_table(41, 1, 0);
-    LibHash::timinglib_hash_lookup(sd_->libsynt_groups, h->ident, &noid);
+        LibHash::timinglibHashCreateHashTable(41, 1, 0);
+    LibHash::timinglibHashLookup(sd_->libsynt_groups, h->ident, &noid);
     if (noid.v1 == static_cast<void *>(NULL))
-        LibHash::timinglib_hash_enter_oid(sd_->libsynt_groups, h->ident, toid);
-    LibHash::timinglib_hash_lookup(sd_->libsynt_allgroups, h->ident, &noid);
+        LibHash::timinglibHashEnterOid(sd_->libsynt_groups, h->ident, toid);
+    LibHash::timinglibHashLookup(sd_->libsynt_allgroups, h->ident, &noid);
     if (noid.v1 == static_cast<void *>(NULL))
-        LibHash::timinglib_hash_enter_oid(sd_->libsynt_allgroups, h->ident,
-                                          toid);
+        LibHash::timinglibHashEnterOid(sd_->libsynt_allgroups, h->ident, toid);
     sd_->gsindex++;
 }
-void LibAnalysis::syntax_pop_group(void) { sd_->gsindex--; }
-libsynt_attribute_info *LibAnalysis::syntax_make_complex(libsynt_head *h) {
+void LibAnalysis::syntaxPopGroup(void) { sd_->gsindex--; }
+libsynt_attribute_info *LibAnalysis::syntaxMakeComplex(libsynt_head *h) {
     si2drObjectIdT toid, noid;
     libsynt_attribute_info *x = static_cast<libsynt_attribute_info *>(
         calloc(sizeof(libsynt_attribute_info), 1));
@@ -520,14 +519,14 @@ libsynt_attribute_info *LibAnalysis::syntax_make_complex(libsynt_head *h) {
     else
         x->type = kSYNTAX_ATTRTYPE_COMPLEX;
     x->u.args = h->arglist;
-    LibHash::timinglib_hash_lookup(sd_->libsynt_attrs, h->ident, &noid);
+    LibHash::timinglibHashLookup(sd_->libsynt_attrs, h->ident, &noid);
     if (noid.v1 == static_cast<void *>(NULL))
-        LibHash::timinglib_hash_enter_oid(sd_->libsynt_attrs, h->ident, toid);
+        LibHash::timinglibHashEnterOid(sd_->libsynt_attrs, h->ident, toid);
     return x;
 }
-libsynt_attribute_info *LibAnalysis::syntax_make_simple(char *name,
-                                                        libsynt_attr_type type,
-                                                        void *constraint_ptr) {
+libsynt_attribute_info *LibAnalysis::syntaxMakeSimple(char *name,
+                                                      libsynt_attr_type type,
+                                                      void *constraint_ptr) {
     si2drObjectIdT toid, noid;
     libsynt_attribute_info *x = static_cast<libsynt_attribute_info *>(
         calloc(sizeof(libsynt_attribute_info), 1));
@@ -555,9 +554,9 @@ libsynt_attribute_info *LibAnalysis::syntax_make_simple(char *name,
         default:
             break;
     }
-    LibHash::timinglib_hash_lookup(sd_->libsynt_attrs, x->name, &noid);
+    LibHash::timinglibHashLookup(sd_->libsynt_attrs, x->name, &noid);
     if (noid.v1 == static_cast<void *>(NULL))
-        LibHash::timinglib_hash_enter_oid(sd_->libsynt_attrs, x->name, toid);
+        LibHash::timinglibHashEnterOid(sd_->libsynt_attrs, x->name, toid);
     return x;
 }
 bool LibAnalysis::isLibertySyntaxValid() {
@@ -602,7 +601,7 @@ bool LibAnalysis::isLibertySyntaxValid() {
         gname = __si2drIterNextName(gnames, &err);
         __si2drIterQuit(gnames, &err);
         if (!gname) gname = si2drStringT("<NONAME>");
-        std::string str = string_format("Library name: %s.", gname);
+        std::string str = stringFormat("Library name: %s.", gname);
         (this->*si2ErrMsg_)(kSI2DR_SEVERITY_NOTE, kSI2DR_NO_ERROR,
                             si2drStringT(str.c_str()), &err);
         gs2 = __si2drGroupGetGroups(group, &err);
@@ -612,13 +611,13 @@ bool LibAnalysis::isLibertySyntaxValid() {
             if (!strcmp(gt, "cell")) cellcount++;
         }
         __si2drIterQuit(gs2, &err);
-        str = string_format("Cell count: %d.", cellcount);
+        str = stringFormat("Cell count: %d.", cellcount);
         (this->*si2ErrMsg_)(kSI2DR_SEVERITY_NOTE, kSI2DR_NO_ERROR,
                             si2drStringT(str.c_str()), &err);
     }
     __si2drIterQuit(groups, &err);
     // if( strtab_tots )
-    // strtab_->print_strtab_stats();
+    // strtab_->printStrtabStats();
     // (this->*si2ErrMsg_)(kSI2DR_SEVERITY_NOTE, kSI2DR_NO_ERROR,
     //                    si2drStringT("Quitting.."), &err);
     // (this->*si2ErrMsg_)(kSI2DR_SEVERITY_NOTE, kSI2DR_NO_ERROR,
@@ -639,13 +638,13 @@ bool LibAnalysis::dumpLibFile(const char *const filename,
         of = fopen(filename, "a+");
     if (of == nullptr) {
         std::string str =
-            string_format("Could not open %s for writing.", filename);
+            stringFormat("Could not open %s for writing.", filename);
         (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_NO_ERROR,
                             si2drStringT(str.c_str()), &err);
         return false;
     }
 
-    std::string str = string_format("Write file: %s...", filename);
+    std::string str = stringFormat("Write file: %s...", filename);
     (this->*si2ErrMsg_)(kSI2DR_SEVERITY_NOTE, kSI2DR_NO_ERROR,
                         si2drStringT(str.c_str()), &err);
 
@@ -666,13 +665,13 @@ bool LibAnalysis::dumpLibFile(const char *const filename,
 
     fclose(of);
 
-    str = string_format("Write file: %s finished.", filename);
+    str = stringFormat("Write file: %s finished.", filename);
     (this->*si2ErrMsg_)(kSI2DR_SEVERITY_NOTE, kSI2DR_NO_ERROR,
                         si2drStringT(str.c_str()), &err);
 
     return true;
 }
-void LibAnalysis::clean_file_name(char *dirty, char *clean) {
+void LibAnalysis::cleanFileName(char *dirty, char *clean) {
     /* clean (no quotes, no spaces) the name;
    then make sure it exists in the current dir or the path; if
    it exists in the path, plug in the path component into the name,
@@ -715,14 +714,14 @@ void LibAnalysis::clean_file_name(char *dirty, char *clean) {
         }
     }
 }
-si2drValueTypeT LibAnalysis::convert_vt(char *type) {
+si2drValueTypeT LibAnalysis::convertVt(char *type) {
     if (!strcmp(type, "string")) return kSI2DR_STRING;
     if (!strcmp(type, "integer")) return kSI2DR_INT32;
     if (!strcmp(type, "float")) return kSI2DR_FLOAT64;
     if (!strcmp(type, "boolean")) return kSI2DR_BOOLEAN;
     return kSI2DR_UNDEFINED_VALUETYPE;
 }
-std::string LibAnalysis::__oid_string(si2drObjectIdT oid) {
+std::string LibAnalysis::__oidString(si2drObjectIdT oid) {
     char buf[500];
     size_t size = 500;
     if (oid.v1 == 0 && oid.v2 == 0)
@@ -734,7 +733,7 @@ std::string LibAnalysis::__oid_string(si2drObjectIdT oid) {
                  reinterpret_cast<uint64_t>(oid.v2));
     return std::string(buf);
 }
-std::string LibAnalysis::__iter_string(si2drIterIdT iter) {
+std::string LibAnalysis::__iterString(si2drIterIdT iter) {
     iterat *y = static_cast<iterat *>(iter);
     char buf[500];
     char *itype = 0;
@@ -766,7 +765,7 @@ std::string LibAnalysis::__iter_string(si2drIterIdT iter) {
     // int>(iter));
     return std::string(buf);
 }
-const char *LibAnalysis::__itype_string(si2drIterIdT iter) {
+const char *LibAnalysis::__itypeString(si2drIterIdT iter) {
     iterat *y = static_cast<iterat *>(iter);
     switch (y->owner) {
         case kITER_NAME:
@@ -790,22 +789,22 @@ const char *LibAnalysis::__itype_string(si2drIterIdT iter) {
     }
     return "";
 }
-void LibAnalysis::__trace_check(si2drObjectIdT oid) {
-    fprintf(tracefile1_, "\t\tcheck_results(%s, err, __FILE__,__LINE__);\n",
-            __oid_string(oid).c_str());
+void LibAnalysis::__traceCheck(si2drObjectIdT oid) {
+    fprintf(tracefile1_, "\t\tcheckResults(%s, err, __FILE__,__LINE__);\n",
+            __oidString(oid).c_str());
     fflush(tracefile1_);
 }
-void LibAnalysis::__outinit_oid(si2drObjectIdT oid) {
+void LibAnalysis::__outinitOid(si2drObjectIdT oid) {
     fprintf(
         tracefile2_, "%s %s;\n",
         toString((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(oid.v2))),
-        __oid_string(oid).c_str());
+        __oidString(oid).c_str());
 }
-void LibAnalysis::__outinit_iter(si2drIterIdT iter) {
-    fprintf(tracefile2_, "%s %s;\n", __itype_string(iter),
-            __iter_string(iter).c_str());
+void LibAnalysis::__outinitIter(si2drIterIdT iter) {
+    fprintf(tracefile2_, "%s %s;\n", __itypeString(iter),
+            __iterString(iter).c_str());
 }
-void LibAnalysis::__inc_tracecount(void) {
+void LibAnalysis::__incTracecount(void) {
     tracecount_++;
     trace_grand_total_++;
     if (tracecount_ > 1200) {
@@ -827,7 +826,7 @@ void LibAnalysis::__inc_tracecount(void) {
                 fprintf(tracefile1_, "#include \"timinglib_si2dr.h\"\n");
                 fprintf(tracefile1_, "#include \"oiddecls.h\"\n\n\n");
                 fprintf(tracefile1_,
-                        "extern void check_results(si2drObjectIdT result, "
+                        "extern void checkResults(si2drObjectIdT result, "
                         "si2drErrorT err, char *fname, int lineno);\n\n");
             }
         }
@@ -848,55 +847,55 @@ void LibAnalysis::__inc_tracecount(void) {
     }
 }
 si2drVoidT LibAnalysis::__si2drPISetDebugMode(si2drErrorT *err) {
-    timinglib___debug_mode_ = 1;
+    timinglib_debug_mode_ = 1;
     *err = kSI2DR_NO_ERROR;
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drPISetDebugMode(&err);\n\n");
-        __inc_tracecount();
+        __incTracecount();
     }
 }
 si2drVoidT LibAnalysis::__si2drPIUnSetDebugMode(si2drErrorT *err) {
-    timinglib___debug_mode_ = 0;
+    timinglib_debug_mode_ = 0;
     *err = kSI2DR_NO_ERROR;
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drPIUnSetDebugMode(&err);\n\n");
-        __inc_tracecount();
+        __incTracecount();
     }
 }
 si2drBooleanT LibAnalysis::__si2drPIGetDebugMode(si2drErrorT *err) {
     *err = kSI2DR_NO_ERROR;
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drPIGetDebugMode(&err);\n\n");
-        __inc_tracecount();
+        __incTracecount();
     }
-    if (timinglib___debug_mode_ != 0)
+    if (timinglib_debug_mode_ != 0)
         return SI2DR_TRUE;
     else
         return SI2DR_FALSE;
 }
 si2drVoidT LibAnalysis::si2drPISetNocheckMode(si2drErrorT *err) {
-    timinglib___nocheck_mode_ = 1;
+    timinglib_nocheck_mode_ = 1;
     *err = kSI2DR_NO_ERROR;
     if (trace_) {
         fprintf(tracefile1_, "\n\tsi2drPISetNocheckMode(&err);\n\n");
-        __inc_tracecount();
+        __incTracecount();
     }
 }
 si2drVoidT LibAnalysis::si2drPIUnSetNocheckMode(si2drErrorT *err) {
-    timinglib___nocheck_mode_ = 0;
+    timinglib_nocheck_mode_ = 0;
     *err = kSI2DR_NO_ERROR;
     if (trace_) {
         fprintf(tracefile1_, "\n\tsi2drPIUnSetNocheckMode(&err);\n\n");
-        __inc_tracecount();
+        __incTracecount();
     }
 }
 si2drBooleanT LibAnalysis::__si2drPIGetNocheckMode(si2drErrorT *err) {
     *err = kSI2DR_NO_ERROR;
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drPIGetNocheckMode(&err);\n\n");
-        __inc_tracecount();
+        __incTracecount();
     }
-    if (timinglib___nocheck_mode_ != 0)
+    if (timinglib_nocheck_mode_ != 0)
         return SI2DR_TRUE;
     else
         return SI2DR_FALSE;
@@ -911,31 +910,32 @@ si2drVoidT LibAnalysis::__si2drDefaultMessageHandler(si2drSeverityT sev,
     switch (sev) {
         case kSI2DR_SEVERITY_NOTE:
             sevstr = const_cast<char *>("INFO");
-            str = string_format("%s: %s\n", sevstr, auxText);
-            // open_edi::util::message->info("%s\n", auxText);
+            str = stringFormat("%s: %s\n", sevstr, auxText);
+            // open_edi::util::message->issueMsg("TIMINGLIB", 14,
+            // open_edi::util::kInfo, auxText);
             break;
         case kSI2DR_SEVERITY_WARN:
             sevstr = const_cast<char *>("WARNING");
-            str = string_format("%s: %s\n", sevstr, auxText);
-            // open_edi::util::message->issueMsg(open_edi::util::kWarn, "%s\n",
-            //                                  auxText);
+            str = stringFormat("%s: %s\n", sevstr, auxText);
+            // open_edi::util::message->issueMsg("TIMINGLIB", 14,
+            // open_edi::util::kWarn, auxText);
             break;
         case kSI2DR_SEVERITY_ERR:
             sevstr = const_cast<char *>("ERROR");
             if (auxText) {
                 if (!strcmp(errt, "")) {
-                    str = string_format("%s: %s\n", sevstr, auxText);
-                    open_edi::util::message->issueMsg(open_edi::util::kError,
-                                                      "%s\n", auxText);
-                } else {
-                    str = string_format("%s: %s (%s)\n", sevstr, auxText, errt);
+                    str = stringFormat("%s: %s\n", sevstr, auxText);
                     open_edi::util::message->issueMsg(
-                        open_edi::util::kError, "%s (%s)\n", auxText, errt);
+                        "TIMINGLIB", 14, open_edi::util::kError, auxText);
+                } else {
+                    str = stringFormat("%s: %s (%s)\n", sevstr, auxText, errt);
+                    open_edi::util::message->issueMsg(
+                        "TIMINGLIB", 15, open_edi::util::kError, auxText, errt);
                 }
             } else {
-                str = string_format("%s: %s\n", sevstr, errt);
-                open_edi::util::message->issueMsg(open_edi::util::kError,
-                                                  "%s\n", errt);
+                str = stringFormat("%s: %s\n", sevstr, errt);
+                open_edi::util::message->issueMsg("TIMINGLIB", 14,
+                                                  open_edi::util::kError, errt);
             }
             break;
     }
@@ -974,7 +974,7 @@ si2drVoidT LibAnalysis::__si2drPISetTraceMode(si2drStringT fname,
         fprintf(tracefile1_, "#include \"%s_oiddecls.h\"\n\n\n", fname);
         fprintf(tracefile1_, "si2drObjectIdT nulloid_;\n\n");
         fprintf(tracefile1_,
-                "void check_results(si2drObjectIdT result, si2drErrorT err, "
+                "void checkResults(si2drObjectIdT result, si2drErrorT err, "
                 "char *fname, int lineno)\n");
         fprintf(tracefile1_, "{\n");
         fprintf(tracefile1_, "    si2drErrorT err3;\n");
@@ -1025,7 +1025,7 @@ si2drVoidT LibAnalysis::__si2drPIUnSetTraceMode(si2drErrorT *err) {
 }
 si2drBooleanT LibAnalysis::__si2drPIGetTraceMode(si2drErrorT *err) {
     *err = kSI2DR_NO_ERROR;
-    if (timinglib___trace_mode_CFP_ != 0)
+    if (timinglib_trace_mode_CFP_ != 0)
         return SI2DR_TRUE;
     else
         return SI2DR_FALSE;
@@ -1049,16 +1049,16 @@ si2drGroupIdT LibAnalysis::__si2drPICreateGroup(si2drStringT name,
         snprintf(nameb, sizeof(nameb), "%s||||%s", group_type, name);
         // nbl = strlen(nameb);
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if (!master_group_hash) {
             *err = kSI2DR_PIINIT_NOT_CALLED;
             return nulloid_;
         }
         if (name && *name) {
-            LibHash::timinglib_hash_lookup(master_group_hash, name, &toid);
+            LibHash::timinglibHashLookup(master_group_hash, name, &toid);
             if (toid.v1 != static_cast<void *>(0)) {
                 *err = kSI2DR_OBJECT_ALREADY_EXISTS;
-                if (timinglib___debug_mode_) {
+                if (timinglib_debug_mode_) {
                     si2drErrorT err2;
                     (this->*si2ErrMsg_)(
                         kSI2DR_SEVERITY_ERR, kSI2DR_OBJECT_ALREADY_EXISTS,
@@ -1072,18 +1072,18 @@ si2drGroupIdT LibAnalysis::__si2drPICreateGroup(si2drStringT name,
     retoid.v1 = reinterpret_cast<void *>(kSI2DR_GROUP);
     retoid.v2 = static_cast<void *>(g);
     if (trace_) {
-        __outinit_oid(retoid);
+        __outinitOid(retoid);
         fprintf(tracefile1_,
                 "\n\t%s = __si2drPICreateGroup(\"%s\", \"%s\"), &err);\n\n",
-                __oid_string(retoid).c_str(), name, group_type);
-        __trace_check(retoid);
-        __inc_tracecount();
+                __oidString(retoid).c_str(), name, group_type);
+        __traceCheck(retoid);
+        __incTracecount();
     }
     g->names = static_cast<timinglib_name_list *>(
         calloc(sizeof(timinglib_name_list), 1));
     g->last_name = g->names;
-    g->type = strtab_->timinglib_strtable_enter_string(master_string_table,
-                                                       group_type);
+    g->type =
+        strtab_->timinglibStrtableEnterString(master_string_table, group_type);
     g->names->prefix_len = npl;
     lgm = lookup_group_name(group_type, strlen(group_type));
     if (lgm) g->EVAL = lgm->type;
@@ -1093,21 +1093,21 @@ si2drGroupIdT LibAnalysis::__si2drPICreateGroup(si2drStringT name,
             strcpy(nnb,nameb);
             g->names->name = nnb;
             NEW: */
-        nnb = g->names->name = strtab_->timinglib_strtable_enter_string(
-            master_string_table, nameb);
+        nnb = g->names->name =
+            strtab_->timinglibStrtableEnterString(master_string_table, nameb);
     } else {
         g->names->name = 0;
     }
     /* set up hash tables */
-    g->attr_hash = LibHash::timinglib_hash_create_hash_table(503, 1, 0);
-    g->define_hash = LibHash::timinglib_hash_create_hash_table(53, 1, 0);
-    g->group_hash = LibHash::timinglib_hash_create_hash_table(2011, 1, 0);
+    g->attr_hash = LibHash::timinglibHashCreateHashTable(503, 1, 0);
+    g->define_hash = LibHash::timinglibHashCreateHashTable(53, 1, 0);
+    g->group_hash = LibHash::timinglibHashCreateHashTable(2011, 1, 0);
     /* link into the master list */
     g->next = master_group_list;
     master_group_list = g;
     if (name && *name) {
         /* put this name(s) into the master hash tab */
-        LibHash::timinglib_hash_enter_oid(master_group_hash, nnb, retoid);
+        LibHash::timinglibHashEnterOid(master_group_hash, nnb, retoid);
     }
     *err = kSI2DR_NO_ERROR;
     return retoid;
@@ -1122,11 +1122,11 @@ si2drAttrIdT LibAnalysis::__si2drGroupCreateAttr(si2drGroupIdT group,
     const libAttrMap *lam;
     timinglib_group *g = static_cast<timinglib_group *>(group.v2);
     timinglib_attribute *attr;
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(
                 reinterpret_cast<std::intptr_t>(group.v1))) != kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -1136,7 +1136,7 @@ si2drAttrIdT LibAnalysis::__si2drGroupCreateAttr(si2drGroupIdT group,
         }
         if (g->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
                                     si2drStringT("__si2drGroupCreateAttr:"),
@@ -1145,7 +1145,7 @@ si2drAttrIdT LibAnalysis::__si2drGroupCreateAttr(si2drGroupIdT group,
             return nulloid_;
         }
         if (name && *name) {
-            LibHash::timinglib_hash_lookup(g->attr_hash, name, &toid);
+            LibHash::timinglibHashLookup(g->attr_hash, name, &toid);
             /* [20060809:nanda] Allow multiple define_group attributes */
             /* if( toid.v1 != (void*)0 ) */
             if (toid.v1 != static_cast<void *>(0) &&
@@ -1153,7 +1153,7 @@ si2drAttrIdT LibAnalysis::__si2drGroupCreateAttr(si2drGroupIdT group,
                 strcmp(name, "library_features") && strcmp(name, "vector") &&
                 strcmp(name, "voltage_map") && strcmp(name, "power_rail")) {
                 *err = kSI2DR_OBJECT_ALREADY_EXISTS;
-                if (timinglib___debug_mode_) {
+                if (timinglib_debug_mode_) {
                     si2drErrorT err2;
                     (this->*si2ErrMsg_)(
                         kSI2DR_SEVERITY_ERR, kSI2DR_OBJECT_ALREADY_EXISTS,
@@ -1163,7 +1163,7 @@ si2drAttrIdT LibAnalysis::__si2drGroupCreateAttr(si2drGroupIdT group,
             }
         } else {
             *err = kSI2DR_INVALID_NAME;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_NAME,
                                     si2drStringT("__si2drGroupCreateAttr:"),
@@ -1173,7 +1173,7 @@ si2drAttrIdT LibAnalysis::__si2drGroupCreateAttr(si2drGroupIdT group,
         }
         if (type != kSI2DR_SIMPLE && type != kSI2DR_COMPLEX) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -1187,17 +1187,17 @@ si2drAttrIdT LibAnalysis::__si2drGroupCreateAttr(si2drGroupIdT group,
     retoid.v1 = reinterpret_cast<void *>(kSI2DR_ATTR);
     retoid.v2 = static_cast<void *>(attr);
     if (trace_) {
-        __outinit_oid(retoid);
+        __outinitOid(retoid);
         fprintf(tracefile1_,
                 "\n\t%s = __si2drGroupCreateAttr(%s,\"%s\", %s, &err);\n\n",
-                __oid_string(retoid).c_str(), __oid_string(group).c_str(), name,
+                __oidString(retoid).c_str(), __oidString(group).c_str(), name,
                 toString(type));
-        __trace_check(retoid);
-        __inc_tracecount();
+        __traceCheck(retoid);
+        __incTracecount();
     }
     attr->owner = g;
     attr->name =
-        strtab_->timinglib_strtable_enter_string(master_string_table, name);
+        strtab_->timinglibStrtableEnterString(master_string_table, name);
     lam = lookup_attr_name(name, strlen(name));
     if (lam) attr->EVAL = lam->type;
     switch (type) {
@@ -1208,7 +1208,7 @@ si2drAttrIdT LibAnalysis::__si2drGroupCreateAttr(si2drGroupIdT group,
             attr->type = kTIMINGLIB__COMPLEX;
             break;
     }
-    LibHash::timinglib_hash_enter_oid(
+    LibHash::timinglibHashEnterOid(
         g->attr_hash, attr->name,
         retoid); /* fix via chrisj's posting: attr->name instead of name */
     /* nanda also spotted this */
@@ -1236,7 +1236,7 @@ si2drVoidT LibAnalysis::__si2drGroupSetComment(si2drGroupIdT group,
     timinglib_strtable *master_string_table = sd_->master_string_table;
     timinglib_group *g = static_cast<timinglib_group *>(group.v2);
     g->comment =
-        strtab_->timinglib_strtable_enter_string(master_string_table, comment);
+        strtab_->timinglibStrtableEnterString(master_string_table, comment);
 }
 si2drStringT LibAnalysis::__si2drAttrGetComment(si2drAttrIdT attr,
                                                 si2drErrorT *err) {
@@ -1250,7 +1250,7 @@ si2drVoidT LibAnalysis::__si2drAttrSetComment(si2drAttrIdT attr,
     timinglib_strtable *master_string_table = sd_->master_string_table;
     timinglib_attribute *a = static_cast<timinglib_attribute *>(attr.v2);
     a->comment =
-        strtab_->timinglib_strtable_enter_string(master_string_table, comment);
+        strtab_->timinglibStrtableEnterString(master_string_table, comment);
 }
 si2drStringT LibAnalysis::__si2drDefineGetComment(si2drDefineIdT def,
                                                   si2drErrorT *err) {
@@ -1264,7 +1264,7 @@ si2drVoidT LibAnalysis::si2drDefineSetComment(si2drDefineIdT def,
     timinglib_strtable *master_string_table = sd_->master_string_table;
     timinglib_define *d = static_cast<timinglib_define *>(def.v2);
     d->comment =
-        strtab_->timinglib_strtable_enter_string(master_string_table, comment);
+        strtab_->timinglibStrtableEnterString(master_string_table, comment);
 }
 /* These two functions unpublished because the ID will change as the standard
 evolves, and I'm using it purely as a speedup. */
@@ -1282,14 +1282,14 @@ si2drAttrTypeT LibAnalysis::__si2drAttrGetAttrType(si2drAttrIdT attr,
     timinglib_attribute *x = static_cast<timinglib_attribute *>(attr.v2);
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drAttrGetAttrType(%s,&err);\n\n",
-                __oid_string(attr).c_str());
-        __inc_tracecount();
+                __oidString(attr).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_ &&
+    if (!timinglib_nocheck_mode_ &&
         (si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(
             reinterpret_cast<std::intptr_t>(attr.v1))) != kSI2DR_ATTR) {
         *err = kSI2DR_INVALID_OBJECTTYPE;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
                                 si2drStringT("__si2drAttrGetAttrType:"), &err2);
@@ -1314,14 +1314,14 @@ si2drVoidT LibAnalysis::__si2drComplexAttrAddInt32Value(si2drAttrIdT attr,
     if (trace_) {
         fprintf(tracefile1_,
                 "\n\t__si2drComplexAttrAddInt32Value(%s,%d,&err);\n\n",
-                __oid_string(attr).c_str(), static_cast<int>(intgr));
-        __inc_tracecount();
+                __oidString(attr).c_str(), static_cast<int>(intgr));
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(
                 reinterpret_cast<std::intptr_t>(attr.v1))) != kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -1331,7 +1331,7 @@ si2drVoidT LibAnalysis::__si2drComplexAttrAddInt32Value(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__COMPLEX) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -1364,14 +1364,14 @@ si2drVoidT LibAnalysis::__si2drComplexAttrAddStringValue(si2drAttrIdT attr,
     if (trace_) {
         fprintf(tracefile1_,
                 "\n\t__si2drComplexAttrAddStringValue(%s,\"%s\",&err);\n\n",
-                __oid_string(attr).c_str(), string);
-        __inc_tracecount();
+                __oidString(attr).c_str(), string);
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(
                 reinterpret_cast<std::intptr_t>(attr.v1))) != kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -1381,7 +1381,7 @@ si2drVoidT LibAnalysis::__si2drComplexAttrAddStringValue(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__COMPLEX) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -1394,7 +1394,7 @@ si2drVoidT LibAnalysis::__si2drComplexAttrAddStringValue(si2drAttrIdT attr,
         calloc(sizeof(timinglib_attribute_value), 1));
     y->type = kTIMINGLIB__VAL_STRING;
     y->u.string_val =
-        strtab_->timinglib_strtable_enter_string(master_string_table, string);
+        strtab_->timinglibStrtableEnterString(master_string_table, string);
     /* link the attr struct into the lists */
     if (x->last_value) {
         x->last_value->next = y;
@@ -1413,14 +1413,14 @@ si2drVoidT LibAnalysis::__si2drComplexAttrAddBooleanValue(si2drAttrIdT attr,
     if (trace_) {
         fprintf(tracefile1_,
                 "\n\t__si2drComplexAttrAddBooleanValue(%s,%d,&err);\n\n",
-                __oid_string(attr).c_str(), boolval);
-        __inc_tracecount();
+                __oidString(attr).c_str(), boolval);
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(
                 reinterpret_cast<std::intptr_t>(attr.v1))) != kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -1430,7 +1430,7 @@ si2drVoidT LibAnalysis::__si2drComplexAttrAddBooleanValue(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__COMPLEX) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -1461,14 +1461,14 @@ si2drVoidT LibAnalysis::__si2drComplexAttrAddFloat64Value(si2drAttrIdT attr,
     if (trace_) {
         fprintf(tracefile1_,
                 "\n\t__si2drComplexAttrAddFloat64Value(%s,%g,&err);\n\n",
-                __oid_string(attr).c_str(), float64);
-        __inc_tracecount();
+                __oidString(attr).c_str(), float64);
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(
                 reinterpret_cast<std::intptr_t>(attr.v1))) != kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -1478,7 +1478,7 @@ si2drVoidT LibAnalysis::__si2drComplexAttrAddFloat64Value(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__COMPLEX) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -1511,14 +1511,14 @@ si2drVoidT LibAnalysis::__si2drComplexAttrAddExprValue(si2drAttrIdT attr,
     if (trace_) {
         fprintf(tracefile1_,
                 "\n\t__si2drComplexAttrAddExprValue(%s,%llx,&err);\n\n",
-                __oid_string(attr).c_str(), reinterpret_cast<uint64_t>(expr));
-        __inc_tracecount();
+                __oidString(attr).c_str(), reinterpret_cast<uint64_t>(expr));
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(
                 reinterpret_cast<std::intptr_t>(attr.v1))) != kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -1528,7 +1528,7 @@ si2drVoidT LibAnalysis::__si2drComplexAttrAddExprValue(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__COMPLEX) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -1555,11 +1555,11 @@ si2drValuesIdT LibAnalysis::__si2drComplexAttrGetValues(si2drAttrIdT attr,
                                                         si2drErrorT *err) {
     timinglib_attribute *x = static_cast<timinglib_attribute *>(attr.v2);
     iterat *y;
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(
                 reinterpret_cast<std::intptr_t>(attr.v1))) != kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -1569,7 +1569,7 @@ si2drValuesIdT LibAnalysis::__si2drComplexAttrGetValues(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__COMPLEX) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -1584,11 +1584,11 @@ si2drValuesIdT LibAnalysis::__si2drComplexAttrGetValues(si2drAttrIdT attr,
     y->owner = kITER_VAL;
     y->next = x->value;
     if (trace_) {
-        __outinit_iter((si2drValuesIdT)y);
+        __outinitIter((si2drValuesIdT)y);
         fprintf(
             tracefile1_, "\n\t%s = __si2drComplexAttrGetValues(%s, &err);\n\n",
-            __iter_string((si2drIterIdT)y).c_str(), __oid_string(attr).c_str());
-        __inc_tracecount();
+            __iterString((si2drIterIdT)y).c_str(), __oidString(attr).c_str());
+        __incTracecount();
     }
     *err = kSI2DR_NO_ERROR;
     return static_cast<si2drValuesIdT>(y);
@@ -1603,13 +1603,13 @@ si2drVoidT LibAnalysis::__si2drIterNextComplexValue(
         fprintf(tracefile1_,
                 "\n\t__si2drIterNextComplexValue(%s,&type,&intgr,&float64,&"
                 "string,&boolval,&expr,&err);\n\n",
-                __iter_string(iter).c_str());
-        __inc_tracecount();
+                __iterString(iter).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if (y->owner != kITER_VAL) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -1717,7 +1717,7 @@ si2drInt32T LibAnalysis::__si2drComplexValGetInt32Value(
         static_cast<timinglib_attribute_value *>(attr.v2);
     if (z->type != kTIMINGLIB__VAL_INT) {
         *err = kSI2DR_INVALID_OBJECTTYPE;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
                                 si2drStringT("__si2drComplexValGetInt32Value:"),
@@ -1734,7 +1734,7 @@ si2drFloat64T LibAnalysis::__si2drComplexValGetFloat64Value(
         static_cast<timinglib_attribute_value *>(attr.v2);
     if (z->type != kTIMINGLIB__VAL_DOUBLE) {
         *err = kSI2DR_INVALID_OBJECTTYPE;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(
                 kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -1751,7 +1751,7 @@ si2drStringT LibAnalysis::__si2drComplexValGetStringValue(
         static_cast<timinglib_attribute_value *>(attr.v2);
     if (z->type != kTIMINGLIB__VAL_STRING) {
         *err = kSI2DR_INVALID_OBJECTTYPE;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(
                 kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -1768,7 +1768,7 @@ si2drBooleanT LibAnalysis::__si2drComplexValGetBooleanValue(
         static_cast<timinglib_attribute_value *>(attr.v2);
     if (z->type != kTIMINGLIB__VAL_BOOLEAN) {
         *err = kSI2DR_INVALID_OBJECTTYPE;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(
                 kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -1785,7 +1785,7 @@ si2drExprT *LibAnalysis::__si2drComplexValGetExprValue(
         static_cast<timinglib_attribute_value *>(attr.v2);
     if (z->type != kTIMINGLIB__VAL_EXPR) {
         *err = kSI2DR_INVALID_OBJECTTYPE;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
                                 si2drStringT("__si2drComplexValGetExprValue:"),
@@ -1805,13 +1805,13 @@ si2drAttrComplexValIdT LibAnalysis::__si2drIterNextComplex(si2drValuesIdT iter,
         fprintf(tracefile1_,
                 "\n\t__si2drIterNextComplexValue(%s,&type,&intgr,&float64,&"
                 "string,&boolval,&expr,&err);\n\n",
-                __iter_string(iter).c_str());
-        __inc_tracecount();
+                __iterString(iter).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if (y->owner != kITER_VAL) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -1840,14 +1840,14 @@ si2drValueTypeT LibAnalysis::__si2drSimpleAttrGetValueType(si2drAttrIdT attr,
     timinglib_attribute *x = static_cast<timinglib_attribute *>(attr.v2);
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drSimpleAttrGetValueType (%s,&err);\n\n",
-                __oid_string(attr).c_str());
-        __inc_tracecount();
+                __oidString(attr).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(attr.v1)) !=
             kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -1857,7 +1857,7 @@ si2drValueTypeT LibAnalysis::__si2drSimpleAttrGetValueType(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__SIMPLE) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -1891,14 +1891,14 @@ si2drInt32T LibAnalysis::__si2drSimpleAttrGetInt32Value(si2drAttrIdT attr,
     timinglib_attribute *x = static_cast<timinglib_attribute *>(attr.v2);
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drSimpleAttrGetInt32Value(%s,&err);\n\n",
-                __oid_string(attr).c_str());
-        __inc_tracecount();
+                __oidString(attr).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(attr.v1)) !=
             kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -1908,7 +1908,7 @@ si2drInt32T LibAnalysis::__si2drSimpleAttrGetInt32Value(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__SIMPLE) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -1918,7 +1918,7 @@ si2drInt32T LibAnalysis::__si2drSimpleAttrGetInt32Value(si2drAttrIdT attr,
         }
         if (x->value == static_cast<timinglib_attribute_value *>(NULL)) {
             *err = kSI2DR_INVALID_VALUE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_VALUE,
@@ -1928,7 +1928,7 @@ si2drInt32T LibAnalysis::__si2drSimpleAttrGetInt32Value(si2drAttrIdT attr,
         }
         if (x->value->type != kTIMINGLIB__VAL_INT) {
             *err = kSI2DR_INVALID_VALUE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_VALUE,
@@ -1946,14 +1946,14 @@ si2drFloat64T LibAnalysis::__si2drSimpleAttrGetFloat64Value(si2drAttrIdT attr,
     if (trace_) {
         fprintf(tracefile1_,
                 "\n\t__si2drSimpleAttrGetFloat64Value(%s,&err);\n\n",
-                __oid_string(attr).c_str());
-        __inc_tracecount();
+                __oidString(attr).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(attr.v1)) !=
             kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -1963,7 +1963,7 @@ si2drFloat64T LibAnalysis::__si2drSimpleAttrGetFloat64Value(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__SIMPLE) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -1973,7 +1973,7 @@ si2drFloat64T LibAnalysis::__si2drSimpleAttrGetFloat64Value(si2drAttrIdT attr,
         }
         if (x->value == static_cast<timinglib_attribute_value *>(NULL)) {
             *err = kSI2DR_INVALID_VALUE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_VALUE,
@@ -1983,7 +1983,7 @@ si2drFloat64T LibAnalysis::__si2drSimpleAttrGetFloat64Value(si2drAttrIdT attr,
         }
         if (x->value->type != kTIMINGLIB__VAL_DOUBLE) {
             *err = kSI2DR_INVALID_VALUE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_VALUE,
@@ -2001,14 +2001,14 @@ si2drStringT LibAnalysis::__si2drSimpleAttrGetStringValue(si2drAttrIdT attr,
     if (trace_) {
         fprintf(tracefile1_,
                 "\n\t__si2drSimpleAttrGetStringValue(%s,&err);\n\n",
-                __oid_string(attr).c_str());
-        __inc_tracecount();
+                __oidString(attr).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(attr.v1)) !=
             kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -2018,7 +2018,7 @@ si2drStringT LibAnalysis::__si2drSimpleAttrGetStringValue(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__SIMPLE) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -2028,7 +2028,7 @@ si2drStringT LibAnalysis::__si2drSimpleAttrGetStringValue(si2drAttrIdT attr,
         }
         if (x->value == static_cast<timinglib_attribute_value *>(NULL)) {
             *err = kSI2DR_INVALID_VALUE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_VALUE,
@@ -2038,7 +2038,7 @@ si2drStringT LibAnalysis::__si2drSimpleAttrGetStringValue(si2drAttrIdT attr,
         }
         if (x->value->type != kTIMINGLIB__VAL_STRING) {
             *err = kSI2DR_INVALID_VALUE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_VALUE,
@@ -2056,14 +2056,14 @@ si2drBooleanT LibAnalysis::__si2drSimpleAttrGetBooleanValue(si2drAttrIdT attr,
     if (trace_) {
         fprintf(tracefile1_,
                 "\n\t__si2drSimpleAttrGetBooleanValue(%s,&err);\n\n",
-                __oid_string(attr).c_str());
-        __inc_tracecount();
+                __oidString(attr).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(attr.v1)) !=
             kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -2073,7 +2073,7 @@ si2drBooleanT LibAnalysis::__si2drSimpleAttrGetBooleanValue(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__SIMPLE) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -2083,7 +2083,7 @@ si2drBooleanT LibAnalysis::__si2drSimpleAttrGetBooleanValue(si2drAttrIdT attr,
         }
         if (x->value == static_cast<timinglib_attribute_value *>(NULL)) {
             *err = kSI2DR_INVALID_VALUE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_VALUE,
@@ -2093,7 +2093,7 @@ si2drBooleanT LibAnalysis::__si2drSimpleAttrGetBooleanValue(si2drAttrIdT attr,
         }
         if (x->value->type != kTIMINGLIB__VAL_BOOLEAN) {
             *err = kSI2DR_INVALID_VALUE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_VALUE,
@@ -2110,14 +2110,14 @@ si2drBooleanT LibAnalysis::__si2drSimpleAttrGetIsVar(si2drAttrIdT attr,
     timinglib_attribute *x = static_cast<timinglib_attribute *>(attr.v2);
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drSimpleAttrGetIsVar(%s,&err);\n\n",
-                __oid_string(attr).c_str());
-        __inc_tracecount();
+                __oidString(attr).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(attr.v1)) !=
             kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -2127,7 +2127,7 @@ si2drBooleanT LibAnalysis::__si2drSimpleAttrGetIsVar(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__SIMPLE) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -2146,14 +2146,14 @@ si2drVoidT LibAnalysis::__si2drSimpleAttrSetInt32Value(si2drAttrIdT attr,
     if (trace_) {
         fprintf(tracefile1_,
                 "\n\t__si2drSimpleAttrSetInt32Value(%s,%d,&err);\n\n",
-                __oid_string(attr).c_str(), static_cast<int>(intgr));
-        __inc_tracecount();
+                __oidString(attr).c_str(), static_cast<int>(intgr));
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(attr.v1)) !=
             kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -2163,7 +2163,7 @@ si2drVoidT LibAnalysis::__si2drSimpleAttrSetInt32Value(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__SIMPLE) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -2187,14 +2187,14 @@ si2drVoidT LibAnalysis::__si2drSimpleAttrSetBooleanValue(si2drAttrIdT attr,
     if (trace_) {
         fprintf(tracefile1_,
                 "\n\t__si2drSimpleAttrSetBooleanValue(%s,%d,&err);\n\n",
-                __oid_string(attr).c_str(), boolval);
-        __inc_tracecount();
+                __oidString(attr).c_str(), boolval);
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(attr.v1)) !=
             kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -2204,7 +2204,7 @@ si2drVoidT LibAnalysis::__si2drSimpleAttrSetBooleanValue(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__SIMPLE) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -2226,14 +2226,14 @@ si2drVoidT LibAnalysis::si2drSimpleAttrSetIsVar(si2drAttrIdT attr,
     timinglib_attribute *x = static_cast<timinglib_attribute *>(attr.v2);
     if (trace_) {
         fprintf(tracefile1_, "\n\tsi2drSimpleAttrSetIsVar(%s,&err);\n\n",
-                __oid_string(attr).c_str());
-        __inc_tracecount();
+                __oidString(attr).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(attr.v1)) !=
             kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -2243,7 +2243,7 @@ si2drVoidT LibAnalysis::si2drSimpleAttrSetIsVar(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__SIMPLE) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -2262,14 +2262,14 @@ si2drVoidT LibAnalysis::__si2drSimpleAttrSetFloat64Value(si2drAttrIdT attr,
     if (trace_) {
         fprintf(tracefile1_,
                 "\n\t__si2drSimpleAttrSetFloat64Value(%s,%g,&err);\n\n",
-                __oid_string(attr).c_str(), float64);
-        __inc_tracecount();
+                __oidString(attr).c_str(), float64);
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(attr.v1)) !=
             kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -2279,7 +2279,7 @@ si2drVoidT LibAnalysis::__si2drSimpleAttrSetFloat64Value(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__SIMPLE) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -2305,14 +2305,14 @@ si2drVoidT LibAnalysis::__si2drSimpleAttrSetStringValue(si2drAttrIdT attr,
     if (trace_) {
         fprintf(tracefile1_,
                 "\n\t__si2drSimpleAttrSetStringValue(%s,\"%s\",&err);\n\n",
-                __oid_string(attr).c_str(), string);
-        __inc_tracecount();
+                __oidString(attr).c_str(), string);
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(attr.v1)) !=
             kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -2322,7 +2322,7 @@ si2drVoidT LibAnalysis::__si2drSimpleAttrSetStringValue(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__SIMPLE) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -2337,7 +2337,7 @@ si2drVoidT LibAnalysis::__si2drSimpleAttrSetStringValue(si2drAttrIdT attr,
     }
     x->value->type = kTIMINGLIB__VAL_STRING;
     x->value->u.string_val =
-        strtab_->timinglib_strtable_enter_string(master_string_table, string);
+        strtab_->timinglibStrtableEnterString(master_string_table, string);
     *err = kSI2DR_NO_ERROR;
 }
 si2drDefineIdT LibAnalysis::si2drGroupCreateDefine(
@@ -2349,11 +2349,11 @@ si2drDefineIdT LibAnalysis::si2drGroupCreateDefine(
     si2drDefineIdT retoid, toid;
     timinglib_group *g = static_cast<timinglib_group *>(group.v2);
     timinglib_define *d;
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(group.v1)) !=
             kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -2363,7 +2363,7 @@ si2drDefineIdT LibAnalysis::si2drGroupCreateDefine(
         }
         if (g->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
                                     si2drStringT("si2drGroupCreateDefine:"),
@@ -2374,7 +2374,7 @@ si2drDefineIdT LibAnalysis::si2drGroupCreateDefine(
     }
     if (name && *name) {
         int found;
-        LibHash::timinglib_hash_lookup(g->define_hash, name, &toid);
+        LibHash::timinglibHashLookup(g->define_hash, name, &toid);
         if (toid.v1 != reinterpret_cast<void *>(0)) {
             char buf[10000], *p, *q;
             d = static_cast<timinglib_define *>(toid.v2);
@@ -2396,7 +2396,7 @@ si2drDefineIdT LibAnalysis::si2drGroupCreateDefine(
             }
             if (found) {
                 *err = kSI2DR_OBJECT_ALREADY_EXISTS;
-                if (timinglib___debug_mode_) {
+                if (timinglib_debug_mode_) {
                     si2drErrorT err2;
                     (this->*si2ErrMsg_)(
                         kSI2DR_SEVERITY_ERR, kSI2DR_OBJECT_ALREADY_EXISTS,
@@ -2409,7 +2409,7 @@ si2drDefineIdT LibAnalysis::si2drGroupCreateDefine(
                 char *x = static_cast<char *>(alloca(size));
                 snprintf(x, size, "%s|%s", d->group_type, allowed_group_name);
                 d->group_type =
-                    /* OLD: x NEW: */ strtab_->timinglib_strtable_enter_string(
+                    /* OLD: x NEW: */ strtab_->timinglibStrtableEnterString(
                         master_string_table, x);
                 *err = kSI2DR_NO_ERROR;
                 return toid; /* the scratchpad is freed at this point */
@@ -2417,7 +2417,7 @@ si2drDefineIdT LibAnalysis::si2drGroupCreateDefine(
         }
     } else {
         *err = kSI2DR_INVALID_NAME;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_NAME,
                                 si2drStringT("si2drGroupCreateDefine:"), &err2);
@@ -2428,20 +2428,19 @@ si2drDefineIdT LibAnalysis::si2drGroupCreateDefine(
     retoid.v1 = reinterpret_cast<void *>(kSI2DR_DEFINE);
     retoid.v2 = static_cast<void *>(d);
     if (trace_) {
-        __outinit_oid(retoid);
+        __outinitOid(retoid);
         fprintf(tracefile1_,
                 "\n\t%s = si2drGroupCreateDefine(%s, \"%s\", \"%s\", %s, "
                 "&err);\n\n",
-                __oid_string(retoid).c_str(), __oid_string(group).c_str(), name,
+                __oidString(retoid).c_str(), __oidString(group).c_str(), name,
                 allowed_group_name, toString(valtype));
-        __trace_check(retoid);
-        __inc_tracecount();
+        __traceCheck(retoid);
+        __incTracecount();
     }
-    d->name =
-        strtab_->timinglib_strtable_enter_string(master_string_table, name);
+    d->name = strtab_->timinglibStrtableEnterString(master_string_table, name);
     d->owner = g;
-    d->group_type = strtab_->timinglib_strtable_enter_string(
-        master_string_table, allowed_group_name);
+    d->group_type = strtab_->timinglibStrtableEnterString(master_string_table,
+                                                          allowed_group_name);
     switch (valtype) {
         case kSI2DR_INT32:
             d->valtype = kTIMINGLIB__VAL_INT;
@@ -2461,10 +2460,10 @@ si2drDefineIdT LibAnalysis::si2drGroupCreateDefine(
             d->valtype = kTIMINGLIB__VAL_BOOLEAN;
             break;
     }
-    LibHash::timinglib_hash_enter_oid(
+    LibHash::timinglibHashEnterOid(
         g->define_hash, d->name,
         retoid); /* fix via chrisj's posting: d->name instead of using name */
-    LibHash::timinglib_hash_enter_oid(
+    LibHash::timinglibHashEnterOid(
         master_define_hash, d->name,
         retoid); /* nanda, btw, also spotted and fixed this */
     /* link the attr struct into the lists */
@@ -2496,11 +2495,11 @@ si2drGroupIdT LibAnalysis::__si2drGroupCreateGroup(si2drGroupIdT group,
         snprintf(nameb, sizeof(nameb), "%s||||%s", group_type, name);
         // nbl = strlen(nameb);
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(group.v1)) !=
             kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -2510,7 +2509,7 @@ si2drGroupIdT LibAnalysis::__si2drGroupCreateGroup(si2drGroupIdT group,
         }
         if (g->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
                                     si2drStringT("__si2drGroupCreateGroup:"),
@@ -2520,7 +2519,7 @@ si2drGroupIdT LibAnalysis::__si2drGroupCreateGroup(si2drGroupIdT group,
         }
         if (group_type == 0 || *group_type == 0) {
             *err = kSI2DR_INVALID_VALUE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_VALUE,
                                     si2drStringT("__si2drGroupCreateGroup:"),
@@ -2531,7 +2530,7 @@ si2drGroupIdT LibAnalysis::__si2drGroupCreateGroup(si2drGroupIdT group,
     }
     lgm = lookup_group_name(group_type, strlen(group_type));
     if (name && *name) {
-        LibHash::timinglib_hash_lookup(g->define_hash, nameb, &toid);
+        LibHash::timinglibHashLookup(g->define_hash, nameb, &toid);
         if (toid.v1 != reinterpret_cast<void *>(0)) {
             /* disqualify any references here */
             switch (lgm->type) {
@@ -2567,7 +2566,7 @@ si2drGroupIdT LibAnalysis::__si2drGroupCreateGroup(si2drGroupIdT group,
             }
             if (!dont_addhash) {
                 *err = kSI2DR_OBJECT_ALREADY_EXISTS;
-                if (timinglib___debug_mode_) {
+                if (timinglib_debug_mode_) {
                     si2drErrorT err2;
                     (this->*si2ErrMsg_)(
                         kSI2DR_SEVERITY_ERR, kSI2DR_OBJECT_ALREADY_EXISTS,
@@ -2582,14 +2581,14 @@ si2drGroupIdT LibAnalysis::__si2drGroupCreateGroup(si2drGroupIdT group,
     retoid.v1 = reinterpret_cast<void *>(kSI2DR_GROUP);
     retoid.v2 = static_cast<void *>(ng);
     if (trace_) {
-        __outinit_oid(retoid);
+        __outinitOid(retoid);
         fprintf(
             tracefile1_,
             "\n\t%s = __si2drGroupCreateGroup(%s, \"%s\", \"%s\"), &err);\n\n",
-            __oid_string(retoid).c_str(), __oid_string(group).c_str(), name,
+            __oidString(retoid).c_str(), __oidString(group).c_str(), name,
             group_type);
-        __trace_check(retoid);
-        __inc_tracecount();
+        __traceCheck(retoid);
+        __incTracecount();
     }
     ng->names = static_cast<timinglib_name_list *>(
         calloc(sizeof(timinglib_name_list), 1));
@@ -2604,21 +2603,21 @@ si2drGroupIdT LibAnalysis::__si2drGroupCreateGroup(si2drGroupIdT group,
               strcpy(nnb,nameb);
               ng->names->name = nnb;
               NEW: */
-        nnb = ng->names->name = strtab_->timinglib_strtable_enter_string(
-            master_string_table, nameb);
+        nnb = ng->names->name =
+            strtab_->timinglibStrtableEnterString(master_string_table, nameb);
     } else {
         ng->names->name = 0;
     }
-    ng->type = strtab_->timinglib_strtable_enter_string(master_string_table,
-                                                        group_type);
+    ng->type =
+        strtab_->timinglibStrtableEnterString(master_string_table, group_type);
     lgm = lookup_group_name(group_type, strlen(group_type));
     if (lgm) ng->EVAL = lgm->type;
     /* set up hash tables */
-    ng->attr_hash = LibHash::timinglib_hash_create_hash_table(3, 1, 0);
-    ng->define_hash = LibHash::timinglib_hash_create_hash_table(3, 1, 0);
-    ng->group_hash = LibHash::timinglib_hash_create_hash_table(3, 1, 0);
+    ng->attr_hash = LibHash::timinglibHashCreateHashTable(3, 1, 0);
+    ng->define_hash = LibHash::timinglibHashCreateHashTable(3, 1, 0);
+    ng->group_hash = LibHash::timinglibHashCreateHashTable(3, 1, 0);
     if (name && *name && !dont_addhash)
-        LibHash::timinglib_hash_enter_oid(g->group_hash, nnb, retoid);
+        LibHash::timinglibHashEnterOid(g->group_hash, nnb, retoid);
     /* link the attr struct into the lists */
     if (g->group_last) {
         g->group_last->next = ng;
@@ -2649,14 +2648,14 @@ si2drVoidT LibAnalysis::__si2drGroupAddName(si2drGroupIdT group,
     *err = kSI2DR_NO_ERROR;
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drGroupAddName(%s,\"%s\",&err);\n\n",
-                __oid_string(group).c_str(), name);
-        __inc_tracecount();
+                __oidString(group).c_str(), name);
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(group.v1)) !=
             kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -2666,7 +2665,7 @@ si2drVoidT LibAnalysis::__si2drGroupAddName(si2drGroupIdT group,
         }
         if (g->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
                                     si2drStringT("__si2drGroupAddName:"),
@@ -2678,9 +2677,9 @@ si2drVoidT LibAnalysis::__si2drGroupAddName(si2drGroupIdT group,
     dont_addhash = 0;
     if (name && *name) {
         if (gp)
-            LibHash::timinglib_hash_lookup(gp->group_hash, nameb, &toid);
+            LibHash::timinglibHashLookup(gp->group_hash, nameb, &toid);
         else
-            LibHash::timinglib_hash_lookup(master_group_hash, nameb, &toid);
+            LibHash::timinglibHashLookup(master_group_hash, nameb, &toid);
         if (toid.v1 != reinterpret_cast<void *>(0)) {
             /* disqualify any references here */
             switch ((group_enum)g->EVAL) {
@@ -2716,7 +2715,7 @@ si2drVoidT LibAnalysis::__si2drGroupAddName(si2drGroupIdT group,
             }
             if (!dont_addhash) {
                 *err = kSI2DR_OBJECT_ALREADY_EXISTS;
-                if (timinglib___debug_mode_) {
+                if (timinglib_debug_mode_) {
                     si2drErrorT err2;
                     (this->*si2ErrMsg_)(
                         kSI2DR_SEVERITY_ERR, kSI2DR_OBJECT_ALREADY_EXISTS,
@@ -2726,7 +2725,7 @@ si2drVoidT LibAnalysis::__si2drGroupAddName(si2drGroupIdT group,
         }
     } else {
         *err = kSI2DR_INVALID_NAME;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_NAME,
                                 si2drStringT("__si2drGroupAddName:"), &err2);
@@ -2737,12 +2736,12 @@ si2drVoidT LibAnalysis::__si2drGroupAddName(si2drGroupIdT group,
     nnb = (char*)malloc(nbl+1);
     strcpy(nnb,nameb);
        NEW:*/
-    nnb = strtab_->timinglib_strtable_enter_string(master_string_table, nameb);
+    nnb = strtab_->timinglibStrtableEnterString(master_string_table, nameb);
     if (*err != kSI2DR_OBJECT_ALREADY_EXISTS && !dont_addhash) {
         if (gp)
-            LibHash::timinglib_hash_enter_oid(gp->group_hash, nnb, group);
+            LibHash::timinglibHashEnterOid(gp->group_hash, nnb, group);
         else
-            LibHash::timinglib_hash_enter_oid(master_group_hash, nnb, group);
+            LibHash::timinglibHashEnterOid(master_group_hash, nnb, group);
     }
 
     /* in some special case, the
@@ -2779,14 +2778,14 @@ si2drVoidT LibAnalysis::__si2drGroupDeleteName(si2drGroupIdT group,
     // nbl = strlen(nameb);
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drGroupDeleteName(%s,\"%s\",&err);\n\n",
-                __oid_string(group).c_str(), name);
-        __inc_tracecount();
+                __oidString(group).c_str(), name);
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(group.v1)) !=
             kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -2796,7 +2795,7 @@ si2drVoidT LibAnalysis::__si2drGroupDeleteName(si2drGroupIdT group,
         }
         if (g->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
                                     si2drStringT("__si2drGroupDeleteName:"),
@@ -2806,12 +2805,12 @@ si2drVoidT LibAnalysis::__si2drGroupDeleteName(si2drGroupIdT group,
         }
         if (name && *name) {
             if (gp)
-                LibHash::timinglib_hash_lookup(gp->group_hash, nameb, &toid);
+                LibHash::timinglibHashLookup(gp->group_hash, nameb, &toid);
             else
-                LibHash::timinglib_hash_lookup(master_group_hash, nameb, &toid);
+                LibHash::timinglibHashLookup(master_group_hash, nameb, &toid);
             if (toid.v1 == reinterpret_cast<void *>(0) || toid.v2 != g) {
                 *err = kSI2DR_OBJECT_NOT_FOUND;
-                if (timinglib___debug_mode_) {
+                if (timinglib_debug_mode_) {
                     si2drErrorT err2;
                     (this->*si2ErrMsg_)(
                         kSI2DR_SEVERITY_ERR, kSI2DR_OBJECT_NOT_FOUND,
@@ -2821,7 +2820,7 @@ si2drVoidT LibAnalysis::__si2drGroupDeleteName(si2drGroupIdT group,
             }
         } else {
             *err = kSI2DR_INVALID_NAME;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_NAME,
                                     si2drStringT("__si2drGroupDeleteName:"),
@@ -2843,9 +2842,9 @@ si2drVoidT LibAnalysis::__si2drGroupDeleteName(si2drGroupIdT group,
                 g->last_name = nlp_last;
             }
             if (gp)
-                LibHash::timinglib_hash_delete_elem(gp->group_hash, nameb);
+                LibHash::timinglibHashDeleteElem(gp->group_hash, nameb);
             else
-                LibHash::timinglib_hash_delete_elem(master_group_hash, nameb);
+                LibHash::timinglibHashDeleteElem(master_group_hash, nameb);
             nlp->name = 0;
             nlp->next = 0;
             free(nlp);
@@ -2866,10 +2865,10 @@ si2drGroupIdT LibAnalysis::__si2drPIFindGroupByName(si2drStringT name,
     *err = kSI2DR_NO_ERROR;
     snprintf(nameb, sizeof(nameb), "%s||||%s", type, name);
     // nbl = strlen(nameb);
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if (master_group_hash == 0) {
             *err = kSI2DR_INTERNAL_SYSTEM_ERROR;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INTERNAL_SYSTEM_ERROR,
@@ -2879,10 +2878,10 @@ si2drGroupIdT LibAnalysis::__si2drPIFindGroupByName(si2drStringT name,
         }
     }
     if (name && *name) {
-        LibHash::timinglib_hash_lookup(master_group_hash, nameb, &retoid);
+        LibHash::timinglibHashLookup(master_group_hash, nameb, &retoid);
         if (retoid.v1 == reinterpret_cast<void *>(0)) {
             *err = kSI2DR_OBJECT_NOT_FOUND;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_NOTE, kSI2DR_OBJECT_NOT_FOUND,
@@ -2893,7 +2892,7 @@ si2drGroupIdT LibAnalysis::__si2drPIFindGroupByName(si2drStringT name,
         }
     } else {
         *err = kSI2DR_INVALID_NAME;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_NAME,
                                 si2drStringT("__si2drPIFindGroupByName:"),
@@ -2907,14 +2906,14 @@ si2drGroupIdT LibAnalysis::__si2drPIFindGroupByName(si2drStringT name,
                     "\n\t__si2drPIFindGroupByName(\"%s\", \"%s\"), &err);\n\n",
                     name, type);
         } else {
-            __outinit_oid(retoid);
+            __outinitOid(retoid);
             fprintf(
                 tracefile1_,
                 "\n\t%s = __si2drPIFindGroupByName(\"%s\", \"%s\"), &err);\n\n",
-                __oid_string(retoid).c_str(), name, type);
+                __oidString(retoid).c_str(), name, type);
         }
-        __trace_check(retoid);
-        __inc_tracecount();
+        __traceCheck(retoid);
+        __incTracecount();
     }
     return retoid;
 }
@@ -2929,10 +2928,10 @@ si2drGroupIdT LibAnalysis::__si2drGroupFindGroupByName(si2drGroupIdT group,
     char nameb[1500];
     snprintf(nameb, sizeof(nameb), "%s||||%s", type, name);
     *err = kSI2DR_NO_ERROR;
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if (master_group_hash == 0) {
             *err = kSI2DR_INTERNAL_SYSTEM_ERROR;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INTERNAL_SYSTEM_ERROR,
@@ -2943,7 +2942,7 @@ si2drGroupIdT LibAnalysis::__si2drGroupFindGroupByName(si2drGroupIdT group,
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(group.v1)) !=
             kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -2953,7 +2952,7 @@ si2drGroupIdT LibAnalysis::__si2drGroupFindGroupByName(si2drGroupIdT group,
         }
         if (g->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
@@ -2964,10 +2963,10 @@ si2drGroupIdT LibAnalysis::__si2drGroupFindGroupByName(si2drGroupIdT group,
     }
     *err = kSI2DR_NO_ERROR;
     if (name && *name) {
-        LibHash::timinglib_hash_lookup(g->group_hash, nameb, &retoid);
+        LibHash::timinglibHashLookup(g->group_hash, nameb, &retoid);
         if (retoid.v1 == reinterpret_cast<void *>(0)) {
             *err = kSI2DR_OBJECT_NOT_FOUND;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_NOTE, kSI2DR_OBJECT_NOT_FOUND,
@@ -2979,7 +2978,7 @@ si2drGroupIdT LibAnalysis::__si2drGroupFindGroupByName(si2drGroupIdT group,
         }
     } else {
         *err = kSI2DR_INVALID_NAME;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_NAME,
                                 si2drStringT("__si2drGroupFindGroupByName:"),
@@ -2992,17 +2991,17 @@ si2drGroupIdT LibAnalysis::__si2drGroupFindGroupByName(si2drGroupIdT group,
             fprintf(tracefile1_,
                     "\n\t__si2drGroupFindGroupByName(%s, \"%s\", \"%s\"), "
                     "&err);\n\n",
-                    __oid_string(group).c_str(), name, type);
+                    __oidString(group).c_str(), name, type);
         } else {
-            __outinit_oid(retoid);
+            __outinitOid(retoid);
             fprintf(tracefile1_,
                     "\n\t%s = __si2drGroupFindGroupByName(%s, \"%s\", \"%s\"), "
                     "&err);\n\n",
-                    __oid_string(retoid).c_str(), __oid_string(group).c_str(),
+                    __oidString(retoid).c_str(), __oidString(group).c_str(),
                     name, type);
         }
-        __trace_check(retoid);
-        __inc_tracecount();
+        __traceCheck(retoid);
+        __incTracecount();
     }
     return retoid;
 }
@@ -3013,10 +3012,10 @@ si2drAttrIdT LibAnalysis::__si2drGroupFindAttrByName(si2drGroupIdT group,
     timinglib_hash_table *master_group_hash = sd_->master_group_hash;
     si2drAttrIdT retoid;
     timinglib_group *g = static_cast<timinglib_group *>(group.v2);
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if (master_group_hash == 0) {
             *err = kSI2DR_INTERNAL_SYSTEM_ERROR;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INTERNAL_SYSTEM_ERROR,
@@ -3027,7 +3026,7 @@ si2drAttrIdT LibAnalysis::__si2drGroupFindAttrByName(si2drGroupIdT group,
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(group.v1)) !=
             kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -3037,7 +3036,7 @@ si2drAttrIdT LibAnalysis::__si2drGroupFindAttrByName(si2drGroupIdT group,
         }
         if (g->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
                                     si2drStringT("__si2drGroupFindAttrByName:"),
@@ -3048,10 +3047,10 @@ si2drAttrIdT LibAnalysis::__si2drGroupFindAttrByName(si2drGroupIdT group,
     }
     *err = kSI2DR_NO_ERROR;
     if (name && *name) {
-        LibHash::timinglib_hash_lookup(g->attr_hash, name, &retoid);
+        LibHash::timinglibHashLookup(g->attr_hash, name, &retoid);
         if (retoid.v1 == reinterpret_cast<void *>(0)) {
             *err = kSI2DR_OBJECT_NOT_FOUND;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_OBJECT_NOT_FOUND,
@@ -3061,7 +3060,7 @@ si2drAttrIdT LibAnalysis::__si2drGroupFindAttrByName(si2drGroupIdT group,
         }
     } else {
         *err = kSI2DR_INVALID_NAME;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(
                 kSI2DR_SEVERITY_NOTE, kSI2DR_INVALID_NAME,
@@ -3074,17 +3073,16 @@ si2drAttrIdT LibAnalysis::__si2drGroupFindAttrByName(si2drGroupIdT group,
         if (retoid.v1 == 0 && retoid.v2 == 0) {
             fprintf(tracefile1_,
                     "\n\t__si2drGroupFindAttrByName(%s, \"%s\"), &err);\n\n",
-                    __oid_string(group).c_str(), name);
+                    __oidString(group).c_str(), name);
         } else {
-            __outinit_oid(retoid);
+            __outinitOid(retoid);
             fprintf(
                 tracefile1_,
                 "\n\t%s = __si2drGroupFindAttrByName(%s, \"%s\"), &err);\n\n",
-                __oid_string(retoid).c_str(), __oid_string(group).c_str(),
-                name);
+                __oidString(retoid).c_str(), __oidString(group).c_str(), name);
         }
-        __trace_check(retoid);
-        __inc_tracecount();
+        __traceCheck(retoid);
+        __incTracecount();
     }
     return retoid;
 }
@@ -3095,10 +3093,10 @@ si2drDefineIdT LibAnalysis::__si2drGroupFindDefineByName(si2drGroupIdT group,
     timinglib_hash_table *master_group_hash = sd_->master_group_hash;
     si2drDefineIdT retoid;
     timinglib_group *g = static_cast<timinglib_group *>(group.v2);
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if (master_group_hash == 0) {
             *err = kSI2DR_INTERNAL_SYSTEM_ERROR;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INTERNAL_SYSTEM_ERROR,
@@ -3109,7 +3107,7 @@ si2drDefineIdT LibAnalysis::__si2drGroupFindDefineByName(si2drGroupIdT group,
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(group.v1)) !=
             kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -3119,7 +3117,7 @@ si2drDefineIdT LibAnalysis::__si2drGroupFindDefineByName(si2drGroupIdT group,
         }
         if (g->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
@@ -3130,10 +3128,10 @@ si2drDefineIdT LibAnalysis::__si2drGroupFindDefineByName(si2drGroupIdT group,
     }
     *err = kSI2DR_NO_ERROR;
     if (name && *name) {
-        LibHash::timinglib_hash_lookup(g->define_hash, name, &retoid);
+        LibHash::timinglibHashLookup(g->define_hash, name, &retoid);
         if (retoid.v1 == reinterpret_cast<void *>(0)) {
             *err = kSI2DR_OBJECT_NOT_FOUND;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_NOTE, kSI2DR_OBJECT_NOT_FOUND,
@@ -3145,7 +3143,7 @@ si2drDefineIdT LibAnalysis::__si2drGroupFindDefineByName(si2drGroupIdT group,
         }
     } else {
         *err = kSI2DR_INVALID_NAME;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_NAME,
                                 si2drStringT("__si2drGroupFindDefineByName:"),
@@ -3157,17 +3155,16 @@ si2drDefineIdT LibAnalysis::__si2drGroupFindDefineByName(si2drGroupIdT group,
         if (retoid.v1 == 0 && retoid.v2 == 0) {
             fprintf(tracefile1_,
                     "\n\t__si2drGroupFindDefineByName(%s, \"%s\"), &err);\n\n",
-                    __oid_string(group).c_str(), name);
+                    __oidString(group).c_str(), name);
         } else {
-            __outinit_oid(retoid);
+            __outinitOid(retoid);
             fprintf(
                 tracefile1_,
                 "\n\t%s = __si2drGroupFindDefineByName(%s, \"%s\"), &err);\n\n",
-                __oid_string(retoid).c_str(), __oid_string(group).c_str(),
-                name);
+                __oidString(retoid).c_str(), __oidString(group).c_str(), name);
         }
-        __trace_check(retoid);
-        __inc_tracecount();
+        __traceCheck(retoid);
+        __incTracecount();
     }
     return retoid;
 }
@@ -3177,10 +3174,10 @@ si2drDefineIdT LibAnalysis::__si2drPIFindDefineByName(si2drStringT name,
     timinglib_hash_table *master_group_hash = sd_->master_group_hash;
     timinglib_hash_table *master_define_hash = sd_->master_define_hash;
     si2drDefineIdT retoid;
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if (master_group_hash == 0) {
             *err = kSI2DR_INTERNAL_SYSTEM_ERROR;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INTERNAL_SYSTEM_ERROR,
@@ -3191,10 +3188,10 @@ si2drDefineIdT LibAnalysis::__si2drPIFindDefineByName(si2drStringT name,
     }
     *err = kSI2DR_NO_ERROR;
     if (name && *name) {
-        LibHash::timinglib_hash_lookup(master_define_hash, name, &retoid);
+        LibHash::timinglibHashLookup(master_define_hash, name, &retoid);
         if (retoid.v1 == reinterpret_cast<void *>(0)) {
             *err = kSI2DR_OBJECT_NOT_FOUND;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_NOTE, kSI2DR_OBJECT_NOT_FOUND,
@@ -3205,7 +3202,7 @@ si2drDefineIdT LibAnalysis::__si2drPIFindDefineByName(si2drStringT name,
         }
     } else {
         *err = kSI2DR_INVALID_NAME;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_NAME,
                                 si2drStringT("__si2drPIFindDefineByName:"),
@@ -3218,13 +3215,13 @@ si2drDefineIdT LibAnalysis::__si2drPIFindDefineByName(si2drStringT name,
             fprintf(tracefile1_,
                     "\n\t__si2drPIFindDefineByName(\"%s\"), &err);\n\n", name);
         } else {
-            __outinit_oid(retoid);
+            __outinitOid(retoid);
             fprintf(tracefile1_,
                     "\n\t%s = __si2drPIFindDefineByName(\"%s\"), &err);\n\n",
-                    __oid_string(retoid).c_str(), name);
+                    __oidString(retoid).c_str(), name);
         }
-        __trace_check(retoid);
-        __inc_tracecount();
+        __traceCheck(retoid);
+        __incTracecount();
     }
     return retoid;
 }
@@ -3233,10 +3230,10 @@ si2drGroupsIdT LibAnalysis::__si2drPIGetGroups(si2drErrorT *err) {
     timinglib_hash_table *master_group_hash = sd_->master_group_hash;
     timinglib_group *master_group_list = sd_->master_group_list;
     iterat *y;
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if (master_group_hash == 0) {
             *err = kSI2DR_INTERNAL_SYSTEM_ERROR;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR,
                                     kSI2DR_INTERNAL_SYSTEM_ERROR,
@@ -3251,10 +3248,10 @@ si2drGroupsIdT LibAnalysis::__si2drPIGetGroups(si2drErrorT *err) {
     y->next = static_cast<void *>(master_group_list);
     l__iter_group_count_++;
     if (trace_) {
-        __outinit_iter((si2drIterIdT)y);
+        __outinitIter((si2drIterIdT)y);
         fprintf(tracefile1_, "\n\t%s = __si2drPIGetGroups(&err);\n\n",
-                __iter_string((si2drIterIdT)y).c_str());
-        __inc_tracecount();
+                __iterString((si2drIterIdT)y).c_str());
+        __incTracecount();
     }
     return static_cast<si2drGroupsIdT>(y);
 }
@@ -3264,11 +3261,11 @@ si2drGroupsIdT LibAnalysis::__si2drGroupGetGroups(si2drGroupIdT group,
     timinglib_hash_table *master_group_hash = sd_->master_group_hash;
     iterat *y;
     timinglib_group *g = static_cast<timinglib_group *>(group.v2);
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(group.v1)) !=
             kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -3278,7 +3275,7 @@ si2drGroupsIdT LibAnalysis::__si2drGroupGetGroups(si2drGroupIdT group,
         }
         if (master_group_hash == 0) {
             *err = kSI2DR_INTERNAL_SYSTEM_ERROR;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INTERNAL_SYSTEM_ERROR,
@@ -3288,7 +3285,7 @@ si2drGroupsIdT LibAnalysis::__si2drGroupGetGroups(si2drGroupIdT group,
         }
         if (g->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
                                     si2drStringT("__si2drGroupGetGroups:"),
@@ -3303,11 +3300,11 @@ si2drGroupsIdT LibAnalysis::__si2drGroupGetGroups(si2drGroupIdT group,
     y->next = static_cast<void *>(g->group_list);
     l__iter_group_count_++;
     if (trace_) {
-        __outinit_iter((si2drIterIdT)y);
+        __outinitIter((si2drIterIdT)y);
         fprintf(tracefile1_, "\n\t%s = __si2drGroupGetGroups(%s, &err);\n\n",
-                __iter_string((si2drIterIdT)y).c_str(),
-                __oid_string(group).c_str());
-        __inc_tracecount();
+                __iterString((si2drIterIdT)y).c_str(),
+                __oidString(group).c_str());
+        __incTracecount();
     }
     return static_cast<si2drGroupsIdT>(y);
 }
@@ -3317,11 +3314,11 @@ si2drNamesIdT LibAnalysis::__si2drGroupGetNames(si2drGroupIdT group,
     timinglib_hash_table *master_group_hash = sd_->master_group_hash;
     iterat *y;
     timinglib_group *g = static_cast<timinglib_group *>(group.v2);
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(group.v1)) !=
             kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -3331,7 +3328,7 @@ si2drNamesIdT LibAnalysis::__si2drGroupGetNames(si2drGroupIdT group,
         }
         if (master_group_hash == 0) {
             *err = kSI2DR_INTERNAL_SYSTEM_ERROR;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INTERNAL_SYSTEM_ERROR,
@@ -3341,7 +3338,7 @@ si2drNamesIdT LibAnalysis::__si2drGroupGetNames(si2drGroupIdT group,
         }
         if (g->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
                                     si2drStringT("__si2drGroupGetNames:"),
@@ -3356,11 +3353,11 @@ si2drNamesIdT LibAnalysis::__si2drGroupGetNames(si2drGroupIdT group,
     y->next = static_cast<void *>(g->names);
     l__iter_name_count_++;
     if (trace_) {
-        __outinit_iter((si2drIterIdT)y);
+        __outinitIter((si2drIterIdT)y);
         fprintf(tracefile1_, "\n\t%s = __si2drGroupGetNames(%s, &err);\n\n",
-                __iter_string((si2drIterIdT)y).c_str(),
-                __oid_string(group).c_str());
-        __inc_tracecount();
+                __iterString((si2drIterIdT)y).c_str(),
+                __oidString(group).c_str());
+        __incTracecount();
     }
     return static_cast<si2drNamesIdT>(y);
 }
@@ -3370,11 +3367,11 @@ si2drAttrsIdT LibAnalysis::__si2drGroupGetAttrs(si2drGroupIdT group,
     timinglib_hash_table *master_group_hash = sd_->master_group_hash;
     iterat *y;
     timinglib_group *g = static_cast<timinglib_group *>(group.v2);
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(group.v1)) !=
             kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -3384,7 +3381,7 @@ si2drAttrsIdT LibAnalysis::__si2drGroupGetAttrs(si2drGroupIdT group,
         }
         if (master_group_hash == 0) {
             *err = kSI2DR_INTERNAL_SYSTEM_ERROR;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INTERNAL_SYSTEM_ERROR,
@@ -3394,7 +3391,7 @@ si2drAttrsIdT LibAnalysis::__si2drGroupGetAttrs(si2drGroupIdT group,
         }
         if (g->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
                                     si2drStringT("__si2drGroupGetAttrs:"),
@@ -3409,11 +3406,11 @@ si2drAttrsIdT LibAnalysis::__si2drGroupGetAttrs(si2drGroupIdT group,
     y->next = static_cast<void *>(g->attr_list);
     l__iter_attr_count_++;
     if (trace_) {
-        __outinit_iter((si2drIterIdT)y);
+        __outinitIter((si2drIterIdT)y);
         fprintf(tracefile1_, "\n\t%s = __si2drGroupGetAttrs(%s, &err);\n\n",
-                __iter_string((si2drIterIdT)y).c_str(),
-                __oid_string(group).c_str());
-        __inc_tracecount();
+                __iterString((si2drIterIdT)y).c_str(),
+                __oidString(group).c_str());
+        __incTracecount();
     }
     return static_cast<si2drAttrsIdT>(y);
 }
@@ -3423,11 +3420,11 @@ si2drDefinesIdT LibAnalysis::__si2drGroupGetDefines(si2drGroupIdT group,
     timinglib_hash_table *master_group_hash = sd_->master_group_hash;
     iterat *y;
     timinglib_group *g = static_cast<timinglib_group *>(group.v2);
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(group.v1)) !=
             kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -3437,7 +3434,7 @@ si2drDefinesIdT LibAnalysis::__si2drGroupGetDefines(si2drGroupIdT group,
         }
         if (master_group_hash == 0) {
             *err = kSI2DR_INTERNAL_SYSTEM_ERROR;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INTERNAL_SYSTEM_ERROR,
@@ -3447,7 +3444,7 @@ si2drDefinesIdT LibAnalysis::__si2drGroupGetDefines(si2drGroupIdT group,
         }
         if (g->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
                                     si2drStringT("__si2drGroupGetDefines:"),
@@ -3462,11 +3459,11 @@ si2drDefinesIdT LibAnalysis::__si2drGroupGetDefines(si2drGroupIdT group,
     l__iter_def_count_++;
     y->next = static_cast<void *>(g->define_list);
     if (trace_) {
-        __outinit_iter((si2drIterIdT)y);
+        __outinitIter((si2drIterIdT)y);
         fprintf(tracefile1_, "\n\t%s = __si2drGroupGetDefines(%s, &err);\n\n",
-                __iter_string((si2drIterIdT)y).c_str(),
-                __oid_string(group).c_str());
-        __inc_tracecount();
+                __iterString((si2drIterIdT)y).c_str(),
+                __oidString(group).c_str());
+        __incTracecount();
     }
     return static_cast<si2drDefinesIdT>(y);
 }
@@ -3475,10 +3472,10 @@ si2drGroupIdT LibAnalysis::__si2drIterNextGroup(si2drGroupsIdT iter,
     si2drGroupIdT retoid;
     timinglib_group *z;
     iterat *y = static_cast<iterat *>(iter);
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if (y->owner != kITER_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -3491,8 +3488,8 @@ si2drGroupIdT LibAnalysis::__si2drIterNextGroup(si2drGroupsIdT iter,
         *err = kSI2DR_NO_ERROR;
         if (trace_) {
             fprintf(tracefile1_, "\n\t__si2drIterNextGroup(%s, &err);\n\n",
-                    __iter_string(iter).c_str());
-            __inc_tracecount();
+                    __iterString(iter).c_str());
+            __incTracecount();
         }
         return nulloid_;
     }
@@ -3501,11 +3498,11 @@ si2drGroupIdT LibAnalysis::__si2drIterNextGroup(si2drGroupsIdT iter,
     retoid.v1 = reinterpret_cast<void *>(kSI2DR_GROUP);
     retoid.v2 = static_cast<void *>(z);
     if (trace_) {
-        __outinit_oid(retoid);
+        __outinitOid(retoid);
         fprintf(tracefile1_, "\n\t%s = __si2drIterNextGroup(%s, &err);\n\n",
-                __oid_string(retoid).c_str(), __iter_string(iter).c_str());
-        __trace_check(retoid);
-        __inc_tracecount();
+                __oidString(retoid).c_str(), __iterString(iter).c_str());
+        __traceCheck(retoid);
+        __incTracecount();
     }
     *err = kSI2DR_NO_ERROR;
     return retoid;
@@ -3516,13 +3513,13 @@ si2drStringT LibAnalysis::__si2drIterNextName(si2drNamesIdT iter,
     iterat *y = static_cast<iterat *>(iter);
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drIterNextName(%s,&err);\n\n",
-                __iter_string(iter).c_str());
-        __inc_tracecount();
+                __iterString(iter).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if (y->owner != kITER_NAME) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -3548,10 +3545,10 @@ si2drAttrIdT LibAnalysis::__si2drIterNextAttr(si2drAttrsIdT iter,
     si2drAttrIdT retoid;
     timinglib_attribute *z;
     iterat *y = static_cast<iterat *>(iter);
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if (y->owner != kITER_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -3564,8 +3561,8 @@ si2drAttrIdT LibAnalysis::__si2drIterNextAttr(si2drAttrsIdT iter,
         *err = kSI2DR_NO_ERROR;
         if (trace_) {
             fprintf(tracefile1_, "\n\t__si2drIterNextGroup(%s, &err);\n\n",
-                    __iter_string(iter).c_str());
-            __inc_tracecount();
+                    __iterString(iter).c_str());
+            __incTracecount();
         }
         return nulloid_;
     }
@@ -3574,11 +3571,11 @@ si2drAttrIdT LibAnalysis::__si2drIterNextAttr(si2drAttrsIdT iter,
     retoid.v1 = reinterpret_cast<void *>(kSI2DR_ATTR);
     retoid.v2 = static_cast<void *>(z);
     if (trace_) {
-        __outinit_oid(retoid);
+        __outinitOid(retoid);
         fprintf(tracefile1_, "\n\t%s = __si2drIterNextAttr(%s, &err);\n\n",
-                __oid_string(retoid).c_str(), __iter_string(iter).c_str());
-        __trace_check(retoid);
-        __inc_tracecount();
+                __oidString(retoid).c_str(), __iterString(iter).c_str());
+        __traceCheck(retoid);
+        __incTracecount();
     }
     *err = kSI2DR_NO_ERROR;
     return retoid;
@@ -3588,10 +3585,10 @@ si2drDefineIdT LibAnalysis::__si2drIterNextDefine(si2drDefinesIdT iter,
     si2drDefineIdT retoid;
     timinglib_define *z;
     iterat *y = static_cast<iterat *>(iter);
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if (y->owner != kITER_DEF) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -3604,8 +3601,8 @@ si2drDefineIdT LibAnalysis::__si2drIterNextDefine(si2drDefinesIdT iter,
         *err = kSI2DR_NO_ERROR;
         if (trace_) {
             fprintf(tracefile1_, "\n\t__si2drIterNextDefine(%s, &err);\n\n",
-                    __iter_string(iter).c_str());
-            __inc_tracecount();
+                    __iterString(iter).c_str());
+            __incTracecount();
         }
         return nulloid_;
     }
@@ -3614,11 +3611,11 @@ si2drDefineIdT LibAnalysis::__si2drIterNextDefine(si2drDefinesIdT iter,
     retoid.v1 = reinterpret_cast<void *>(kSI2DR_DEFINE);
     retoid.v2 = static_cast<void *>(z);
     if (trace_) {
-        __outinit_oid(retoid);
+        __outinitOid(retoid);
         fprintf(tracefile1_, "\n\t%s = __si2drIterNextDefine(%s, &err);\n\n",
-                __oid_string(retoid).c_str(), __iter_string(iter).c_str());
-        __trace_check(retoid);
-        __inc_tracecount();
+                __oidString(retoid).c_str(), __iterString(iter).c_str());
+        __traceCheck(retoid);
+        __incTracecount();
     }
     *err = kSI2DR_NO_ERROR;
     return retoid;
@@ -3627,8 +3624,8 @@ si2drVoidT LibAnalysis::__si2drIterQuit(si2drIterIdT iter, si2drErrorT *err) {
     iterat *y = static_cast<iterat *>(iter);
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drIterQuit(%s,&err);\n\n",
-                __iter_string(iter).c_str());
-        __inc_tracecount();
+                __iterString(iter).c_str());
+        __incTracecount();
     }
     switch (y->owner) {
         case kITER_GROUP:
@@ -3669,8 +3666,8 @@ si2drVoidT LibAnalysis::__si2drObjectDelete(si2drObjectIdT object,
     si2drGroupIdT group;
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drObjectDelete(%s,&err);\n\n",
-                __oid_string(object).c_str());
-        __inc_tracecount();
+                __oidString(object).c_str());
+        __incTracecount();
     }
     *err = kSI2DR_NO_ERROR;
     attr.v1 = reinterpret_cast<void *>(kSI2DR_ATTR);
@@ -3699,19 +3696,19 @@ si2drVoidT LibAnalysis::__si2drObjectDelete(si2drObjectIdT object,
             }
             g->group_list = 0;
             /* get rid of the hash tabs */
-            LibHash::timinglib_hash_destroy_hash_table(g->attr_hash);
+            LibHash::timinglibHashDestroyHashTable(g->attr_hash);
             g->attr_hash = 0;
-            LibHash::timinglib_hash_destroy_hash_table(g->define_hash);
+            LibHash::timinglibHashDestroyHashTable(g->define_hash);
             g->define_hash = 0;
-            LibHash::timinglib_hash_destroy_hash_table(g->group_hash);
+            LibHash::timinglibHashDestroyHashTable(g->group_hash);
             g->group_hash = 0;
             lgg = static_cast<timinglib_group *>(NULL);
             if (gp == static_cast<timinglib_group *>(NULL)) {
                 /* unlink me from my parent hash table */
                 for (nl = g->names; nl;) {
                     struct timinglib_name_list *nl2 = nl->next;
-                    LibHash::timinglib_hash_delete_elem(master_group_hash,
-                                                        nl->name);
+                    LibHash::timinglibHashDeleteElem(master_group_hash,
+                                                     nl->name);
                     nl->next = 0;
                     free(nl);
                     nl = nl2;
@@ -3735,8 +3732,7 @@ si2drVoidT LibAnalysis::__si2drObjectDelete(si2drObjectIdT object,
                 /* unlink me from my parent hash table */
                 for (nl = g->names; nl;) {
                     struct timinglib_name_list *nl2 = nl->next;
-                    LibHash::timinglib_hash_delete_elem(gp->group_hash,
-                                                        nl->name);
+                    LibHash::timinglibHashDeleteElem(gp->group_hash, nl->name);
                     nl->next = 0;
                     free(nl);
                     nl = nl2;
@@ -3764,7 +3760,7 @@ si2drVoidT LibAnalysis::__si2drObjectDelete(si2drObjectIdT object,
         case kSI2DR_ATTR:
             a = static_cast<timinglib_attribute *>(object.v2);
             gp = a->owner;
-            LibHash::timinglib_hash_delete_elem(gp->attr_hash, a->name);
+            LibHash::timinglibHashDeleteElem(gp->attr_hash, a->name);
             laa = static_cast<timinglib_attribute *>(0);
             for (aa = gp->attr_list; aa; aa = aa->next) {
                 if (aa == a) {
@@ -3792,7 +3788,7 @@ si2drVoidT LibAnalysis::__si2drObjectDelete(si2drObjectIdT object,
         case kSI2DR_DEFINE:
             d = static_cast<timinglib_define *>(object.v2);
             gp = d->owner;
-            LibHash::timinglib_hash_delete_elem(gp->define_hash, d->name);
+            LibHash::timinglibHashDeleteElem(gp->define_hash, d->name);
             ldd = static_cast<timinglib_define *>(0);
             for (dd = gp->define_list; dd; dd = dd->next) {
                 if (dd == d) {
@@ -3865,12 +3861,12 @@ si2drVoidT LibAnalysis::si2drPIInit(si2drErrorT *err) {
     /* set up the master hash */
     if (trace_) {
         fprintf(tracefile1_, "\n\tsi2drPIInit(&err);\n\n");
-        __inc_tracecount();
+        __incTracecount();
     }
-    master_group_hash = LibHash::timinglib_hash_create_hash_table(53, 1, 0);
-    master_define_hash = LibHash::timinglib_hash_create_hash_table(53, 1, 0);
+    master_group_hash = LibHash::timinglibHashCreateHashTable(53, 1, 0);
+    master_define_hash = LibHash::timinglibHashCreateHashTable(53, 1, 0);
     master_string_table =
-        strtab_->timinglib_strtable_create_strtable(129235, 1024 * 1024, 0);
+        strtab_->timinglibStrtableCreateStrtable(129235, 1024 * 1024, 0);
     /* 1 meg of string storage space, and 129000 or so slot table. */
     si2ErrMsg_ = &LibAnalysis::__si2drDefaultMessageHandler;
     *err = kSI2DR_NO_ERROR;
@@ -3884,7 +3880,7 @@ si2drVoidT LibAnalysis::si2drPIQuit(si2drErrorT *err) {
     si2drGroupIdT group;
     if (trace_) {
         fprintf(tracefile1_, "\n\tsi2drPIQuit(&err);\n\n");
-        __inc_tracecount();
+        __incTracecount();
     }
     /* free up any groups laying around */
     groups = __si2drPIGetGroups(err);
@@ -3897,8 +3893,8 @@ si2drVoidT LibAnalysis::si2drPIQuit(si2drErrorT *err) {
     }
 
     /* destroy the master hash */
-    LibHash::timinglib_hash_destroy_hash_table(master_group_hash);
-    LibHash::timinglib_hash_destroy_hash_table(master_define_hash);
+    LibHash::timinglibHashDestroyHashTable(master_group_hash);
+    LibHash::timinglibHashDestroyHashTable(master_define_hash);
     master_group_hash = 0;
     master_define_hash = 0;
     if (l__iter_group_count_ != 0 || l__iter_name_count_ != 0 ||
@@ -3958,9 +3954,9 @@ si2drVoidT LibAnalysis::si2drPIQuit(si2drErrorT *err) {
                                 &err2);
         }
     }
-    strtab_->timinglib_strtable_destroy_strtable(master_string_table);
+    strtab_->timinglibStrtableDestroyStrtable(master_string_table);
     master_string_table = 0;
-    /*malloc_print_totals();*/
+    /*mallocPrintTotals();*/
     *err = kSI2DR_NO_ERROR;
 }
 si2drObjectTypeT LibAnalysis::__si2drObjectGetObjectType(si2drObjectIdT object,
@@ -3969,8 +3965,8 @@ si2drObjectTypeT LibAnalysis::__si2drObjectGetObjectType(si2drObjectIdT object,
     ret = (si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(object.v1));
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drObjectGetObjectType(%s,&err);\n\n",
-                __oid_string(object).c_str());
-        __inc_tracecount();
+                __oidString(object).c_str());
+        __incTracecount();
     }
     *err = kSI2DR_NO_ERROR;
     return ret;
@@ -3979,8 +3975,8 @@ si2drBooleanT LibAnalysis::__si2drObjectIsNull(si2drObjectIdT object,
                                                si2drErrorT *err) {
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drObjectIsNull(%s,&err);\n\n",
-                __oid_string(object).c_str());
-        __inc_tracecount();
+                __oidString(object).c_str());
+        __incTracecount();
     }
     *err = kSI2DR_NO_ERROR;
     if (object.v2 == static_cast<void *>(NULL))
@@ -3993,8 +3989,8 @@ si2drBooleanT LibAnalysis::__si2drObjectIsSame(si2drObjectIdT object1,
                                                si2drErrorT *err) {
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drObjectIsSame(%s,%s,&err);\n\n",
-                __oid_string(object1).c_str(), __oid_string(object2).c_str());
-        __inc_tracecount();
+                __oidString(object1).c_str(), __oidString(object2).c_str());
+        __incTracecount();
     }
     *err = kSI2DR_NO_ERROR;
     if (object1.v1 == object2.v1 && object1.v2 == object2.v2)
@@ -4006,8 +4002,8 @@ si2drBooleanT LibAnalysis::__si2drObjectIsUsable(si2drObjectIdT object,
                                                  si2drErrorT *err) {
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drObjectIsUsable(%s,&err);\n\n",
-                __oid_string(object).c_str());
-        __inc_tracecount();
+                __oidString(object).c_str());
+        __incTracecount();
     }
     *err = kSI2DR_NO_ERROR;
     if (object.v2 == static_cast<void *>(NULL)) return SI2DR_FALSE;
@@ -4026,8 +4022,8 @@ si2drVoidT LibAnalysis::si2drObjectSetFileName(si2drObjectIdT object,
     timinglib_define *d;
     if (trace_) {
         fprintf(tracefile1_, "\n\tsi2drObjectSetFileName(%s,\"%s\",&err);\n\n",
-                __oid_string(object).c_str(), filename);
-        __inc_tracecount();
+                __oidString(object).c_str(), filename);
+        __incTracecount();
     }
     *err = kSI2DR_NO_ERROR;
     switch ((si2drObjectTypeT)((reinterpret_cast<std::intptr_t>(object.v1)))) {
@@ -4056,8 +4052,8 @@ si2drVoidT LibAnalysis::si2drObjectSetLineNo(si2drObjectIdT object,
     timinglib_define *d;
     if (trace_) {
         fprintf(tracefile1_, "\n\tsi2drObjectSetLineNo(%s,%d,&err);\n\n",
-                __oid_string(object).c_str(), static_cast<int>(lineno));
-        __inc_tracecount();
+                __oidString(object).c_str(), static_cast<int>(lineno));
+        __incTracecount();
     }
     *err = kSI2DR_NO_ERROR;
     switch ((si2drObjectTypeT)((reinterpret_cast<std::intptr_t>(object.v1)))) {
@@ -4085,8 +4081,8 @@ si2drInt32T LibAnalysis::__si2drObjectGetLineNo(si2drObjectIdT object,
     timinglib_define *d;
     if (trace_) {
         fprintf(tracefile1_, "\n\tsi2drObjectSetLineNo(%s,&err);\n\n",
-                __oid_string(object).c_str());
-        __inc_tracecount();
+                __oidString(object).c_str());
+        __incTracecount();
     }
     *err = kSI2DR_NO_ERROR;
     switch ((si2drObjectTypeT)((reinterpret_cast<std::intptr_t>(object.v1)))) {
@@ -4111,8 +4107,8 @@ si2drStringT LibAnalysis::__si2drObjectGetFileName(si2drObjectIdT object,
     timinglib_define *d;
     if (trace_) {
         fprintf(tracefile1_, "\n\tsi2drObjectSetLineNo(%s,&err);\n\n",
-                __oid_string(object).c_str());
-        __inc_tracecount();
+                __oidString(object).c_str());
+        __incTracecount();
     }
     *err = kSI2DR_NO_ERROR;
     switch ((si2drObjectTypeT)((reinterpret_cast<std::intptr_t>(object.v1)))) {
@@ -4145,7 +4141,7 @@ si2drVoidT LibAnalysis::__si2drReadLibertyFile(char *filename,
     if( trace_ )
     {
             fprintf(tracefile1_,"\n\t__si2drReadLibertyFile(\"%s\",&err);\n\n",
-   filename); __inc_tracecount(); in_trace = 1; trace_ = 0;
+   filename); __incTracecount(); in_trace = 1; trace_ = 0;
     }
     si2drPISetNocheckMode(err);
     if( !strcmp( filename+strlen(filename)-4, ".bz2") )
@@ -4197,7 +4193,7 @@ si2drVoidT LibAnalysis::__si2drReadLibertyFile(char *filename,
             perror("timinglib_parse");
             return;
     }
-    timinglib_parser_parse();
+    timinglibParserParse();
     if( strcmp( filename+strlen(filename)-3, ".gz")
             && strcmp( filename+strlen(filename)-2, ".Z")
             && strcmp( filename+strlen(filename)-4, ".bz2")
@@ -4213,7 +4209,7 @@ si2drVoidT LibAnalysis::__si2drReadLibertyFile(char *filename,
             *err = kSI2DR_SYNTAX_ERROR;
     */
 }
-int LibAnalysis::__lib__name_needs_to_be_quoted(char *name) {
+int LibAnalysis::__libNameNeedsToBeQuoted(char *name) {
     char *s = name;
     if (*s >= '0' && *s <= '9') return 1;
     while (*s) {
@@ -4225,14 +4221,14 @@ int LibAnalysis::__lib__name_needs_to_be_quoted(char *name) {
     }
     return 0;
 }
-char *LibAnalysis::__expr_string(si2drExprT *e) {
+char *LibAnalysis::__exprString(si2drExprT *e) {
     if (strtab_ == nullptr || sd_ == nullptr) return const_cast<char *>("");
     timinglib_strtable *master_string_table = sd_->master_string_table;
     char *buf1 = NULL;
     char tbuf[10000];
     char *lefts = 0, *rights = 0;
-    if (e->left) lefts = __expr_string(e->left);
-    if (e->right) rights = __expr_string(e->right);
+    if (e->left) lefts = __exprString(e->left);
+    if (e->right) rights = __exprString(e->right);
     switch (e->type) {
         case kSI2DR_EXPR_VAL:
             switch (e->valuetype) {
@@ -4242,7 +4238,7 @@ char *LibAnalysis::__expr_string(si2drExprT *e) {
                                     buf1 = (char*)malloc(strlen(tbuf)+1);
                                     strcpy(buf1,tbuf);
                                     NEW: */
-                    buf1 = strtab_->timinglib_strtable_enter_string(
+                    buf1 = strtab_->timinglibStrtableEnterString(
                         master_string_table, tbuf);
                     break;
                 case kSI2DR_FLOAT64:
@@ -4251,7 +4247,7 @@ char *LibAnalysis::__expr_string(si2drExprT *e) {
                                     buf1 = (char*)malloc(strlen(tbuf)+1);
                                     strcpy(buf1,tbuf);
                                     NEW: */
-                    buf1 = strtab_->timinglib_strtable_enter_string(
+                    buf1 = strtab_->timinglibStrtableEnterString(
                         master_string_table, tbuf);
                     break;
                 case kSI2DR_INT32:
@@ -4260,7 +4256,7 @@ char *LibAnalysis::__expr_string(si2drExprT *e) {
                                     buf1 = (char*)malloc(strlen(tbuf)+1);
                                     strcpy(buf1,tbuf);
                                     NEW: */
-                    buf1 = strtab_->timinglib_strtable_enter_string(
+                    buf1 = strtab_->timinglibStrtableEnterString(
                         master_string_table, tbuf);
                     break;
                 default:
@@ -4276,8 +4272,8 @@ char *LibAnalysis::__expr_string(si2drExprT *e) {
                     buf1 = (char*)malloc(strlen(tbuf)+1);
                     strcpy(buf1,tbuf);
                     NEW: */
-            buf1 = strtab_->timinglib_strtable_enter_string(master_string_table,
-                                                            tbuf);
+            buf1 = strtab_->timinglibStrtableEnterString(master_string_table,
+                                                         tbuf);
             /* Don't do mallocs anymore on strings... OLD:
                     free(lefts);
                     if( rights )
@@ -4293,8 +4289,8 @@ char *LibAnalysis::__expr_string(si2drExprT *e) {
                     buf1 = (char*)malloc(strlen(tbuf)+1);
                     strcpy(buf1,tbuf);
                     NEW: */
-            buf1 = strtab_->timinglib_strtable_enter_string(master_string_table,
-                                                            tbuf);
+            buf1 = strtab_->timinglibStrtableEnterString(master_string_table,
+                                                         tbuf);
             /* OLD:
                     free(lefts);
                     if( rights )
@@ -4307,8 +4303,8 @@ char *LibAnalysis::__expr_string(si2drExprT *e) {
                     buf1 = (char*)malloc(strlen(tbuf)+1);
                     strcpy(buf1,tbuf);
                     NEW: */
-            buf1 = strtab_->timinglib_strtable_enter_string(master_string_table,
-                                                            tbuf);
+            buf1 = strtab_->timinglibStrtableEnterString(master_string_table,
+                                                         tbuf);
             /* OLD:
                     free(lefts);
                     free(rights);
@@ -4320,8 +4316,8 @@ char *LibAnalysis::__expr_string(si2drExprT *e) {
                     buf1 = (char*)malloc(strlen(tbuf)+1);
                     strcpy(buf1,tbuf);
                     NEW: */
-            buf1 = strtab_->timinglib_strtable_enter_string(master_string_table,
-                                                            tbuf);
+            buf1 = strtab_->timinglibStrtableEnterString(master_string_table,
+                                                         tbuf);
             /* OLD:
                     free(lefts);
                     free(rights);
@@ -4333,8 +4329,8 @@ char *LibAnalysis::__expr_string(si2drExprT *e) {
                     buf1 = (char*)malloc(strlen(tbuf)+1);
                     strcpy(buf1,tbuf);
                     NEW: */
-            buf1 = strtab_->timinglib_strtable_enter_string(master_string_table,
-                                                            tbuf);
+            buf1 = strtab_->timinglibStrtableEnterString(master_string_table,
+                                                         tbuf);
             /* OLD:
                     free(lefts);
                     */
@@ -4348,8 +4344,7 @@ char *LibAnalysis::__expr_string(si2drExprT *e) {
     }
     return buf1;
 }
-void LibAnalysis::__lib__write_group(FILE *of, si2drGroupIdT group,
-                                     char *indent) {
+void LibAnalysis::__libWriteGroup(FILE *of, si2drGroupIdT group, char *indent) {
     char indent2[200];
     si2drErrorT err;
     si2drStringT str;
@@ -4371,7 +4366,7 @@ void LibAnalysis::__lib__write_group(FILE *of, si2drGroupIdT group,
     for (str = __si2drIterNextName(names, &err); str && str[0];
          str = __si2drIterNextName(names, &err)) {
         if (!first) fprintf(of, ",");
-        if (__lib__name_needs_to_be_quoted(str))
+        if (__libNameNeedsToBeQuoted(str))
             fprintf(of, "\"%s\"", str);
         else
             fprintf(of, "%s", str);
@@ -4424,11 +4419,11 @@ void LibAnalysis::__lib__write_group(FILE *of, si2drGroupIdT group,
             q = gnam;
             while ((p = strchr(q, '|'))) {
                 strncpy(strTmp, q, p - q);
-                fprintf(of, "%sdefine_group(%s,%s);\n", indent2, nam, strTmp);
+                fprintf(of, "%sdefineGroup(%s,%s);\n", indent2, nam, strTmp);
                 memset(strTmp, 0, sizeof(strTmp));
                 q = p + 1;
             }
-            fprintf(of, "%sdefine_group(%s,%s);\n", indent2, nam, q);
+            fprintf(of, "%sdefineGroup(%s,%s);\n", indent2, nam, q);
         }
     }
     __si2drIterQuit(defs, &err);
@@ -4539,7 +4534,7 @@ void LibAnalysis::__lib__write_group(FILE *of, si2drGroupIdT group,
                                     attr, &err)));
                         break;
                     case kSI2DR_EXPR: {
-                        char *es = __expr_string(
+                        char *es = __exprString(
                             __si2drSimpleAttrGetExprValue(attr, &err));
                         if (is_var)
                             fprintf(of, " = %s;\n", es);
@@ -4622,7 +4617,7 @@ void LibAnalysis::__lib__write_group(FILE *of, si2drGroupIdT group,
     for (g1 = __si2drIterNextGroup(groups, &err);
          !__si2drObjectIsNull(g1, &err);
          g1 = __si2drIterNextGroup(groups, &err)) {
-        __lib__write_group(of, g1, indent2);
+        __libWriteGroup(of, g1, indent2);
     }
     __si2drIterQuit(groups, &err);
     /* print the attrs */
@@ -4767,15 +4762,15 @@ si2drVoidT LibAnalysis::__si2drWriteLibertyFile(FILE *of, si2drGroupIdT group,
     if (trace_) {
         fprintf(tracefile1_,
                 "\n\t__si2drWriteLibertyFile(\"%lx\",%s,&err);\n\n",
-                reinterpret_cast<uint64_t>(of), __oid_string(group).c_str());
-        __inc_tracecount();
+                reinterpret_cast<uint64_t>(of), __oidString(group).c_str());
+        __incTracecount();
         in_trace = 1;
         trace_ = 0;
     }
     si2drPISetNocheckMode(err);
     /* call the top level routine */
     __si2drPISetDebugMode(err);
-    __lib__write_group(of, group, const_cast<char *>(""));
+    __libWriteGroup(of, group, const_cast<char *>(""));
     __si2drPIUnSetDebugMode(err);
     if (in_trace) trace_ = 1;
 }
@@ -4785,12 +4780,12 @@ si2drVoidT LibAnalysis::__si2drCheckLibertyLibrary(si2drGroupIdT group,
     in_trace = 0;
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drCheckLibertyLibrary(%s,&err);\n\n",
-                __oid_string(group).c_str());
-        __inc_tracecount();
+                __oidString(group).c_str());
+        __incTracecount();
         in_trace = 1;
         trace_ = 0;
     }
-    *err = __syntax_check(group);
+    *err = __syntaxCheck(group);
     if (in_trace) trace_ = 1;
 }
 si2drStringT LibAnalysis::__si2drGroupGetGroupType(si2drGroupIdT group,
@@ -4800,14 +4795,14 @@ si2drStringT LibAnalysis::__si2drGroupGetGroupType(si2drGroupIdT group,
     timinglib_group *g = static_cast<timinglib_group *>(group.v2);
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drGroupGetGroupType(%s,&err);\n\n",
-                __oid_string(group).c_str());
-        __inc_tracecount();
+                __oidString(group).c_str());
+        __incTracecount();
     }
     if (!g) {
         *err = kSI2DR_UNUSABLE_OID;
         return 0;
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(group.v1)) !=
             kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
@@ -4836,10 +4831,10 @@ si2drVoidT LibAnalysis::si2drDefineGetInfo(si2drDefineIdT def,
         fprintf(tracefile1_,
                 "\n\tsi2drDefineGetInfo(%s,&name_string, &allowed_groups, "
                 "&valtype, &err);\n\n",
-                __oid_string(def).c_str());
-        __inc_tracecount();
+                __oidString(def).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(def.v1)) !=
             kSI2DR_DEFINE) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
@@ -4880,10 +4875,10 @@ si2drStringT LibAnalysis::__si2drDefineGetName(si2drDefineIdT def,
     timinglib_define *d = static_cast<timinglib_define *>(def.v2);
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drDefineGetName(%s,&err);\n\n",
-                __oid_string(def).c_str());
-        __inc_tracecount();
+                __oidString(def).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(def.v1)) !=
             kSI2DR_DEFINE) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
@@ -4905,10 +4900,10 @@ si2drStringT LibAnalysis::__si2drDefineGetAllowedGroupName(si2drDefineIdT def,
     if (trace_) {
         fprintf(tracefile1_,
                 "\n\t__si2drDefineGetAllowedGroupName(%s,&err);\n\n",
-                __oid_string(def).c_str());
-        __inc_tracecount();
+                __oidString(def).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(def.v1)) !=
             kSI2DR_DEFINE) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
@@ -4930,10 +4925,10 @@ si2drValueTypeT LibAnalysis::__si2drDefineGetValueType(si2drDefineIdT def,
     si2drValueTypeT valtype;
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drDefineGetValueType(%s,&err);\n\n",
-                __oid_string(def).c_str());
-        __inc_tracecount();
+                __oidString(def).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(def.v1)) !=
             kSI2DR_DEFINE) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
@@ -4975,8 +4970,8 @@ si2drObjectIdT LibAnalysis::__si2drObjectGetOwner(si2drObjectIdT object,
     timinglib_define *d;
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drObjectGetOwner(%s,&err);\n\n",
-                __oid_string(object).c_str());
-        __inc_tracecount();
+                __oidString(object).c_str());
+        __incTracecount();
     }
     *err = kSI2DR_NO_ERROR;
     switch (ot) {
@@ -5006,14 +5001,14 @@ si2drStringT LibAnalysis::__si2drAttrGetName(si2drAttrIdT attr,
     timinglib_attribute *x = static_cast<timinglib_attribute *>(attr.v2);
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drAttrGetName(%s,&err);\n\n",
-                __oid_string(attr).c_str());
-        __inc_tracecount();
+                __oidString(attr).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_ &&
+    if (!timinglib_nocheck_mode_ &&
         (si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(attr.v1)) !=
             kSI2DR_ATTR) {
         *err = kSI2DR_INVALID_OBJECTTYPE;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
                                 si2drStringT("__si2drAttrGetName:"), &err2);
@@ -5023,7 +5018,7 @@ si2drStringT LibAnalysis::__si2drAttrGetName(si2drAttrIdT attr,
     *err = kSI2DR_NO_ERROR;
     return x->name;
 }
-void LibAnalysis::__create_floating_define_for_cell_area(si2drStringT string) {
+void LibAnalysis::__createFloatingDefineForCellArea(si2drStringT string) {
     if (sd_ == nullptr) return;
     timinglib_hash_table *master_define_hash = sd_->master_define_hash;
     si2drDefineIdT retoid;
@@ -5035,7 +5030,7 @@ void LibAnalysis::__create_floating_define_for_cell_area(si2drStringT string) {
     d->name = string;
     d->group_type = const_cast<char *>("cell");
     d->valtype = kTIMINGLIB__VAL_DOUBLE;
-    LibHash::timinglib_hash_enter_oid(master_define_hash, string, retoid);
+    LibHash::timinglibHashEnterOid(master_define_hash, string, retoid);
 }
 si2drVoidT LibAnalysis::__si2drGroupMoveBefore(si2drGroupIdT groupToMove,
                                                si2drGroupIdT targetGroup,
@@ -5051,9 +5046,9 @@ si2drVoidT LibAnalysis::__si2drGroupMoveBefore(si2drGroupIdT groupToMove,
     // in_trace = 0;
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drGroupMoveBefore(\"%s\",%s,&err);\n\n",
-                __oid_string(groupToMove).c_str(),
-                __oid_string(targetGroup).c_str());
-        __inc_tracecount();
+                __oidString(groupToMove).c_str(),
+                __oidString(targetGroup).c_str());
+        __incTracecount();
         // in_trace = 1;
         trace_ = 0;
     }
@@ -5068,11 +5063,11 @@ si2drVoidT LibAnalysis::__si2drGroupMoveBefore(si2drGroupIdT groupToMove,
         *err = kSI2DR_NO_ERROR;
         return;
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(
                 groupToMove.v1)) != kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -5083,7 +5078,7 @@ si2drVoidT LibAnalysis::__si2drGroupMoveBefore(si2drGroupIdT groupToMove,
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(
                 targetGroup.v1)) != kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -5093,7 +5088,7 @@ si2drVoidT LibAnalysis::__si2drGroupMoveBefore(si2drGroupIdT groupToMove,
         }
         if (master_group_hash == 0) {
             *err = kSI2DR_INTERNAL_SYSTEM_ERROR;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INTERNAL_SYSTEM_ERROR,
@@ -5103,7 +5098,7 @@ si2drVoidT LibAnalysis::__si2drGroupMoveBefore(si2drGroupIdT groupToMove,
         }
         if (gm->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
                                     si2drStringT("__si2drGroupMoveBefore:"),
@@ -5113,7 +5108,7 @@ si2drVoidT LibAnalysis::__si2drGroupMoveBefore(si2drGroupIdT groupToMove,
         }
         if (gt->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
                                     si2drStringT("__si2drGroupMoveBefore:"),
@@ -5123,7 +5118,7 @@ si2drVoidT LibAnalysis::__si2drGroupMoveBefore(si2drGroupIdT groupToMove,
         }
         if (gm->owner != gt->owner) {
             *err = kSI2DR_REFERENCE_ERROR;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_REFERENCE_ERROR,
                                     si2drStringT("__si2drGroupMoveBefore:"),
@@ -5147,7 +5142,7 @@ si2drVoidT LibAnalysis::__si2drGroupMoveBefore(si2drGroupIdT groupToMove,
     }
     if (gb == gm || gtb == gt || (!gtb && !gb)) {
         *err = kSI2DR_INTERNAL_SYSTEM_ERROR;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR,
                                 kSI2DR_INTERNAL_SYSTEM_ERROR,
@@ -5189,18 +5184,18 @@ si2drVoidT LibAnalysis::__si2drGroupMoveAfter(si2drGroupIdT groupToMove,
     // in_trace = 0;
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drGroupMoveAfter(\"%s\",%s,&err);\n\n",
-                __oid_string(groupToMove).c_str(),
-                __oid_string(targetGroup).c_str());
-        __inc_tracecount();
+                __oidString(groupToMove).c_str(),
+                __oidString(targetGroup).c_str());
+        __incTracecount();
         // in_trace = 1;
         trace_ = 0;
     }
     /* make sure the groups belong to the same owner */
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(
                 groupToMove.v1)) != kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -5211,7 +5206,7 @@ si2drVoidT LibAnalysis::__si2drGroupMoveAfter(si2drGroupIdT groupToMove,
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(
                 targetGroup.v1)) != kSI2DR_GROUP) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -5221,7 +5216,7 @@ si2drVoidT LibAnalysis::__si2drGroupMoveAfter(si2drGroupIdT groupToMove,
         }
         if (master_group_hash == 0) {
             *err = kSI2DR_INTERNAL_SYSTEM_ERROR;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INTERNAL_SYSTEM_ERROR,
@@ -5231,7 +5226,7 @@ si2drVoidT LibAnalysis::__si2drGroupMoveAfter(si2drGroupIdT groupToMove,
         }
         if (gm->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
                                     si2drStringT("__si2drGroupMoveAfter:"),
@@ -5241,7 +5236,7 @@ si2drVoidT LibAnalysis::__si2drGroupMoveAfter(si2drGroupIdT groupToMove,
         }
         if (gt->attr_hash == static_cast<timinglib_hash_table *>(NULL)) {
             *err = kSI2DR_UNUSABLE_OID;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_UNUSABLE_OID,
                                     si2drStringT("__si2drGroupMoveAfter:"),
@@ -5251,7 +5246,7 @@ si2drVoidT LibAnalysis::__si2drGroupMoveAfter(si2drGroupIdT groupToMove,
         }
         if (gm->owner != gt->owner) {
             *err = kSI2DR_REFERENCE_ERROR;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_REFERENCE_ERROR,
                                     si2drStringT("__si2drGroupMoveAfter:"),
@@ -5269,7 +5264,7 @@ si2drVoidT LibAnalysis::__si2drGroupMoveAfter(si2drGroupIdT groupToMove,
     }
     if (gb == gm) {
         *err = kSI2DR_INTERNAL_SYSTEM_ERROR;
-        if (timinglib___debug_mode_) {
+        if (timinglib_debug_mode_) {
             si2drErrorT err2;
             (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR,
                                 kSI2DR_INTERNAL_SYSTEM_ERROR,
@@ -5297,14 +5292,14 @@ si2drExprT *LibAnalysis::__si2drSimpleAttrGetExprValue(si2drAttrIdT attr,
     timinglib_attribute *x = static_cast<timinglib_attribute *>(attr.v2);
     if (trace_) {
         fprintf(tracefile1_, "\n\t__si2drSimpleAttrGetExprValue(%s,&err);\n\n",
-                __oid_string(attr).c_str());
-        __inc_tracecount();
+                __oidString(attr).c_str());
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(attr.v1)) !=
             kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -5314,7 +5309,7 @@ si2drExprT *LibAnalysis::__si2drSimpleAttrGetExprValue(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__SIMPLE) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -5324,7 +5319,7 @@ si2drExprT *LibAnalysis::__si2drSimpleAttrGetExprValue(si2drAttrIdT attr,
         }
         if (x->value == static_cast<timinglib_attribute_value *>(NULL)) {
             *err = kSI2DR_INVALID_VALUE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_VALUE,
@@ -5334,7 +5329,7 @@ si2drExprT *LibAnalysis::__si2drSimpleAttrGetExprValue(si2drAttrIdT attr,
         }
         if (x->value->type != kTIMINGLIB__VAL_EXPR) {
             *err = kSI2DR_INVALID_VALUE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_VALUE,
@@ -5353,14 +5348,14 @@ si2drVoidT LibAnalysis::__si2drSimpleAttrSetExprValue(si2drAttrIdT attr,
     if (trace_) {
         fprintf(tracefile1_,
                 "\n\t__si2drSimpleAttrSetExprValue(%s,%llx,&err);\n\n",
-                __oid_string(attr).c_str(), reinterpret_cast<uint64_t>(expr));
-        __inc_tracecount();
+                __oidString(attr).c_str(), reinterpret_cast<uint64_t>(expr));
+        __incTracecount();
     }
-    if (!timinglib___nocheck_mode_) {
+    if (!timinglib_nocheck_mode_) {
         if ((si2drObjectTypeT)(reinterpret_cast<std::intptr_t>(attr.v1)) !=
             kSI2DR_ATTR) {
             *err = kSI2DR_INVALID_OBJECTTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_OBJECTTYPE,
@@ -5370,7 +5365,7 @@ si2drVoidT LibAnalysis::__si2drSimpleAttrSetExprValue(si2drAttrIdT attr,
         }
         if (x->type != kTIMINGLIB__SIMPLE) {
             *err = kSI2DR_INVALID_ATTRTYPE;
-            if (timinglib___debug_mode_) {
+            if (timinglib_debug_mode_) {
                 si2drErrorT err2;
                 (this->*si2ErrMsg_)(
                     kSI2DR_SEVERITY_ERR, kSI2DR_INVALID_ATTRTYPE,
@@ -5481,7 +5476,7 @@ si2drStringT LibAnalysis::si2drExprToString(si2drExprT *expr,
         *err = kSI2DR_INVALID_OBJECTTYPE;
         return si2drStringT("");
     }
-    return __expr_string(expr);
+    return __exprString(expr);
 }
 si2drExprTypeT LibAnalysis::__si2drExprGetType(si2drExprT *expr,
                                                si2drErrorT *err) {
@@ -5587,7 +5582,7 @@ si2drExprT *LibAnalysis::__si2drOpExprGetRightExpr(si2drExprT *expr,
     return expr->right;
 }
 /* HELPER FUNCTIONS */
-LONG_DOUBLE LibAnalysis::__timinglib_get_element(
+LONG_DOUBLE LibAnalysis::__timinglibGetElement(
     struct timinglib_value_data *vd, ...) { /* returns NaN if bounds exceeded */
     va_list ap;
     int indices[7], i;
@@ -5610,8 +5605,7 @@ LONG_DOUBLE LibAnalysis::__timinglib_get_element(
     }
     return vd->values[pos];
 }
-void LibAnalysis::__timinglib_destroy_value_data(
-    struct timinglib_value_data *vd) {
+void LibAnalysis::__timinglibDestroyValueData(struct timinglib_value_data *vd) {
     int i;
     if (vd->values) free(vd->values);
     vd->values = 0;
@@ -5632,9 +5626,9 @@ void LibAnalysis::__timinglib_destroy_value_data(
     vd->dimensions = 0;
     free(vd);
 }
-void LibAnalysis::__timinglib___get_index_info(si2drAttrIdT index_x,
-                                               struct timinglib_value_data *vd,
-                                               int dimno) {
+void LibAnalysis::__timinglibGetIndexInfo(si2drAttrIdT index_x,
+                                          struct timinglib_value_data *vd,
+                                          int dimno) {
     si2drErrorT err;
     si2drValuesIdT vals;
     si2drValueTypeT vtype;
@@ -5722,8 +5716,8 @@ void LibAnalysis::__timinglib___get_index_info(si2drAttrIdT index_x,
         }
     }
 }
-si2drGroupIdT LibAnalysis::__get_containing_group(si2drGroupIdT group,
-                                                  si2drStringT type) {
+si2drGroupIdT LibAnalysis::__getContainingGroup(si2drGroupIdT group,
+                                                si2drStringT type) {
     si2drErrorT err;
     const struct libGroupMap *lgm;
     si2drGroupIdT gup = group;
@@ -5741,7 +5735,7 @@ si2drGroupIdT LibAnalysis::__get_containing_group(si2drGroupIdT group,
     }
     return __si2drPIGetNullId(&err);
 }
-struct timinglib_value_data *LibAnalysis::__timinglib_get_values_data(
+struct timinglib_value_data *LibAnalysis::__timinglibGetValuesData(
     si2drGroupIdT table_group) {
     si2drErrorT err;
     si2drNamesIdT names;
@@ -5778,7 +5772,7 @@ struct timinglib_value_data *LibAnalysis::__timinglib_get_values_data(
     int numels;
     si2drStringT refname;
     /* find the template, fill in any missing index vals! */
-    libr = __get_containing_group(table_group, si2drStringT("library"));
+    libr = __getContainingGroup(table_group, si2drStringT("library"));
     names = __si2drGroupGetNames(table_group, &err);
     refname = __si2drIterNextName(names, &err);
     __si2drIterQuit(names, &err);
@@ -5947,20 +5941,19 @@ struct timinglib_value_data *LibAnalysis::__timinglib_get_values_data(
             calloc(sizeof(LONG_DOUBLE *), vd->dimensions));
         /* now, find and set the sizes of each dim */
         if (!__si2drObjectIsNull(index_1, &err)) {
-            __timinglib___get_index_info(index_1, vd, 0);
+            __timinglibGetIndexInfo(index_1, vd, 0);
             if (!__si2drObjectIsNull(index_2, &err)) {
-                __timinglib___get_index_info(index_2, vd, 1);
+                __timinglibGetIndexInfo(index_2, vd, 1);
                 if (!__si2drObjectIsNull(index_3, &err)) {
-                    __timinglib___get_index_info(index_3, vd, 2);
+                    __timinglibGetIndexInfo(index_3, vd, 2);
                     if (!__si2drObjectIsNull(index_4, &err)) {
-                        __timinglib___get_index_info(index_4, vd, 3);
+                        __timinglibGetIndexInfo(index_4, vd, 3);
                         if (!__si2drObjectIsNull(index_5, &err)) {
-                            __timinglib___get_index_info(index_5, vd, 4);
+                            __timinglibGetIndexInfo(index_5, vd, 4);
                             if (!__si2drObjectIsNull(index_6, &err)) {
-                                __timinglib___get_index_info(index_6, vd, 5);
+                                __timinglibGetIndexInfo(index_6, vd, 5);
                                 if (!__si2drObjectIsNull(index_7, &err)) {
-                                    __timinglib___get_index_info(index_7, vd,
-                                                                 6);
+                                    __timinglibGetIndexInfo(index_7, vd, 6);
                                 }
                             }
                         }
@@ -6053,7 +6046,7 @@ struct timinglib_value_data *LibAnalysis::__timinglib_get_values_data(
     }
     return vd;
 }
-int LibAnalysis::__isa_formula(char *str) {
+int LibAnalysis::__isaFormula(char *str) {
     /* a crude approximation at a formula-- the real best solution here would be
    to
        have a general parser for arithmetic expressions; constant arithmetic
@@ -6074,7 +6067,7 @@ int LibAnalysis::__isa_formula(char *str) {
     else
         return 1;
 }
-int LibAnalysis::__num_get_precision(char *numstr) {
+int LibAnalysis::__numGetPrecision(char *numstr) {
     int digs = 0;
     char *p = numstr;
     while (p && *p) { /* space out to first number */
@@ -6095,7 +6088,7 @@ int LibAnalysis::__num_get_precision(char *numstr) {
     }
     return digs;
 }
-void LibAnalysis::__add_varlist(char *name) {
+void LibAnalysis::__addVarlist(char *name) {
     int found = 0;
     var_list *p;
     for (p = master_var_list_; p; p = p->next) {
@@ -6112,7 +6105,7 @@ void LibAnalysis::__add_varlist(char *name) {
         master_var_list_ = p;
     }
 }
-void LibAnalysis::__destroy_varlist(void) {
+void LibAnalysis::__destroyVarlist(void) {
     var_list *p, *p1;
     for (p = master_var_list_; p; p = p1) {
         if (p->name) free(p->name);
@@ -6122,7 +6115,7 @@ void LibAnalysis::__destroy_varlist(void) {
     }
     master_var_list_ = 0;
 }
-void LibAnalysis::__print_var_list(void) {
+void LibAnalysis::__printVarList(void) {
     var_list *p;
     si2drErrorT err;
     (this->*si2ErrMsg_)(kSI2DR_SEVERITY_NOTE, kSI2DR_NO_ERROR,
@@ -6134,7 +6127,7 @@ void LibAnalysis::__print_var_list(void) {
     (this->*si2ErrMsg_)(kSI2DR_SEVERITY_NOTE, kSI2DR_NO_ERROR,
                         si2drStringT("----"), &err);
 }
-si2drErrorT LibAnalysis::__syntax_check(si2drGroupIdT lib) {
+si2drErrorT LibAnalysis::__syntaxCheck(si2drGroupIdT lib) {
     // libsynt_technology (&libsynt_techs)[20] = sd_->libsynt_techs;
     // int libsynt_tech_num = sd_->libsynt_tech_count;
     extern libsynt_technology libsynt_techs[];
@@ -6415,13 +6408,13 @@ si2drErrorT LibAnalysis::__syntax_check(si2drGroupIdT lib) {
     snprintf(EB, sizeof(EB), "Using the %s syntax tables...",
              libsynt_techs[i].name);
     (this->*si2ErrMsg_)(kSI2DR_SEVERITY_NOTE, kSI2DR_NO_ERROR, EB, &err);
-    __check_group_correspondence(lib, libsynt_techs[i].lib);
+    __checkGroupCorrespondence(lib, libsynt_techs[i].lib);
     if (errcount_ > 0)
         return kSI2DR_SYNTAX_ERROR;
     else
         return kSI2DR_NO_ERROR;
 }
-void LibAnalysis::__enter_define_cell_area(si2drAttrIdT a) {
+void LibAnalysis::__enterDefineCellArea(si2drAttrIdT a) {
     si2drErrorT err;
     si2drValuesIdT vals;
     si2drValueTypeT vtype;
@@ -6471,9 +6464,9 @@ void LibAnalysis::__enter_define_cell_area(si2drAttrIdT a) {
         errcount_++;
         return;
     }
-    __create_floating_define_for_cell_area(string);
+    __createFloatingDefineForCellArea(string);
 }
-void LibAnalysis::__attribute_specific_checks(si2drAttrIdT a) {
+void LibAnalysis::__attributeSpecificChecks(si2drAttrIdT a) {
     si2drErrorT err;
     si2drStringT name = __si2drAttrGetName(a, &err);
     const struct libAttrMap *x = lookup_attr_name(name, strlen(name));
@@ -6968,7 +6961,7 @@ void LibAnalysis::__attribute_specific_checks(si2drAttrIdT a) {
         case kTIMINGLIB_ATTRENUM_library_features:
             break;
         case kTIMINGLIB_ATTRENUM_define_cell_area:
-            __enter_define_cell_area(a);
+            __enterDefineCellArea(a);
             break;
         case kTIMINGLIB_ATTRENUM_capacitive_load_unit:
             break;
@@ -7384,7 +7377,7 @@ char *LibAnalysis::__mystrtod(char *str, char **end) {
     *end = x;
     return x;
 }
-int LibAnalysis::__count_floats_in_string(char *s) {
+int LibAnalysis::__countFloatsInString(char *s) {
     char *p, *t;
     int i = 0;
     p = s;
@@ -7394,7 +7387,7 @@ int LibAnalysis::__count_floats_in_string(char *s) {
     }
     return i;
 }
-int LibAnalysis::__count_strings_in_list(si2drAttrIdT attr) {
+int LibAnalysis::__countStringsInList(si2drAttrIdT attr) {
     si2drErrorT err;
     si2drValuesIdT vals = __si2drComplexAttrGetValues(attr, &err);
     int i = 0;
@@ -7416,7 +7409,7 @@ int LibAnalysis::__count_strings_in_list(si2drAttrIdT attr) {
     __si2drIterQuit(vals, &err);
     return i;
 }
-void LibAnalysis::__check_lu_table_template_arraysize(si2drGroupIdT group) {
+void LibAnalysis::__checkLuTableTemplateArraysize(si2drGroupIdT group) {
     si2drErrorT err;
     si2drNamesIdT names;
     si2drStringT str;
@@ -7433,7 +7426,7 @@ void LibAnalysis::__check_lu_table_template_arraysize(si2drGroupIdT group) {
             vs =
                 __si2drGroupFindAttrByName(group, si2drStringT("values"), &err);
             if (!__si2drObjectIsNull(vs, &err)) {
-                int numstrs = __count_strings_in_list(vs);
+                int numstrs = __countStringsInList(vs);
                 int numfloats;
                 si2drValuesIdT vals;
                 si2drValueTypeT type;
@@ -7482,7 +7475,7 @@ void LibAnalysis::__check_lu_table_template_arraysize(si2drGroupIdT group) {
                                         kSI2DR_SEMANTIC_ERROR, EB, &err);
                     errcount_++;
                 } else {
-                    numfloats = __count_floats_in_string(string);
+                    numfloats = __countFloatsInString(string);
                     if (numfloats != 1 || numstrs != 1) {
                         char EB[8000];
                         snprintf(EB, sizeof(EB),
@@ -7520,7 +7513,7 @@ void LibAnalysis::__check_lu_table_template_arraysize(si2drGroupIdT group) {
             return;
         }
         /* find an lu_table_template with this name */
-        rg = __get_containing_group(group, si2drStringT("library"));
+        rg = __getContainingGroup(group, si2drStringT("library"));
         rg2 = __si2drGroupFindGroupByName(
             rg, strx, si2drStringT("lu_table_template"), &err);
         if (!__si2drObjectIsNull(rg2, &err)) {
@@ -7548,7 +7541,7 @@ void LibAnalysis::__check_lu_table_template_arraysize(si2drGroupIdT group) {
                 !__si2drObjectIsNull(ind3, &err)) {
                 if (!__si2drObjectIsNull(vs, &err)) {
                     int tpl1nums, tpl2nums, tpl3nums;
-                    int numstrs = __count_strings_in_list(vs);
+                    int numstrs = __countStringsInList(vs);
                     si2drValuesIdT vals;
                     si2drValueTypeT type;
                     si2drInt32T intgr;
@@ -7561,21 +7554,21 @@ void LibAnalysis::__check_lu_table_template_arraysize(si2drGroupIdT group) {
                                                 &string, &boolean, &expr, &err);
                     __si2drIterQuit(vals, &err);
                     if (type == kSI2DR_STRING) {
-                        tpl1nums = __count_floats_in_string(string);
+                        tpl1nums = __countFloatsInString(string);
                         vals = __si2drComplexAttrGetValues(ind2, &err);
                         __si2drIterNextComplexValue(vals, &type, &intgr,
                                                     &float64, &string, &boolean,
                                                     &expr, &err);
                         __si2drIterQuit(vals, &err);
                         if (type == kSI2DR_STRING) {
-                            tpl2nums = __count_floats_in_string(string);
+                            tpl2nums = __countFloatsInString(string);
                             vals = __si2drComplexAttrGetValues(ind3, &err);
                             __si2drIterNextComplexValue(vals, &type, &intgr,
                                                         &float64, &string,
                                                         &boolean, &expr, &err);
                             __si2drIterQuit(vals, &err);
                             if (type == kSI2DR_STRING) {
-                                tpl3nums = __count_floats_in_string(string);
+                                tpl3nums = __countFloatsInString(string);
                                 if (numstrs == tpl1nums * tpl2nums) {
                                     /* now, count the nums in each entry, and
                                      * make sure they equal tpl2nums */
@@ -7587,8 +7580,8 @@ void LibAnalysis::__check_lu_table_template_arraysize(si2drGroupIdT group) {
                                             vals, &type, &intgr, &float64,
                                             &string, &boolean, &expr, &err);
                                         if (type == kSI2DR_STRING) {
-                                            int numc = __count_floats_in_string(
-                                                string);
+                                            int numc =
+                                                __countFloatsInString(string);
                                             if (numc != tpl3nums) {
                                                 char EB[8000];
                                                 snprintf(
@@ -7808,7 +7801,7 @@ void LibAnalysis::__check_lu_table_template_arraysize(si2drGroupIdT group) {
                        __si2drObjectIsNull(ind3, &err)) {
                 if (!__si2drObjectIsNull(vs, &err)) {
                     int tpl1nums, tpl2nums;
-                    int numstrs = __count_strings_in_list(vs);
+                    int numstrs = __countStringsInList(vs);
                     si2drValuesIdT vals;
                     si2drValueTypeT type;
                     si2drInt32T intgr;
@@ -7821,14 +7814,14 @@ void LibAnalysis::__check_lu_table_template_arraysize(si2drGroupIdT group) {
                                                 &string, &boolean, &expr, &err);
                     __si2drIterQuit(vals, &err);
                     if (type == kSI2DR_STRING) {
-                        tpl1nums = __count_floats_in_string(string);
+                        tpl1nums = __countFloatsInString(string);
                         vals = __si2drComplexAttrGetValues(ind2, &err);
                         __si2drIterNextComplexValue(vals, &type, &intgr,
                                                     &float64, &string, &boolean,
                                                     &expr, &err);
                         __si2drIterQuit(vals, &err);
                         if (type == kSI2DR_STRING) {
-                            tpl2nums = __count_floats_in_string(string);
+                            tpl2nums = __countFloatsInString(string);
                             if (numstrs == tpl1nums) {
                                 /* now, count the nums in each entry, and make
                                  * sure they equal tpl2nums */
@@ -7840,7 +7833,7 @@ void LibAnalysis::__check_lu_table_template_arraysize(si2drGroupIdT group) {
                                         &boolean, &expr, &err);
                                     if (type == kSI2DR_STRING) {
                                         int numc =
-                                            __count_floats_in_string(string);
+                                            __countFloatsInString(string);
                                         if (numc != tpl2nums) {
                                             char EB[8000];
                                             snprintf(EB, sizeof(EB),
@@ -8026,7 +8019,7 @@ void LibAnalysis::__check_lu_table_template_arraysize(si2drGroupIdT group) {
                     __si2drObjectIsNull(ind2, &err)) {
                     if (!__si2drObjectIsNull(vs, &err)) {
                         int tpl1nums;
-                        int numstrs = __count_strings_in_list(vs);
+                        int numstrs = __countStringsInList(vs);
                         si2drValuesIdT vals;
                         si2drValueTypeT type;
                         si2drInt32T intgr;
@@ -8042,7 +8035,7 @@ void LibAnalysis::__check_lu_table_template_arraysize(si2drGroupIdT group) {
                             __si2drIterQuit(vals, &err);
                             if (type == kSI2DR_STRING) {
                                 int i;
-                                tpl1nums = __count_floats_in_string(string);
+                                tpl1nums = __countFloatsInString(string);
                                 /* now, count the nums in each entry, and make
                                  * sure they equal tpl2nums */
                                 vals = __si2drComplexAttrGetValues(vs, &err);
@@ -8052,7 +8045,7 @@ void LibAnalysis::__check_lu_table_template_arraysize(si2drGroupIdT group) {
                                         &boolean, &expr, &err);
                                     if (type == kSI2DR_STRING) {
                                         int numc =
-                                            __count_floats_in_string(string);
+                                            __countFloatsInString(string);
                                         if (numc != tpl1nums) {
                                             char EB[8000];
                                             snprintf(EB, sizeof(EB),
@@ -8243,7 +8236,7 @@ void LibAnalysis::__check_lu_table_template_arraysize(si2drGroupIdT group) {
         }
     }
 }
-void LibAnalysis::__check_power_lut_template_arraysize(si2drGroupIdT group) {
+void LibAnalysis::__checkPowerLutTemplateArraysize(si2drGroupIdT group) {
     si2drErrorT err;
     si2drNamesIdT names;
     si2drStringT str;
@@ -8260,7 +8253,7 @@ void LibAnalysis::__check_power_lut_template_arraysize(si2drGroupIdT group) {
             vs =
                 __si2drGroupFindAttrByName(group, si2drStringT("values"), &err);
             if (!__si2drObjectIsNull(vs, &err)) {
-                int numstrs = __count_strings_in_list(vs);
+                int numstrs = __countStringsInList(vs);
                 int numfloats;
                 si2drValuesIdT vals;
                 si2drValueTypeT type;
@@ -8309,7 +8302,7 @@ void LibAnalysis::__check_power_lut_template_arraysize(si2drGroupIdT group) {
                                         kSI2DR_SEMANTIC_ERROR, EB, &err);
                     errcount_++;
                 } else {
-                    numfloats = __count_floats_in_string(string);
+                    numfloats = __countFloatsInString(string);
                     if (numfloats != 1 || numstrs != 1) {
                         char EB[8000];
                         snprintf(EB, sizeof(EB),
@@ -8347,7 +8340,7 @@ void LibAnalysis::__check_power_lut_template_arraysize(si2drGroupIdT group) {
             return;
         }
         /* find an lu_table_template with this name */
-        rg = __get_containing_group(group, si2drStringT("library"));
+        rg = __getContainingGroup(group, si2drStringT("library"));
         rg2 = __si2drGroupFindGroupByName(
             rg, strx, si2drStringT("power_lut_template"), &err);
         if (!__si2drObjectIsNull(rg2, &err)) {
@@ -8375,7 +8368,7 @@ void LibAnalysis::__check_power_lut_template_arraysize(si2drGroupIdT group) {
                 !__si2drObjectIsNull(ind3, &err)) {
                 if (!__si2drObjectIsNull(vs, &err)) {
                     int tpl1nums, tpl2nums, tpl3nums;
-                    int numstrs = __count_strings_in_list(vs);
+                    int numstrs = __countStringsInList(vs);
                     si2drValuesIdT vals;
                     si2drValueTypeT type;
                     si2drInt32T intgr;
@@ -8388,21 +8381,21 @@ void LibAnalysis::__check_power_lut_template_arraysize(si2drGroupIdT group) {
                                                 &string, &boolean, &expr, &err);
                     __si2drIterQuit(vals, &err);
                     if (type == kSI2DR_STRING) {
-                        tpl1nums = __count_floats_in_string(string);
+                        tpl1nums = __countFloatsInString(string);
                         vals = __si2drComplexAttrGetValues(ind2, &err);
                         __si2drIterNextComplexValue(vals, &type, &intgr,
                                                     &float64, &string, &boolean,
                                                     &expr, &err);
                         __si2drIterQuit(vals, &err);
                         if (type == kSI2DR_STRING) {
-                            tpl2nums = __count_floats_in_string(string);
+                            tpl2nums = __countFloatsInString(string);
                             vals = __si2drComplexAttrGetValues(ind3, &err);
                             __si2drIterNextComplexValue(vals, &type, &intgr,
                                                         &float64, &string,
                                                         &boolean, &expr, &err);
                             __si2drIterQuit(vals, &err);
                             if (type == kSI2DR_STRING) {
-                                tpl3nums = __count_floats_in_string(string);
+                                tpl3nums = __countFloatsInString(string);
                                 if (numstrs == tpl1nums * tpl2nums) {
                                     /* now, count the nums in each entry, and
                                      * make sure they equal tpl2nums */
@@ -8414,8 +8407,8 @@ void LibAnalysis::__check_power_lut_template_arraysize(si2drGroupIdT group) {
                                             vals, &type, &intgr, &float64,
                                             &string, &boolean, &expr, &err);
                                         if (type == kSI2DR_STRING) {
-                                            int numc = __count_floats_in_string(
-                                                string);
+                                            int numc =
+                                                __countFloatsInString(string);
                                             if (numc != tpl3nums) {
                                                 char EB[8000];
                                                 snprintf(
@@ -8633,7 +8626,7 @@ void LibAnalysis::__check_power_lut_template_arraysize(si2drGroupIdT group) {
                        __si2drObjectIsNull(ind3, &err)) {
                 if (!__si2drObjectIsNull(vs, &err)) {
                     int tpl1nums, tpl2nums;
-                    int numstrs = __count_strings_in_list(vs);
+                    int numstrs = __countStringsInList(vs);
                     si2drValuesIdT vals;
                     si2drValueTypeT type;
                     si2drInt32T intgr;
@@ -8646,14 +8639,14 @@ void LibAnalysis::__check_power_lut_template_arraysize(si2drGroupIdT group) {
                                                 &string, &boolean, &expr, &err);
                     __si2drIterQuit(vals, &err);
                     if (type == kSI2DR_STRING) {
-                        tpl1nums = __count_floats_in_string(string);
+                        tpl1nums = __countFloatsInString(string);
                         vals = __si2drComplexAttrGetValues(ind2, &err);
                         __si2drIterNextComplexValue(vals, &type, &intgr,
                                                     &float64, &string, &boolean,
                                                     &expr, &err);
                         __si2drIterQuit(vals, &err);
                         if (type == kSI2DR_STRING) {
-                            tpl2nums = __count_floats_in_string(string);
+                            tpl2nums = __countFloatsInString(string);
                             if (numstrs == tpl1nums) {
                                 /* now, count the nums in each entry, and make
                                  * sure they equal tpl2nums */
@@ -8665,7 +8658,7 @@ void LibAnalysis::__check_power_lut_template_arraysize(si2drGroupIdT group) {
                                         &boolean, &expr, &err);
                                     if (type == kSI2DR_STRING) {
                                         int numc =
-                                            __count_floats_in_string(string);
+                                            __countFloatsInString(string);
                                         if (numc != tpl2nums) {
                                             char EB[8000];
                                             snprintf(EB, sizeof(EB),
@@ -8849,7 +8842,7 @@ void LibAnalysis::__check_power_lut_template_arraysize(si2drGroupIdT group) {
                     __si2drObjectIsNull(ind2, &err)) {
                     if (!__si2drObjectIsNull(vs, &err)) {
                         int tpl1nums;
-                        int numstrs = __count_strings_in_list(vs);
+                        int numstrs = __countStringsInList(vs);
                         si2drValuesIdT vals;
                         si2drValueTypeT type;
                         si2drInt32T intgr;
@@ -8865,7 +8858,7 @@ void LibAnalysis::__check_power_lut_template_arraysize(si2drGroupIdT group) {
                             __si2drIterQuit(vals, &err);
                             if (type == kSI2DR_STRING) {
                                 int i;
-                                tpl1nums = __count_floats_in_string(string);
+                                tpl1nums = __countFloatsInString(string);
                                 /* now, count the nums in each entry, and make
                                  * sure they equal tpl2nums */
                                 vals = __si2drComplexAttrGetValues(vs, &err);
@@ -8875,7 +8868,7 @@ void LibAnalysis::__check_power_lut_template_arraysize(si2drGroupIdT group) {
                                         &boolean, &expr, &err);
                                     if (type == kSI2DR_STRING) {
                                         int numc =
-                                            __count_floats_in_string(string);
+                                            __countFloatsInString(string);
                                         if (numc != tpl1nums) {
                                             char EB[8000];
                                             snprintf(EB, sizeof(EB),
@@ -9066,7 +9059,7 @@ void LibAnalysis::__check_power_lut_template_arraysize(si2drGroupIdT group) {
         }
     }
 }
-void LibAnalysis::__check_cell_n_prop(si2drGroupIdT group) {
+void LibAnalysis::__checkCellNProp(si2drGroupIdT group) {
     si2drErrorT err;
     si2drGroupsIdT gs = __si2drGroupGetGroups(group, &err);
     si2drGroupIdT g2;
@@ -9156,7 +9149,7 @@ void LibAnalysis::__check_cell_n_prop(si2drGroupIdT group) {
         errcount_++;
     }
 }
-void LibAnalysis::__check_clear_n_preset(si2drGroupIdT group) {
+void LibAnalysis::__checkClearNPreset(si2drGroupIdT group) {
     si2drErrorT err;
     si2drAttrIdT clear, preset, var1, var2;
     clear = __si2drGroupFindAttrByName(group, si2drStringT("clear"), &err);
@@ -9183,7 +9176,7 @@ void LibAnalysis::__check_clear_n_preset(si2drGroupIdT group) {
         }
     }
 }
-void LibAnalysis::__check_members(si2drGroupIdT group) {
+void LibAnalysis::__checkMembers(si2drGroupIdT group) {
     /* is members specified? Is it first? */
     si2drErrorT err;
     si2drAttrIdT mem =
@@ -9255,7 +9248,7 @@ void LibAnalysis::__check_members(si2drGroupIdT group) {
         }
     }
 }
-void LibAnalysis::__check_interface_timing(si2drGroupIdT group) {
+void LibAnalysis::__checkInterfaceTiming(si2drGroupIdT group) {
     si2drErrorT err;
     si2drAttrIdT ift;
     si2drGroupsIdT groups;
@@ -9343,7 +9336,7 @@ void LibAnalysis::__check_interface_timing(si2drGroupIdT group) {
         }
     }
 }
-si2drStringT LibAnalysis::__get_first_group_name(si2drGroupIdT group) {
+si2drStringT LibAnalysis::__getFirstGroupName(si2drGroupIdT group) {
     si2drErrorT err;
     si2drStringT str;
     si2drNamesIdT names;
@@ -9352,7 +9345,7 @@ si2drStringT LibAnalysis::__get_first_group_name(si2drGroupIdT group) {
     __si2drIterQuit(names, &err);
     return str;
 }
-void LibAnalysis::__check_bus_pin_directions(
+void LibAnalysis::__checkBusPinDirections(
     si2drGroupIdT group) { /* group is bus or bundle */
     si2drErrorT err;
     si2drAttrIdT bdir, pdir;
@@ -9413,7 +9406,7 @@ void LibAnalysis::__check_bus_pin_directions(
                                  __si2drObjectGetFileName(pdir, &err),
                                  static_cast<int>(
                                      __si2drObjectGetLineNo(pdir, &err)),
-                                 __get_first_group_name(group),
+                                 __getFirstGroupName(group),
                                  static_cast<int>(
                                      __si2drObjectGetLineNo(bdir, &err)),
                                  buf);
@@ -9422,7 +9415,7 @@ void LibAnalysis::__check_bus_pin_directions(
                         snprintf(EB, sizeof(EB),
                                  "                  the pin '%s' has the "
                                  "conflicting direction attribute '%s'.",
-                                 __get_first_group_name(g2), dirstr);
+                                 __getFirstGroupName(g2), dirstr);
                         (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR,
                                             kSI2DR_SEMANTIC_ERROR, EB, &err);
                         errcount_++;
@@ -9433,7 +9426,7 @@ void LibAnalysis::__check_bus_pin_directions(
         __si2drIterQuit(gs, &err);
     }
 }
-void LibAnalysis::__check_driver_types(
+void LibAnalysis::__checkDriverTypes(
     si2drGroupIdT
         group) { /* group should be a pin, perhaps even bus or bundle  */
     int pullup = 0, pulldown = 0, bushold = 0, opensource = 0, opendrain = 0;
@@ -9573,7 +9566,7 @@ void LibAnalysis::__check_driver_types(
         }
     }
 }
-int LibAnalysis::__get_bus_size(si2drGroupIdT group, char *busname) {
+int LibAnalysis::__getBusSize(si2drGroupIdT group, char *busname) {
     si2drErrorT err;
     si2drGroupIdT bus =
         __si2drGroupFindGroupByName(group, busname, si2drStringT("bus"), &err);
@@ -9610,7 +9603,7 @@ int LibAnalysis::__get_bus_size(si2drGroupIdT group, char *busname) {
             typeb = __si2drGroupFindGroupByName(group, str,
                                                 si2drStringT("type"), &err);
             if (__si2drObjectIsNull(typeb, &err)) {
-                libr = __get_containing_group(group, si2drStringT("library"));
+                libr = __getContainingGroup(group, si2drStringT("library"));
                 if (!__si2drObjectIsNull(libr, &err)) {
                     typeb = __si2drGroupFindGroupByName(
                         libr, str, si2drStringT("type"), &err);
@@ -9719,7 +9712,7 @@ int LibAnalysis::__get_bus_size(si2drGroupIdT group, char *busname) {
     }
     return -1;
 }
-int LibAnalysis::__get_bun_size(si2drGroupIdT group, char *bun) {
+int LibAnalysis::__getBunSize(si2drGroupIdT group, char *bun) {
     si2drErrorT err;
     si2drGroupIdT bus =
         __si2drGroupFindGroupByName(group, bun, si2drStringT("bundle"), &err);
@@ -9727,12 +9720,12 @@ int LibAnalysis::__get_bun_size(si2drGroupIdT group, char *bun) {
         si2drAttrIdT bunmem =
             __si2drGroupFindAttrByName(bus, si2drStringT("members"), &err);
         if (!__si2drObjectIsNull(bunmem, &err)) {
-            return __count_strings_in_list(bunmem);
+            return __countStringsInList(bunmem);
         }
     }
     return -1;
 }
-void LibAnalysis::__gen_var_list(char *formula) {
+void LibAnalysis::__genVarList(char *formula) {
     /* a very crude boolean algebra formula parser */
     char *p, *q;
     char varname[100];
@@ -9750,13 +9743,13 @@ void LibAnalysis::__gen_var_list(char *formula) {
             *q++ = *p++;
         *q = 0;
         if (varname[0]) {
-            __add_varlist(varname);
+            __addVarlist(varname);
         }
         q = varname;
     }
 }
-si2drGroupIdT LibAnalysis::__find_bu_by_function(si2drGroupIdT cellequiv,
-                                                 char *name) {
+si2drGroupIdT LibAnalysis::__findBuByFunction(si2drGroupIdT cellequiv,
+                                              char *name) {
     si2drErrorT err;
     si2drGroupsIdT gs = __si2drGroupGetGroups(cellequiv, &err);
     si2drGroupIdT g2;
@@ -9810,8 +9803,8 @@ si2drGroupIdT LibAnalysis::__find_bu_by_function(si2drGroupIdT cellequiv,
     __si2drIterQuit(gs, &err);
     return __si2drPIGetNullId(&err);
 }
-si2drGroupIdT LibAnalysis::__find_pin_in_cellequiv(si2drGroupIdT cellequiv,
-                                                   char *name) {
+si2drGroupIdT LibAnalysis::__findPinInCellequiv(si2drGroupIdT cellequiv,
+                                                char *name) {
     si2drErrorT err;
     si2drGroupsIdT gs = __si2drGroupGetGroups(cellequiv, &err);
     si2drGroupIdT g2;
@@ -9843,14 +9836,13 @@ si2drGroupIdT LibAnalysis::__find_pin_in_cellequiv(si2drGroupIdT cellequiv,
     __si2drIterQuit(gs, &err);
     return __si2drPIGetNullId(&err);
 }
-void LibAnalysis::__check_next_state_formula(si2drGroupIdT cell, char *formula,
-                                             int ffbankwidth,
-                                             si2drAttrIdT attr) {
+void LibAnalysis::__checkNextStateFormula(si2drGroupIdT cell, char *formula,
+                                          int ffbankwidth, si2drAttrIdT attr) {
     si2drErrorT err;
     var_list *v;
     si2drGroupIdT bus;
-    __destroy_varlist();
-    __gen_var_list(formula);
+    __destroyVarlist();
+    __genVarList(formula);
     for (v = master_var_list_; v; v = v->next) {
         /* assume: every variable is either a bus or bundle;
                a variable may match the function of a bus or bundle;
@@ -9865,7 +9857,7 @@ void LibAnalysis::__check_next_state_formula(si2drGroupIdT cell, char *formula,
                 /* si2drAttrIdT bunmem = __si2drGroupFindAttrByName(bus,
                  * si2drStringT("members"), &err); */
                 si2drInt32T wid;
-                wid = __get_bun_size(cell, v->name);
+                wid = __getBunSize(cell, v->name);
                 if (wid == -1) {
                     char EB[8000];
                     snprintf(
@@ -9902,7 +9894,7 @@ void LibAnalysis::__check_next_state_formula(si2drGroupIdT cell, char *formula,
             }
         }
         if (!__si2drObjectIsNull(bus, &err)) {
-            si2drInt32T wid = __get_bus_size(cell, v->name);
+            si2drInt32T wid = __getBusSize(cell, v->name);
             if (wid != ffbankwidth) {
                 char EB[8000];
                 snprintf(EB, sizeof(EB),
@@ -9924,9 +9916,9 @@ void LibAnalysis::__check_next_state_formula(si2drGroupIdT cell, char *formula,
             si2drStringT str;
             si2drInt32T wid;
             si2drGroupIdT pinn;
-            bus = __find_bu_by_function(cell, v->name);
+            bus = __findBuByFunction(cell, v->name);
             if (__si2drObjectIsNull(bus, &err)) {
-                pinn = __find_pin_in_cellequiv(cell, v->name);
+                pinn = __findPinInCellequiv(cell, v->name);
                 if (__si2drObjectIsNull(pinn, &err)) {
                     char EB[8000];
                     snprintf(
@@ -9951,10 +9943,10 @@ void LibAnalysis::__check_next_state_formula(si2drGroupIdT cell, char *formula,
                 gt = __si2drGroupGetID(bus, &err);
                 switch (gt) {
                     case kTIMINGLIB_GROUPENUM_bus:
-                        wid = __get_bus_size(cell, str);
+                        wid = __getBusSize(cell, str);
                         break;
                     case kTIMINGLIB_GROUPENUM_bundle:
-                        wid = __get_bun_size(cell, str);
+                        wid = __getBunSize(cell, str);
                         break;
                     default:
                         break;
@@ -9979,9 +9971,9 @@ void LibAnalysis::__check_next_state_formula(si2drGroupIdT cell, char *formula,
             }
         }
     }
-    __destroy_varlist();
+    __destroyVarlist();
 }
-void LibAnalysis::__check_ff_bank_widths(
+void LibAnalysis::__checkFfBankWidths(
     si2drGroupIdT group) { /* called for ff_banks */
     si2drErrorT err;
     si2drStringT str;
@@ -10052,20 +10044,20 @@ void LibAnalysis::__check_ff_bank_widths(
         }
         /* go find this referenced bus */
         snprintf(busnam, sizeof(busnam), "%s", str);
-        cell = __get_containing_group(group, si2drStringT("test_cell"));
+        cell = __getContainingGroup(group, si2drStringT("test_cell"));
         if (__si2drObjectIsNull(cell, &err))
-            cell = __get_containing_group(group, si2drStringT("model"));
+            cell = __getContainingGroup(group, si2drStringT("model"));
         if (__si2drObjectIsNull(cell, &err))
-            cell = __get_containing_group(group, si2drStringT("scaled_cell"));
+            cell = __getContainingGroup(group, si2drStringT("scaled_cell"));
         if (__si2drObjectIsNull(cell, &err))
-            cell = __get_containing_group(group, si2drStringT("cell"));
+            cell = __getContainingGroup(group, si2drStringT("cell"));
         if (!__si2drObjectIsNull(cell, &err)) {
-            __check_next_state_formula(cell, busnam, ffbankwidth, attr);
+            __checkNextStateFormula(cell, busnam, ffbankwidth, attr);
         }
     }
     return;
 }
-void LibAnalysis::__check_bus_type(si2drGroupIdT bus) {
+void LibAnalysis::__checkBusType(si2drGroupIdT bus) {
     si2drErrorT err;
     si2drStringT str;
     si2drGroupIdT cell;
@@ -10097,17 +10089,17 @@ void LibAnalysis::__check_bus_type(si2drGroupIdT bus) {
             return;
         }
         /* find the type in the cell or lib */
-        cell = __get_containing_group(bus, si2drStringT("test_cell"));
+        cell = __getContainingGroup(bus, si2drStringT("test_cell"));
         if (__si2drObjectIsNull(cell, &err))
-            cell = __get_containing_group(bus, si2drStringT("model"));
+            cell = __getContainingGroup(bus, si2drStringT("model"));
         if (__si2drObjectIsNull(cell, &err))
-            cell = __get_containing_group(bus, si2drStringT("scaled_cell"));
+            cell = __getContainingGroup(bus, si2drStringT("scaled_cell"));
         if (__si2drObjectIsNull(cell, &err))
-            cell = __get_containing_group(bus, si2drStringT("cell"));
+            cell = __getContainingGroup(bus, si2drStringT("cell"));
         typeb =
             __si2drGroupFindGroupByName(cell, str, si2drStringT("type"), &err);
         if (__si2drObjectIsNull(typeb, &err)) {
-            libr = __get_containing_group(bus, si2drStringT("library"));
+            libr = __getContainingGroup(bus, si2drStringT("library"));
             if (!__si2drObjectIsNull(libr, &err)) {
                 typeb = __si2drGroupFindGroupByName(libr, str,
                                                     si2drStringT("type"), &err);
@@ -10132,15 +10124,15 @@ void LibAnalysis::__check_bus_type(si2drGroupIdT bus) {
                  "%s:%d, The 'bus_type' attribute is missing in bus '%s'.",
                  __si2drObjectGetFileName(bus, &err),
                  static_cast<int>(__si2drObjectGetLineNo(bus, &err)),
-                 __get_first_group_name(bus));
+                 __getFirstGroupName(bus));
         (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_SEMANTIC_ERROR, EB,
                             &err);
         errcount_++;
         return;
     }
 }
-void LibAnalysis::__find_all_refs_to_template(si2drGroupIdT group, char *name,
-                                              int num) {
+void LibAnalysis::__findAllRefsToTemplate(si2drGroupIdT group, char *name,
+                                          int num) {
     si2drErrorT err;
     si2drGroupsIdT gs = __si2drGroupGetGroups(group, &err);
     si2drGroupIdT g2;
@@ -10172,11 +10164,11 @@ void LibAnalysis::__find_all_refs_to_template(si2drGroupIdT group, char *name,
             }
         }
         __si2drIterQuit(names, &err);
-        __find_all_refs_to_template(g2, name, num); /* recursively descend */
+        __findAllRefsToTemplate(g2, name, num); /* recursively descend */
     }
     __si2drIterQuit(gs, &err);
 }
-void LibAnalysis::__check_index_x(si2drStringT indnam, si2drGroupIdT group) {
+void LibAnalysis::__checkIndexX(si2drStringT indnam, si2drGroupIdT group) {
     si2drErrorT err;
     si2drGroupIdT lib;
     si2drAttrIdT index_x = __si2drGroupFindAttrByName(group, indnam, &err);
@@ -10245,7 +10237,7 @@ void LibAnalysis::__check_index_x(si2drStringT indnam, si2drGroupIdT group) {
                     "'%g'. The template '%s' is therefore invalid.",
                     __si2drObjectGetFileName(index_x, &err),
                     static_cast<int>(__si2drObjectGetLineNo(index_x, &err)),
-                    indnam, x, __get_first_group_name(group));
+                    indnam, x, __getFirstGroupName(group));
                 (this->*si2ErrMsg_)(kSI2DR_SEVERITY_ERR, kSI2DR_SEMANTIC_ERROR,
                                     EB, &err);
                 errcount_++;
@@ -10258,19 +10250,19 @@ void LibAnalysis::__check_index_x(si2drStringT indnam, si2drGroupIdT group) {
             char buf[1000];
             snprintf(
                 buf, sizeof(buf), "%s",
-                __get_first_group_name(
+                __getFirstGroupName(
                     group)); /* do this because si2dr strings are volatile.  */
-            lib = __get_containing_group(group, si2drStringT("library"));
-            __find_all_refs_to_template(lib, buf, 0);
+            lib = __getContainingGroup(group, si2drStringT("library"));
+            __findAllRefsToTemplate(lib, buf, 0);
         }
     }
 }
-void LibAnalysis::__check_lut_template(si2drGroupIdT group) {
-    __check_index_x(si2drStringT("index_1"), group);
-    __check_index_x(si2drStringT("index_2"), group);
+void LibAnalysis::__checkLutTemplate(si2drGroupIdT group) {
+    __checkIndexX(si2drStringT("index_1"), group);
+    __checkIndexX(si2drStringT("index_2"), group);
 }
-void LibAnalysis::__get_index_info(si2drAttrIdT index_x,
-                                   struct timinglib_value_data *vd, int dimno) {
+void LibAnalysis::__getIndexInfo(si2drAttrIdT index_x,
+                                 struct timinglib_value_data *vd, int dimno) {
     si2drErrorT err;
     si2drValuesIdT vals;
     si2drValueTypeT vtype;
@@ -10383,7 +10375,7 @@ void LibAnalysis::__get_index_info(si2drAttrIdT index_x,
         }
     }
 }
-struct timinglib_value_data *LibAnalysis::__get_vector_data(
+struct timinglib_value_data *LibAnalysis::__getVectorData(
     si2drGroupIdT vector) {
     si2drErrorT err;
     si2drGroupIdT dad = __si2drObjectGetOwner(vector, &err);
@@ -10444,19 +10436,19 @@ struct timinglib_value_data *LibAnalysis::__get_vector_data(
         calloc(sizeof(LONG_DOUBLE *), vd->dimensions));
     /* now, find and set the sizes of each dim */
     if (!__si2drObjectIsNull(index_1, &err)) {
-        __get_index_info(index_1, vd, 0);
+        __getIndexInfo(index_1, vd, 0);
         if (!__si2drObjectIsNull(index_2, &err)) {
-            __get_index_info(index_2, vd, 1);
+            __getIndexInfo(index_2, vd, 1);
             if (!__si2drObjectIsNull(index_3, &err)) {
-                __get_index_info(index_3, vd, 2);
+                __getIndexInfo(index_3, vd, 2);
                 if (!__si2drObjectIsNull(index_4, &err)) {
-                    __get_index_info(index_4, vd, 3);
+                    __getIndexInfo(index_4, vd, 3);
                     if (!__si2drObjectIsNull(index_5, &err)) {
-                        __get_index_info(index_5, vd, 4);
+                        __getIndexInfo(index_5, vd, 4);
                         if (!__si2drObjectIsNull(index_6, &err)) {
-                            __get_index_info(index_6, vd, 5);
+                            __getIndexInfo(index_6, vd, 5);
                             if (!__si2drObjectIsNull(index_7, &err)) {
-                                __get_index_info(index_7, vd, 6);
+                                __getIndexInfo(index_7, vd, 6);
                             }
                         }
                     }
@@ -10497,7 +10489,7 @@ struct timinglib_value_data *LibAnalysis::__get_vector_data(
         int first = 1;
         /* should be a string with a list of comma/space sep'd numbers */
         if (__si2drAttrGetAttrType(valuesd, &err) != kSI2DR_COMPLEX) {
-            __timinglib_destroy_value_data(vd);
+            __timinglibDestroyValueData(vd);
             return 0; /* this will already be reported */
         }
         vals = __si2drComplexAttrGetValues(valuesd, &err);
@@ -10607,7 +10599,7 @@ struct timinglib_value_data *LibAnalysis::__get_vector_data(
                                         kSI2DR_SEMANTIC_ERROR, EB, &err);
                 }
                 if (0) {  // liwei
-                          // __num_get_precision(p) < 4) {
+                          // __numGetPrecision(p) < 4) {
 #ifdef NO_LONG_DOUBLE
                     char EB[8000];
                     snprintf(
@@ -10668,9 +10660,9 @@ struct timinglib_value_data *LibAnalysis::__get_vector_data(
     }
     return vd;
 }
-void LibAnalysis::__check_vector(si2drGroupIdT group) {
+void LibAnalysis::__checkVector(si2drGroupIdT group) {
     si2drErrorT err;
-    struct timinglib_value_data *vd = __get_vector_data(group);
+    struct timinglib_value_data *vd = __getVectorData(group);
     si2drGroupIdT dad = __si2drObjectGetOwner(group, &err);
     group_enum gt = __si2drGroupGetID(dad, &err);
     int i;
@@ -10716,9 +10708,9 @@ void LibAnalysis::__check_vector(si2drGroupIdT group) {
             errcount_++;
         }
     }
-    __timinglib_destroy_value_data(vd);
+    __timinglibDestroyValueData(vd);
 }
-void LibAnalysis::__check_output_current_template(si2drGroupIdT group) {
+void LibAnalysis::__checkOutputCurrentTemplate(si2drGroupIdT group) {
     si2drErrorT err;
     si2drAttrIdT var_1 =
         __si2drGroupFindAttrByName(group, si2drStringT("variable_1"), &err);
@@ -10732,7 +10724,7 @@ void LibAnalysis::__check_output_current_template(si2drGroupIdT group) {
        NEED TO CHECK THE NOMINAL VOLTAGES */
     if (!operating_conds_checked_) {
         si2drGroupIdT libr =
-            __get_containing_group(group, si2drStringT("library"));
+            __getContainingGroup(group, si2drStringT("library"));
         si2drAttrIdT defopcond = __si2drGroupFindAttrByName(
             libr, si2drStringT("default_operating_conditions"), &err);
         si2drAttrIdT nomvolt =
@@ -10772,7 +10764,7 @@ void LibAnalysis::__check_output_current_template(si2drGroupIdT group) {
                                     EB, sizeof(EB),
                                     "%s:%d, The library nom_voltage (%g) "
                                     "doesn't match the voltage (%g) in the "
-                                    "operating_conditions(%s).",
+                                    "operatingConditions(%s).",
                                     __si2drObjectGetFileName(nomvolt, &err),
                                     static_cast<int>(
                                         __si2drObjectGetLineNo(nomvolt, &err)),
@@ -10900,7 +10892,7 @@ void LibAnalysis::__check_output_current_template(si2drGroupIdT group) {
         return;
     }
 }
-void LibAnalysis::__check_retention_cell(si2drGroupIdT group) {
+void LibAnalysis::__checkRetentionCell(si2drGroupIdT group) {
     si2drErrorT err;
     si2drAttrIdT retention, power_gating;
     power_gating = __si2drGroupFindAttrByName(
@@ -10923,7 +10915,7 @@ void LibAnalysis::__check_retention_cell(si2drGroupIdT group) {
         errcount_++;
     }
 }
-void LibAnalysis::__check_retention_pin(si2drGroupIdT group) {
+void LibAnalysis::__checkRetentionPin(si2drGroupIdT group) {
     si2drErrorT err;
     si2drAttrIdT retention, power_gating, mtl, dir;
     power_gating = __si2drGroupFindAttrByName(
@@ -11007,7 +10999,7 @@ void LibAnalysis::__check_retention_pin(si2drGroupIdT group) {
         }
     }
 }
-void LibAnalysis::__check_level_shift(si2drGroupIdT group) {
+void LibAnalysis::__checkLevelShift(si2drGroupIdT group) {
     si2drErrorT err;
     si2drAttrIdT ils, lst, ivr, ovr;
     ils = __si2drGroupFindAttrByName(group, si2drStringT("is_level_shifter"),
@@ -11070,7 +11062,7 @@ void LibAnalysis::__check_level_shift(si2drGroupIdT group) {
     }
     /* not all the rules are checked here (yet) */
 }
-void LibAnalysis::__check_ref_times(si2drGroupIdT group) {
+void LibAnalysis::__checkRefTimes(si2drGroupIdT group) {
     si2drErrorT err;
     si2drGroupsIdT subs = __si2drGroupGetGroups(group, &err);
     si2drGroupIdT subg, rg, rg2;
@@ -11111,7 +11103,7 @@ void LibAnalysis::__check_ref_times(si2drGroupIdT group) {
                     /* find the template, and decide whether index_1 or index_2
                    is the transition/slew  val */
                     transvar = 0;
-                    rg = __get_containing_group(group, si2drStringT("library"));
+                    rg = __getContainingGroup(group, si2drStringT("library"));
                     rg2 = __si2drGroupFindGroupByName(
                         rg, nam, si2drStringT("output_current_template"), &err);
                     if (!__si2drObjectIsNull(rg2, &err)) {
@@ -11290,7 +11282,7 @@ void LibAnalysis::__check_ref_times(si2drGroupIdT group) {
         refvals_.reported[i] = 1;
     }
 }
-void LibAnalysis::__check_ccs_density(si2drGroupIdT group) {
+void LibAnalysis::__checkCcsDensity(si2drGroupIdT group) {
     si2drErrorT err;
     si2drGroupIdT rg4;
     struct vector_list *vl_oc;
@@ -11317,7 +11309,7 @@ void LibAnalysis::__check_ccs_density(si2drGroupIdT group) {
     vectors = __si2drGroupGetGroups(group, &err);
     while (!(__si2drObjectIsNull((rg4 = __si2drIterNextGroup(vectors, &err)),
                                  &err))) {
-        struct timinglib_value_data *vdv = __timinglib_get_values_data(rg4);
+        struct timinglib_value_data *vdv = __timinglibGetValuesData(rg4);
         /* does this value already exist? */
         for (j = 0; j < i; j++) {
             if (vl_oc[j].x == vdv->index_info[0][0] &&
@@ -11359,7 +11351,7 @@ void LibAnalysis::__check_ccs_density(si2drGroupIdT group) {
                                 &err);
             errcount_++;
         }
-        __timinglib_destroy_value_data(vdv);
+        __timinglibDestroyValueData(vdv);
     }
     __si2drIterQuit(vectors, &err);
     /* i should hold the actual number of unique vector index values */
@@ -11462,7 +11454,7 @@ void LibAnalysis::__check_ccs_density(si2drGroupIdT group) {
     free(y_vals);
     free(scoreboard);
 }
-void LibAnalysis::__group_specific_checks(si2drGroupIdT group) {
+void LibAnalysis::__groupSpecificChecks(si2drGroupIdT group) {
     si2drErrorT err;
     si2drStringT name = __si2drGroupGetGroupType(group, &err);
 
@@ -11487,7 +11479,7 @@ void LibAnalysis::__group_specific_checks(si2drGroupIdT group) {
         case kTIMINGLIB_GROUPENUM_scaled_cell:
             break;
         case kTIMINGLIB_GROUPENUM_rise_transition_degradation:
-            __check_lu_table_template_arraysize(group);
+            __checkLuTableTemplateArraysize(group);
             break;
         case kTIMINGLIB_GROUPENUM_rise_net_delay:
             break;
@@ -11502,12 +11494,12 @@ void LibAnalysis::__group_specific_checks(si2drGroupIdT group) {
         case kTIMINGLIB_GROUPENUM_model:
             break;
         case kTIMINGLIB_GROUPENUM_lu_table_template:
-            __check_lut_template(group);
+            __checkLutTemplate(group);
             break;
         case kTIMINGLIB_GROUPENUM_input_voltage:
             break;
         case kTIMINGLIB_GROUPENUM_fall_transition_degradation:
-            __check_lu_table_template_arraysize(group);
+            __checkLuTableTemplateArraysize(group);
             break;
         case kTIMINGLIB_GROUPENUM_fall_net_delay:
             break;
@@ -11522,10 +11514,10 @@ void LibAnalysis::__group_specific_checks(si2drGroupIdT group) {
         case kTIMINGLIB_GROUPENUM_state:
             break;
         case kTIMINGLIB_GROUPENUM_seq_bank:
-            __check_clear_n_preset(group);
+            __checkClearNPreset(group);
             break;
         case kTIMINGLIB_GROUPENUM_seq:
-            __check_clear_n_preset(group);
+            __checkClearNPreset(group);
             break;
         case kTIMINGLIB_GROUPENUM_routing_track:
             break;
@@ -11538,31 +11530,31 @@ void LibAnalysis::__group_specific_checks(si2drGroupIdT group) {
         case kTIMINGLIB_GROUPENUM_leakage_power:
             break;
         case kTIMINGLIB_GROUPENUM_latch_bank:
-            __check_clear_n_preset(group);
+            __checkClearNPreset(group);
             break;
         case kTIMINGLIB_GROUPENUM_latch:
-            __check_clear_n_preset(group);
+            __checkClearNPreset(group);
             break;
         case kTIMINGLIB_GROUPENUM_generated_clock:
             break;
         case kTIMINGLIB_GROUPENUM_ff_bank:
-            __check_clear_n_preset(group);
-            __check_ff_bank_widths(group);
+            __checkClearNPreset(group);
+            __checkFfBankWidths(group);
             break;
         case kTIMINGLIB_GROUPENUM_ff:
-            __check_clear_n_preset(group);
+            __checkClearNPreset(group);
             break;
         case kTIMINGLIB_GROUPENUM_bus:
-            __check_bus_pin_directions(group);
-            __check_bus_type(group);
+            __checkBusPinDirections(group);
+            __checkBusType(group);
             break;
         case kTIMINGLIB_GROUPENUM_tlatch:
             break;
         case kTIMINGLIB_GROUPENUM_rise_transition:
-            __check_lu_table_template_arraysize(group);
+            __checkLuTableTemplateArraysize(group);
             break;
         case kTIMINGLIB_GROUPENUM_rise_propagation:
-            __check_lu_table_template_arraysize(group);
+            __checkLuTableTemplateArraysize(group);
             break;
         case kTIMINGLIB_GROUPENUM_rise_constraint:
             break;
@@ -11571,27 +11563,27 @@ void LibAnalysis::__group_specific_checks(si2drGroupIdT group) {
         case kTIMINGLIB_GROUPENUM_retaining_fall:
             break;
         case kTIMINGLIB_GROUPENUM_fall_transition:
-            __check_lu_table_template_arraysize(group);
+            __checkLuTableTemplateArraysize(group);
             break;
         case kTIMINGLIB_GROUPENUM_fall_propagation:
-            __check_lu_table_template_arraysize(group);
+            __checkLuTableTemplateArraysize(group);
             break;
         case kTIMINGLIB_GROUPENUM_fall_constraint:
             break;
         case kTIMINGLIB_GROUPENUM_cell_rise:
-            __check_lu_table_template_arraysize(group);
+            __checkLuTableTemplateArraysize(group);
             break;
         case kTIMINGLIB_GROUPENUM_cell_fall:
-            __check_lu_table_template_arraysize(group);
+            __checkLuTableTemplateArraysize(group);
             break;
         case kTIMINGLIB_GROUPENUM_cell_degradation:
             break;
         case kTIMINGLIB_GROUPENUM_timing:
-            __check_cell_n_prop(group);
+            __checkCellNProp(group);
             break;
         case kTIMINGLIB_GROUPENUM_pin:
-            __check_driver_types(group);
-            __check_retention_pin(group);
+            __checkDriverTypes(group);
+            __checkRetentionPin(group);
             break;
         case kTIMINGLIB_GROUPENUM_minimum_period:
             break;
@@ -11602,13 +11594,13 @@ void LibAnalysis::__group_specific_checks(si2drGroupIdT group) {
         case kTIMINGLIB_GROUPENUM_memory_read:
             break;
         case kTIMINGLIB_GROUPENUM_rise_power:
-            __check_power_lut_template_arraysize(group);
+            __checkPowerLutTemplateArraysize(group);
             break;
         case kTIMINGLIB_GROUPENUM_power:
-            __check_power_lut_template_arraysize(group);
+            __checkPowerLutTemplateArraysize(group);
             break;
         case kTIMINGLIB_GROUPENUM_fall_power:
-            __check_power_lut_template_arraysize(group);
+            __checkPowerLutTemplateArraysize(group);
             break;
         case kTIMINGLIB_GROUPENUM_internal_power:
             /* if there is a value here, then check it; otherwise the
@@ -11616,7 +11608,7 @@ void LibAnalysis::__group_specific_checks(si2drGroupIdT group) {
             attr =
                 __si2drGroupFindAttrByName(group, si2drStringT("values"), &err);
             if (!__si2drObjectIsNull(attr, &err)) {
-                __check_power_lut_template_arraysize(group);
+                __checkPowerLutTemplateArraysize(group);
             }
             break;
         case kTIMINGLIB_GROUPENUM_em_max_toggle_rate:
@@ -11624,36 +11616,36 @@ void LibAnalysis::__group_specific_checks(si2drGroupIdT group) {
         case kTIMINGLIB_GROUPENUM_electromigration:
             break;
         case kTIMINGLIB_GROUPENUM_bundle:
-            __check_members(group);
-            __check_bus_pin_directions(group);
+            __checkMembers(group);
+            __checkBusPinDirections(group);
             break;
         case kTIMINGLIB_GROUPENUM_cell:
-            __check_interface_timing(group);
-            __check_retention_cell(group);
-            __check_level_shift(group);
+            __checkInterfaceTiming(group);
+            __checkRetentionCell(group);
+            __checkLevelShift(group);
             break;
         case kTIMINGLIB_GROUPENUM_library:
             break;
         case kTIMINGLIB_GROUPENUM_vector:
-            __check_vector(group);
+            __checkVector(group);
             break;
         case kTIMINGLIB_GROUPENUM_output_current_template:
-            __check_output_current_template(group);
+            __checkOutputCurrentTemplate(group);
             break;
         case kTIMINGLIB_GROUPENUM_output_current_rise:
-            __check_ref_times(group);
-            __check_ccs_density(group);
+            __checkRefTimes(group);
+            __checkCcsDensity(group);
             break;
         case kTIMINGLIB_GROUPENUM_output_current_fall:
-            __check_ref_times(group);
-            __check_ccs_density(group);
+            __checkRefTimes(group);
+            __checkCcsDensity(group);
             break;
         default:
             break;
     }
 }
-void LibAnalysis::__check_group_correspondence(si2drGroupIdT g,
-                                               libsynt_group_info *gi) {
+void LibAnalysis::__checkGroupCorrespondence(si2drGroupIdT g,
+                                             libsynt_group_info *gi) {
     int nc;
     si2drNamesIdT names;
     si2drErrorT err;
@@ -11772,7 +11764,7 @@ void LibAnalysis::__check_group_correspondence(si2drGroupIdT g,
             if (isvar) /* don't check a variable definition */
                 continue;
         }
-        if (gi) LibHash::timinglib_hash_lookup(gi->attr_hash, anam, &toid);
+        if (gi) LibHash::timinglibHashLookup(gi->attr_hash, anam, &toid);
         if (toid.v1 == NULL) {
             si2drDefineIdT def;
             int found;
@@ -11901,7 +11893,7 @@ void LibAnalysis::__check_group_correspondence(si2drGroupIdT g,
                 /* #endif */
             }
         } else {
-            __check_attr_correspondence(
+            __checkAttrCorrespondence(
                 attr, static_cast<libsynt_attribute_info *>(toid.v1));
         }
     }
@@ -11915,7 +11907,7 @@ void LibAnalysis::__check_group_correspondence(si2drGroupIdT g,
         int al = __si2drObjectGetLineNo(group, &err);
         char *af = __si2drObjectGetFileName(group, &err);
         toid.v1 = NULL;
-        if (gi) LibHash::timinglib_hash_lookup(gi->group_hash, gt, &toid);
+        if (gi) LibHash::timinglibHashLookup(gi->group_hash, gt, &toid);
         if (toid.v1 == NULL) {
             si2drDefineIdT def;
             /* check to see if a define_group is defined for this situation */
@@ -12009,20 +12001,20 @@ void LibAnalysis::__check_group_correspondence(si2drGroupIdT g,
                                         kSI2DR_SEMANTIC_ERROR, EB, &err);
                     errcount_++;
                 } else {
-                    __check_group_correspondence(
+                    __checkGroupCorrespondence(
                         group, static_cast<libsynt_group_info *>(toid.v1));
                 }
             }
         } else {
-            __check_group_correspondence(
+            __checkGroupCorrespondence(
                 group, static_cast<libsynt_group_info *>(toid.v1));
         }
     }
     __si2drIterQuit(groups, &err);
-    if (gi) __group_specific_checks(g);
+    if (gi) __groupSpecificChecks(g);
 }
-void LibAnalysis::__check_attr_correspondence(si2drAttrIdT attr,
-                                              libsynt_attribute_info *ai) {
+void LibAnalysis::__checkAttrCorrespondence(si2drAttrIdT attr,
+                                            libsynt_attribute_info *ai) {
     si2drErrorT err;
     si2drAttrTypeT t = __si2drAttrGetAttrType(attr, &err);
     int al = __si2drObjectGetLineNo(attr, &err);
@@ -12226,7 +12218,7 @@ void LibAnalysis::__check_attr_correspondence(si2drAttrIdT attr,
                         case kSYNTAX_ATTRTYPE_FLOAT:
                             strtod(string, &x);
                             if (*x != 0) {
-                                if (!__isa_formula(string)) {
+                                if (!__isaFormula(string)) {
                                     char EB[8000];
                                     snprintf(EB, sizeof(EB),
                                              "%s:%d, Attribute %s should be an "
@@ -12538,10 +12530,10 @@ void LibAnalysis::__check_attr_correspondence(si2drAttrIdT attr,
             }
         }
     }
-    __attribute_specific_checks(attr);
+    __attributeSpecificChecks(attr);
 }
-void LibAnalysis::__dump_attr(libsynt_attribute_info *a, FILE *outC,
-                              FILE *outH) {
+void LibAnalysis::__dumpAttr(libsynt_attribute_info *a, FILE *outC,
+                             FILE *outH) {
     int i;
     libsynt_argument *arg;
     if (!a) return;
@@ -12554,7 +12546,7 @@ void LibAnalysis::__dump_attr(libsynt_attribute_info *a, FILE *outC,
                     "static_cast<char*>(\"%s\"), k%s, "
                     "%d, {0}, %s};\n",
                     reinterpret_cast<uint64_t>(a), a->name, toString(a->type),
-                    a->lineno, LibHash::make_rep("attr", a->next).c_str());
+                    a->lineno, LibHash::makeRep("attr", a->next).c_str());
             break;
         case kSYNTAX_ATTRTYPE_VIRTUAL:
             fprintf(outH, "extern libsynt_attribute_info attr_%llx;\n",
@@ -12564,7 +12556,7 @@ void LibAnalysis::__dump_attr(libsynt_attribute_info *a, FILE *outC,
                     "static_cast<char*>(\"%s\"), k%s, "
                     "%d, {0}, %s};\n",
                     reinterpret_cast<uint64_t>(a), a->name, toString(a->type),
-                    a->lineno, LibHash::make_rep("attr", a->next).c_str());
+                    a->lineno, LibHash::makeRep("attr", a->next).c_str());
             break;
         case kSYNTAX_ATTRTYPE_ENUM:
             fprintf(outC, "char *enum_%llx[%d] = {",
@@ -12590,8 +12582,8 @@ void LibAnalysis::__dump_attr(libsynt_attribute_info *a, FILE *outC,
                     "%d, {.stringenum = (libsynt_string_enum*)%s}, %s};\n",
                     reinterpret_cast<uint64_t>(a), a->name, toString(a->type),
                     a->lineno,
-                    LibHash::make_rep("strenum", a->u.stringenum).c_str(),
-                    LibHash::make_rep("attr", a->next).c_str());
+                    LibHash::makeRep("strenum", a->u.stringenum).c_str(),
+                    LibHash::makeRep("attr", a->next).c_str());
             break;
         case kSYNTAX_ATTRTYPE_FLOAT:
             if (a->u.floatcon && a->u.floatcon->refd_default)
@@ -12623,8 +12615,8 @@ void LibAnalysis::__dump_attr(libsynt_attribute_info *a, FILE *outC,
                     "%d, {.floatcon=(libsynt_float_constraint*)%s}, %s};\n",
                     reinterpret_cast<uint64_t>(a), a->name, toString(a->type),
                     a->lineno,
-                    LibHash::make_rep("floatcons", a->u.stringenum).c_str(),
-                    LibHash::make_rep("attr", a->next).c_str());
+                    LibHash::makeRep("floatcons", a->u.stringenum).c_str(),
+                    LibHash::makeRep("attr", a->next).c_str());
             break;
         case kSYNTAX_ATTRTYPE_INT:
             if (a->u.intcon && a->u.intcon->refd_default)
@@ -12654,8 +12646,8 @@ void LibAnalysis::__dump_attr(libsynt_attribute_info *a, FILE *outC,
                     "%d, {.intcon=(libsynt_int_constraint*)%s}, %s};\n",
                     reinterpret_cast<uint64_t>(a), a->name, toString(a->type),
                     a->lineno,
-                    LibHash::make_rep("intcons", a->u.stringenum).c_str(),
-                    LibHash::make_rep("attr", a->next).c_str());
+                    LibHash::makeRep("intcons", a->u.stringenum).c_str(),
+                    LibHash::makeRep("attr", a->next).c_str());
             break;
         case kSYNTAX_ATTRTYPE_BOOLEAN:
             fprintf(outH, "extern libsynt_attribute_info attr_%llx;\n",
@@ -12665,7 +12657,7 @@ void LibAnalysis::__dump_attr(libsynt_attribute_info *a, FILE *outC,
                     "static_cast<char*>(\"%s\"), k%s, "
                     "%d, {0}, %s};\n",
                     reinterpret_cast<uint64_t>(a), a->name, toString(a->type),
-                    a->lineno, LibHash::make_rep("attr", a->next).c_str());
+                    a->lineno, LibHash::makeRep("attr", a->next).c_str());
             break;
         case kSYNTAX_ATTRTYPE_COMPLEX:
         case kSYNTAX_ATTRTYPE_COMPLEX_UNKNOWN:
@@ -12675,7 +12667,7 @@ void LibAnalysis::__dump_attr(libsynt_attribute_info *a, FILE *outC,
                         reinterpret_cast<uint64_t>(arg));
                 fprintf(outC, "libsynt_argument arg_%llx = {k%s, %s};\n",
                         reinterpret_cast<uint64_t>(arg), toString(arg->type),
-                        LibHash::make_rep("arg", arg->next).c_str());
+                        LibHash::makeRep("arg", arg->next).c_str());
             }
             fprintf(outH, "extern libsynt_attribute_info attr_%llx;\n",
                     reinterpret_cast<uint64_t>(a));
@@ -12684,39 +12676,38 @@ void LibAnalysis::__dump_attr(libsynt_attribute_info *a, FILE *outC,
                     "static_cast<char*>(\"%s\"), k%s, "
                     "%d, {.args=(libsynt_argument*)%s}, %s};\n",
                     reinterpret_cast<uint64_t>(a), a->name, toString(a->type),
-                    a->lineno,
-                    LibHash::make_rep("arg", a->u.stringenum).c_str(),
-                    LibHash::make_rep("attr", a->next).c_str());
+                    a->lineno, LibHash::makeRep("arg", a->u.stringenum).c_str(),
+                    LibHash::makeRep("attr", a->next).c_str());
             break;
     }
 }
-void LibAnalysis::__dump_group(libsynt_group_info *g, FILE *outC, FILE *outH) {
+void LibAnalysis::__dumpGroup(libsynt_group_info *g, FILE *outC, FILE *outH) {
     libsynt_group_info *ng;
     libsynt_attribute_info *at;
     g->mark = 1;
     for (ng = g->group_list; ng; ng = ng->next) {
         if (!ng->mark) {
-            __dump_group(ng, outC, outH);
+            __dumpGroup(ng, outC, outH);
             ng->mark++;
         }
     }
     for (at = g->attr_list; at; at = at->next) {
-        __dump_attr(at, outC, outH);
+        __dumpAttr(at, outC, outH);
     }
-    LibHash::dump_group_hash(g->group_hash, outC, outH);
-    LibHash::dump_attr_hash(g->attr_hash, outC, outH);
+    LibHash::dumpGroupHash(g->group_hash, outC, outH);
+    LibHash::dumpAttrHash(g->attr_hash, outC, outH);
     fprintf(
         outC,
         "libsynt_group_info group_%llx = {%d, k%s, (char*)(\"%s\"), %d, %d, "
         "%s, %s, %s, %s, %s, %s};\n",
         reinterpret_cast<uint64_t>(g), g->mark, toString(g->name_constraints),
         g->type, g->ID, g->lineno,
-        LibHash::make_rep("attr", g->attr_list).c_str(),
-        LibHash::make_rep("group", g->group_list).c_str(),
-        LibHash::make_rep("ht", g->attr_hash).c_str(),
-        LibHash::make_rep("ht", g->group_hash).c_str(),
-        LibHash::make_rep("group", g->next).c_str(),
-        LibHash::make_rep("group", g->ref).c_str());
+        LibHash::makeRep("attr", g->attr_list).c_str(),
+        LibHash::makeRep("group", g->group_list).c_str(),
+        LibHash::makeRep("ht", g->attr_hash).c_str(),
+        LibHash::makeRep("ht", g->group_hash).c_str(),
+        LibHash::makeRep("group", g->next).c_str(),
+        LibHash::makeRep("group", g->ref).c_str());
     fprintf(outH, "extern libsynt_group_info group_%llx;\n",
             reinterpret_cast<uint64_t>(g));
 }

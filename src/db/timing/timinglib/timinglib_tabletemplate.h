@@ -54,13 +54,13 @@ class TableAxis : public Object {
     IndexType memory() const;
 
     /// set
-    void set_variable(TableAxisVariable tv);
-    void add_value(float f);
+    void setVariable(TableAxisVariable tv);
+    void addValue(float f);
 
     /// get
-    TableAxisVariable get_variable(void);
-    ArrayObject<float> *get_values(void);
-    IndexType get_size(void);
+    TableAxisVariable getVariable(void);
+    ArrayObject<float> *getValues(void);
+    IndexType getSize(void);
 
   protected:
     /// @brief copy object
@@ -104,17 +104,17 @@ class TableTemplate : public Object {
     IndexType memory() const;
 
     /// set
-    void set_name(const std::string &name);
-    TableAxis *create_axis1();
-    TableAxis *create_axis2();
-    TableAxis *create_axis3();
+    void setName(const std::string &name);
+    TableAxis *createAxis1();
+    TableAxis *createAxis2();
+    TableAxis *createAxis3();
 
     /// get
-    std::string get_name(void) const;
-    SymbolIndex get_name_index(void);
-    TableAxis *get_axis1(void);
-    TableAxis *get_axis2(void);
-    TableAxis *get_axis3(void);
+    std::string getName(void) const;
+    SymbolIndex getNameIndex(void);
+    TableAxis *getAxis1(void);
+    TableAxis *getAxis2(void);
+    TableAxis *getAxis3(void);
 
   protected:
     /// @brief copy object

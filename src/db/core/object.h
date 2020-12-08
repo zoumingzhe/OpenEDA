@@ -117,6 +117,45 @@ typedef enum ObjectType {
     // for ndr rule...
     kObjectTypeNonDefaultRuleLayer,
     kObjectTypeNonDefaultRuleMinCuts,
+    // for layer rule
+    kObjectTypeCutLayerRule,
+    kObjectTypeCutSpacing,
+    kObjectTypeSecondLayer,
+    kObjectTypeAdjacentCuts,
+    kObjectTypeCutSpacingPrlOvlp,
+    kObjectTypeEnclosure,
+    kObjectTypeEnclosureEol,
+    kObjectTypeEnclosureOverhang,
+    kObjectTypeArraySpacing,
+    kObjectTypeBoundaryEOLBlockage,
+    kObjectTypeCornerEOLKeepout,
+    kObjectTypeCornerFillSpacing,
+    kObjectTypeCornerSpacing,
+    kObjectTypeDirSpanLengthSpTbl,
+    kObjectTypeSpanLength,
+    kObjectTypeExactSLSpacing,
+    kObjectTypeEOLKeepout,
+    kObjectTypeMinCut,
+    kObjectTypeMinEnclArea,
+    kObjectTypeMinSize,
+    kObjectTypeMinStep,
+    kObjectTypeWidthSpTbl,
+    kObjectTypeInfluenceSpTbl,
+    kObjectTypeParaSpanLenTbl,
+    kObjectTypeProtrusionRule,
+    kObjectTypeProtrusionWidth,
+    kObjectTypeRoutingSpacing,
+    kObjectTypeRoutingLayerRule,
+    kObjectTypeTrimLayerRule,
+    kObjectTypeMEOLLayerRule,
+    kObjectTypeAntennaModel,
+    kObjectTypeMinArea,
+    kObjectTypeCurrentDen,
+    kObjectTypeCurrentDenContainer,
+    kObjectTypeImplantCoreEdgeLength,
+    kObjectTypeImplantSpacing,
+    kObjectTypeImplantWidth,
+    kObjectTypeImplantLayerRule,
     // for site
     kObjectTypeSitePatternPair,
     kObjectTypeArray,
@@ -359,10 +398,12 @@ void Object::deleteObject(T *obj) {
         MemPagePool *pool = MemPool::getPagePoolByObjectId(obj->getId());
 
         if (!pool) {
+            // Internal debug message:
             message->issueMsg(kError,
                               "Cannot delete object for type %d because memory "
                               "pool is null.\n",
                               type);
+            return;
         }
 
         obj->setIsValid(0);

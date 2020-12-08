@@ -28,22 +28,37 @@ const char kDBFilePostFix[] = ".db";
 const char kSymFilePostFix[] = ".sym";
 const char kPolyFilePostFix[] = ".poly";
 const char kPropFilePostFix[] = ".prop";
+const char kLibSubDirName[] = "/Libs";
+const char kTechLibName[] =  "lef";
+const char kTimingLibName[] =  "liberty";
 const int OK = 0;     // equals to TCL_OK
 const int ERROR = 1;  // equals to TCL_ERROR
+
+const char kMsgCategoryDB[] = "DB";
+enum readWriteDesignMsgId {
+    ReadDesignOk = 100,
+    WriteDesignOk = 101,
+    OpenFileError = 102,
+    CheckSumError = 103,
+    CheckSumOk = 104,
+    ReadDesignOkVerbose = 105,
+    ReadDesignInitError = 106,
+    CreateDirError = 107,
+    WriteFileError = 108,
+    RenameCellVerbose = 109
+};
 
 class ReadDesign {
  public:
     explicit ReadDesign(const std::string &name)
-        : cell_name_(name),
-          symbol_table_(nullptr),
-          polygon_table_(nullptr),
-          pool_(nullptr),
-          debug_(false) {}
+        : cell_name_(name), current_id_(0),
+          is_top_(false), debug_(false) {}
 
     int run();
 
     bool getDebug() { return debug_; }
     void setDebug(bool v) { debug_ = v; }
+    void setTop(void) { is_top_ = true; }
 
  private:
     ReadDesign() {}
@@ -56,20 +71,22 @@ class ReadDesign {
     /// @brief move constructor
     ReadDesign &operator=(ReadDesign &&rhs) noexcept { return *this; }
 
-    bool __readSymFile(void);
-    bool __readPolyFile(void);
-    bool __readDBFile(void);
-    // bool __readPropFile(void);
-    bool __setCurrentTopCell(void);
+    bool __readDBFile(MemPagePool *pool, std::string &filename);
+    bool __readPolyFile(PolygonTable *polygon_table, std::string &filename);
+    bool __readSymFile(SymbolTable *symbol_table, std::string &filename);
 
+    bool __readCell(void);
+    bool __readTechLib(void);
+    bool __readTimingLib(void);
+
+    // bool __readPropFile(void);
+    bool __preWork(void);
+    bool __postWork(void);
     // DATA
     std::string cell_name_;
-    ObjectId top_cell_id_;
-    // std::string file_name_;
-    SymbolTable *symbol_table_;
-    PolygonTable *polygon_table_;
-    MemPagePool *pool_;
+    ObjectId current_id_;
     Version v_;
+    bool is_top_;
     bool debug_;
 };
 
@@ -78,9 +95,8 @@ class WriteDesign {
     /// @brief default constructor
     WriteDesign();
     explicit WriteDesign(const std::string &name)
-        : saved_name_(name),
-          top_cell_(nullptr),
-          cell_name_(""),
+        : original_cell_name_(""), saved_name_(name),
+          write_cell_(nullptr), current_id_(0),
           debug_(false) {}
 
     int run();
@@ -98,15 +114,23 @@ class WriteDesign {
     /// @brief move constructor
     WriteDesign &operator=(WriteDesign &&rhs) noexcept { return *this; }
 
-    bool __writeDBFile(void);
-    bool __writePolyFile(void);
-    bool __writeSymFile(void);
+    bool __writeDBFile(MemPagePool *pool, std::string &filename);
+    bool __writePolyFile(PolygonTable *polygon_table, std::string &filename);
+    bool __writeSymFile(SymbolTable *symbol_table, std::string &filename);
+
+    bool __writeCell(void);
+    bool __writeTechLib(void);
+    bool __writeTimingLib(void);
     // bool __writePropFile(void);
-    bool __setAfterWrite(void);
+    bool __preWork(void);
+    bool __postWork(void);
+    bool __createDir(const char *dir_name);
+
     // DATA
+    std::string original_cell_name_;
     std::string saved_name_;
-    Cell *top_cell_;
-    std::string cell_name_;
+    Cell *write_cell_;
+    ObjectId current_id_;
     bool debug_;
 };
 

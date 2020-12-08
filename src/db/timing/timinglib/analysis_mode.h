@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "db/core/object.h"
 #include "db/util/array.h"
@@ -55,16 +56,16 @@ class AnalysisMode : public Object {
     IndexType memory() const;
 
     /// set
-    void set_name(const std::string &name);
-    void add_constraint_file(const std::string &file);
+    void setName(const std::string &name);
+    void addConstraintFile(const std::string &file);
 
     /// get
-    SymbolIndex get_name_index(void);
-    std::string get_name(void) const;
-    std::vector<std::string> get_constraint_files(void);
-    std::string get_constraint_file(SymbolIndex index) const;
+    SymbolIndex getNameIndex(void);
+    std::string getName(void) const;
+    std::vector<std::string> getConstraintFiles(void);
+    std::string getConstraintFile(SymbolIndex index) const;
 
-    int num_contraint_files(void) const;
+    int numContraintFiles(void) const;
 
   protected:
     /// @brief copy object

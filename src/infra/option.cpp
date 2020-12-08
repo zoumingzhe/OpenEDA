@@ -72,7 +72,7 @@ Option::Option(const char* name, OptionDataType type, bool is_required, const ch
     }
     case OptionDataType::kPoint:
     {
-        message->info("in option point\n");
+        //message->info("in option point\n");
         Point* a = new Point();
         setData(a);
         Point *temp = new Point();
