@@ -229,11 +229,46 @@ using SetTimingDeratePtr = std::shared_ptr<SetTimingDerate>;
 
 class SetVoltage {
   private:
-    float value_ = 0.0;
-
-
+    float max_case_voltage_ = 0.0;
+    float min_case_voltage_ = 0.0;
+  public:
+    COMMAND_GET_SET_VAR(max_case_voltage, MaxCaseVoltage)
+    COMMAND_GET_SET_VAR(min_case_voltage, MinCaseVoltage)
 };
 using SetVoltagePtr = std::shared_ptr<SetVoltage>; 
+
+class SetWireLoadMode {
+  private:
+    WireLoadMode mode_ = WireLoadMode::kUnknown; 
+
+  public:
+    COMMAND_GET_SET_VAR(mode_, Mode)
+};
+using SetWireLoadModePtr = std::shared_ptr<SetWireLoadMode>;
+
+class SetWireLoadModel {
+  private:
+    WireLoad wire_load_;
+    std::bitset<2> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(wire_load_, WireLoad)
+    COMMAND_GET_SET_FLAG(flags, 0, min, Min)
+    COMMAND_GET_SET_FLAG(flags, 1, max, Max)
+};
+using SetWireLoadModelPtr = std::shared_ptr<SetWireLoadModel>;
+
+class SetWireLoadSelectionGroup {
+  private:
+    WireLoadSelection selection_;
+    std::bitset<2> flags_;
+
+  public:
+    COMMAND_GET_SET_VAR(selection, Selection)
+    COMMAND_GET_SET_FLAG(flags, 0, min, Min)
+    COMMAND_GET_SET_FLAG(flags, 1, max, Max)
+};
+using SetWireLoadSelectionGroupPtr = std::shared_ptr<SetWireLoadSelectionGroup>;
 
 
 }
