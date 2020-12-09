@@ -315,8 +315,8 @@ static int testCommandManager(ClientData cld, Tcl_Interp *itp, int argc, const c
     message->info("in test command \n");
     Command* cmd = CommandManager::parseCommand(argc, argv);
     if (cmd == nullptr) {
-        message->info("fail to parse command \n");
-        //return -1;
+        //message->info("fail to parse command \n");
+        return 0;
     }
     // it should go to use function afterwards
     std::string op_name1 = "-i";
@@ -396,29 +396,29 @@ static int testCommandManager(ClientData cld, Tcl_Interp *itp, int argc, const c
      }
     std::string op_name7 = "-sl";
     if (cmd->isOptionSet("-sl")) {
-         std::vector<std::string> *value_sl = new std::vector<std::string>();
-         bool res = cmd->getOptionValue("-sl", &value_sl);
-	 for(int i = 0; i < value_sl->size(); i ++) {
-             message->info("get option %s string %s \n", op_name7.c_str(), value_sl->at(i).c_str());
-	}
-     }
+        std::vector<std::string> value_sl;
+        bool res = cmd->getOptionValue("-sl", value_sl);
+        for (int i = 0; i < value_sl.size(); i++) {
+            message->info("get option %s string %s \n", op_name7.c_str(), value_sl.at(i).c_str());
+        }
+    }
  
     return TCL_OK;  // runCommandWithProcessBar(testcmd, argc, argv);
 }
 
 static void registerTestCommandManager() {
     CommandManager* cmd_manager = CommandManager::getCommandManager();
-    std::vector<std::string>* enums = new std::vector<std::string>();
-    enums->push_back("aa");
-    enums->push_back("bb");
-    enums->push_back("cc");
-    Command* test_command = cmd_manager->createCommand("test_cmd", "command descprition", *(new Option("-i", OptionDataType::kInt, false, 22, "opt description", 0, 10000))
+    // std::vector<std::string>* enums = new std::vector<std::string>();
+    // enums->push_back("aa");
+    // enums->push_back("bb");
+    // enums->push_back("cc");
+    Command* test_command = cmd_manager->createCommand("test_cmd", "command descprition\n", *(new Option("-i", OptionDataType::kInt, false, 22, "opt description\n", 0, 10000))
                                                                     + *(new Option("-b", OptionDataType::kBool, false, "opt description\n"))
                                                                     + *(new Option("i1", OptionDataType::kInt, false, "opt description\n"))
                                                                     + *(new Option("b2", OptionDataType::kBool, false, "opt description\n"))
                                                                     + *(new Option("i2", OptionDataType::kInt, false, "opt description\n"))
                                                                     + *(new Option("-s", OptionDataType::kString, false, "opt description\n"))
-                                                                    + *(new Option("-e", OptionDataType::kEnum, false, enums, "opt description\n"))
+                                                                    + *(new Option("-e", OptionDataType::kEnum, false, "aa bb cc", "opt description\n"))
                                                                     + *(new Option("-p", OptionDataType::kPoint, false, "opt description\n"))
                                                                     + *(new Option("-r", OptionDataType::kRect, false, "opt description\n"))
                                                                     + *(new Option("-il", OptionDataType::kIntList, false, "opt description\n"))
