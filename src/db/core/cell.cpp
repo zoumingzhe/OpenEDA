@@ -1701,6 +1701,15 @@ LayerGeometry *Cell::getOBS(int i) const {
     return nullptr;
 }
 
+ArrayObject<ObjectId> *Cell::getOBSes() const {
+    if (obses_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(obses_);
+        return array;
+    } else {
+        return nullptr;
+    }
+}
+
 void Cell::addForeign(ObjectId id) {
     ArrayObject<ObjectId> *vct = nullptr;
     ObjectId foreign_array = getForeigns();
