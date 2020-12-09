@@ -12,6 +12,11 @@ if(NOT CMAKE_BUILD_TYPE)
         "Choose the type of build, options are: Debug Release."
         FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS "-g ${CMAKE_CXX_FLAGS}")
+endif(CMAKE_BUILD_TYPE)
+
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 if(NOT CMAKE_CXX_ABI)
@@ -170,5 +175,6 @@ if (CMAKE_PLACE)
         ${MUNKRES_CPP_INCLUDE_DIRS}
         ${LEMON_INCLUDE_DIRS}
         )
+    add_definitions(-D_CMAKE_PLACE)
 endif(CMAKE_PLACE)
 # end of open-edi

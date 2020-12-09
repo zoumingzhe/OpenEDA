@@ -240,14 +240,14 @@ void roughLegalizeLauncher(const LegalizationDB<T>& db, const std::vector<int>& 
         for (unsigned int i = 0, ie = macros.size(); i < ie; ++i)
         {
             int node_id1 = macros[i];
-            Box<T> box1 (db.x[node_id1], db.y[node_id1], 
+            UBox<T> box1 (db.x[node_id1], db.y[node_id1], 
                     db.x[node_id1] + db.node_size_x[node_id1], db.y[node_id1] + db.node_size_y[node_id1]);
             T a1 = box1.area();
             clusters.at(i).push_back(node_id1);
             for (unsigned int j = i + 1; j < ie; ++j)
             {
                 int node_id2 = macros[j];
-                Box<T> box2 (db.x[node_id2], db.y[node_id2], 
+                UBox<T> box2 (db.x[node_id2], db.y[node_id2], 
                         db.x[node_id2] + db.node_size_x[node_id2], db.y[node_id2] + db.node_size_y[node_id2]);
                 T a2 = box2.area();
 
@@ -282,7 +282,7 @@ void roughLegalizeLauncher(const LegalizationDB<T>& db, const std::vector<int>& 
             int node_id1 = macros[i];
             if (!markers[node_id1])
             {
-                Box<T> box1 (db.x[node_id1], db.y[node_id1], 
+                UBox<T> box1 (db.x[node_id1], db.y[node_id1], 
                         db.x[node_id1] + db.node_size_x[node_id1], db.y[node_id1] + db.node_size_y[node_id1]);
                 T a1 = box1.area();
                 std::array<unsigned char, 4> intersect_directs; // from L, R, B, T direction, the box is overlapped 
@@ -292,13 +292,13 @@ void roughLegalizeLauncher(const LegalizationDB<T>& db, const std::vector<int>& 
                     int node_id2 = macros[j];
                     if (i != j && !markers[node_id2])
                     {
-                        Box<T> box2 (db.x[node_id2], db.y[node_id2], 
+                        UBox<T> box2 (db.x[node_id2], db.y[node_id2], 
                                 db.x[node_id2] + db.node_size_x[node_id2], db.y[node_id2] + db.node_size_y[node_id2]);
                         T a2 = box2.area();
 
                         if (a1 * blocked_macros_area_ratio < a2)
                         {
-                            Box<T> intersect_box (
+                            UBox<T> intersect_box (
                                     std::max(box1.xl, box2.xl), 
                                     std::max(box1.yl, box2.yl), 
                                     std::min(box1.xh, box2.xh), 

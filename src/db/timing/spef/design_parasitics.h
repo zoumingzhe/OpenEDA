@@ -53,19 +53,24 @@ class DesignParasitics : public Object {
     /// @brief move assignment
     DesignParasitics &operator=(DesignParasitics &&rhs) noexcept;
 
-    /// @brief add NetsParasitics from a SPEF file
-    void addSpefMap(ObjectId cellId, SymbolIndex spefFileIdx) { spef_map_[cellId] = spefFileIdx; }
-    void addParasiticsMap(ObjectId cellId, ObjectId netsParasitcsId) { parasitics_map_[cellId] = netsParasitcsId; }
-
     //std::vector<ParasiticNode *>& get_net_parasitic_nodes(Net *net) {} //To add
     //std::vector<ParasiticDevice *>& get_net_capacitors(Net *net) {} //To add
     //std::vector<ParasiticDevice *>& get_net_resistors(Net *net) {} //To add
 
-    void setSpefField(unsigned spefField) { spefField_ = spefField; }
-    uint8_t getSpefField() const { return spefField_; }
+    void addCellId(ObjectId cellId);
+    //Get cells vector id
+    ObjectId getCells() const { return cell_vec_id_; }
 
-    const std::unordered_map<ObjectId, SymbolIndex>& getSpefMap() const { return spef_map_; }
-    const std::unordered_map<ObjectId, ObjectId>& getParasiticsMap() const { return parasitics_map_; }
+    void addSpef(SymbolIndex index);
+    //Get Spef SymbolIndex vector id
+    ObjectId getSpefs() const { return spef_vec_id_; }
+
+    void addNetsParasitics(ObjectId netsPara);
+    //Get NetsParasitics vector id
+    ObjectId getNetsParasitics() const { return netsparasitics_vec_id_; }
+
+    void setSpefField(unsigned spefField) { spef_field_ = spefField; }
+    uint8_t getSpefField() const { return spef_field_; }
 
   protected:
     /// @brief copy object
@@ -76,12 +81,12 @@ class DesignParasitics : public Object {
     friend std::ofstream &operator<<(std::ofstream &os, DesignParasitics const &rhs);
 
   private:
-    /// SPEF Design Name ObjectId and file path map
-    std::unordered_map<ObjectId, SymbolIndex> spef_map_;
-    /// SPEF Design Name ObjectId and NetsParasitics ObjectId map
-    std::unordered_map<ObjectId, ObjectId> parasitics_map_;
-    /// The value to determine which value to read in from Tiplet value in SPEF
-    uint8_t spefField_;
+    ObjectId cell_vec_id_;
+    //Spef SymbolIndex vector id
+    ObjectId spef_vec_id_;
+    ObjectId netsparasitics_vec_id_;
+    /// The value to determine which value to read in from triplet value in SPEF
+    uint8_t spef_field_;
 };
 
 }  // namespace db

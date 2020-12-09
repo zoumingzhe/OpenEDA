@@ -43,6 +43,8 @@ class MainPlace
     int         getFlowSteps()         const { return getPara().getFlowSteps();        }
     bool        isDBReady()            const { return (db_ && db_->isCommonDBReady()); }
 
+    void updateDB();  //update DB to openEDI
+    void summaryMovement();
     void run();  // flow run
   private:
     CommonPlaceDB* db_;

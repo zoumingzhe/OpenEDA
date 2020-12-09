@@ -3,7 +3,6 @@ project(place_wire_length)
 file(GLOB SOURCES 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../utility/src/*.cpp"
     )
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/.."
@@ -11,5 +10,8 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/.."
     "${TCL_DIR}/include"
     "${Boost_INCLUDE_DIRS}"
     )
+link_directories(${UTILITY_LIBRARY_DIRS})
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
+target_link_libraries(${PROJECT_NAME} PUBLIC utility)

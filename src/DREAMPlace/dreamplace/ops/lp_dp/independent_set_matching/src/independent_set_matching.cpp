@@ -60,7 +60,7 @@ struct IndependentSetMatchingState
 };
 
 template <typename T>
-void independentSetMatchingCPULauncherNew(DetailedPlaceDB<T> db, 
+void independentSetMatchingCPU(DetailedPlaceDB<T> db, 
      int batch_size, int set_size, int max_iters, int num_threads)
 {
     // fix random seed 
@@ -262,18 +262,14 @@ void IndependentSetMatching::run_cpu()
 {
     //make DetailedPlaceDB db.
     DetailedPlaceDB<int> db;
-    db_->initDetailedPlaceDB(db, false); //cpu version.
-    if (alg_concurrent_)  //concurrent
-    {
-        //independentSetMatchingCPULauncherNew(db, batch_size_, set_size_, max_iters_, num_threads_);
+    db_->initDetailedPlaceDB(db); //cpu version.
+    if (alg_concurrent_) { //concurrent
+      independentSetMatchingCPU(db, batch_size_, set_size_, max_iters_, num_threads_);
+    } else {
+      independentSetMatchingCPU(db, set_size_, max_iters_);
     }
-    else
-    {
-        //independentSetMatchingCPULauncherNew(db, set_size_, max_iters_);
-    }
-    //update common db_ using db.x, db.y
-    //todo: db_->update(db.x, db.y);
-    db_->freeDetailedPlaceDB(db, false);
+    db_->updateXY(db.x, db.y);
+    db_->freeDetailedPlaceDB(db);
 
     return;
 }
@@ -282,22 +278,12 @@ void IndependentSetMatching::run_gpu()
 {
     //make DetailedPlaceDB db.
     DetailedPlaceDB<int> db;
-    db_->initDetailedPlaceDB(db, true); //gpu version.
+    db_->initDetailedPlaceDB(db); //gpu version.
 #ifdef _CUDA_FOUND
-    //independentSetMatchingCUDALauncherNew(db, batch_size_, set_size_, max_iters_, num_threads_);
+    independentSetMatchingCUDARun(db, batch_size_, set_size_, max_iters_, num_threads_);
+    db_->updateXYGPU(db.x, db.y);
 #endif
-    //update common db_ using db.x, db.y
-    /*
-    int* cpu_dbx; int* cpu_dby;
-    allocateCopyCPU(cpu_dbx, db.x, db.num_nodes, int);
-    allocateCopyCPU(cpu_dby, db.y, db.num_nodes, int);
-    */
-    //todo: db_->update(db.x, db.y, true);
-    /*
-    destroyCPU(cpu_dbx);
-    destroyCPU(cpu_dby);
-    */
-    db_->freeDetailedPlaceDB(db, true);
+    db_->freeDetailedPlaceDB(db);
 
     return;
 }
