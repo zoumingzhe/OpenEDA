@@ -34,12 +34,17 @@ int kModuleNameHeaderLength = 10;
 
 int readVerilog(int argc, const char **argv) {
     FILE *fp = NULL;
+    Cell *top_cell = getTopCell();
 
     std::vector<std::string> args;
     for (int i = 0; i < argc; ++i) {
         std::string token = argv[i];
         if (i > 0) {
-            if (argv[i][0] != '-') {
+          if (!strcmp(argv[i], "-top")) {
+              ++i;
+              std::string top_name(argv[i]);
+              top_cell->setName(top_name);
+          } else if (argv[i][0] != '-') {
                 fp = fopen(argv[i], "r");
                 if (NULL == fp) {
                     message->issueMsg(kError, "Cannot open file %s\n", argv[i]);
@@ -476,16 +481,74 @@ static void findMasterForInst() {
     }
 }
 
+static void collectHierMasterNameSet(struct Yosys::AST::AstNode *inst_ast_node, std::unordered_set<std::string> & module_name_set) {
+    ediAssert(inst_ast_node != nullptr &&
+          inst_ast_node->type == Yosys::AST::AstNodeType::AST_CELL);
+    for (auto child : inst_ast_node->children) {
+        if (child->type == Yosys::AST::AstNodeType::AST_CELLTYPE) {
+            std::string cell_name = id2vl(child->str);
+            if (!getTopCell()->getCellFromTechLib(cell_name)) {
+                module_name_set.insert(cell_name);
+            }
+            break;
+        }
+    }
+}
+
+
+//top_ast_node's type is DESIGN.
+static void setTopCellName(struct Yosys::AST::AstNode *top_ast_node) {
+    std::unordered_set<std::string> master_name_set;
+    std::vector<std::string> module_name_vector;
+
+    for (auto child : top_ast_node->children) {
+        switch (child->type) {
+            case Yosys::AST::AstNodeType::AST_MODULE: {
+                std::string module_name = id2vl(child->str);
+                module_name_vector.push_back(module_name);
+                for (auto child_child : child->children) {
+                    if (child_child->type ==
+                        Yosys::AST::AstNodeType::AST_CELL) {
+                        collectHierMasterNameSet(child_child, master_name_set);
+                    }
+                }
+                break;
+            }
+            case Yosys::AST::AstNodeType::AST_CELL: {
+                // not supposed to come here... just in case.
+                collectHierMasterNameSet(child, master_name_set);
+                break;
+            }
+        }
+    }
+    for (auto name : module_name_vector) {
+        if (master_name_set.find(name) == master_name_set.end()) {
+            // TODO: message ID:
+            std::cout << "Setting " << name << " as top cell." << std::endl;
+            Cell *top_cell = getTopCell();
+            top_cell->setName(name);
+            break;
+        }
+    }
+    master_name_set.clear();
+    module_name_vector.clear();
+}
+
 bool readVerilogToDB(struct Yosys::AST::AstNode *ast_node) {
     if (!ast_node) {
         message->issueMsg(kError, "input ast node is null\n");
         return false;
     }
+    // The first time of calling readVerilogToDB()
+    // will set top module if the top cell is still anonymous.
+    Cell *top_cell = getTopCell();
+    if (top_cell->getNameIndex() == kInvalidSymbolIndex) {
+        setTopCellName(ast_node);
+    }
 
     std::queue<Yosys::AST::AstNode*> ast_nodes;
     ast_nodes.push(ast_node);
 
-    Cell *top_cell = getTopCell();
     Cell *current_hcell = nullptr;
     Inst *inst = nullptr;
     std::string module_name;
@@ -499,7 +562,11 @@ bool readVerilogToDB(struct Yosys::AST::AstNode *ast_node) {
             switch (current_ast->type) {
                 case Yosys::AST::AstNodeType::AST_MODULE:
                     module_name = id2vl(current_ast->str);
-                    current_hcell = top_cell->createCell(module_name, true);
+                    if (!module_name.compare(top_cell->getName())) {
+                        current_hcell = top_cell;
+                    } else {
+                        current_hcell = top_cell->createCell(module_name, true);
+                    }
                     if (!current_hcell) {
                         message->issueMsg(kError,
                                 "Create cell failed for module %s.\n",

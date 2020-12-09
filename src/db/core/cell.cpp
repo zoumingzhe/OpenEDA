@@ -197,7 +197,7 @@ void HierData::setRegions(ObjectId v) { regions_ = v; }
 // End of HierData
 
 void Cell::__init() {
-    name_index_ = -1;
+    name_index_ = kInvalidSymbolIndex;
     cell_type_ = CellType::kUnknown;
     hier_data_id_ = 0;
     originX_ = 0;
@@ -1033,18 +1033,16 @@ Cell *Cell::getCellFromTechLib(std::string name) {
 }
 
 Cell *Cell::getCell(std::string name) {
-    if (getCells() != 0) {
-        SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
-        if (symbol_index == kInvalidSymbolIndex) return nullptr;
+    SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
+    if (symbol_index == kInvalidSymbolIndex) return nullptr;
 
-        std::vector<ObjectId> object_vector =
-              this->getSymbolTable()->getReferences(symbol_index);
-        for (auto iter = object_vector.begin(); iter != object_vector.end();
-            iter++) {
-            Cell *target = addr<Cell>(*iter);
-            if (target && (target->getObjectType() == kObjectTypeCell))
-                return target;
-        }
+    std::vector<ObjectId> object_vector =
+        this->getSymbolTable()->getReferences(symbol_index);
+    for (auto iter = object_vector.begin(); iter != object_vector.end();
+        iter++) {
+        Cell *target = addr<Cell>(*iter);
+        if (target && (target->getObjectType() == kObjectTypeCell))
+            return target;
     }
 
     return getCellFromTechLib(name);
@@ -1699,15 +1697,6 @@ LayerGeometry *Cell::getOBS(int i) const {
         }
     }
     return nullptr;
-}
-
-ArrayObject<ObjectId> *Cell::getOBSes() const {
-    if (obses_ != 0) {
-        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(obses_);
-        return array;
-    } else {
-        return nullptr;
-    }
 }
 
 void Cell::addForeign(ObjectId id) {
