@@ -180,9 +180,9 @@ using SdcGroupPathContinerPtr = std::shared_ptr<SdcGroupPathContainer>;
 
 class SdcClockGatingCheckContainer {
   public:
-    void addToPin(const ObjectId pin_id, const SetClockGatingCheck &check) { pin_clock_gating_check_.emplace(pin_id, check); }
-    void addToInstance(const ObjectId inst_id, const SetClockGatingCheck &check) { inst_clock_gating_check_.emplace(inst_id, check); }
-    void addToClock(const ClockId clock_id, const SetClockGatingCheck &check) { clock_to_gating_check_.emplace(clock_id, check); }
+    void addToPin(const ObjectId pin_id, const SetClockGatingCheckPtr &check) { pin_clock_gating_check_.emplace(pin_id, check); }
+    void addToInstance(const ObjectId inst_id, const SetClockGatingCheckPtr &check) { inst_clock_gating_check_.emplace(inst_id, check); }
+    void addToClock(const ClockId clock_id, const SetClockGatingCheckPtr &check) { clock_to_gating_check_.emplace(clock_id, check); }
 
   private:
     std::unordered_map<ObjectId, SetClockGatingCheckPtr> pin_clock_gating_check_;

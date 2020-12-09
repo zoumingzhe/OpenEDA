@@ -112,7 +112,7 @@ void AnalysisMode::addConstraintFile(const std::string& file) {
     }
 }
 
-void AnalysisMode::create_sdc(void) {
+void AnalysisMode::createSdc(void) {
     sdc_ = std::make_shared<Sdc>();
     assert(sdc_);
     if (sdc_ == nullptr) {
@@ -120,7 +120,7 @@ void AnalysisMode::create_sdc(void) {
     }
 }
 
-void AnalysisMode::set_sdc(SdcPtr sdc) {
+void AnalysisMode::setSdc(SdcPtr sdc) {
     sdc_ = sdc;
 }
 

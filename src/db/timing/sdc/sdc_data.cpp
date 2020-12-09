@@ -20,11 +20,13 @@ namespace db {
 //general purpose commands
 std::string SdcCurrentInstanceContainer::getName() {
     const ObjectId &inst_id = current_instance_->getInstanceId();
+    return "test";
 
 }
 
 // environment commands
 // create_clock
+/*
 void SdcClockContainer::add(const CreateClock &create_clock) {
     auto& count = clock_ids_.size();
     create_clocks_.emplace(count, create_clock);
@@ -33,6 +35,7 @@ void SdcClockContainer::add(const CreateClock &create_clock) {
 
 
 }
+*/
 
 
 
