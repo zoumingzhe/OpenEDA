@@ -46,8 +46,10 @@ Software architecture description
 - Download and uncompress CentOS7Dev.zip, then import CentOS7Dev.ovf and launch the virtual machine.
 
 ```
-Download url: https://pan.baidu.com/s/1K7JNgm6UtjpXOc4fUZG62A 
-Verification code: u6p7 
+Download url: https://pan.baidu.com/s/1JnxVadThOJL3K2jsscRaGA
+Verification code: moqr
+SHA1: 39F76587507A453B98D77072FE39066B19EF035B
+
 Username:root
 Password:toor
 ```
