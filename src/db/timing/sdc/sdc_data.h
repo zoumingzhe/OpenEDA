@@ -232,7 +232,7 @@ using SdcClockTransitionContainerPtr = std::shared_ptr<SdcClockTransitionContain
 class SdcClockUncertaintyContainer {
 
   private:
-    std::unordered_map<ClockPair, SetClockUncertaintyPtr> clock_to_clock_uncertainty_;
+    std::unordered_map<ClockPairPtr, SetClockUncertaintyPtr> clock_to_clock_uncertainty_;
     std::unordered_map<ObjectId, SetClockUncertaintyPtr> pin_to_uncertainty_;
 };
 using SdcClockUncertaintyContainerPtr = std::shared_ptr<SdcClockUncertaintyContainer>;
