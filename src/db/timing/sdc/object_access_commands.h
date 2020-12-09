@@ -73,11 +73,14 @@ class AllRegisters {
 using AllRegistersPtr = std::shared_ptr<AllRegisters>;
 
 class CurrentDesign {
+  public:
+    void cd(const std::string &dir);
+
   private:
-    ObjectId current_design_;
+    ObjectId cell_id_ = UNINIT_OBJECT_ID;
 
   public:
-    COMMAND_GET_SET_VAR(current_design, CurrentDesign)
+    COMMAND_GET_SET_VAR(cell_id, CellId)
 };
 using CurrentDesignPtr = std::shared_ptr<CurrentDesign>; 
 

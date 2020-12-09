@@ -18,10 +18,40 @@ namespace open_edi {
 namespace db {
 
 //general purpose commands
+
+
+CurrentInstancePtr SdcCurrentInstanceContainer::current_instance_ = std::make_shared<CurrentInstance>();
 std::string SdcCurrentInstanceContainer::getName() {
     const ObjectId &inst_id = current_instance_->getInstanceId();
-    return "test";
+    const Inst* inst = Object::addr<Inst>(inst_id);
+    if (inst) {
+        return inst->getName();
+    }
+    return SdcCurrentDesignContainer::getName(); 
+}
 
+std::ostream &operator<<(std::ostream &os, const SdcCurrentInstanceContainer &rhs) {
+    os << "current_instance " << rhs.getName() << "\n"; 
+    return os;
+}
+
+
+//object access commands
+CurrentDesignPtr SdcCurrentDesignContainer::current_design_ = std::make_shared<CurrentDesign>(); 
+std::string SdcCurrentDesignContainer::getName() {
+    const ObjectId &cell_id = current_design_->getCellId(); 
+    Cell* cell = Object::addr<Cell>(cell_id);
+    if (cell) {
+        return cell->getName();
+    }
+    //TODO return error messages
+    return "";
+}
+
+
+std::ostream &operator<<(std::ostream &os, const SdcCurrentDesignContainer &rhs) {
+    os << "current_design " << rhs.getName() << "\n";
+    return os;
 }
 
 // environment commands

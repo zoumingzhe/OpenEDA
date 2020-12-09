@@ -17,6 +17,18 @@
 namespace open_edi {
 namespace db {
 
+//current_instance
+void CurrentInstance::cd(const std::string &dir) {
+    //TODO
+    // 1) dir == ""
+    // 2) dir == "." --> current
+    // 3) dir == ".."
+    // 4) dir == "inst name"
+    // 5) dir == "../inst name"
+    // 6) dir == "../../inst name"
+    // 7) dir == "\." --> top
+}
+
 //set_hierarchy_separator
 void SetHierarchySeparator::setSeparator(const std::string& input) {
     if ((input == "/") or (input == "@") or (input == "^")  or

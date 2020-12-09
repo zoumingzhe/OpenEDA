@@ -29,18 +29,13 @@ namespace db {
 
 //general purpose commands
 class SdcCurrentInstanceContainer {
-  //Usage: 
-  //1 not specify --- top level
-  //2 one period (.)
-  //3 two period (..) 
-  //4 valid cell
   public:
-    void add(CurrentInstancePtr instance) { current_instance_ = instance; }
-    std::string getName();
-    void setId(const ObjectId &id) { current_instance_->setInstanceId(id); };
+    static void add(CurrentInstancePtr instance) { current_instance_ = instance; }
+    static std::string getName();
+    friend std::ostream &operator<<(std::ostream &os, const SdcCurrentInstanceContainer &rhs);
 
   private:
-    CurrentInstancePtr current_instance_;
+    static CurrentInstancePtr current_instance_;
 };
 using SdcCurrentInstanceContainerPtr = std::shared_ptr<SdcCurrentInstanceContainer>;
 
@@ -83,8 +78,13 @@ class SdcAllRegistersContainer {
 using SdcAllRegistersContainerPtr = std::shared_ptr<SdcAllRegistersContainer>;
 
 class SdcCurrentDesignContainer {
+  public:
+    static void add(CurrentDesignPtr design) { current_design_ = design; }
+    static std::string getName();
+    friend std::ostream &operator<<(std::ostream &os, const SdcCurrentDesignContainer &rhs);
+
   private:
-    CurrentDesignPtr current_design_;
+    static CurrentDesignPtr current_design_;
 };
 using SdcCurrentDesignPtr = std::shared_ptr<SdcCurrentDesignContainer>;
 

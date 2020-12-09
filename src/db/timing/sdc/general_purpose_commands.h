@@ -27,8 +27,11 @@ namespace open_edi {
 namespace db {
 
 class CurrentInstance {
+  public:
+    void cd(const std::string &dir);
+
   private:
-    ObjectId instance_id_;
+    ObjectId instance_id_ = UNINIT_OBJECT_ID;
 
   public:
     COMMAND_GET_SET_VAR(instance_id, InstanceId)
