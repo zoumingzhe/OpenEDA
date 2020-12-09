@@ -163,7 +163,7 @@ int AnalysisMode::numContraintFiles(void) const {
     }
     return 0;
 }
-SdcPtr AnalysisMode::get_sdc(void) const { return sdc_; }
+SdcPtr AnalysisMode::getSdc(void) const { return sdc_; }
 
 OStreamBase& operator<<(OStreamBase& os, AnalysisMode const& rhs) {
     os << DataTypeName(className(rhs)) << DataBegin("(");
