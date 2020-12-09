@@ -15,8 +15,10 @@
 #ifndef EDI_DB_TIMING_SDC_CLOCK_H_
 #define EDI_DB_TIMING_SDC_CLOCK_H_
 
+#include <memory>
+
+#include "db/core/object.h"
 #include "util/util.h"
-#include "memory"
 
 namespace open_edi {
 namespace db {
@@ -41,7 +43,7 @@ class Clock {
     float period_ = 0.0;
     ClockId id_ = invalid_clock_id;
     std::vector<float> waveform_;
-    string name_ = "";
+    std::string name_ = "";
 };
 using ClockPtr = std::shared_ptr<Clock>;
 
@@ -58,11 +60,11 @@ using ClockGroupPtr = std::shared_ptr<ClockGroup>;
 
 class ClockPinPair {
   public:
-    ClockPinPair(ClockId clock_id = invalid_clock_id, ObjectId pin_id) : clock_id_(clock_id), pin_id_(pin_id) {}
+    ClockPinPair(ClockId clock_id, ObjectId pin_id) : clock_id_(clock_id), pin_id_(pin_id) {}
     //deconstructor
     //operator ==
     void SetClockId(const ClockId &id) { clock_id_ = id; } 
-    void SetPinId(const ObjectkId &id) { pin_id_ = id; } 
+    void SetPinId(const ObjectId &id) { pin_id_ = id; } 
 
     const ClockId& getClockId() { return clock_id_; }
     const ClockId& getPinId() { return pin_id_; }
@@ -103,7 +105,8 @@ class PinPair {
   private:
     ObjectId first_id_;
     ObjectId second_id_;
-}
+};
+using PinPairPtr = std::shared_ptr<PinPair>;
 
 
 

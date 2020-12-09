@@ -21,23 +21,25 @@
 #include <memory>
 
 #include "db/core/object.h"
+#include "db/util/box.h"
+#include "util/point.h"
+#include "db/timing/sdc/command_get_set_property.h"
 
 namespace open_edi {
 namespace db {
 
-
 class CreateVoltageArea {
   private:
     std::string name_ = "";
-    geo::Box coordinate_;
-    geo::Point<float> polygons_;
+    //Box coordinate_;
+    //Point<float> polygons_;
     int guard_band_x_ = 0;
     int guard_band_y_ = 0;
   
   public:
     COMMAND_GET_SET_VAR(name, Name)
-    COMMAND_GET_SET_VAR(coordinate, Coordinate)
-    COMMAND_GET_SET_VAR(polygons, Polygons)
+    //COMMAND_GET_SET_VAR(coordinate, Coordinate)
+    //COMMAND_GET_SET_VAR(polygons, Polygons)
     COMMAND_GET_SET_VAR(guard_band_x, GuardBandX)
     COMMAND_GET_SET_VAR(guard_band_y, GuardBandY)
 };
@@ -79,6 +81,7 @@ class SetMaxLeakagePower {
   public:
     COMMAND_GET_SET_VAR(leakage_power, LeakagePower)
 };
+using SetMaxLeakagePowerPtr = std::shared_ptr<SetMaxLeakagePower>;
 
 
 

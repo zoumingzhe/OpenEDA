@@ -21,16 +21,17 @@
 #include <memory>
 
 #include "db/core/object.h"
+#include "db/timing/sdc/command_get_set_property.h"
 
 namespace open_edi {
 namespace db {
 
 class CurrentInstance {
   private:
-    ObjectId instance_;
+    ObjectId instance_id_;
 
   public:
-    COMMAND_GET_SET_VAR(instance_, Instance)
+    COMMAND_GET_SET_VAR(instance_id, InstanceId)
 };
 using CurrentInstancePtr = std::shared_ptr<CurrentInstance>;
 
@@ -55,7 +56,7 @@ class SetUnits {
     float voltage_unit_;
     float current_unit_;
     float power_unit_; 
-}
+};
 using SetUnitsPtr = std::shared_ptr<SetUnits>;
 
 }
