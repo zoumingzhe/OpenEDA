@@ -21,8 +21,6 @@
 #include <memory>
 
 #include "db/core/object.h"
-#include "db/util/box.h"
-#include "util/point.h"
 #include "db/timing/sdc/command_get_set_property.h"
 
 namespace open_edi {
