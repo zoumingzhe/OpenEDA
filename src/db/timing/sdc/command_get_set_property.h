@@ -20,10 +20,20 @@
     const decltype(var##_)& get##Var () const { return var##_; } \
     decltype(var##_)& get##Var () {return var##_;}
 
-#define COMMAND_GET_SET_FLAG(flags, id, var, Var)  \
+#define COMMAND_GET_SET_FLAG(var, Var) \
+  private: \
+    bool var : 1; \
+  public: \
+    void set##Var () { var = true; } \
+    void reset##Var () { var = false; } \
+    bool get##Var () { return var;} \
+    bool is##Var () { return var; } 
+
+#define COMMAND_BITSET_FLAG(flags, id, var, Var)  \
     void set##Var () { flags##_.set(id, 1); } \
     void reset##Var () { flags##_.set(id, 0); } \
-    bool get##Var () { return flags##_.test(id) ;} \
+    bool get##Var () { return flags##_.test(id); } \
     bool is##Var () { return flags##_.test(id); } 
+
 
 #endif

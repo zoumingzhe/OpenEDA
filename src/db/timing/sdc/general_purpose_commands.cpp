@@ -19,9 +19,9 @@ namespace db {
 
 //set_hierarchy_separator
 void SetHierarchySeparator::setSeparator(const std::string& input) {
-    if ((input == "/") or (input == "@") or (input == "^") 
+    if ((input == "/") or (input == "@") or (input == "^")  or
         (input == "#") or (input == ".") or (input == "|")) {
-        separator_ = input
+        separator_ = input;
     }
     //TODO messages
 }

@@ -21,6 +21,10 @@
 
 #include "db/core/object.h"
 #include "db/timing/sdc/clock.h"
+#include "db/timing/sdc/command_get_set_property.h"
+
+namespace open_edi {
+namespace db {
 
 class PathNodes {
   public:
@@ -30,19 +34,18 @@ class PathNodes {
     void addClock(const ClockId clock_id) { clocks_.emplace_back(clock_id); }
 
   private:
-    vector<ObjectId> pins_;
-    vector<ObjectId> terms_; 
-    vector<ObjectId> instances_;
-    vector<ClockId> clocks_;
-    std::bitset<2> flags_;
+    std::vector<ObjectId> pins_;
+    std::vector<ObjectId> terms_; 
+    std::vector<ObjectId> instances_;
+    std::vector<ClockId> clocks_;
 
   public:
     COMMAND_GET_SET_VAR(pins, Pins)
     COMMAND_GET_SET_VAR(terms, Terms)
     COMMAND_GET_SET_VAR(instances, Instances)
     COMMAND_GET_SET_VAR(clocks, Clocks)
-    COMMAND_GET_SET_FLAG(flags, 0, rise, Rise)
-    COMMAND_GET_SET_FLAG(flags, 1, fall, Fall)
+    COMMAND_GET_SET_FLAG(rise, Rise)
+    COMMAND_GET_SET_FLAG(fall, Fall)
 };
 using PathNodesPtr = std::shared_ptr<PathNodes>;
 
@@ -51,12 +54,12 @@ class PathThroughNodes : PathNodes {
     void addNet(const ObjectId net_id) { nets_.emplace_back(net_id); };
 
   private:
-    vector<ObjectId> nets_;
+    std::vector<ObjectId> nets_;
 
   public:
     COMMAND_GET_SET_VAR(nets, Nets)
 };
-using PahtThroughNodesPtr = std::shared_ptr<PathThroughNodes>;
+using PathThroughNodesPtr = std::shared_ptr<PathThroughNodes>;
 
 class ExceptionPath {
   private:
@@ -71,10 +74,7 @@ class ExceptionPath {
 };
 using ExceptionPathPtr = std::shared_ptr<ExceptionPath>;
 
-
-
-
-
-
+}
+}
 
 #endif // EDI_DB_TIMING_SDC_TIMING_EXCEPTION_H_

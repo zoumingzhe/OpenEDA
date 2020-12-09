@@ -17,6 +17,12 @@
 namespace open_edi {
 namespace db {
 
+//general purpose commands
+std::string SdcCurrentInstanceContainer::getName() {
+    const ObjectId &inst_id = current_instance_->getInstanceId();
+
+}
+
 // environment commands
 // create_clock
 void SdcClockContainer::add(const CreateClock &create_clock) {

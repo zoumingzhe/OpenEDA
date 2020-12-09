@@ -22,21 +22,33 @@
 #include "db/timing/sdc/multivoltage_power_commands.h"
 #include "db/core/db.h"
 
+#include <set>
+
 namespace open_edi {
 namespace db {
 
 //general purpose commands
-class SdcCurrentInstance {
+class SdcCurrentInstanceContainer {
+  //Usage: 
+  //1 not specify --- top level
+  //2 one period (.)
+  //3 two period (..) 
+  //4 valid cell
+  public:
+    void add(CurrentInstancePtr instance) { current_instance_ = instance; }
+    std::string getName();
+    void setId(const ObjectId &id) { current_instance_->setInstanceId(id); };
+
   private:
-    CurrentInstancePtr instance_;
+    CurrentInstancePtr current_instance_;
 };
-using SdcCurrentInstanceContainer = std::shared_ptr<SdcCurrentInstance>;
+using SdcCurrentInstanceContainerPtr = std::shared_ptr<SdcCurrentInstanceContainer>;
 
 class SdcHierarchySeparatorContainer {
   private:
     SetHierarchySeparatorPtr separator_;
 };
-using SdcHierarchySeparatorContainer = std::shared_ptr<SdcHierarchySeparatorContainer>;
+using SdcHierarchySeparatorContainerPtr = std::shared_ptr<SdcHierarchySeparatorContainer>;
 
 class SdcUnitsContainer {
   private:
@@ -47,7 +59,7 @@ using SdcUnitsContainerPtr = std::shared_ptr<SdcUnitsContainer>;
 //object access commands
 class SdcAllClocksContainer {
   private:
-    AllClockPtr all_locks_;
+    AllClocksPtr all_locks_;
 };
 using SdcAllClocksContainerPtr = std::shared_ptr<SdcAllClocksContainer>;
 
@@ -73,7 +85,7 @@ using SdcAllRegistersContainerPtr = std::shared_ptr<SdcAllRegistersContainer>;
 class SdcCurrentDesignContainer {
   private:
     CurrentDesignPtr current_design_;
-}
+};
 using SdcCurrentDesignPtr = std::shared_ptr<SdcCurrentDesignContainer>;
 
 class SdcGetCellsContainer {
@@ -144,7 +156,7 @@ class SdcClockContainer {
     const Clock& getClock(const std::string &name);
     const ClockId getClockId(const std::string &name);
 
-    friend std::ostream &operator<<(std::ostream &os, SdcCaseAnalysisContainer &rhs);
+    friend std::ostream &operator<<(std::ostream &os, SdcClockContainer &rhs);
 
   private:
     std::vector<ClockId> clock_ids_;
@@ -158,8 +170,8 @@ using SdcClockContainerPtr = std::shared_ptr<SdcClockContainer>;
 
 class SdcGroupPathContainer {
   public:
-    void add(const GroupPath& path) { paths_.emplace_back(path); }
-    const std::vector<GroupPath> &get() { return paths_; }
+    void add(const GroupPathPtr &path) { paths_.emplace_back(path); }
+    const std::vector<GroupPathPtr> &get() { return paths_; }
 
   private:
     std::vector<GroupPathPtr> paths_;
@@ -169,8 +181,8 @@ using SdcGroupPathContinerPtr = std::shared_ptr<SdcGroupPathContainer>;
 class SdcClockGatingCheckContainer {
   public:
     void addToPin(const ObjectId pin_id, const SetClockGatingCheck &check) { pin_clock_gating_check_.emplace(pin_id, check); }
-    void addToInstance(const ObjectId inst_id, const SetClockGatingCheck &check) { inst_clock_gating_check_.emplace(pin_id, check); }
-    void addToClock(const ObjectId pin_id, const SetClockGatingCheck &check) { clock_to_gating_check_.emplace(pin_id, check); }
+    void addToInstance(const ObjectId inst_id, const SetClockGatingCheck &check) { inst_clock_gating_check_.emplace(inst_id, check); }
+    void addToClock(const ClockId clock_id, const SetClockGatingCheck &check) { clock_to_gating_check_.emplace(clock_id, check); }
 
   private:
     std::unordered_map<ObjectId, SetClockGatingCheckPtr> pin_clock_gating_check_;
@@ -180,6 +192,7 @@ class SdcClockGatingCheckContainer {
 using SdcClockGatingCheckContainerPtr = std::shared_ptr<SdcClockGatingCheckContainer>;
 
 //TODO change the data structure
+/*
 class SdcClockGroupsContainer {
   public:
     void add(const SetClocKGroups &groups);
@@ -190,6 +203,7 @@ class SdcClockGroupsContainer {
     std::unordered_map<ClockGroupId, ClockGroupId> physically_exclusive_groups_;
 };
 using SdcClockGroupsContainerPtr = std::shared_ptr<SdcClockGroupsContainer>; 
+*/
 
 class SdcClockLatencyContainer {
   public:
@@ -198,7 +212,7 @@ class SdcClockLatencyContainer {
   private:
     std::unordered_map<ObjectId, std::vector<SetClockLatency> > pin_clock_latency_;
     std::unordered_map<ClockId, std::vector<SetClockLatency> > clock_latency_;
-}
+};
 using SdcClockLatencyContainerPtr = std::shared_ptr<SdcClockLatencyContainer>;
 
 class SdcSenceContainer {
@@ -232,7 +246,7 @@ using SdcDataCheckContainerPtr = std::shared_ptr<SdcDataCheckContainer>;
 
 class SdcDisableTimingContinaer {
   public:
-    void add(const SetDiableTiming &disable_timing);
+    void add(const SetDisableTiming &disable_timing);
 
   private:
     std::unordered_map<ObjectId, ObjectId> pin_to_pin_;
@@ -312,7 +326,7 @@ using SdcMulticyclePathContainerPtr = std::shared_ptr<SdcMulticyclePathContainer
 class SdcOutputDelayContainer {
 
   private:
-    std::unordered_map<PinPairPtr, SetOutDelayPtr> pin_output_delays_;
+    std::unordered_map<PinPairPtr, SetOutputDelayPtr> pin_output_delays_;
 };
 using SdcOutputDelayContainerPtr = std::shared_ptr<SdcOutputDelayContainer>;
 
@@ -429,11 +443,11 @@ class SdcPortFanoutNumberContainer {
 }; 
 using SdcPortFanoutNumberContainerPtr = std::shared_ptr<SdcPortFanoutNumberContainer>;
 
-class SdcNetResistanceContainer {
+class SdcResistanceContainer {
   private:
     std::unordered_map<ObjectId, SetResistancePtr> net_resistance_;
 };
-using SdcNetResistanceContainerPtr = std::shared_ptr<SdcResistanceContainer>;
+using SdcResistanceContainerPtr = std::shared_ptr<SdcResistanceContainer>;
 
 class SdcTimingDerateContainer {
   private:
@@ -443,11 +457,11 @@ class SdcTimingDerateContainer {
 };
 using SdcTimingDerateContainerPtr = std::shared_ptr<SdcTimingDerateContainer>;
 
-class SdcPowerNetVoltageContainer {
+class SdcVoltageContainer {
   private:
     std::unordered_map<ObjectId, SetVoltagePtr> net_voltage_;
 };
-using SdcPowerNetVoltageContainerPtr = std::shared_ptr<SdcPowerNetVoltageContainer>;
+using SdcVoltageContainerPtr = std::shared_ptr<SdcVoltageContainer>;
 
 class SdcWireLoadModeContainer {
   private:
@@ -472,7 +486,7 @@ using SdcWireLoadSelectionGroupContainerPtr= std::shared_ptr<SdcWireLoadSelectio
 //multivoltage power commands
 class SdcVoltageAreaContainer {
   private:
-    std::unordered_map<ObjectId, createVoltageAreaPtr> cell_voltage_area_;
+    std::unordered_map<ObjectId, CreateVoltageAreaPtr> cell_voltage_area_;
 }; 
 using SdcVoltageAreaContainerPtr = std::shared_ptr<SdcVoltageAreaContainer>;
 

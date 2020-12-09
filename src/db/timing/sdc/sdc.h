@@ -29,13 +29,7 @@ class Sdc {
 
     //get
     SdcCaseAnalysisContainerPtr get_case_analysis_container() { return case_analysis_container_ptr_; }
-  private:
-    SdcHierarchySeparatorPtr hierarchy_separator_; 
 
-  private:
-    SdcCurrentDesignPtr current_design_;
-
-  private:
     SdcCaseAnalysisContainerPtr case_analysis_container_ptr_;
 };
 using SdcPtr = std::shared_ptr<Sdc>;
