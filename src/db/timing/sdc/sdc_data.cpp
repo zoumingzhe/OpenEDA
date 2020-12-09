@@ -35,6 +35,12 @@ std::ostream &operator<<(std::ostream &os, const SdcCurrentInstanceContainer &rh
     return os;
 }
 
+SetHierarchySeparatorPtr SdcHierarchySeparatorContainer::separator_ = std::make_shared<SetHierarchySeparator>();
+std::ostream &operator<<(std::ostream &os, const SdcHierarchySeparatorContainer &rhs) {
+    os << "set_hierarchy_separator " << rhs.get() << "\n";
+    return os;
+}
+
 
 //object access commands
 CurrentDesignPtr SdcCurrentDesignContainer::current_design_ = std::make_shared<CurrentDesign>(); 

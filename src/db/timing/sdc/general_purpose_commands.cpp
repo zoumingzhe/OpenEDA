@@ -17,7 +17,6 @@
 namespace open_edi {
 namespace db {
 
-//current_instance
 void CurrentInstance::cd(const std::string &dir) {
     //TODO
     // 1) dir == ""
@@ -29,14 +28,22 @@ void CurrentInstance::cd(const std::string &dir) {
     // 7) dir == "\." --> top
 }
 
-//set_hierarchy_separator
-void SetHierarchySeparator::setSeparator(const std::string& input) {
-    if ((input == "/") or (input == "@") or (input == "^")  or
-        (input == "#") or (input == ".") or (input == "|")) {
-        separator_ = input;
+std::string legal_chars_ = "/@^#.|";
+void SetHierarchySeparator::setAndCheck(const std::string &input) {
+    if (input.size() != 1) {
+        //TODO error messages
+        return;
     }
-    //TODO messages
+    auto found = legal_chars_.find(input); 
+    if (found == std::string::npos) {
+        //TODO error messages
+        return;
+    }
+    separator_ = input[0];
 }
+
+
+
 
 }
 }

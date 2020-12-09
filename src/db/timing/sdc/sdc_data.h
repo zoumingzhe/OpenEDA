@@ -40,8 +40,13 @@ class SdcCurrentInstanceContainer {
 using SdcCurrentInstanceContainerPtr = std::shared_ptr<SdcCurrentInstanceContainer>;
 
 class SdcHierarchySeparatorContainer {
+  public:
+    static void add(SetHierarchySeparatorPtr separator) { separator_ = separator; }
+    static char get() { return separator_->getSeparator(); };
+    friend std::ostream &operator<<(std::ostream &os, const SdcHierarchySeparatorContainer &rhs);
+
   private:
-    SetHierarchySeparatorPtr separator_;
+    static SetHierarchySeparatorPtr separator_;
 };
 using SdcHierarchySeparatorContainerPtr = std::shared_ptr<SdcHierarchySeparatorContainer>;
 

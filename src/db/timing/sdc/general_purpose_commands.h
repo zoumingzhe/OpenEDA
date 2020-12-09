@@ -19,6 +19,7 @@
 #include <vector>
 #include <unordered_map>
 #include <memory>
+#include <set> 
 
 #include "db/core/object.h"
 #include "db/timing/sdc/command_get_set_property.h"
@@ -40,11 +41,14 @@ using CurrentInstancePtr = std::shared_ptr<CurrentInstance>;
 
 class SetHierarchySeparator {
   public:
-    void setSeparator(const std::string& input);
-    const std::string& getSeparator() const { return separator_; }
+    void setAndCheck(const std::string &input);
 
   private:
-    std::string separator_ = "/";
+    static const std::string legal_chars_;
+    char separator_ = '/';
+
+  public:
+    COMMAND_GET_SET_VAR(separator, Separator)
 };
 using SetHierarchySeparatorPtr = std::shared_ptr<SetHierarchySeparator>; 
 
