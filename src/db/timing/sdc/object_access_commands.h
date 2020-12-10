@@ -37,15 +37,15 @@ using AllClocksPtr = std::shared_ptr<AllClocks>;
 
 class AllInputs {
   public:
-    COMMAND_GET_SET_FLAG(level_sensitive, LevelSensitive)
-    COMMAND_GET_SET_FLAG(edge_triggered, EdgeTriggered)
+    COMMAND_GET_SET_FLAG(level_sensitive_, LevelSensitive)
+    COMMAND_GET_SET_FLAG(edge_triggered_, EdgeTriggered)
 };
 using AllInputsPtr = std::shared_ptr<AllInputs>;
 
 class AllOutputs {
   public:
-    COMMAND_GET_SET_FLAG(level_sensitive, LevelSensitive)
-    COMMAND_GET_SET_FLAG(edge_triggered, EdgeTriggered)
+    COMMAND_GET_SET_FLAG(level_sensitive_, LevelSensitive)
+    COMMAND_GET_SET_FLAG(edge_triggered_, EdgeTriggered)
 };
 using AllOutputsPtr = std::shared_ptr<AllOutputs>;
 
@@ -59,16 +59,16 @@ class AllRegisters {
     COMMAND_GET_SET_VAR(clocks, Clocks)
     COMMAND_GET_SET_VAR(rise_clocks, RiseClocks)
     COMMAND_GET_SET_VAR(fall_clocks, FallClocks)
-    COMMAND_GET_SET_FLAG(no_hierarchy, NoHierarchy)
-    COMMAND_GET_SET_FLAG(cells, Cells)
-    COMMAND_GET_SET_FLAG(data_pins, DataPins)
-    COMMAND_GET_SET_FLAG(clock_pins, ClockPins)
-    COMMAND_GET_SET_FLAG(slave_clock_pins, SlaveClockPins)
-    COMMAND_GET_SET_FLAG(async_pins, AsyncPins)
-    COMMAND_GET_SET_FLAG(output_pins, OutputPins)
-    COMMAND_GET_SET_FLAG(level_sensitive, LevelSensitive)
-    COMMAND_GET_SET_FLAG(edge_triggered, EdgeTriggered)
-    COMMAND_GET_SET_FLAG(master_slave, MasterSlave)
+    COMMAND_GET_SET_FLAG(no_hierarchy_, NoHierarchy)
+    COMMAND_GET_SET_FLAG(cells_, Cells)
+    COMMAND_GET_SET_FLAG(data_pins_, DataPins)
+    COMMAND_GET_SET_FLAG(clock_pins_, ClockPins)
+    COMMAND_GET_SET_FLAG(slave_clock_pins_, SlaveClockPins)
+    COMMAND_GET_SET_FLAG(async_pins_, AsyncPins)
+    COMMAND_GET_SET_FLAG(output_pins_, OutputPins)
+    COMMAND_GET_SET_FLAG(level_sensitive_, LevelSensitive)
+    COMMAND_GET_SET_FLAG(edge_triggered_, EdgeTriggered)
+    COMMAND_GET_SET_FLAG(master_slave_, MasterSlave)
 };
 using AllRegistersPtr = std::shared_ptr<AllRegisters>;
 
@@ -92,9 +92,9 @@ class GetCells {
   public:
     COMMAND_GET_SET_VAR(of_objects, OfObjects)
     COMMAND_GET_SET_VAR(patterns, Patterns)
-    COMMAND_GET_SET_FLAG(hierarchical, Hierarchical)
-    COMMAND_GET_SET_FLAG(regexp, Regexp)
-    COMMAND_GET_SET_FLAG(nocase, NoCase)
+    COMMAND_GET_SET_FLAG(hierarchical_, Hierarchical)
+    COMMAND_GET_SET_FLAG(regexp_, Regexp)
+    COMMAND_GET_SET_FLAG(nocase_, NoCase)
 };
 using GetCellsPtr = std::shared_ptr<GetCells>;
 
@@ -104,8 +104,8 @@ class GetClocks {
 
   public:
     COMMAND_GET_SET_VAR(patterns, Patterns)
-    COMMAND_GET_SET_FLAG(regexp, Regexp)
-    COMMAND_GET_SET_FLAG(nocase, NoCase)
+    COMMAND_GET_SET_FLAG(regexp_, Regexp)
+    COMMAND_GET_SET_FLAG(nocase_, NoCase)
 }; 
 using GetClocksPtr = std::shared_ptr<GetClocks>;
 
@@ -115,8 +115,8 @@ class GetLibCells {
 
   public:
     COMMAND_GET_SET_VAR(patterns, Patterns)
-    COMMAND_GET_SET_FLAG(regexp, Regexp)
-    COMMAND_GET_SET_FLAG(nocase, NoCase)
+    COMMAND_GET_SET_FLAG(regexp_, Regexp)
+    COMMAND_GET_SET_FLAG(nocase_, NoCase)
 };
 using GetLibCellsPtr = std::shared_ptr<GetLibCells>;
 
@@ -126,8 +126,8 @@ class GetLibPins {
 
   public:
     COMMAND_GET_SET_VAR(patterns, Patterns)
-    COMMAND_GET_SET_FLAG(regexp, Regexp)
-    COMMAND_GET_SET_FLAG(nocase, NoCase)
+    COMMAND_GET_SET_FLAG(regexp_, Regexp)
+    COMMAND_GET_SET_FLAG(nocase_, NoCase)
 };
 using GetLibPinsPtr = std::shared_ptr<GetLibPins>;
 
@@ -137,8 +137,8 @@ class GetLibs {
 
   public:
     COMMAND_GET_SET_VAR(patterns, Patterns)
-    COMMAND_GET_SET_FLAG(regexp, Regexp)
-    COMMAND_GET_SET_FLAG(nocase, NoCase)
+    COMMAND_GET_SET_FLAG(regexp_, Regexp)
+    COMMAND_GET_SET_FLAG(nocase_, NoCase)
 };
 using GetLibsPtr = std::shared_ptr<GetLibs>;
 
@@ -148,9 +148,9 @@ class GetNets {
 
   public:
     COMMAND_GET_SET_VAR(of_objects, OfObjects)
-    COMMAND_GET_SET_FLAG(hierarchical, Hierarchical)
-    COMMAND_GET_SET_FLAG(regexp, Regexp)
-    COMMAND_GET_SET_FLAG(nocase, NoCase)
+    COMMAND_GET_SET_FLAG(hierarchical_, Hierarchical)
+    COMMAND_GET_SET_FLAG(regexp_, Regexp)
+    COMMAND_GET_SET_FLAG(nocase_, NoCase)
 };
 using GetNetsPtr = std::shared_ptr<GetNets>;
 
@@ -162,9 +162,9 @@ class GetPins {
   public:
     COMMAND_GET_SET_VAR(patterns, Patterns)
     COMMAND_GET_SET_VAR(of_objects, OfObjects)
-    COMMAND_GET_SET_FLAG(hierarchical, Hierarchical)
-    COMMAND_GET_SET_FLAG(regexp, Regexp)
-    COMMAND_GET_SET_FLAG(nocase, NoCase)
+    COMMAND_GET_SET_FLAG(hierarchical_, Hierarchical)
+    COMMAND_GET_SET_FLAG(regexp_, Regexp)
+    COMMAND_GET_SET_FLAG(nocase_, NoCase)
 };
 using GetPinsPtr = std::shared_ptr<GetPins>;
 
@@ -174,8 +174,8 @@ class GetPorts {
 
   public:
     COMMAND_GET_SET_VAR(patterns, Patterns)
-    COMMAND_GET_SET_FLAG(regexp, Regexp)
-    COMMAND_GET_SET_FLAG(nocase, NoCase)
+    COMMAND_GET_SET_FLAG(regexp_, Regexp)
+    COMMAND_GET_SET_FLAG(nocase_, NoCase)
 };
 using GetPortsPtr = std::shared_ptr<GetPorts>;
 

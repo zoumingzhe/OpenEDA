@@ -39,7 +39,7 @@ void SetHierarchySeparator::setAndCheck(const std::string &input) {
         //TODO error messages
         return;
     }
-    separator_ = input[0];
+    separator_ = input.front();
 }
 
 

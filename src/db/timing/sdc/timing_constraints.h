@@ -34,7 +34,7 @@ class CreateClock {
 
   public:
     COMMAND_GET_SET_VAR(comment, Comment)
-    COMMAND_GET_SET_FLAG(add, Add)
+    COMMAND_GET_SET_FLAG(add_, Add)
 };
 using CreateClockPtr = std::shared_ptr<CreateClock>;
 
@@ -65,9 +65,9 @@ class CreateGeneratedClock {
     COMMAND_GET_SET_VAR(edge_shifts, EdgeShifts)
     COMMAND_GET_SET_VAR(source_objects, SourceObjects)
     COMMAND_GET_SET_VAR(edges, Edges)
-    COMMAND_GET_SET_FLAG(invert, Invert)
-    COMMAND_GET_SET_FLAG(add, Add)
-    COMMAND_GET_SET_FLAG(combinational, Combinational)
+    COMMAND_GET_SET_FLAG(invert_, Invert)
+    COMMAND_GET_SET_FLAG(add_, Add)
+    COMMAND_GET_SET_FLAG(combinational_, Combinational)
 };
 using CreateGeneratedClockPtr = std::shared_ptr<CreateGeneratedClock>;
 
@@ -86,7 +86,7 @@ class GroupPath {
     COMMAND_GET_SET_VAR(from, From)
     COMMAND_GET_SET_VAR(to, To)
     COMMAND_GET_SET_VAR(through, Through)
-    COMMAND_GET_SET_FLAG(default_value, DefaultValue)
+    COMMAND_GET_SET_FLAG(default_value_, DefaultValue)
 };
 using GroupPathPtr = std::shared_ptr<GroupPath>; 
 
@@ -97,10 +97,10 @@ class SetClockGatingCheck {
   public:
     COMMAND_GET_SET_VAR(setup, Setup)
     COMMAND_GET_SET_VAR(hold, Hold)
-    COMMAND_GET_SET_FLAG(rise, Rise)
-    COMMAND_GET_SET_FLAG(fall, Fall)
-    COMMAND_GET_SET_FLAG(high, High)
-    COMMAND_GET_SET_FLAG(low, Low)
+    COMMAND_GET_SET_FLAG(rise_, Rise)
+    COMMAND_GET_SET_FLAG(fall_, Fall)
+    COMMAND_GET_SET_FLAG(high_, High)
+    COMMAND_GET_SET_FLAG(low_, Low)
 };
 using SetClockGatingCheckPtr = std::shared_ptr<SetClockGatingCheck>;
 
@@ -115,10 +115,10 @@ class SetClockGroups {
   public:
     COMMAND_GET_SET_VAR(name, Name)
     COMMAND_GET_SET_VAR(comment, Comment)
-    COMMAND_GET_SET_FLAG(physically_exclusive, PhysicallyExclusive)
-    COMMAND_GET_SET_FLAG(logically_exclusive, LogicallyExclusive)
-    COMMAND_GET_SET_FLAG(asynchronous, Asynchronous)
-    COMMAND_GET_SET_FLAG(allow_paths, AllowPaths)
+    COMMAND_GET_SET_FLAG(physically_exclusive_, PhysicallyExclusive)
+    COMMAND_GET_SET_FLAG(logically_exclusive_, LogicallyExclusive)
+    COMMAND_GET_SET_FLAG(asynchronous_, Asynchronous)
+    COMMAND_GET_SET_FLAG(allow_paths_, AllowPaths)
 };
 using SetClockGroupsPtr = std::shared_ptr<SetClockGroups>;
 */
@@ -129,14 +129,14 @@ class SetClockLatency {
 
   public:
     COMMAND_GET_SET_VAR(delay, Delay)
-    COMMAND_GET_SET_FLAG(rise, Rise)
-    COMMAND_GET_SET_FLAG(fall, Fall)
-    COMMAND_GET_SET_FLAG(min, Min)
-    COMMAND_GET_SET_FLAG(max, Max)
-    COMMAND_GET_SET_FLAG(dynamic, Dynamic)
-    COMMAND_GET_SET_FLAG(source, Source)
-    COMMAND_GET_SET_FLAG(early, Early)
-    COMMAND_GET_SET_FLAG(late, Late)
+    COMMAND_GET_SET_FLAG(rise_, Rise)
+    COMMAND_GET_SET_FLAG(fall_, Fall)
+    COMMAND_GET_SET_FLAG(min_, Min)
+    COMMAND_GET_SET_FLAG(max_, Max)
+    COMMAND_GET_SET_FLAG(dynamic_, Dynamic)
+    COMMAND_GET_SET_FLAG(source_, Source)
+    COMMAND_GET_SET_FLAG(early_, Early)
+    COMMAND_GET_SET_FLAG(late_, Late)
 };
 using SetClockLatencyPtr = std::shared_ptr<SetClockLatency>;
 
@@ -150,11 +150,11 @@ class SetSense {
   public:
     COMMAND_GET_SET_VAR(type, Type)
     COMMAND_GET_SET_VAR(pulse, Pulse)
-    COMMAND_GET_SET_FLAG(non_unate, NonUnate)
-    COMMAND_GET_SET_FLAG(positive, Positive)
-    COMMAND_GET_SET_FLAG(negative, Negative)
-    COMMAND_GET_SET_FLAG(clock_leaf, ClockLeaf)
-    COMMAND_GET_SET_FLAG(stop_propagation, StopPropation)
+    COMMAND_GET_SET_FLAG(non_unate_, NonUnate)
+    COMMAND_GET_SET_FLAG(positive_, Positive)
+    COMMAND_GET_SET_FLAG(negative_, Negative)
+    COMMAND_GET_SET_FLAG(clock_leaf_, ClockLeaf)
+    COMMAND_GET_SET_FLAG(stop_propagation_, StopPropation)
 }; 
 using SetSensePtr = std::shared_ptr<SetSense>;
 
@@ -164,10 +164,10 @@ class SetClockTransition {
 
   public:
     COMMAND_GET_SET_VAR(transition, Transition)
-    COMMAND_GET_SET_FLAG(rise, Rise)
-    COMMAND_GET_SET_FLAG(fall, Fall)
-    COMMAND_GET_SET_FLAG(min, Min)
-    COMMAND_GET_SET_FLAG(max, Max)
+    COMMAND_GET_SET_FLAG(rise_, Rise)
+    COMMAND_GET_SET_FLAG(fall_, Fall)
+    COMMAND_GET_SET_FLAG(min_, Min)
+    COMMAND_GET_SET_FLAG(max_, Max)
 };
 using SetClockTransitionPtr = std::shared_ptr<SetClockTransition>;
 
@@ -177,12 +177,12 @@ class SetClockUncertainty {
 
   public:
     COMMAND_GET_SET_VAR(uncertainty, Uncertainty)
-    COMMAND_GET_SET_FLAG(consider_rise_from, ConsiderRiseFrom)
-    COMMAND_GET_SET_FLAG(consider_fall_from, ConsiderFallFrom)
-    COMMAND_GET_SET_FLAG(consider_rise_to, ConsiderRiseTo)
-    COMMAND_GET_SET_FLAG(consider_fall_to, ConsiderFallTo)
-    COMMAND_GET_SET_FLAG(setup, Setup)
-    COMMAND_GET_SET_FLAG(hold, Hold)
+    COMMAND_GET_SET_FLAG(consider_rise_from_, ConsiderRiseFrom)
+    COMMAND_GET_SET_FLAG(consider_fall_from_, ConsiderFallFrom)
+    COMMAND_GET_SET_FLAG(consider_rise_to_, ConsiderRiseTo)
+    COMMAND_GET_SET_FLAG(consider_fall_to_, ConsiderFallTo)
+    COMMAND_GET_SET_FLAG(setup_, Setup)
+    COMMAND_GET_SET_FLAG(hold_, Hold)
 };
 using SetClockUncertaintyPtr = std::shared_ptr<SetClockUncertainty>;
 
@@ -197,12 +197,12 @@ class SetDataCheck {
   public:
     COMMAND_GET_SET_VAR(value, Value)
     COMMAND_GET_SET_VAR(clocks, Clocks)
-    COMMAND_GET_SET_FLAG(consider_rise_from, ConsiderRiseFrom)
-    COMMAND_GET_SET_FLAG(consider_fall_from, ConsiderFallFrom)
-    COMMAND_GET_SET_FLAG(consider_rise_to, ConsiderRiseTo)
-    COMMAND_GET_SET_FLAG(consider_fall_to, ConsiderFallTo)
-    COMMAND_GET_SET_FLAG(setup, Setup)
-    COMMAND_GET_SET_FLAG(hold, Hold)
+    COMMAND_GET_SET_FLAG(consider_rise_from_, ConsiderRiseFrom)
+    COMMAND_GET_SET_FLAG(consider_fall_from_, ConsiderFallFrom)
+    COMMAND_GET_SET_FLAG(consider_rise_to_, ConsiderRiseTo)
+    COMMAND_GET_SET_FLAG(consider_fall_to_, ConsiderFallTo)
+    COMMAND_GET_SET_FLAG(setup_, Setup)
+    COMMAND_GET_SET_FLAG(hold_, Hold)
 };
 using SetDataCheckPtr = std::shared_ptr<SetDataCheck>;
 
@@ -213,7 +213,7 @@ class SetDisableTiming {
   public:
     COMMAND_GET_SET_VAR(from, From)
     COMMAND_GET_SET_VAR(to, To)
-    COMMAND_GET_SET_FLAG(io_pin, IoPin)
+    COMMAND_GET_SET_FLAG(io_pin_, IoPin)
 }; 
 using SetDisableTimingPtr = std::shared_ptr<SetDisableTiming>;
 
@@ -223,8 +223,8 @@ class SetFalsePath : public ExceptionPath {
 
   public:
     COMMAND_GET_SET_VAR(comment, Comment)
-    COMMAND_GET_SET_FLAG(setup, Setup)
-    COMMAND_GET_SET_FLAG(hold, Hold)
+    COMMAND_GET_SET_FLAG(setup_, Setup)
+    COMMAND_GET_SET_FLAG(hold_, Hold)
 
 }; 
 using SetFalsePathPtr = std::shared_ptr<SetFalsePath>;
@@ -235,10 +235,10 @@ class SetIdealLatency {
 
   public:
     COMMAND_GET_SET_VAR(delay, Delay)
-    COMMAND_GET_SET_FLAG(rise, Rise)
-    COMMAND_GET_SET_FLAG(fall, Fall)
-    COMMAND_GET_SET_FLAG(min, Min)
-    COMMAND_GET_SET_FLAG(max, Max)
+    COMMAND_GET_SET_FLAG(rise_, Rise)
+    COMMAND_GET_SET_FLAG(fall_, Fall)
+    COMMAND_GET_SET_FLAG(min_, Min)
+    COMMAND_GET_SET_FLAG(max_, Max)
 };
 using SetIdealLatencyPtr = std::shared_ptr<SetIdealLatency>;
 
@@ -254,7 +254,7 @@ class SetIdealNetwork {
   public:
     COMMAND_GET_SET_VAR(pins, Pins)
     COMMAND_GET_SET_VAR(nets, Nets)
-    COMMAND_GET_SET_FLAG(no_propagate, NoPropagate)
+    COMMAND_GET_SET_FLAG(no_propagate_, NoPropagate)
 };
 using SetIdealNetworkPtr = std::shared_ptr<SetIdealNetwork>;
 
@@ -264,10 +264,10 @@ class SetIdealTransition {
 
   public:
     COMMAND_GET_SET_VAR(value, Value)
-    COMMAND_GET_SET_FLAG(rise, Rise)
-    COMMAND_GET_SET_FLAG(fall, Fall)
-    COMMAND_GET_SET_FLAG(min, Min)
-    COMMAND_GET_SET_FLAG(max, Max)
+    COMMAND_GET_SET_FLAG(rise_, Rise)
+    COMMAND_GET_SET_FLAG(fall_, Fall)
+    COMMAND_GET_SET_FLAG(min_, Min)
+    COMMAND_GET_SET_FLAG(max_, Max)
 };
 using SetIdealTransitionPtr = std::shared_ptr<SetIdealTransition>;
 
@@ -279,15 +279,15 @@ class PortDelay {
   public:
     COMMAND_GET_SET_VAR(delay_value, DelayValue);
     COMMAND_GET_SET_VAR(clocks, Clocks)
-    COMMAND_GET_SET_FLAG(clock_fall, ClockFall)
-    COMMAND_GET_SET_FLAG(level_sensitive, LevelSensitive)
-    COMMAND_GET_SET_FLAG(rise, Rise)
-    COMMAND_GET_SET_FLAG(fall, Fall)
-    COMMAND_GET_SET_FLAG(min, Min)
-    COMMAND_GET_SET_FLAG(max, Max)
-    COMMAND_GET_SET_FLAG(add_delay, AddDelay)
-    COMMAND_GET_SET_FLAG(network_latency_included, NetworkLatencyIncluded)
-    COMMAND_GET_SET_FLAG(source_latency_included, SourceLatencyIncluded)
+    COMMAND_GET_SET_FLAG(clock_fall_, ClockFall)
+    COMMAND_GET_SET_FLAG(level_sensitive_, LevelSensitive)
+    COMMAND_GET_SET_FLAG(rise_, Rise)
+    COMMAND_GET_SET_FLAG(fall_, Fall)
+    COMMAND_GET_SET_FLAG(min_, Min)
+    COMMAND_GET_SET_FLAG(max_, Max)
+    COMMAND_GET_SET_FLAG(add_delay_, AddDelay)
+    COMMAND_GET_SET_FLAG(network_latency_included_, NetworkLatencyIncluded)
+    COMMAND_GET_SET_FLAG(source_latency_included_, SourceLatencyIncluded)
 };
 using PortDelayPtr = std::shared_ptr<PortDelay>;
 
@@ -304,9 +304,9 @@ class SetMaxDelay : public ExceptionPath {
   public:
     COMMAND_GET_SET_VAR(delay_value, DelayValue)
     COMMAND_GET_SET_VAR(comment, Comment)
-    COMMAND_GET_SET_FLAG(rise, Rise)
-    COMMAND_GET_SET_FLAG(fall, Fall)
-    COMMAND_GET_SET_FLAG(ignore_clock_latency, IgnoreClockLatency)
+    COMMAND_GET_SET_FLAG(rise_, Rise)
+    COMMAND_GET_SET_FLAG(fall_, Fall)
+    COMMAND_GET_SET_FLAG(ignore_clock_latency_, IgnoreClockLatency)
 };
 using SetMaxDelayPtr = std::shared_ptr<SetMaxDelay>;
 
@@ -327,9 +327,9 @@ class SetMinDelay : public ExceptionPath {
   public:
     COMMAND_GET_SET_VAR(delay_value, DelayValue)
     COMMAND_GET_SET_VAR(comment, Comment)
-    COMMAND_GET_SET_FLAG(rise, Rise)
-    COMMAND_GET_SET_FLAG(fall, Fall)
-    COMMAND_GET_SET_FLAG(ignore_clock_latency, IgnoreClockLatency)
+    COMMAND_GET_SET_FLAG(rise_, Rise)
+    COMMAND_GET_SET_FLAG(fall_, Fall)
+    COMMAND_GET_SET_FLAG(ignore_clock_latency_, IgnoreClockLatency)
 };
 using SetMinDelayPtr = std::shared_ptr<SetMinDelay>;
 
@@ -339,8 +339,8 @@ class SetMinPulseWidth {
 
   public:
     COMMAND_GET_SET_VAR(value, Value)
-    COMMAND_GET_SET_FLAG(low, Low)
-    COMMAND_GET_SET_FLAG(high, High)
+    COMMAND_GET_SET_FLAG(low_, Low)
+    COMMAND_GET_SET_FLAG(high_, High)
 };
 using SetMinPulseWidthPtr = std::shared_ptr<SetMinPulseWidth>;
 
@@ -351,12 +351,12 @@ class SetMulticyclePath : public ExceptionPath {
 
   public:
     COMMAND_GET_SET_VAR(comment, Comment)
-    COMMAND_GET_SET_FLAG(setup, Setup)
-    COMMAND_GET_SET_FLAG(hold, Hold)
-    COMMAND_GET_SET_FLAG(rise, Rise)
-    COMMAND_GET_SET_FLAG(fall, Fall)
-    COMMAND_GET_SET_FLAG(start, Start)
-    COMMAND_GET_SET_FLAG(end, End)
+    COMMAND_GET_SET_FLAG(setup_, Setup)
+    COMMAND_GET_SET_FLAG(hold_, Hold)
+    COMMAND_GET_SET_FLAG(rise_, Rise)
+    COMMAND_GET_SET_FLAG(fall_, Fall)
+    COMMAND_GET_SET_FLAG(start_, Start)
+    COMMAND_GET_SET_FLAG(end_, End)
 
 }; 
 using SetMulticyclePathPtr = std::shared_ptr<SetMulticyclePath>;

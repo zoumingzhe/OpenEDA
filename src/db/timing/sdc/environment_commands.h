@@ -54,10 +54,10 @@ class SetDrive {
 
   public:
     COMMAND_GET_SET_VAR(resistance, Resistance)
-    COMMAND_GET_SET_FLAG(rise, Rise)
-    COMMAND_GET_SET_FLAG(fall, Fall)
-    COMMAND_GET_SET_FLAG(min, Min)
-    COMMAND_GET_SET_FLAG(max, Max)
+    COMMAND_GET_SET_FLAG(rise_, Rise)
+    COMMAND_GET_SET_FLAG(fall_, Fall)
+    COMMAND_GET_SET_FLAG(min_, Min)
+    COMMAND_GET_SET_FLAG(max_, Max)
 };
 using SetDrivePtr = std::shared_ptr<SetDrive>;
 
@@ -69,13 +69,13 @@ class SetDrivingCell {
   public:
     COMMAND_GET_SET_VAR(from_term, FromTerm)
     COMMAND_GET_SET_VAR(to_term, ToTerm)
-    COMMAND_GET_SET_FLAG(rise, Rise)
-    COMMAND_GET_SET_FLAG(fall, Fall)
-    COMMAND_GET_SET_FLAG(dont_scale, DontScale)
-    COMMAND_GET_SET_FLAG(no_design_rule, NoDesignRule)
-    COMMAND_GET_SET_FLAG(min, Min)
-    COMMAND_GET_SET_FLAG(max, Max)
-    COMMAND_GET_SET_FLAG(clock_fall, ClockFall)
+    COMMAND_GET_SET_FLAG(rise_, Rise)
+    COMMAND_GET_SET_FLAG(fall_, Fall)
+    COMMAND_GET_SET_FLAG(dont_scale_, DontScale)
+    COMMAND_GET_SET_FLAG(no_design_rule_, NoDesignRule)
+    COMMAND_GET_SET_FLAG(min_, Min)
+    COMMAND_GET_SET_FLAG(max_, Max)
+    COMMAND_GET_SET_FLAG(clock_fall_, ClockFall)
 };
 using SetDrivingCellPtr = std::shared_ptr<SetDrivingCell>;
 
@@ -96,11 +96,11 @@ class SetInputTransition {
   public:
     COMMAND_GET_SET_VAR(transition, Transition)
     COMMAND_GET_SET_VAR(clocks, Clocks)
-    COMMAND_GET_SET_FLAG(rise, Rise)
-    COMMAND_GET_SET_FLAG(fall, Fall)
-    COMMAND_GET_SET_FLAG(min, Min)
-    COMMAND_GET_SET_FLAG(max, Max)
-    COMMAND_GET_SET_FLAG(clock_fall, ClockFall)
+    COMMAND_GET_SET_FLAG(rise_, Rise)
+    COMMAND_GET_SET_FLAG(fall_, Fall)
+    COMMAND_GET_SET_FLAG(min_, Min)
+    COMMAND_GET_SET_FLAG(max_, Max)
+    COMMAND_GET_SET_FLAG(clock_fall_, ClockFall)
 }; 
 using SetInputTransitionPtr = std::shared_ptr<SetInputTransition>;
 
@@ -110,11 +110,11 @@ class SetLoad {
 
   public:
     COMMAND_GET_SET_VAR(cap, Cap)
-    COMMAND_GET_SET_FLAG(min, Min)
-    COMMAND_GET_SET_FLAG(max, Max)
-    COMMAND_GET_SET_FLAG(substract_pin_load, SubstractPinLoad)
-    COMMAND_GET_SET_FLAG(pin_load, PinLoad)
-    COMMAND_GET_SET_FLAG(wire_load, WireLoad)
+    COMMAND_GET_SET_FLAG(min_, Min)
+    COMMAND_GET_SET_FLAG(max_, Max)
+    COMMAND_GET_SET_FLAG(substract_pin_load_, SubstractPinLoad)
+    COMMAND_GET_SET_FLAG(pin_load_, PinLoad)
+    COMMAND_GET_SET_FLAG(wire_load_, WireLoad)
 };
 using SetLoadPtr = std::shared_ptr<SetLoad>;
 
@@ -160,9 +160,9 @@ class SetMaxTransition {
 
   public:
     COMMAND_GET_SET_VAR(transition_value, TransitionValue)
-    COMMAND_GET_SET_FLAG(clock_path, ClockPath)
-    COMMAND_GET_SET_FLAG(fall, Fall)
-    COMMAND_GET_SET_FLAG(rise, Rise)
+    COMMAND_GET_SET_FLAG(clock_path_, ClockPath)
+    COMMAND_GET_SET_FLAG(fall_, Fall)
+    COMMAND_GET_SET_FLAG(rise_, Rise)
 }; 
 using SetMaxTransitionPtr = std::shared_ptr<SetMaxTransition>;
 
@@ -198,8 +198,8 @@ class SetResistance {
 
   public:
     COMMAND_GET_SET_VAR(value, Value)
-    COMMAND_GET_SET_FLAG(min, Min)
-    COMMAND_GET_SET_FLAG(max, Max)
+    COMMAND_GET_SET_FLAG(min_, Min)
+    COMMAND_GET_SET_FLAG(max_, Max)
 };
 using SetResistancePtr = std::shared_ptr<SetResistance>;
 
@@ -209,20 +209,20 @@ class SetTimingDerate {
 
   public:
     COMMAND_GET_SET_VAR(derate_value, DerateValue)
-    COMMAND_GET_SET_FLAG(min, Min)
-    COMMAND_GET_SET_FLAG(max, Max)
-    COMMAND_GET_SET_FLAG(rise, Rise)
-    COMMAND_GET_SET_FLAG(fall, Fall)
-    COMMAND_GET_SET_FLAG(early, Early)
-    COMMAND_GET_SET_FLAG(late, Late)
-    COMMAND_GET_SET_FLAG(static_type, StaticType)
-    COMMAND_GET_SET_FLAG(dynamic_type, DynamicType)
-    COMMAND_GET_SET_FLAG(increment, Increment)
-    COMMAND_GET_SET_FLAG(clock, Clock)
-    COMMAND_GET_SET_FLAG(data, Data)
-    COMMAND_GET_SET_FLAG(net_delay, NetDelay)
-    COMMAND_GET_SET_FLAG(cell_delay, CellDelay)
-    COMMAND_GET_SET_FLAG(cell_check, CellCheck)
+    COMMAND_GET_SET_FLAG(min_, Min)
+    COMMAND_GET_SET_FLAG(max_, Max)
+    COMMAND_GET_SET_FLAG(rise_, Rise)
+    COMMAND_GET_SET_FLAG(fall_, Fall)
+    COMMAND_GET_SET_FLAG(early_, Early)
+    COMMAND_GET_SET_FLAG(late_, Late)
+    COMMAND_GET_SET_FLAG(static_type_, StaticType)
+    COMMAND_GET_SET_FLAG(dynamic_type_, DynamicType)
+    COMMAND_GET_SET_FLAG(increment_, Increment)
+    COMMAND_GET_SET_FLAG(clock_, Clock)
+    COMMAND_GET_SET_FLAG(data_, Data)
+    COMMAND_GET_SET_FLAG(net_delay_, NetDelay)
+    COMMAND_GET_SET_FLAG(cell_delay_, CellDelay)
+    COMMAND_GET_SET_FLAG(cell_check_, CellCheck)
 };
 using SetTimingDeratePtr = std::shared_ptr<SetTimingDerate>;
 
@@ -251,8 +251,8 @@ class SetWireLoadModel {
 
   public:
     COMMAND_GET_SET_VAR(wire_load, WireLoad)
-    COMMAND_GET_SET_FLAG(min, Min)
-    COMMAND_GET_SET_FLAG(max, Max)
+    COMMAND_GET_SET_FLAG(min_, Min)
+    COMMAND_GET_SET_FLAG(max_, Max)
 };
 using SetWireLoadModelPtr = std::shared_ptr<SetWireLoadModel>;
 
@@ -262,8 +262,8 @@ class SetWireLoadSelectionGroup {
 
   public:
     COMMAND_GET_SET_VAR(selection, Selection)
-    COMMAND_GET_SET_FLAG(min, Min)
-    COMMAND_GET_SET_FLAG(max, Max)
+    COMMAND_GET_SET_FLAG(min_, Min)
+    COMMAND_GET_SET_FLAG(max_, Max)
 };
 using SetWireLoadSelectionGroupPtr = std::shared_ptr<SetWireLoadSelectionGroup>;
 

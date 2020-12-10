@@ -44,8 +44,8 @@ class PathNodes {
     COMMAND_GET_SET_VAR(terms, Terms)
     COMMAND_GET_SET_VAR(instances, Instances)
     COMMAND_GET_SET_VAR(clocks, Clocks)
-    COMMAND_GET_SET_FLAG(rise, Rise)
-    COMMAND_GET_SET_FLAG(fall, Fall)
+    COMMAND_GET_SET_FLAG(rise_, Rise)
+    COMMAND_GET_SET_FLAG(fall_, Fall)
 };
 using PathNodesPtr = std::shared_ptr<PathNodes>;
 
