@@ -1,4 +1,4 @@
-/* @file  io_handler.cpp
+/* @file  io_manager.cpp
  * @date  <date>
  * @brief <Descriptions>
  *
@@ -8,7 +8,7 @@
  * This software may be modified and distributed under the terms
  * of the BSD license.  See the LICENSE file for details.
  */
-#include "util/io_handler.h"
+#include "util/io_manager.h"
 #include "util/message.h"
 #include "util/enums.h"
 #include "util/util.h"
@@ -16,25 +16,14 @@
 namespace open_edi {
 namespace util {
 
-IOHandler::IOHandler() {
-    io_buffer_ = new IOBuffer(kDefaultSize);
+IOManager::IOManager() {
     fp_ = nullptr;
     gzfp_ = nullptr;
     compress_type_ = kCompressNull;
     compress_level_ = kCompressLevelMin;
 }
 
-IOHandler::~IOHandler() {
-    switch (compress_type_) {
-        case kCompressGz:
-            gzclose(gzfp_);
-            break;
-        case kCompressLz4:
-            fclose(fp_);
-            break;
-        case kCompressZip:
-            break;
-    };
+IOManager::~IOManager() {
     if (fp_) {
         fclose(fp_);
         fp_ = nullptr;
@@ -43,10 +32,9 @@ IOHandler::~IOHandler() {
         gzclose(gzfp_);
         gzfp_ = nullptr;
     }
-    delete io_buffer_;
 }
 
-bool IOHandler::open(const char *file_name, const char *mode) {
+bool IOManager::open(const char *file_name, const char *mode) {
     if (nullptr == file_name) {
         message->issueMsg("UTIL", 4, kError);
         return false;
@@ -56,39 +44,47 @@ bool IOHandler::open(const char *file_name, const char *mode) {
         return false;
     }
     
-    std::string file_name_string = file_name;
-    toLower(file_name_string);
+    int name_len = strlen(file_name);
+    char *copy_file_name = new char[name_len + 1]();
+    strncpy(copy_file_name, file_name, name_len);
+    toLower(copy_file_name);
 
-    if (file_name_string.rfind(".gz") == (file_name_string.length() - 3)) {
+    if (name_len > 3 && (0 == strcmp(".gz", &copy_file_name[name_len - 3]))) {
         gzfp_ = gzopen(file_name, mode);
         if (nullptr == gzfp_) {
             message->issueMsg("UTIL", 6, kError, file_name, mode);
+            delete [] copy_file_name;
             return false;
         }
         compress_type_ = kCompressGz;
-    } else if (file_name_string.rfind(".lz4") ==
-               (file_name_string.length() - 4)) {
+    } else if (name_len > 4 &&
+               (0 == strcmp(".lz4", &copy_file_name[name_len - 4]))) {
         fp_ = fopen(file_name, mode);
         if (nullptr == fp_) {
             message->issueMsg("UTIL", 6, kError, file_name, mode);
+            delete [] copy_file_name;
             return false;
         }
         compress_type_ = kCompressLz4;
-    } else if (file_name_string.rfind(".zip") ==
-               (file_name_string.length() - 4)) {
+    } else if (name_len > 4 &&
+               (0 == strcmp(".zip", &copy_file_name[name_len - 4]))) {
+        // TODO(haoqingsheng)
+        delete [] copy_file_name;
         return true;
     } else {
         fp_ = fopen(file_name, mode);
         if (nullptr == fp_) {
             message->issueMsg("UTIL", 6, kError, file_name, mode);
+            delete [] copy_file_name;
             return false;
         }
         compress_type_ = kCompressNull;
     }
+    delete [] copy_file_name;
     return true;
 }
 
-bool IOHandler::open(const char *file_name, const char *mode,
+bool IOManager::open(const char *file_name, const char *mode,
                                                        CompressLevel level) {
     if (level < kCompressLevelMin && level > kCompressLevelMax) {
         message->issueMsg("UTIL", 8, kError, level, kCompressLevelMin,
@@ -106,7 +102,7 @@ bool IOHandler::open(const char *file_name, const char *mode,
     return true;
 }
 
-int IOHandler::read(void *buffer, uint32_t size) {
+int IOManager::read(void *buffer, uint32_t size) {
     int read_result = kReadFail;
 
     if (nullptr == buffer) {
@@ -131,7 +127,7 @@ int IOHandler::read(void *buffer, uint32_t size) {
     return read_result;
 }
 
-IOBuffer *IOHandler::read(uint32_t size) {
+IOBuffer *IOManager::read(uint32_t size) {
     IOBuffer *io_buffer = new IOBuffer(size);
     if (nullptr == io_buffer) {
         message->issueMsg("UTIL", 11, kError, size);
@@ -144,7 +140,7 @@ IOBuffer *IOHandler::read(uint32_t size) {
     return nullptr;
 }
 
-std::vector<IOBuffer*> *IOHandler::readCompressBlock() {
+CompressBlock *IOManager::readCompressBlock() {
     uint32_t total_number = 0;
     uint32_t max_decompressed_size = 0;
     int read_result = kReadFail;
@@ -153,7 +149,7 @@ std::vector<IOBuffer*> *IOHandler::readCompressBlock() {
     return ch->decompress();
 }
 
-int IOHandler::write(void *buffer, uint32_t size) {
+int IOManager::write(void *buffer, uint32_t size) {
     int write_result = kWriteFail;
 
     if (nullptr == buffer) {
@@ -178,7 +174,7 @@ int IOHandler::write(void *buffer, uint32_t size) {
     return write_result;
 }
 
-int IOHandler::write(IOBuffer *io_buffer) {
+int IOManager::write(IOBuffer *io_buffer) {
     int write_result = kWriteFail;
 
     if (nullptr == io_buffer) {
@@ -195,7 +191,7 @@ int IOHandler::write(IOBuffer *io_buffer) {
     return write_result;
 }
 
-int IOHandler::write(std::string str) {
+int IOManager::write(std::string str) {
     uint32_t size = str.length();
     IOBuffer *io_buffer = new IOBuffer(size);
     int write_result = write(io_buffer);
@@ -204,56 +200,122 @@ int IOHandler::write(std::string str) {
     return write_result;
 }
 
-int IOHandler::writeCompressBlock(std::vector<IOBuffer*> &src_buffers) {
+int IOManager::writeCompressBlock(CompressBlock &compress_block) {
     CompressHandler *ch = new CompressHandler(compress_type_, this);
-    int write_result = ch->compress(src_buffers);
+    int write_result = ch->compress(compress_block);
     return write_result;
 }
 
-void IOHandler::close() {
+int IOManager::seek(long int offset, int origin) {
+    int result = 0;
     switch (compress_type_) {
         case kCompressNull:
-            fclose(fp_);
+            result = fseek(fp_, offset, origin);
             break;
         case kCompressLz4:
             break;
         case kCompressGz:
-            gzclose(gzfp_);
+            result = gzseek(gzfp_, offset, origin);
             break;
         case kCompressZip:
             break;
         default:
             // should not in the case.
-            return;
+            break;
+    }
+    return result;
+}
+
+void IOManager::flush() {
+    switch (compress_type_) {
+        case kCompressNull:
+            fflush(fp_);
+            break;
+        case kCompressLz4:
+            break;
+        case kCompressGz:
+            gzflush(gzfp_, Z_FULL_FLUSH);
+            break;
+        case kCompressZip:
+            break;
+        default:
+            // should not in the case.
+            break;
     }
 }
 
-CompressHandler::CompressHandler(CompressType compress_type, IOHandler *ih) {
-    compress_type_ = compress_type;
-    io_handler_ = ih;
+int64_t IOManager::tell() {
+    int64_t result = -1;
+    switch (compress_type_) {
+        case kCompressNull:
+            result = ftell(fp_);
+            break;
+        case kCompressLz4:
+            break;
+        case kCompressGz:
+            result = gztell(gzfp_);
+            break;
+        case kCompressZip:
+            break;
+        default:
+            // should not in the case.
+            break;
+    }
+    return result;
 }
 
-bool CompressHandler::compress(std::vector<IOBuffer*> &src_buffers) {
+void IOManager::close() {
+    switch (compress_type_) {
+        case kCompressNull:
+            if (fp_) {
+                fclose(fp_);
+                fp_ = nullptr;
+            }
+            break;
+        case kCompressLz4:
+            break;
+        case kCompressGz:
+            if (gzfp_) {
+                gzclose(gzfp_);
+                gzfp_ = nullptr;
+            }
+            break;
+        case kCompressZip:
+            break;
+        default:
+            // should not in the case.
+            break;
+    }
+}
+
+CompressHandler::CompressHandler(CompressType compress_type, IOManager *im) {
+    compress_type_ = compress_type;
+    io_manager_ = im;
+}
+
+void CompressHandler::freeBuffers(std::vector<IOBuffer*> *io_buffers) {
+    for (auto io_buffer : *io_buffers) {
+        delete io_buffer;
+    }
+}
+
+bool CompressHandler::compress(CompressBlock &compress_block) {
     int i = 0;
-    int total_number = src_buffers.size();
+    int total_number = compress_block.getTotalNumber();
     int num_thread = calcThreadNumber(total_number);
     std::vector<IOBuffer*> copy_src_buffers;
+    std::vector<IOBuffer*> *src_buffers = compress_block.getIOBuffers();
     std::vector<IOBuffer*> dst_buffers;
 
-    int max_buffer_size = 0;
-    for (i = 0; i < total_number; ++i) {
-        if (max_buffer_size < src_buffers[i]->getSize()) {
-            max_buffer_size = src_buffers[i]->getSize();
-        }
-    }
+    int max_buffer_size = compress_block.getMaxBufferSize();
     size_t dst_size = LZ4F_compressFrameBound(max_buffer_size, NULL);
     for (int j = 0; j < num_thread; ++j) {
         IOBuffer *new_buffer = new IOBuffer(dst_size);
         dst_buffers.push_back(new_buffer);
     }
 
-    io_handler_->write((void *)&total_number, sizeof(uint32_t));
-    io_handler_->write((void *)&max_buffer_size, sizeof(uint32_t));
+    io_manager_->write((void *)&total_number, sizeof(uint32_t));
+    io_manager_->write((void *)&max_buffer_size, sizeof(uint32_t));
 
     std::vector<int> compressed_sizes;
     compressed_sizes.resize(num_thread, 0);
@@ -263,18 +325,20 @@ bool CompressHandler::compress(std::vector<IOBuffer*> &src_buffers) {
 
     for (i = 0; i + num_thread < total_number; i += num_thread) {
         for (int j = 0; j < num_thread; ++j) {
-            copy_src_buffers.push_back(src_buffers[i + j]);
+            copy_src_buffers.push_back((*src_buffers)[i + j]);
         }
         CompressInput input(&copy_src_buffers, &dst_buffers, &compressed_sizes);
         compressor.setInput(&input);
         compressor.run(1, num_thread, 1);
         for (int k = 0; k < num_thread; ++k) {
             if (compressed_sizes[k] > 0) {
-                io_handler_->write((void*)&(compressed_sizes[k]), sizeof(uint32_t));
-                io_handler_->write((void*)dst_buffers[k]->getBuffer(),
+                io_manager_->write((void*)&(compressed_sizes[k]), sizeof(uint32_t));
+                io_manager_->write((void*)dst_buffers[k]->getBuffer(),
                                                           compressed_sizes[k]);
             } else {
                 message->issueMsg("UTIL", 15, kError, compressed_sizes[k]);
+                freeBuffers(&dst_buffers);
+                dst_buffers.clear();
                 return false;
             }
         }
@@ -283,49 +347,48 @@ bool CompressHandler::compress(std::vector<IOBuffer*> &src_buffers) {
     }
     int num_last_buffers = total_number - i;
     for (int j = 0; j < num_last_buffers; ++j) {
-        copy_src_buffers.push_back(src_buffers[i + j]);
+        copy_src_buffers.push_back((*src_buffers)[i + j]);
     }
     CompressInput input(&copy_src_buffers, &dst_buffers, &compressed_sizes);
     compressor.setInput(&input);
     compressor.run(1, num_last_buffers, 1);
     for (int k = 0; k < num_last_buffers; ++k) {
         if (compressed_sizes[k] > 0) {
-            io_handler_->write((char*)&(compressed_sizes[k]), sizeof(uint32_t));
-            io_handler_->write((char*)dst_buffers[k]->getBuffer(),
+            io_manager_->write((void*)&(compressed_sizes[k]), sizeof(uint32_t));
+            io_manager_->write((void*)(dst_buffers[k]->getBuffer()),
                                                       compressed_sizes[k]);
         } else {
             message->issueMsg("UTIL", 15, kError, compressed_sizes[k]);
+            freeBuffers(&dst_buffers);
+            dst_buffers.clear();
             return false;
         }
     }
 
-    for (auto mem_buffer : dst_buffers) {
-        delete mem_buffer;
-    }
+    freeBuffers(&dst_buffers);
+    dst_buffers.clear();
     return true;
 }
 
-std::vector<IOBuffer*> *CompressHandler::decompress() {
+bool CompressHandler::decompress(CompressBlock & compress_block) {
+    std::vector<IOBuffer*> *io_buffers = compress_block.getIOBuffers();
+    if (nullptr == io_buffers) {
+        message->issueMsg("UTIL", 9, kError);
+        return false;
+    }
     int read_result = 0;
     uint32_t total_number = 0;
     uint32_t max_buffer_size = 0;
 
-    read_result = io_handler_->read((void*)(&total_number), sizeof(uint32_t));
+    read_result = io_manager_->read((void*)(&total_number), sizeof(uint32_t));
     if (read_result <= 0) {
         message->issueMsg("UTIL", 13, kError);
-        return nullptr;
+        return false;
     }
-    read_result = io_handler_->read((void*)&max_buffer_size, sizeof(uint32_t));
+    read_result = io_manager_->read((void*)&max_buffer_size, sizeof(uint32_t));
     if (read_result <= 0) {
         message->issueMsg("UTIL", 14, kError);
-        return nullptr;
-    }
-
-    std::vector<IOBuffer*> *buffers = new std::vector<IOBuffer*>;
-
-    for (uint32_t i = 0; i < total_number; ++i) {
-        IOBuffer *new_buffer = new IOBuffer(max_buffer_size);
-        buffers->push_back(new_buffer);
+        return false;
     }
 
     int num_thread = calcThreadNumber(total_number);
@@ -348,11 +411,11 @@ std::vector<IOBuffer*> *CompressHandler::decompress() {
     for (i = 0; i + num_thread < total_number; i += num_thread) {
         for (int j = 0; j < num_thread; ++j) {
             mem_buffer = src_buffers[j];
-            io_handler_->read((void *)&(size), sizeof(int));
-            io_handler_->read((void *)(mem_buffer->getBuffer()), size);
+            io_manager_->read((void *)&(size), sizeof(int));
+            io_manager_->read((void *)(mem_buffer->getBuffer()), size);
             mem_buffer->setSize(size);
 
-            dst_buffers.push_back((*buffers)[i + j]);
+            dst_buffers.push_back((*io_buffers)[i + j]);
         }
         DecompressInput input(&src_buffers, &dst_buffers, &decompressed_sizes);
         decompressor.setInput(&input);
@@ -360,9 +423,104 @@ std::vector<IOBuffer*> *CompressHandler::decompress() {
         for (int k = 0; k < num_thread; ++k) {
             if (decompressed_sizes[k] < 0) {
                 message->issueMsg("UTIL", 16, kError, decompressed_sizes[k]);
-                for (auto mem_buffer : src_buffers) {
-                    delete mem_buffer;
-                }
+                freeBuffers(&src_buffers);
+                freeBuffers(io_buffers);
+                delete io_buffers;
+                return false;
+            }
+        }
+        decompressed_sizes.resize(num_thread, 0);
+        dst_buffers.clear();
+    }
+    int num_last_buffers = total_number - i;
+    for (int j = 0; j < num_last_buffers; ++j) {
+        int size;
+        IOBuffer *mem_buffer = src_buffers[j];
+        io_manager_->read((char *)&(size), sizeof(int));
+        io_manager_->read((char *)(mem_buffer->getBuffer()), size);
+        mem_buffer->setSize(size);
+
+        dst_buffers.push_back((*io_buffers)[i + j]);
+    }
+    DecompressInput input(&src_buffers, &dst_buffers, &decompressed_sizes);
+    decompressor.setInput(&input);
+    decompressor.run(1, num_last_buffers, 1);
+    for (int k = 0; k < num_last_buffers; ++k) {
+        if (decompressed_sizes[k] < 0) {
+            message->issueMsg("UTIL", 16, kError, decompressed_sizes[k]);
+            freeBuffers(&src_buffers);
+            freeBuffers(io_buffers);
+            delete io_buffers;
+            return false;
+        }
+    }
+
+    for (auto mem_buffer : src_buffers) {
+        delete mem_buffer;
+    }
+    compress_block.setTotalNumber(total_number);
+    compress_block.setMaxBufferSize(max_buffer_size);
+    return true;
+}
+
+CompressBlock *CompressHandler::decompress() {
+    int read_result = 0;
+    uint32_t total_number = 0;
+    uint32_t max_buffer_size = 0;
+
+    read_result = io_manager_->read((void*)(&total_number), sizeof(uint32_t));
+    if (read_result <= 0) {
+        message->issueMsg("UTIL", 13, kError);
+        return nullptr;
+    }
+    read_result = io_manager_->read((void*)&max_buffer_size, sizeof(uint32_t));
+    if (read_result <= 0) {
+        message->issueMsg("UTIL", 14, kError);
+        return nullptr;
+    }
+
+    std::vector<IOBuffer*> *io_buffers = new std::vector<IOBuffer*>;
+
+    for (uint32_t i = 0; i < total_number; ++i) {
+        IOBuffer *new_buffer = new IOBuffer(max_buffer_size);
+        io_buffers->push_back(new_buffer);
+    }
+
+    int num_thread = calcThreadNumber(total_number);
+    std::vector<IOBuffer*> src_buffers;
+    std::vector<IOBuffer*> dst_buffers;
+    for (int j = 0; j < num_thread; ++j) {
+        IOBuffer *new_buffer = new IOBuffer(max_buffer_size);
+        src_buffers.push_back(new_buffer);
+    }
+
+    std::vector<int> decompressed_sizes;
+    decompressed_sizes.resize(num_thread, 0);
+
+    Decompressor decompressor;
+    decompressor.setDecompressType(kCompressLz4);
+
+    int i = 0;
+    int size = 0;
+    IOBuffer *mem_buffer = nullptr;
+    for (i = 0; i + num_thread < total_number; i += num_thread) {
+        for (int j = 0; j < num_thread; ++j) {
+            mem_buffer = src_buffers[j];
+            io_manager_->read((void *)&(size), sizeof(int));
+            io_manager_->read((void *)(mem_buffer->getBuffer()), size);
+            mem_buffer->setSize(size);
+
+            dst_buffers.push_back((*io_buffers)[i + j]);
+        }
+        DecompressInput input(&src_buffers, &dst_buffers, &decompressed_sizes);
+        decompressor.setInput(&input);
+        decompressor.run(1, num_thread, 1);
+        for (int k = 0; k < num_thread; ++k) {
+            if (decompressed_sizes[k] < 0) {
+                message->issueMsg("UTIL", 16, kError, decompressed_sizes[k]);
+                freeBuffers(&src_buffers);
+                freeBuffers(io_buffers);
+                delete io_buffers;
                 return nullptr;
             }
         }
@@ -373,11 +531,11 @@ std::vector<IOBuffer*> *CompressHandler::decompress() {
     for (int j = 0; j < num_last_buffers; ++j) {
         int size;
         IOBuffer *mem_buffer = src_buffers[j];
-        io_handler_->read((char *)&(size), sizeof(int));
-        io_handler_->read((char *)(mem_buffer->getBuffer()), size);
+        io_manager_->read((char *)&(size), sizeof(int));
+        io_manager_->read((char *)(mem_buffer->getBuffer()), size);
         mem_buffer->setSize(size);
 
-        dst_buffers.push_back((*buffers)[i + j]);
+        dst_buffers.push_back((*io_buffers)[i + j]);
     }
     DecompressInput input(&src_buffers, &dst_buffers, &decompressed_sizes);
     decompressor.setInput(&input);
@@ -385,9 +543,9 @@ std::vector<IOBuffer*> *CompressHandler::decompress() {
     for (int k = 0; k < num_last_buffers; ++k) {
         if (decompressed_sizes[k] < 0) {
             message->issueMsg("UTIL", 16, kError, decompressed_sizes[k]);
-            for (auto mem_buffer : src_buffers) {
-                delete mem_buffer;
-            }
+            freeBuffers(&src_buffers);
+            freeBuffers(io_buffers);
+            delete io_buffers;
             return nullptr;
         }
     }
@@ -395,7 +553,10 @@ std::vector<IOBuffer*> *CompressHandler::decompress() {
     for (auto mem_buffer : src_buffers) {
         delete mem_buffer;
     }
-    return buffers;
+    CompressBlock *compress_block = new CompressBlock(io_buffers);
+    compress_block->setTotalNumber(total_number);
+    compress_block->setMaxBufferSize(max_buffer_size);
+    return compress_block;
 }
 
 

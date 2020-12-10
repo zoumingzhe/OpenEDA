@@ -19,7 +19,7 @@
 
 #include "util/checksum.h"
 #include "util/util.h"
-#include "util/io_handler.h"
+#include "util/io_manager.h"
 
 namespace open_edi {
 namespace db {
@@ -43,16 +43,17 @@ bool ReadDesign::__readSymFile(
 ) {
     std::string sym_file = filename;
     sym_file.append(kSymFilePostFix);
-    std::ifstream in_symfile(sym_file.c_str(), std::ifstream::binary);
-    if (!in_symfile.good()) {
+    IOManager io_manager;
+    if (false == io_manager.open(sym_file.c_str(), "rb")) {
         util::message->issueMsg(kMsgCategoryDB, 
             OpenFileError, kError, sym_file.c_str());
         //std::cout << "Failed to open sym file " << sym_file << ".\n";
         return false;
     }
-    in_symfile.seekg(0, in_symfile.beg);
-    symbol_table->readFromFile(in_symfile, getDebug());
-    in_symfile.close();
+    io_manager.seek(0, SEEK_SET);
+
+    symbol_table->readFromFile(io_manager, getDebug());
+    io_manager.close();
     return true;
 }
 
@@ -62,16 +63,16 @@ bool ReadDesign::__readPolyFile(
 ) {
     std::string poly_file = filename;
     poly_file.append(kPolyFilePostFix);
-    std::ifstream in_polyfile(poly_file.c_str(), std::ifstream::binary);
-    if (!in_polyfile.good()) {
+    IOManager io_manager;
+    if (false == io_manager.open(poly_file.c_str(), "rb")) {
         util::message->issueMsg(kMsgCategoryDB, 
             OpenFileError, kError, poly_file.c_str());
         //std::cout << "Failed to open poly file " << poly_file << ".\n";
         return false;
     }
-    in_polyfile.seekg(0, in_polyfile.beg);
-    polygon_table->readFromFile(in_polyfile, getDebug());
-    in_polyfile.close();
+    io_manager.seek(0, SEEK_SET);
+    polygon_table->readFromFile(io_manager, getDebug());
+    io_manager.close();
     return true;
 }
 
@@ -82,25 +83,25 @@ bool ReadDesign::__readDBFile(
     std::string db_file = filename;
     db_file.append(kDBFilePostFix);
     // open:
-    std::ifstream in_dbfile(db_file.c_str(), std::ifstream::binary);
-    if (!in_dbfile) {
+    IOManager io_manager;
+    if (false == io_manager.open(db_file.c_str(), "rb")) {
         util::message->issueMsg(kMsgCategoryDB, 
             OpenFileError, kError, db_file.c_str());
         //std::cout << "Failed to open DB file " << db_file << ".\n";
         return false;
     }
-    in_dbfile.seekg(0, in_dbfile.beg);
+    io_manager.seek(0, SEEK_SET);
     // read version:
-    v_.readFromFile(in_dbfile, getDebug());
+    v_.readFromFile(io_manager, getDebug());
     // read into mem pool:
     size_t pool_id = 0;
     // TODO(luoying): pool_id is unused in object ID.
-    in_dbfile.read(reinterpret_cast<char *>(&(pool_id)), sizeof(size_t));
-    in_dbfile.read(reinterpret_cast<char *>(&(current_id_)), sizeof(ObjectId));
+    io_manager.read(reinterpret_cast<char *>(&(pool_id)), sizeof(size_t));
+    io_manager.read(reinterpret_cast<char *>(&(current_id_)), sizeof(ObjectId));
 
     //pool_ = MemPool::newPagePool();
     MemPool::insertPagePool(current_id_, pool);
-    pool->readFromFile(in_dbfile, getDebug());
+    pool->readFromFile(io_manager, getDebug());
     if (getDebug()) {
         pool->printUsage();
     }
@@ -108,11 +109,11 @@ bool ReadDesign::__readDBFile(
     CheckSum csum;
     uint32_t file_header_size = 0;
     uint32_t ref_value = 0;
-    in_dbfile.read(reinterpret_cast<char *>(&file_header_size),
+    io_manager.read(reinterpret_cast<char *>(&file_header_size),
             sizeof(uint32_t));
-    in_dbfile.read(reinterpret_cast<char *>(&ref_value), sizeof(uint32_t));
+    io_manager.read(reinterpret_cast<char *>(&ref_value), sizeof(uint32_t));
     // close:
-    in_dbfile.close();
+    io_manager.close();
     // check checksum:
     uint32_t sum = csum.summary(db_file, file_header_size, getDebug());
     if (csum.check(sum, ref_value, getDebug())) {
@@ -302,12 +303,13 @@ bool WriteDesign::__preWork() {
 }
 
 bool WriteDesign::__writeDBFile( MemPagePool *pool, std::string &filename) {
+    IOBuffer *io_buffer = nullptr;
     ediAssert(pool != nullptr);
     std::string db_file = filename;
     db_file.append(kDBFilePostFix);
 
-    IOHandler io_handler;
-    if (false == io_handler.open(db_file.c_str(), "wb")) {
+    IOManager io_manager;
+    if (false == io_manager.open(db_file.c_str(), "wb")) {
         message->issueMsg(kError, "Failed to open output db file %s.\n",
                           db_file.c_str());
         return false;
@@ -315,40 +317,36 @@ bool WriteDesign::__writeDBFile( MemPagePool *pool, std::string &filename) {
 
     // write version:
     Version &v = getCurrentVersion();
+    v.writeToFile(io_manager, getDebug());
 
-    v.writeToFile(io_handler, getDebug());
-    /*
-    // check cell name:
-    top_cell_ = getTopCell();
-    cell_name_ = top_cell_->getName();
-    if (cell_name_.compare(saved_name_) != 0) {
-        if (getDebug()) {
-            std::cout << "DEBUGINFO: rename top cell name " << cell_name_
-                      << " to " << saved_name_ << std::endl;
-        }
-        top_cell_->setName(saved_name_);
-    }
     // write mem pool:
     size_t pool_id = pool->getPoolNo();
-    out_dbfile.write(reinterpret_cast<char *>(&pool_id), sizeof(size_t));
-    out_dbfile.write(reinterpret_cast<char *>(&current_id_), sizeof(ObjectId));
-    pool->writeHeaderToFile(out_dbfile, getDebug());
-    uint32_t file_header_size = out_dbfile.tellp();
-    pool->writeContentToFile(out_dbfile, getDebug());
-    out_dbfile.flush();
+    io_manager.write(reinterpret_cast<char *>(&pool_id), sizeof(size_t));
+    io_manager.write(reinterpret_cast<char *>(&current_id_), sizeof(ObjectId));
+    pool->writeHeaderToFile(io_manager, getDebug());
+    int64_t file_header_size = io_manager.tell();
+    if (-1 == file_header_size) {
+        message->issueMsg(kError, "Get file header size failed.\n");
+        return false;
+    }
+    pool->writeContentToFile(io_manager, getDebug());
+    io_manager.close();
     // write checksum:
     CheckSum csum;
     uint32_t sum = csum.summary(db_file, file_header_size, getDebug());
-    out_dbfile.write(reinterpret_cast<char *>(&file_header_size),
+    if (false == io_manager.open(db_file.c_str(), "ab")) {
+        message->issueMsg(kError, "Failed to open output db file %s.\n",
+                          db_file.c_str());
+        return false;
+    }
+    io_manager.write(reinterpret_cast<char *>(&file_header_size),
                                                      sizeof(uint32_t));
-    out_dbfile.write(reinterpret_cast<char *>(&sum), sizeof(uint32_t));
+    io_manager.write(reinterpret_cast<char *>(&sum), sizeof(uint32_t));
     // close:
-    out_dbfile.close();
     if (getDebug()) {
         pool->printUsage();
     }
-    */
-    io_handler.close();
+    io_manager.close();
     return true;
 }
 
@@ -357,16 +355,16 @@ bool WriteDesign::__writePolyFile( PolygonTable *polygon_table,
     ediAssert(polygon_table != nullptr);
     std::string poly_file = filename;
     poly_file.append(kPolyFilePostFix);
-    std::ofstream out_polyfile(poly_file.c_str(), std::ofstream::binary);
-    if (out_polyfile.good() == false) {
+    IOManager io_manager;
+    if (false == io_manager.open(poly_file.c_str(), "wb")) {
         util::message->issueMsg(kMsgCategoryDB, 
             OpenFileError, kError, poly_file.c_str());      
         //std::cout << "ERROR: Failed to open output polygon file "
                   //<< poly_file << ".\n";      
         return false;
     }
-    polygon_table->writeToFile(out_polyfile, getDebug());
-    out_polyfile.close();
+    polygon_table->writeToFile(io_manager, getDebug());
+    io_manager.close();
     return true;
 }
 
@@ -377,16 +375,16 @@ bool WriteDesign::__writeSymFile(
     ediAssert(symbol_table != nullptr);
     std::string sym_file = filename;
     sym_file.append(kSymFilePostFix);
-    std::ofstream out_symfile(sym_file.c_str(), std::ofstream::binary);
-    if (out_symfile.good() == false) {
+    IOManager io_manager;
+    if (false == io_manager.open(sym_file.c_str(), "wb")) {
         util::message->issueMsg(kMsgCategoryDB, 
             OpenFileError, kError, sym_file.c_str());
         //std::cout << "ERROR: Failed to open output symbol file "
                   //<< sym_file << ".\n";
         return false;
     }
-    symbol_table->writeToFile(out_symfile, getDebug());
-    out_symfile.close();
+    symbol_table->writeToFile(io_manager, getDebug());
+    io_manager.close();
     return true;
 }
 

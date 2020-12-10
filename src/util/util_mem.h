@@ -16,9 +16,8 @@
 #include <forward_list>
 #include <limits.h>
 #include <mutex>
-#include <iostream>
 #include "util/namespace.h"
-#include "util/io_handler.h"
+#include "util/io_manager.h"
 
 #ifndef EDI_UITIL_MEM_HPP_
 #define EDI_UITIL_MEM_HPP_
@@ -173,9 +172,9 @@ class MemPagePool {
     void        setPoolNo(size_t n) {pool_no_ = n;}
     size_t      getPoolNo() {return pool_no_;}
     void        printUsage();
-    void        writeHeaderToFile(std::ofstream & outfile, bool debug = false);
-    void        writeContentToFile(IOHandler & io_handler, bool debug = false);
-    void        readFromFile(std::ifstream & infile, bool debug = false);
+    void        writeHeaderToFile(IOManager & io_manager, bool debug = false);
+    void        writeContentToFile(IOManager & io_manager, bool debug = false);
+    void        readFromFile(IOManager & io_manager, bool debug = false);
 
   private:
     void        __reset();
@@ -200,14 +199,14 @@ class MemPagePool {
         size = ((size+(1<<MEM_ALIGN_BIT)-1)>>MEM_ALIGN_BIT)<<MEM_ALIGN_BIT;
     }
     
-    void __writeChunkSizeInfo(std::ofstream & outfile, bool debug = false);
-    void __readChunkSizeInfo(std::ifstream & infile, bool debug = false);  
-    void __writePageInfo(std::ofstream & outfile, bool debug = false);
-    void __readPageInfo(std::ifstream & infile, bool debug = false);
-    void __writeFreeListInfo(std::ofstream & outfile, bool debug = false);
-    void __readFreeListInfo(std::ifstream & infile, bool debug = false);
-    void __writeChunks(IOHandler & io_handler, bool debug = false);
-    void __readChunks(std::ifstream & infile, bool debug = false);
+    void __writeChunkSizeInfo(IOManager & io_manager, bool debug = false);
+    void __readChunkSizeInfo(IOManager & io_manager, bool debug = false);  
+    void __writePageInfo(IOManager & io_manager, bool debug = false);
+    void __readPageInfo(IOManager & io_manager, bool debug = false);
+    void __writeFreeListInfo(IOManager & io_manager, bool debug = false);
+    void __readFreeListInfo(IOManager & io_manager, bool debug = false);
+    void __writeChunks(IOManager & io_manager, bool debug = false);
+    void __readChunks(IOManager & io_manager, bool debug = false);
   private:
     std::mutex mutex_;
 

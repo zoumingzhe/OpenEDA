@@ -11,8 +11,6 @@
  */
 
 #include "db/util/symbol_page.h"
-#include <fstream>
-#include <iostream>
 
 namespace open_edi {
 namespace db {
@@ -187,7 +185,7 @@ bool SymbolPage::removeSymbolReference(int32_t index, ObjectId ref)
 /// @brief  
 ///
 /// @return 
-void SymbolPage::writeToFile(std::ofstream &outfile, bool debug)
+void SymbolPage::writeToFile(util::IOManager &io_manager, bool debug)
 {
     // symbols count + (symbol_index + symbol_name_length + symbol_name + reference count + reference id array)
     int32_t real_size = 0;
@@ -198,7 +196,7 @@ void SymbolPage::writeToFile(std::ofstream &outfile, bool debug)
         }
         ++real_size;
     }
-    outfile.write((char *) &(real_size), sizeof(int32_t));
+    io_manager.write((char *) &(real_size), sizeof(int32_t));
 
     if (debug) std::cout << "RWDBGINFO: SymbolPage with size " << real_size << std::endl;
 
@@ -208,16 +206,16 @@ void SymbolPage::writeToFile(std::ofstream &outfile, bool debug)
             continue;
         }
         std::string &symbol_name = getSymbol(index);
-        outfile.write((char *) &(index), sizeof(int32_t));
+        io_manager.write((char *) &(index), sizeof(int32_t));
         int32_t length = symbol_name.length();
-        outfile.write((char *) &(length), sizeof(int32_t));
-        outfile.write((char *) &(ref_count), sizeof(int32_t));
+        io_manager.write((char *) &(length), sizeof(int32_t));
+        io_manager.write((char *) &(ref_count), sizeof(int32_t));
         const char *name_str = symbol_name.c_str();
-        outfile.write((char *) name_str, length);
+        io_manager.write((char *) name_str, length);
         if (debug) std::cout << "RWDBGINFO:    symbol#" << index << " " << symbol_name << "::" << length << " ref objs (" << ref_count << ") are:";
         for (std::vector<ObjectId>::iterator iter = references_[index].begin(); iter != references_[index].end(); ++iter) {
             ObjectId ref_id = (*iter);
-            outfile.write((char *) &(ref_id), sizeof(ObjectId));
+            io_manager.write((char *) &(ref_id), sizeof(ObjectId));
             if (debug) std::cout << " " << ref_id;
         }
         if (debug) std::cout << " ;" << std::endl;
@@ -227,12 +225,12 @@ void SymbolPage::writeToFile(std::ofstream &outfile, bool debug)
 /// @brief  readFromFile
 ///
 /// @return 
-void SymbolPage::readFromFile(std::ifstream &infile, bool debug)
+void SymbolPage::readFromFile(util::IOManager &io_manager, bool debug)
 {
     // symbols count + (symbol_index + symbol_name + reference count + reference id array)
     int32_t size = 0;
     int32_t ref_count = 0;
-    infile.read((char *) &(size), sizeof(int32_t));
+    io_manager.read((char *) &(size), sizeof(int32_t));
     if (debug) std::cout << "RWDBGINFO: SymbolPage with size " << size << std::endl;
     for (int32_t i = 0; i < size; ++i) {
         //std::string symbol_name = "";
@@ -240,13 +238,13 @@ void SymbolPage::readFromFile(std::ifstream &infile, bool debug)
         int32_t length = 0;
         char *symbol_name;
 
-        infile.read((char *) &(index), sizeof(int32_t));
-        infile.read((char *) &(length), sizeof(int32_t));
-        infile.read((char *) &(ref_count), sizeof(int32_t));
+        io_manager.read((char *) &(index), sizeof(int32_t));
+        io_manager.read((char *) &(length), sizeof(int32_t));
+        io_manager.read((char *) &(ref_count), sizeof(int32_t));
 
         symbol_name = new char [length + 1];
         symbol_name[length] = '\0';
-        infile.read((char *) (symbol_name), length);
+        io_manager.read((char *) (symbol_name), length);
         if (debug) std::cout << "RWDBGINFO:    symbol#" << index << " " << symbol_name << "::" << length << " ref objs (" << ref_count << ") are:";
         //1. fill symbols_
         addSymbol(index, symbol_name);
@@ -254,7 +252,7 @@ void SymbolPage::readFromFile(std::ifstream &infile, bool debug)
         //2. fill references_ vector
         for (int32_t j = 0; j < ref_count; ++j) {
             ObjectId ref_id = 0;
-            infile.read((char *) &(ref_id), sizeof(ObjectId));
+            io_manager.read((char *) &(ref_id), sizeof(ObjectId));
             addSymbolReference(index, ref_id);
             if (debug) std::cout << " " << ref_id;
         }

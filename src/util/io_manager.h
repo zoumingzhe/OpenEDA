@@ -1,4 +1,4 @@
-/* @file  io_handler.h
+/* @file  io_manager.h
  * @date  <date>
  * @brief <Descriptions>
  *
@@ -31,6 +31,7 @@ const uint8_t  kReadFail = -1;
 const uint8_t  kWriteFail = -1;
 
 class IOBuffer;
+class CompressBlock;
 
 enum CompressType {
     kCompressNull,
@@ -58,33 +59,34 @@ enum CompressLevel {
     kCompressLevelMax,
 };
 
-class IOHandler {
+class IOManager {
   public:
-    IOHandler();
-    ~IOHandler();
+    IOManager();
+    ~IOManager();
     bool open(const char *file_name, const char *mode);
     bool open(const char *file_name, const char *mode, CompressLevel level);
 
-    // the buffer should be freed by applications.
     int read(void *buffer, uint32_t size);
+    // The buffer will be reused when read(uint32_t size) is called next time.
     IOBuffer *read(uint32_t size = kDefaultSize);
-    // the buffers should be freed by applications.
-    std::vector<IOBuffer*> *readCompressBlock();
+    // The buffers should be freed by applications.
+    CompressBlock *readCompressBlock();
+    // comprees_block is allocated by caller
+    bool readCompressBlock(CompressBlock &compress_block);
 
     int write(IOBuffer *buffer);
     int write(void *buffer, uint32_t size);
     int write(std::string);
-    int writeCompressBlock(std::vector<IOBuffer*> &src_buffers);
+    int writeCompressBlock(CompressBlock &compress_block);
 
+    int seek(long int offset, int origin);
+    void flush();
+    int64_t tell();
     void close();
-
-    void setIOBuffer(IOBuffer *io_buffer) { io_buffer_ = io_buffer; }
-    IOBuffer *getIOBuffer() { return io_buffer_; }
 
   private:
     CompressType compress_type_;
     CompressLevel compress_level_;
-    IOBuffer *io_buffer_;
 
     FILE *fp_;
     gzFile gzfp_;
@@ -92,10 +94,16 @@ class IOHandler {
 
 class IOBuffer {
   public:
+    IOBuffer() { buffer_ = nullptr; }
     IOBuffer(uint32_t size) {
         size_ = size;
         buffer_ = new char[size]();
     }
+    ~IOBuffer() {
+        delete buffer_; 
+        buffer_ = nullptr;
+    }
+    void setBuffer(char *buffer) { buffer_ = buffer; }
     char *getBuffer() {return buffer_;}
     void setSize(uint32_t size) { size_ = size; }
     uint32_t getSize() {return size_;};
@@ -106,15 +114,46 @@ class IOBuffer {
     char *buffer_;
 };
 
+class CompressBlock {
+  public:
+    CompressBlock(std::vector<IOBuffer*> *io_buffers) {
+        io_buffers_ = io_buffers;
+    }
+    ~CompressBlock() {
+        for (auto io_buffer : *io_buffers_) {
+            delete io_buffer;
+        }
+    }
+    void setTotalNumber(uint32_t total_number) { total_number_ = total_number; }
+    uint32_t getTotalNumber() { return total_number_; }
+
+    void setMaxBufferSize(uint32_t max_buffer_size) {
+        max_buffer_size_ = max_buffer_size;
+    }
+    uint32_t getMaxBufferSize() { return max_buffer_size_; }
+
+    void setIOBuffers(std::vector<IOBuffer*> *io_buffers) {
+        io_buffers_ = io_buffers;
+    }
+    std::vector<IOBuffer*> *getIOBuffers() { return io_buffers_; }
+  private:
+    uint32_t total_number_;
+    uint32_t max_buffer_size_;
+    std::vector<IOBuffer*> *io_buffers_;
+};
+
 class CompressHandler {
   public:
-    CompressHandler(CompressType compress_type, IOHandler *ih);
-    bool compress(std::vector<IOBuffer*> &src_buffers); 
-    std::vector<IOBuffer*> *decompress();
+    CompressHandler(CompressType compress_type, IOManager *io_manager);
+    bool compress(CompressBlock &compress_block); 
+    CompressBlock *decompress();
+    bool decompress(CompressBlock &compress_block);
 
   private:
+    void freeBuffers(std::vector<IOBuffer*> *buffers);
+
     CompressType compress_type_;
-    IOHandler *io_handler_;
+    IOManager *io_manager_;
     std::vector<IOBuffer*> src_buffers_;
     std::vector<IOBuffer*> dst_buffers_;
 

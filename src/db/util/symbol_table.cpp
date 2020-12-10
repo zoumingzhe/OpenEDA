@@ -11,8 +11,6 @@
  */
 
 #include "db/util/symbol_table.h"
-#include <fstream>
-#include <iostream>
 
 namespace open_edi {
 namespace db {
@@ -207,42 +205,36 @@ std::vector<ObjectId> &SymbolTable::getReferences(SymbolIndex index)
 /// @brief  
 ///
 /// @return 
-void SymbolTable::writeToFile(std::ofstream & outfile, bool debug)
+void SymbolTable::writeToFile(IOManager &io_manager, bool debug)
 {
-    if (!outfile) {
-        return;
-    }
     //1. symbol pages count + symbols count
-    outfile.write((char *) &(page_count_), sizeof(uint64_t));
-    outfile.write((char *) &(symbol_count_), sizeof(uint64_t));
+    io_manager.write((char *) &(page_count_), sizeof(uint64_t));
+    io_manager.write((char *) &(symbol_count_), sizeof(uint64_t));
 
     //2. write page one by one:
     for (auto &sp : symbol_pages_) {
-      sp->writeToFile(outfile, debug);
+      sp->writeToFile(io_manager, debug);
     }
 }
 
 /// @brief  readFromFile
 ///
 /// @return 
-void SymbolTable::readFromFile(std::ifstream & infile, bool debug)
+void SymbolTable::readFromFile(IOManager & io_manager, bool debug)
 {
-    if (!infile) {
-        return;
-    }
     //1. symbol pages count + symbols count
-    infile.read((char *) &(page_count_), sizeof(uint64_t));
-    infile.read((char *) &(symbol_count_), sizeof(uint64_t));
+    io_manager.read((char *) &(page_count_), sizeof(uint64_t));
+    io_manager.read((char *) &(symbol_count_), sizeof(uint64_t));
     //2. fill page info:
     for (int32_t i = 0; i < page_count_; ++i) {
         if (i != 0) {
             SymbolPage * symbol_page = new SymbolPage;
-            symbol_page->readFromFile(infile, debug);
+            symbol_page->readFromFile(io_manager, debug);
             symbol_pages_.push_back(symbol_page);
         } else {
             //during initialization, one page has been allocated.
             SymbolPage * symbol_page = symbol_pages_[0]; 
-            symbol_page->readFromFile(infile, debug);
+            symbol_page->readFromFile(io_manager, debug);
         }
     }
     //3. fill hash info:

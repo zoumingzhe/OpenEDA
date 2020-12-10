@@ -15,7 +15,6 @@
 
 #include <algorithm>
 #include <array>
-#include <iostream>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -24,6 +23,7 @@
 #include "util/data_traits.h"
 #include "util/namespace.h"
 #include "util/point.h"
+#include "util/io_manager.h"
 
 namespace open_edi {
 namespace util {
@@ -38,8 +38,8 @@ class Polygon {
 
     Point getPoint(int index) const { return *pts_[index]; }
 
-    void writeToFile(std::ofstream &outfile, bool debug);
-    void readFromFile(std::ifstream &infile, bool debug);
+    void writeToFile(IOManager &io_manager, bool debug);
+    void readFromFile(IOManager &io_manager, bool debug);
 
   private:
     std::vector<Point *> pts_;
@@ -62,8 +62,8 @@ class PolygonTable {
     PolygonTable();
     ~PolygonTable();
 
-    void writeToFile(std::ofstream &outfile, bool debug);
-    void readFromFile(std::ifstream &infile, bool debug);
+    void writeToFile(IOManager &io_manager, bool debug);
+    void readFromFile(IOManager &io_manager, bool debug);
 
   private:
     std::vector<Polygon *> polygons_;

@@ -23,6 +23,15 @@
 namespace open_edi {
 namespace util {
 
+inline void toLower(char *s) {
+    int len = strlen(s);
+    for (int i = 0; i < len; i++) {
+        if (s[i] >= 'A' && s[i] <= 'Z') {
+            s[i] += 32;  //+32 to lower case
+        }
+    }
+}
+
 inline void toLower(std::string &s) {
     int len = s.size();
     for (int i = 0; i < len; i++) {
@@ -41,6 +50,14 @@ inline void toUpper(std::string &s) {
     }
 }
 
+inline void toUpper(char *s) {
+    int len = strlen(s);
+    for (int i = 0; i < len; i++) {
+        if (s[i] >= 'a' && s[i] <= 'z') {
+            s[i] -= 32;  //-32 to upper case
+        }
+    }
+}
 /// @brief Types of models.
 enum class CellType : uint8_t {
     kCell,       ///< term model

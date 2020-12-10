@@ -11,6 +11,7 @@
  */
 #include "util/checksum.h"
 #include "util/monitor.h"
+#include "util/io_manager.h"
 
 namespace open_edi {
 namespace util {
@@ -37,27 +38,27 @@ uint32_t CheckSum::summary(const std::string &filename, int len, bool debug) {
     if (len <= 0) {
         return 0;
     }
-    std::ifstream infile(filename.c_str(), std::ifstream::binary);
-    if (infile.good() == false) {
+    IOManager io_manager;
+    if (false == io_manager.open(filename.c_str(), "rb")) {
         return 0;
     }
-    infile.seekg(0, infile.end);
-    uint64_t filesize = infile.tellg();
+    io_manager.seek(0, SEEK_END);
+    uint64_t filesize = io_manager.tell();
     if (filesize < len) {
         std::cout << "Error: do summary - filesize " << filesize
                   << " with length " << len << ".\n";
         return 0;
     }
-    infile.seekg(0, infile.beg);
+    io_manager.seek(0, SEEK_SET);
     unsigned char *buff = new unsigned char[len];
-    infile.read((char *)(buff), len);
+    io_manager.read((char *)(buff), len);
     if (debug) {
         std::cout << "DEBUGINFO: do summary - starting from "
                   << *(uint32_t *)buff << " with length " << len << ".\n";
     }
     uint32_t retn = summary((const unsigned char *)buff, len, debug);
     delete[] buff;
-    infile.close();
+    io_manager.close();
     return retn;
 }
 

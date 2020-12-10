@@ -56,8 +56,6 @@ class MonitorInformation {
     double elapsed_time_;  // μs, duration time
     double cpu_time_;      // μs, real cpu time
     uint64_t vmPeak_;  // kB, Peak virtual memory size.
-    uint64_t vmSize_;  // kB, Virtual memory size.
-    uint64_t vmHWM_;   // kB, Peak resident set size ("high water mark").
     uint64_t vmRss_;   // kB, Resident set size.
 };
 

@@ -32,7 +32,7 @@
 11 "New IOBuffer failed. Buffer size is %d\n"
 	{}
 
-12 "Input bufer is null.\n"
+12 "Input buffer is null.\n"
 	{}
 
 13 "Read total number of compressed blocks failed.\n"
