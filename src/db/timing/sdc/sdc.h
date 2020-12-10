@@ -25,12 +25,24 @@ class Sdc {
     //TODO construct function to init smart pointers
 
     //set
+    void setAnalysisModeId(const ObjectId &id) { analysis_mode_id_ = id; }
+
+    //get
+    AnalysisMode* getAnalysisMode() { return ObjectId::addr<AnalysisMode>(analysis_mode_id_); }
+    AnalysisView* getAnalysisView();
+
+    //set
     void set_case_analysis_container(SdcCaseAnalysisContainerPtr ptr) { case_analysis_container_ptr_ = ptr; }
+
 
     //get
     SdcCaseAnalysisContainerPtr get_case_analysis_container() { return case_analysis_container_ptr_; }
 
+  private:
     SdcCaseAnalysisContainerPtr case_analysis_container_ptr_;
+
+  private:
+    ObjectId analysis_mode_id_;
 };
 using SdcPtr = std::shared_ptr<Sdc>;
 
