@@ -24,7 +24,12 @@ cub_dir = "${CUB_DIR}"
 
 cuda_flags = '${CMAKE_CUDA_FLAGS}'.split(';')
 print("cuda_flags = %s" % (' '.join(cuda_flags)))
-cuda_major_version = int("${CUDA_VERSION_MAJOR}")
+
+if "${CUDA_VERSION_MAJOR}" != "":
+    cuda_major_version = int("${CUDA_VERSION_MAJOR}")
+else:
+    cuda_major_version = 0
+
 if cuda_major_version >= 11:
     include_dirs = [ops_dir, os.path.abspath(limbo_source_dir), '${Boost_INCLUDE_DIRS}']
 else:
