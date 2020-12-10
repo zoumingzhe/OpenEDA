@@ -95,9 +95,13 @@ make install
 1.  Once installed (after make install), you can find the 'openEDA' binary under `your/install/path/bin/` directory.
 
 Invoke the binary, try
+
 openEDA> read_lef test.lef
+
 openEDA> read_verilog test.v
+
 openEDA> read_def test.def
+
 openEDA> read_timing_library test.lib
 
 2. 
