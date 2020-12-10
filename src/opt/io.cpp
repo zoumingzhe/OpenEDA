@@ -48,6 +48,11 @@ int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
     #endif
     //read source
     Node *node = new Node();
+    node->r0 = r0_;
+    node->c0 = c0_;
+    node->c_down = 0.0;
+    node->c_edge = 0.0;
+    node->r_edge = 0.0;
     node->id = 0;
     node->type = SOURCE;
     node->parent = NULL;
@@ -74,10 +79,15 @@ int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
         last->buffer_location = NULL;
         last->area = 0;
         node = new Node();
+        node->r0 = r0_;
+        node->c0 = c0_; 
         node->type = SINK;
         node->parent = NULL;
         fin_ >> what >> node->id >> node->x >> node->y >> last->capacitance >> last->time;
         last->capacitance /= 1000;//convert to pF
+        node->c_down = last->capacitance;
+        node->c_edge = 0.0;
+        node->r_edge = 0.0;
         node->solutions[last->polarity] = last;
         node->solutions[!last->polarity] = NULL;
         nodes_[node->id] = node;
@@ -91,6 +101,11 @@ int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
     fin_ >> what >> num;
     for(int i=0;i<num;i++){
         node = new Node();
+        node->r0 = r0_;
+        node->c0 = c0_;
+        node->c_down = 0.0;
+        node->c_edge = 0.0;
+        node->r_edge = 0.0;
         node->type = CANDIDATE;
         node->parent = NULL;
         fin_ >> what >> node->id >> node->x >> node->y;
@@ -111,6 +126,8 @@ int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
         #endif
         Node *node_parent = nodes_[id_from];
         Node *node_child = nodes_[id_to];
+        node_child->c_edge = c0_ * (fabs(node_parent->x - node_child->x) + fabs(node_parent->y - node_child->y));
+        node_child->r_edge = r0_ * (fabs(node_parent->x - node_child->x) + fabs(node_parent->y - node_child->y));
         node_child->parent = node_parent;
         node_parent->children.push_back(node_child);
     }
@@ -121,9 +138,9 @@ int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
     Node *front = NULL;
     nodes_queue.push(nodes_[0]);
     while(nodes_queue.size() > 0) {
-	    front = nodes_queue.front();
+	front = nodes_queue.front();
         nodes_array.push_back(front);
-	    nodes_queue.pop();
+	nodes_queue.pop();
         for (int i = 0; i < front->children.size(); i++) {
             nodes_queue.push(front->children[i]);
         }

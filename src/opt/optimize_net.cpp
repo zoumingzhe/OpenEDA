@@ -1,4 +1,5 @@
 #include "optimize_net.h"
+#include "segmentation.h"
 
 using namespace std;
 
@@ -108,9 +109,15 @@ int OptimizeNet::optimize_net (int argc, char **argv) {
     }
     double r0 = io_->getR0();
     double c0 = io_->getC0();
+    Segmentation *seg = new Segmentation();
+    chrono::steady_clock::time_point seg_begin = chrono::steady_clock::now();
+    int seg_ret = seg->computeWireSegmentation(io_->nodes_array, io_->used_id_, buffers, drivers);
+    chrono::steady_clock::time_point seg_end = chrono::steady_clock::now();
+    std::chrono::duration<double, std::milli> seg_elapsed = seg_end - seg_begin;
+    cout << "Wire-Segmentation elapsed time: " << seg_elapsed.count() << " [ms]" << endl;
     van_ = new Van(r0,c0);
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
-    van_->optimization(io_->nodes_array,buffers,drivers);
+    van_->optimization(seg->getWireSegmentationRet() ,buffers, drivers, io_->used_id_);
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
     chrono::duration<double, std::milli> elapsed = end - begin;
     cout << "elapsed time: " << elapsed.count() << " [ms]" << endl;
@@ -125,7 +132,7 @@ int OptimizeNet::optimize_net (double r0, double c0, int id,
                             const std::vector<Buffer> &buffers,
                             const std::vector<Buffer> &drivers) {
     van_ = new Van(r0,c0);
-    van_->optimization(nodes_array,buffers,drivers);
+    van_->optimization(nodes_array,buffers,drivers,0); // to do
     vector<VanSizing *> solutions;
     van_->getSolutions(solutions);
     outputSolution(output_dir_+to_string(id)+".out",solutions,buffers.size(),false);

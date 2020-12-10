@@ -29,6 +29,7 @@ class IO {
 
     double getR0();
     double getC0();
+    uint64_t used_id_;
     void getTreeCopy(std::vector<Node *> &array);
   private:
     std::ifstream fin_;
@@ -37,7 +38,6 @@ class IO {
 
     double r0_;     //wire unit resistance
     double c0_;     //wire unit capacitance
-    uint64_t used_id_;
     
     void destroyTree();
 };
