@@ -67,6 +67,7 @@ class Option {
     Option();
     Option(const char* name, OptionDataType type, bool is_required, const char* description);
     Option(const char* name, OptionDataType type, bool is_required, std::vector<std::string>* v, const char* description);
+    Option(const char* name, OptionDataType type, bool is_required, const char* v, const char* description);
     Option(const char* name, OptionDataType type, bool is_required, bool v, const char* description);
     Option(const char* name, OptionDataType type, bool is_required, int v, const char* description, int min = 0, int max = 0);
     Option(const char* name, OptionDataType type, bool is_required, double v, const char* description, double min = 0, double max = 0);
@@ -155,7 +156,7 @@ enum OptionRelation {
 
 class OptionGroup {
  public:
-    OptionGroup() {}
+    OptionGroup();
     OptionGroup(const char* name1, const char* name2, OptionRelation r);
     ~OptionGroup() {}
     void setOpt1Name(const char * v) { opt1_name_ = v;}
