@@ -25,7 +25,13 @@ print("cuda_flags = %s" % (' '.join(cuda_flags)))
 
 cub_dir = "${CUB_DIR}"
 
-include_dirs = [cub_dir, ops_dir]
+cuda_major_version = int("${CUDA_VERSION_MAJOR}")
+
+if cuda_major_version >= 11:
+    include_dirs = [ops_dir]
+else
+    include_dirs = [cub_dir, ops_dir]
+
 lib_dirs = [utility_dir]
 libs = ['utility'] 
 
