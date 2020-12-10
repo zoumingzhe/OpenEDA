@@ -6,17 +6,55 @@ An open-source electronic data infrastructure for VLSI design automation.
 #### Software Architecture
 Software architecture description
 
-#### Software Dependency
+#### Building Dependency (Recommend)
 
-1.  [Google test](https://gitee.com/mirrors/googletest)
-    - Integrated as a submodule 
-2.  [Pybind11](https://gitee.com/mirrors/pybind11)
-    - Integrated as a submodule 
-3.  [Boost](https://www.boost.org)
-    - Must be found by CMake 
-    - Recommend to use [anaconda](https://anaconda.org) to install the library by `conda install -c anaconda boost`
-    - Then `export BOOST_ROOT=/path/to/anaconda` so that CMake can find boost 
-    - If Boost is installed with other approaches, you can export `BOOST_ROOT` to wherever it is installed
+1. GCC 6.5.0
+
+2. Cmake 3.12.4
+
+3. Qt 5.9.7
+
+4. Python 3.6
+
+   Recommend to use [anaconda](https://anaconda.org)
+
+5. [Google test](https://gitee.com/mirrors/googletest)
+
+   - Integrated as a submodule 
+
+6. [Pybind11](https://gitee.com/mirrors/pybind11)
+
+   - Integrated as a submodule 
+
+7. [Boost](https://www.boost.org) 1.69
+
+   - Must be found by CMake 
+   - Recommend to use [anaconda](https://anaconda.org) to install the library by `conda install -c anaconda boost`
+   - Then `export BOOST_ROOT=/path/to/anaconda` so that CMake can find boost 
+   - If Boost is installed with other approaches, you can export `BOOST_ROOT` to wherever it is installed
+
+8. Bison 3.0.4
+
+9. Flex 2.5.37
+
+10. Tcl 8.6.9
+
+11. Gperftools 2.7.90
+
+#### Fast deployment(Virtual machine image)
+
+- Download and uncompress CentOS7Dev.zip, then import CentOS7Dev.ovf and launch the virtual machine.
+
+```
+Download url: https://pan.baidu.com/s/1JnxVadThOJL3K2jsscRaGA
+Verification code: moqr
+SHA1: 39F76587507A453B98D77072FE39066B19EF035B
+
+Username:root
+Password:toor
+```
+
+- Before checkout openedi code, Please source /opt/devtoolset/devtoolset.bash first.
 
 #### Installation
 
@@ -67,22 +105,3 @@ will execute the script and print following messages
 SignalDirection.kInput
 [INFO   ] test message type MessageType.kInfo
 ~~~~~~~~~~~~~~~~~~~~~
-
-2.  xxxx 
-
-#### Contribution
-
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
-
-
-#### Features
-
-1.  You can use Readme\_XXX.md to support different languages, such as Readme\_en.md, Readme\_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members  [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)

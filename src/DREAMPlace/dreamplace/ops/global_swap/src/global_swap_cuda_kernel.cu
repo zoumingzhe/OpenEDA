@@ -174,7 +174,7 @@ inline __device__ T compute_pair_hpwl_general (const int* __restrict__ flat_node
     {
         int node_pin_id = flat_node2pin_map[node2pin_id];
         int net_id = pin2net_map[node_pin_id];
-        Box<T> box (
+        UBox<T> box (
                 xh, 
                 yh, 
                 xl, 
@@ -235,7 +235,7 @@ inline __device__ T compute_pair_hpwl_general_fast ( PitchNestedVector<int>&  no
         int net_id = node2nets[i];
         int flag = net_mask[net_id];
         auto net2nodepins = net2nodepin_map(net_id);
-        Box<T> box (
+        UBox<T> box (
                         xh, 
                         yh, 
                         xl, 
@@ -280,7 +280,7 @@ inline __device__ T compute_pair_hpwl_general_fast ( PitchNestedVector<int>&  no
         int net_id = node2nets[i];
         int flag = net_mask[net_id];
         auto net2nodepins = net2nodepin_map(net_id);
-        Box<T> box (
+        UBox<T> box (
                         xh, 
                         yh, 
                         xl, 
@@ -329,7 +329,7 @@ __device__ T compute_pair_hpwl (const DetailedPlaceDB<T>& db, const SwapState<T>
     {
         int node_pin_id = db.flat_node2pin_map[node2pin_id];
         int net_id = db.pin2net_map[node_pin_id];
-        Box<T> box (
+        UBox<T> box (
                 db.xh, 
                 db.yh, 
                 db.xl, 
@@ -363,7 +363,7 @@ __device__ T compute_pair_hpwl (const DetailedPlaceDB<T>& db, const SwapState<T>
     {
         int node_pin_id = db.flat_node2pin_map[node2pin_id];
         int net_id = db.pin2net_map[node_pin_id];
-        Box<T> box (
+        UBox<T> box (
                 db.xh, 
                 db.yh, 
                 db.xl, 
@@ -548,9 +548,9 @@ __global__ void compute_search_bins(DetailedPlaceDB<T> db, SwapState<T> state, i
     for (int node_id = begin + blockIdx.x * blockDim.x + threadIdx.x; node_id < end; node_id += blockDim.x * gridDim.x)
     {
         // compute optimal region 
-        Box<T> opt_box = (state.search_bin_strategy)? 
+        UBox<T> opt_box = (state.search_bin_strategy)? 
             db.compute_optimal_region(node_id, db.x, db.y) 
-            : Box<T>(db.x[node_id], 
+            : UBox<T>(db.x[node_id], 
                 db.y[node_id], 
                 db.x[node_id]+db.node_size_x[node_id], 
                 db.y[node_id]+db.node_size_y[node_id]);

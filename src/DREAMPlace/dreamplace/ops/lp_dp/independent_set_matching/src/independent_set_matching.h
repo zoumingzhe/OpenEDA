@@ -1,6 +1,6 @@
 /**
  * @file   independent_set_matching.h
- * @author Chenzhong Luo
+ * @author Chenzhong Luo, Fly
  * @date   Oct 2020
  */
 
@@ -16,19 +16,18 @@
 DREAMPLACE_BEGIN_NAMESPACE
 
 //CPU sequential
-template <typename T>
-void independentSetMatchingCPULauncherNew(DetailedPlaceDB<T> db, 
-        int set_size, int max_iters);
+void independentSetMatchingCPU(DetailedPlaceDB<int>& db, int setSize, int maxIters);
 //GPU cuda
-template <typename T>
-int independentSetMatchingCUDALauncherNew(DetailedPlaceDB<T> db, int batch_size, int set_size, int max_iters, int num_threads);
+#ifdef _CUDA_FOUND
+int independentSetMatchingCUDARun(DetailedPlaceDB<int>& db, int batchSize, int setSize, int maxIters, int numThreads);
+#endif
 /// @brief a wrapper class of required data for edi db
 class IndependentSetMatching
 {
   public:
     IndependentSetMatching() 
     {
-      CommonPlaceDB* db_ = CommonPlaceDB::getPlaceDBInstance();
+      db_ = CommonPlaceDB::getPlaceDBInstance();
       is_gpu_ = db_->getPara().isGPU();
       num_threads_ = db_->getPara().getNumThreads();
     }

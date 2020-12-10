@@ -13,6 +13,19 @@
 DREAMPLACE_BEGIN_NAMESPACE
 
 // class LegalDetailedDB member functions
+
+void
+MainPlace::updateDB()
+{
+  db_->updateDB2EDI();
+}
+
+void
+MainPlace::summaryMovement()
+{
+  db_->summaryMovement();
+}
+
 void
 MainPlace::run()
 {
@@ -25,14 +38,18 @@ MainPlace::run()
 
   /// global place
   GlobalPlace gplace;
-  if (!gplace.run())
+  if (gplace.run() != 0)
   {
-      return;
+      //return;
   }
 
   /// lpdp place 
   LpdpPlace lpdp;
   lpdp.run();
+
+  // update DB
+  updateDB();
+
   hr_clock_rep stop_time = get_globaltime();
   dreamplacePrint(kINFO, "place_design time: %g ms\n", get_timer_period()*(stop_time - start_time));
 }
