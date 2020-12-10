@@ -54,30 +54,33 @@ class SetHierarchySeparator {
 };
 using SetHierarchySeparatorPtr = std::shared_ptr<SetHierarchySeparator>; 
 
+class Sdc;
 class SetUnits {
   public:
-    void setAndCheckCapacitance(const std::string &cap);
-    void setAndCheckResistance(const std::string &res);
-    void setAndCheckTime(const std::string &time);
-    void setAndCheckVoltage(const std::string &voltage);
-    void setAndCheckCurrent(const std::string &current);
-    void setAndCheckPower(const std::string &power);
+    void setAndCheckCapacitance(const std::shared_ptr<Sdc> &sdc, const std::string &cap);
+    void setAndCheckResistance(const std::shared_ptr<Sdc> &sdc, const std::string &res);
+    void setAndCheckTime(const std::shared_ptr<Sdc> &sdc, const std::string &time);
+    void setAndCheckVoltage(const std::shared_ptr<Sdc> &sdc, const std::string &voltage);
+    void setAndCheckCurrent(const std::shared_ptr<Sdc> &sdc, const std::string &current);
+    void setAndCheckPower(const std::shared_ptr<Sdc> &sdc, const std::string &power);
+
+    void splitUnit(float &value, std::string &suffix, std::string &unit);
 
   private:
-    TUnit capacitance_unit_ = {1.0e-3f, 1, "A"};
-    TUnit resistance_unit_ = {1.0f, 1, "ohm"};
-    TUnit time_unit_ = {1.0e-9f, 1, "s"};
-    TUnit voltage_unit_ = {1.0f, 1, "V"};
-    TUnit current_unit_ = {1.0e-3f, 1, "A"};
-    TUnit power_unit_ = {1.0f, 1, "W"};
+    float capacitance_unit_value_ = 0.0; // farad
+    float resistance_unit_value_ = 0.0; // ohm
+    float time_unit_value_ = 0.0; // sec
+    float voltage_unit_value_ = 0.0; // volt
+    float current_unit_value_ = 0.0; // ampere
+    float power_unit_value_ = 0.0; // watt
 
   public:
-    COMMAND_GET_SET_VAR(capacitance_unit, CapacitanceUnit)
-    COMMAND_GET_SET_VAR(resistance_unit, ResistanceUnit)
-    COMMAND_GET_SET_VAR(time_unit, TimeUnit)
-    COMMAND_GET_SET_VAR(voltage_unit, VoltageUnit)
-    COMMAND_GET_SET_VAR(current_unit, CurrentUnit)
-    COMMAND_GET_SET_VAR(power_unit, PowerUnit)
+    COMMAND_GET_SET_VAR(capacitance_unit_value, CapacitanceUnit)
+    COMMAND_GET_SET_VAR(resistance_unit_value, ResistanceUnit)
+    COMMAND_GET_SET_VAR(time_unit_value, TimeUnit)
+    COMMAND_GET_SET_VAR(voltage_unit_value, VoltageUnit)
+    COMMAND_GET_SET_VAR(current_unit_value, CurrentUnit)
+    COMMAND_GET_SET_VAR(power_unit_value, PowerUnit)
 };
 using SetUnitsPtr = std::shared_ptr<SetUnits>;
 

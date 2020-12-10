@@ -113,10 +113,11 @@ void AnalysisMode::addConstraintFile(const std::string& file) {
 }
 
 void AnalysisMode::createSdc(void) {
-    sdc_ = std::make_shared<Sdc>();
+    sdc_ = std::make_shared<Sdc>(this->getId());
     assert(sdc_);
     if (sdc_ == nullptr) {
         //TODO messages
+        return;
     }
 }
 

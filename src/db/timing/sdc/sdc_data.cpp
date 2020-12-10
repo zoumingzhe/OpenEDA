@@ -20,7 +20,6 @@ namespace db {
 //general purpose commands
 
 
-CurrentInstancePtr SdcCurrentInstanceContainer::current_instance_ = std::make_shared<CurrentInstance>();
 std::string SdcCurrentInstanceContainer::getName() {
     const ObjectId &inst_id = current_instance_->getInstanceId();
     const Inst* inst = Object::addr<Inst>(inst_id);

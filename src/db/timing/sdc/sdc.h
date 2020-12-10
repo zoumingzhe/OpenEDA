@@ -23,13 +23,17 @@ namespace db {
 class Sdc {
   public:
     //TODO construct function to init smart pointers
+    Sdc(ObjectId mode_id);
 
-    //set
-    void setAnalysisModeId(const ObjectId &id) { analysis_mode_id_ = id; }
+    //init
+    void init();
 
     //get
-    AnalysisMode* getAnalysisMode() { return ObjectId::addr<AnalysisMode>(analysis_mode_id_); }
-    AnalysisView* getAnalysisView();
+    ObjectId getAnalysisModeId() { return analysis_mode_id_; }
+    ObjectId getAnalysisViewId() { return analysis_view_id_; }
+    ObjectId getAnalysisCornerId() { return analyais_corner_id_; }
+    ObjectId getMainLibertyId() { return main_liberty_id_; }
+    ObjectId getMainLibertyUnitsId() { return main_liberty_units_id_; }
 
     //set
     void set_case_analysis_container(SdcCaseAnalysisContainerPtr ptr) { case_analysis_container_ptr_ = ptr; }
@@ -43,6 +47,10 @@ class Sdc {
 
   private:
     ObjectId analysis_mode_id_;
+    ObjectId analysis_view_id_;
+    ObjectId analyais_corner_id_;
+    ObjectId main_liberty_id_;
+    ObjectId main_liberty_units_id_;
 };
 using SdcPtr = std::shared_ptr<Sdc>;
 
