@@ -32,6 +32,7 @@ class SdcCurrentInstanceContainer {
   public:
     static void add(CurrentInstancePtr instance) { current_instance_ = instance; }
     static std::string getName();
+    static ObjectId getId() { return current_instance_->getInstanceId(); };
     friend std::ostream &operator<<(std::ostream &os, const SdcCurrentInstanceContainer &rhs);
 
   private:
@@ -51,8 +52,18 @@ class SdcHierarchySeparatorContainer {
 using SdcHierarchySeparatorContainerPtr = std::shared_ptr<SdcHierarchySeparatorContainer>;
 
 class SdcUnitsContainer {
+  public:
+    static void add(SetUnitsPtr units) { units_ = units; };
+    static const TUnit &getSdcCapacitanceUnits() { return units_->getCapacitanceUnit(); };
+    static const TUnit &getSdcResistanceUnits() { return units_->getResistanceUnit(); };
+    static const TUnit &getSdcTimeUnits() { return units_->getTimeUnit(); };
+    static const TUnit &getSdcVoltageUnits() { return units_->getVoltageUnit(); };
+    static const TUnit &getSdcCurrentUnits() { return units_->getCurrentUnit(); };
+    static const TUnit &getSdcPowerUnits() { return units_->getPowerUnit(); };
+    friend std::ostream &operator<<(std::ostream &os, const SdcUnitsContainer &rhs);
+
   private:
-    SetUnits units_;
+    static SetUnitsPtr units_;
 };
 using SdcUnitsContainerPtr = std::shared_ptr<SdcUnitsContainer>;
 
@@ -86,6 +97,7 @@ class SdcCurrentDesignContainer {
   public:
     static void add(CurrentDesignPtr design) { current_design_ = design; }
     static std::string getName();
+    static ObjectId getId() { return current_design_->getCellId(); };
     friend std::ostream &operator<<(std::ostream &os, const SdcCurrentDesignContainer &rhs);
 
   private:

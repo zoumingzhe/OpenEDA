@@ -23,6 +23,8 @@
 
 #include "db/core/object.h"
 #include "db/timing/sdc/command_get_set_property.h"
+#include "db/timing/timinglib/timinglib_units.h"
+#include "db/timing/timinglib/timinglib_libbuilder.h"
 
 namespace open_edi {
 namespace db {
@@ -44,7 +46,7 @@ class SetHierarchySeparator {
     void setAndCheck(const std::string &input);
 
   private:
-    static const std::string legal_chars_;
+    static const std::string legal_chars_ ;
     char separator_ = '/';
 
   public:
@@ -54,17 +56,34 @@ using SetHierarchySeparatorPtr = std::shared_ptr<SetHierarchySeparator>;
 
 class SetUnits {
   public:
-    //TODO unit check and set
+    void setAndCheckCapacitance(const std::string &cap);
+    void setAndCheckResistance(const std::string &res);
+    void setAndCheckTime(const std::string &time);
+    void setAndCheckVoltage(const std::string &voltage);
+    void setAndCheckCurrent(const std::string &current);
+    void setAndCheckPower(const std::string &power);
 
   private:
-    float capacitance_unit_;
-    float resistance_unit_;
-    float time_unit_;
-    float voltage_unit_;
-    float current_unit_;
-    float power_unit_; 
+    TUnit capacitance_unit_ = {1.0e-3f, 1, "A"};
+    TUnit resistance_unit_ = {1.0f, 1, "ohm"};
+    TUnit time_unit_ = {1.0e-9f, 1, "s"};
+    TUnit voltage_unit_ = {1.0f, 1, "V"};
+    TUnit current_unit_ = {1.0e-3f, 1, "A"};
+    TUnit power_unit_ = {1.0f, 1, "W"};
+
+  public:
+    COMMAND_GET_SET_VAR(capacitance_unit, CapacitanceUnit)
+    COMMAND_GET_SET_VAR(resistance_unit, ResistanceUnit)
+    COMMAND_GET_SET_VAR(time_unit, TimeUnit)
+    COMMAND_GET_SET_VAR(voltage_unit, VoltageUnit)
+    COMMAND_GET_SET_VAR(current_unit, CurrentUnit)
+    COMMAND_GET_SET_VAR(power_unit, PowerUnit)
 };
 using SetUnitsPtr = std::shared_ptr<SetUnits>;
+
+
+
+
 
 }
 }

@@ -237,13 +237,6 @@ class LibBuilder {
         std::vector<tb_namespace::TimingArc *> *libtimingarcs);
     void __getObjectsFromTopStack(std::vector<tb_namespace::Object *> *objects);
     void __deleteObjectList(ObjectList *objects);
-    float __getTimeUnitMultiply(const std::string &u);
-    float __getResistanceUnitMultiply(const std::string &u);
-    float __getCapacitiveUnitMultiply(const std::string &u);
-    float __getVoltageUnitMultiply(const std::string &u);
-    float __getCurrentUnitMultiply(const std::string &u);
-    float __getPowerUnitMultiply(const std::string &u);
-    float __getDistanceUnitMultiply(const std::string &u);
     void __getPinNamesFromBusRange(const char *str,
                                    std::vector<std::string> *pinNames);
     tb_namespace::TCell *__getTcellByTimingarc(tb_namespace::TimingArc *t);

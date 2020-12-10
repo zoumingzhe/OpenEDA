@@ -30,6 +30,7 @@ namespace db {
 class AllClocks {
   private:
     std::vector<ClockId> clocks_;
+
   public:
     COMMAND_GET_SET_VAR(clocks, Clocks)
 };

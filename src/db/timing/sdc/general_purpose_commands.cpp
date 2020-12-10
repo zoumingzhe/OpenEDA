@@ -28,7 +28,7 @@ void CurrentInstance::cd(const std::string &dir) {
     // 7) dir == "\." --> top
 }
 
-std::string legal_chars_ = "/@^#.|";
+const std::string legal_chars_ = "/@^#.|";
 void SetHierarchySeparator::setAndCheck(const std::string &input) {
     if (input.size() != 1) {
         //TODO error messages
@@ -42,7 +42,38 @@ void SetHierarchySeparator::setAndCheck(const std::string &input) {
     separator_ = input.front();
 }
 
+/*
+void setAndCheckCapacitance(const std::string &cap) {
+    //TODO
+    const auto &timing_lib = getTimingLib();
+}
 
+void setAndCheckResistance(const std::string &res) {
+    //TODO
+    const auto &timing_lib = getTimingLib();
+}
+
+void setAndCheckTime(const std::string &time) {
+    //TODO
+    const auto &timing_lib = getTimingLib();
+}
+
+void setAndCheckVoltage(const std::string &voltage) {
+    //TODO
+    const auto &timing_lib = getTimingLib();
+}
+
+void setAndCheckCurrent(const std::string &current) {
+    //TODO
+    const auto &timing_lib = getTimingLib();
+}
+
+void setAndCheckPower(const std::string &power) {
+    //TODO
+    const auto &timing_lib = getTimingLib();
+}
+
+*/
 
 
 }
