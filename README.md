@@ -5,11 +5,17 @@ An open-source infrastructure for VLSI design automation tool set.
 
 #### Software Architecture
 Key components include:
+
 Database - OpenEDI database, core module.
+
 Parser - parse standard data format and import data to OpenEDI databade.
+
 CommandManager - manage commands.
+
 MessageManager - manage messages.
+
 IOManager - High-performance file IO.
+
 GUI - Graphic user interface
 
 #### Building Dependency (Recommend)
