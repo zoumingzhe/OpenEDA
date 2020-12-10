@@ -27,9 +27,7 @@ class GlobalPlace
       db_ = CommonPlaceDB::getPlaceDBInstance();
     }
     ~GlobalPlace()
-    {
-      CommonPlaceDB::freePlaceDBInstance();
-    }
+    {}
     GlobalPlace(const GlobalPlace&)            = delete; // no copy
     GlobalPlace &operator=(const GlobalPlace&) = delete; // no copy
 

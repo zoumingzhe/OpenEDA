@@ -58,10 +58,13 @@ def place(params):
     
 
     # write placement solution 
-    path = "%s/%s" % (params.result_dir, params.design_name())
-    if not os.path.exists(path):
-        os.system("mkdir -p %s" % (path))
-    gp_out_file = os.path.join(path, "%s.gp.%s" % (params.design_name(), params.solution_file_suffix()))
+    if params.place_output_db_name != "":
+        gp_out_file = "%s.def" % (params.place_output_db_name)
+    else:
+        path = "%s/%s" % (params.result_dir, params.design_name())
+        if not os.path.exists(path):
+            os.system("mkdir -p %s" % (path))
+        gp_out_file = os.path.join(path, "%s.gp.%s" % (params.design_name(), params.solution_file_suffix()))
     placedb.write(params, gp_out_file)
     logging.info("[end non-linear placement at: %s, elapsed time %.2f seconds]" % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'),time.time()-tt))
     

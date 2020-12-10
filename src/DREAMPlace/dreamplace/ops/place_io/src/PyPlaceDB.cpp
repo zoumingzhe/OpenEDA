@@ -7,6 +7,9 @@
 
 #include "PyPlaceDB.h"
 #include <boost/polygon/polygon.hpp>
+#ifdef _CMAKE_PLACE
+#include "flow/src/common_place_DB.h"
+#endif
 
 DREAMPLACE_BEGIN_NAMESPACE
 
@@ -153,6 +156,15 @@ bool readBookshelf(PlaceDB& db)
 
     return true;
 }
+
+#ifdef _CMAKE_PLACE
+void PyPlaceDB::set() 
+{
+    CommonPlaceDB* db = CommonPlaceDB::getPlaceDBInstance();
+    //setup from common db.
+    //to be implemented.
+}
+#endif
 
 void PyPlaceDB::set(PlaceDB const& db) 
 {

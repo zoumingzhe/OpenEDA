@@ -11,7 +11,6 @@ add_subdirectory(hpwl)
 add_subdirectory(move_boundary)
 add_subdirectory(weighted_average_wirelength)
 add_subdirectory(rmst_wl)
-add_subdirectory(place_io)
 # legalization operators 
 add_subdirectory(legality_check)
 add_subdirectory(macro_legalize)
@@ -29,6 +28,7 @@ add_subdirectory(nctugr_binary)
 # new place flow operator
 add_subdirectory(lp_dp)
 add_subdirectory(flow)
+add_subdirectory(place_io)
 if (CMAKE_PLACE)
     add_subdirectory(tcl_command)
     # report wire length

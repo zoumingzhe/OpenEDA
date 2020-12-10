@@ -33,7 +33,7 @@ int globalSwapCPULauncher(DetailedPlaceDB<T> db, int max_iters)
             int net_id = db.pin2net_map[node_pin_id];
             if (db.net_mask[net_id])
             {
-                Box<T> box (
+                UBox<T> box (
                         db.xh, 
                         db.yh, 
                         db.xl, 
@@ -75,7 +75,7 @@ int globalSwapCPULauncher(DetailedPlaceDB<T> db, int max_iters)
             int net_id = db.pin2net_map[node_pin_id];
             if (db.net_mask[net_id])
             {
-                Box<T> box (
+                UBox<T> box (
                         db.xh, 
                         db.yh, 
                         db.xl, 
@@ -267,7 +267,7 @@ int globalSwapCPULauncher(DetailedPlaceDB<T> db, int max_iters)
             {
                 continue; 
             }
-            Box<T> node_box (
+            UBox<T> node_box (
                     db.x[node_id], 
                     db.y[node_id], 
                     db.x[node_id]+db.node_size_x[node_id], 
@@ -278,7 +278,7 @@ int globalSwapCPULauncher(DetailedPlaceDB<T> db, int max_iters)
             // compute optimal region 
             timer_start = get_globaltime(); 
             //Box<T> opt_box = (iter&1)? node_box : optimal_regions[node_id];
-            Box<T> opt_box = node_box;
+            UBox<T> opt_box = node_box;
             timer_stop = get_globaltime(); 
             compute_search_region_time += timer_stop-timer_start; 
             compute_search_region_runs += 1; 
@@ -311,7 +311,7 @@ int globalSwapCPULauncher(DetailedPlaceDB<T> db, int max_iters)
                 {
                     continue;
                 }
-                Box<T> bin (
+                UBox<T> bin (
                         db.xl+bx*db.bin_size_x, 
                         db.yl+by*db.bin_size_y, 
                         db.xl+(bx+1)*db.bin_size_x,
@@ -319,7 +319,7 @@ int globalSwapCPULauncher(DetailedPlaceDB<T> db, int max_iters)
                         ); 
                 //dreamplacePrint(kDEBUG, "node %d search bin (%d, %d) distance to opt box %g/%g\n", node_id, bx, by, bin.center_distance(opt_box), node_box.center_distance(opt_box));
 
-                Box<int> sitebox = db.box2sitebox(bin);
+                UBox<int> sitebox = db.box2sitebox(bin);
 
                 // enumerate sites within the site box and check any space that is large enough to host the node 
                 candidates.clear();
