@@ -46,9 +46,7 @@ class LpdpPlace
       db_ = CommonPlaceDB::getPlaceDBInstance();
     }
     ~LpdpPlace()
-    {
-      CommonPlaceDB::freePlaceDBInstance();
-    }
+    {}
     LpdpPlace(const LpdpPlace&)            = delete; // no copy
     LpdpPlace &operator=(const LpdpPlace&) = delete; // no copy
 

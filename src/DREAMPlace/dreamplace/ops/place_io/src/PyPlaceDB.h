@@ -91,10 +91,18 @@ struct PyPlaceDB
 
     int num_movable_pins; 
 
+#ifdef _CMAKE_PLACE
     PyPlaceDB()
     {
+        set();
     }
+    void set();
+#else
+    PyPlaceDB()
+    {
 
+    }
+#endif
     PyPlaceDB(PlaceDB const& db)
     {
         set(db); 
