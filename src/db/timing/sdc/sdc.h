@@ -31,6 +31,8 @@ class Sdc {
     AnalysisMode* getAnalysisMode() { return ObjectId::addr<AnalysisMode>(analysis_mode_id_); }
     AnalysisView* getAnalysisView();
 
+    //test
+
     //set
     void set_case_analysis_container(SdcCaseAnalysisContainerPtr ptr) { case_analysis_container_ptr_ = ptr; }
 
