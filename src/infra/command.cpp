@@ -461,7 +461,6 @@ int Command::parser(int argc, const char** argv) {
             if (res == false)
                 return kUserLogicError;
         }
-        message->info("will set data\n");
         setData();
     }
 
