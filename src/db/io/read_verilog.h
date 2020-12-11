@@ -15,8 +15,26 @@
 
 namespace open_edi {
 namespace db {
-    int readVerilog(int argc, const char **argv);
-    bool readVerilogToDB(Yosys::AST::AstNode *ast_node);
+enum class ReadVerilogOption {
+    kTop,
+    kFileName
+};
+
+inline const char * toString(ReadVerilogOption const &v) {
+    switch (v) {
+        case ReadVerilogOption::kTop:
+            return "-top";
+        case ReadVerilogOption::kFileName:
+            return "file_names";
+        default:
+            return "unknown";
+    }
+}
+
+void registerReadVerilog();
+int readVerilog(int argc, const char **argv);
+bool readVerilogToDB(Yosys::AST::AstNode *ast_node);
+
 }  // namespace db
 }  // namespace open_edi
 
