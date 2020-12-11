@@ -181,6 +181,11 @@ void IO::getTreeCopy(vector<Node *> &array) {
         node_dst->x = node_src->x;
         node_dst->y = node_src->y;
         node_dst->type = node_src->type;
+        node_dst->r0 = node_src->r0 ;
+        node_dst->c0 = node_src->c0 ;
+        node_dst->c_down = node_src->c_down ;
+        node_dst->c_edge = node_src->c_edge ;
+        node_dst->r_edge = node_src->r_edge ;
         VanNode *solution_src = node_src->solutions[0];
         if(solution_src){
             VanNode *solution_dst = new VanNode();
@@ -213,7 +218,7 @@ void IO::getTreeCopy(vector<Node *> &array) {
     Node *front = NULL;
     nodes_queue.push(nodes_[0]);
     while(nodes_queue.size() > 0) {
-	    front = nodes_queue.front();
+	front = nodes_queue.front();
         Node *front_copy = nodes_copy[front->id];
         if(front->parent){
             front_copy->parent = nodes_copy[front->parent->id];
@@ -221,7 +226,7 @@ void IO::getTreeCopy(vector<Node *> &array) {
             front_copy->parent = NULL;
         }
         array.push_back(front_copy);
-	    nodes_queue.pop();
+	nodes_queue.pop();
         for (int i = 0; i < front->children.size(); i++) {
             nodes_queue.push(front->children[i]);
         }

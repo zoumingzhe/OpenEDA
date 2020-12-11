@@ -72,6 +72,7 @@ void *OptimizeNets::runMapper() {
         io_->getTreeCopy(array);
         mutex_.lock();
         p_input_.push_back(array);
+        used_id_array_.push_back(io_->used_id_);
         mutex_.unlock();
         #if DEBUG_NETS
         cout << "mapper[" << i << "]" << endl;
@@ -93,8 +94,9 @@ void *OptimizeNets::runWorker() {
         OptimizeNet *opt = new OptimizeNet(output_dir_);
         mutex_.lock_shared();
         vector<Node *> array = p_input_[net->net_id];
+        uint64_t used_id = used_id_array_[net->net_id];
         mutex_.unlock_shared();
-        int result = opt->optimize_net(r0_,c0_,net->net_id,array,buffers_,drivers_);
+        int result = opt->optimize_net(r0_,c0_,net->net_id,array,buffers_,drivers_,used_id);
         solution_queue_.push(new VanSolution(result));
         delete opt;
         delete net;

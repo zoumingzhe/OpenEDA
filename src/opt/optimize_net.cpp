@@ -130,9 +130,10 @@ int OptimizeNet::optimize_net (int argc, char **argv) {
 int OptimizeNet::optimize_net (double r0, double c0, int id,
                             const std::vector<Node *> &nodes_array,
                             const std::vector<Buffer> &buffers,
-                            const std::vector<Buffer> &drivers) {
+                            const std::vector<Buffer> &drivers,
+                            uint64_t used_id) {
     van_ = new Van(r0,c0);
-    van_->optimization(nodes_array,buffers,drivers,0); // to do
+    van_->optimization(nodes_array,buffers,drivers,used_id);
     vector<VanSizing *> solutions;
     van_->getSolutions(solutions);
     outputSolution(output_dir_+to_string(id)+".out",solutions,buffers.size(),false);
