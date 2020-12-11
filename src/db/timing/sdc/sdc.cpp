@@ -13,14 +13,21 @@
 */
 
 #include "db/timing/sdc/sdc.h"
+#include "db/timing/timinglib/libset.h"
+#include "db/timing/timinglib/analysis_view.h"
+#include "db/timing/timinglib/analysis_corner.h"
+#include "db/timing/timinglib/analysis_mode.h"
+#include "db/timing/timinglib/timinglib_lib.h"
 
 namespace open_edi {
 namespace db {
 
-Sdc::Sdc(ObjectId mode_id) : analysis_mode_id(mode_id) {
+
+Sdc::Sdc(ObjectId mode_id) : analysis_mode_id_(mode_id) {
+    initIds();
 }
 
-void Sdc::init() {
+void Sdc::initIds() {
     AnalysisMode* mode = Object::addr<AnalysisMode>(analysis_mode_id_);
     if (mode == nullptr) {
         //TODO error messages
@@ -38,18 +45,18 @@ void Sdc::init() {
         return;
     }
     analysis_corner_id_ = corner->getId(); 
-    LibSet* lib_set = corner->getLibSet();
+    LibSet* lib_set = corner->getLibset();
     if (lib_set == nullptr) {
         //TODO error messages 
         return;
-    } 
+    }
     //TODO it always for loop to get the lib vector in libset.cpp, need just the first
-    const std::vector<Tlib*>& lib_vec = lib_set->getTimingLibs();
+    const std::vector<TLib*>& lib_vec = lib_set->getTimingLibs();
     if (lib_vec.size() == 0) {
         //TODO error messages
         return;
     }
-    Tlib* lib =  lib_vec.front(); 
+    TLib* lib =  lib_vec.front(); 
     if (lib == nullptr) {
         //TODO error messages
         return;

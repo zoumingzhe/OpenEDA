@@ -29,7 +29,8 @@ using StringVector = std::vector<std::string>;
 using StringVectorPtr = std::shared_ptr<StringVector>;
 
 SdcPtr getSdc() {
-    SdcPtr sdc_ptr = std::make_shared<Sdc>();
+    Timing *timingLib = getTimingLib();
+    SdcPtr sdc_ptr = std::make_shared<Sdc>(UNINIT_OBJECT_ID);
     assert(sdc_ptr);
     if (sdc_ptr == nullptr) {
         //TODO messages

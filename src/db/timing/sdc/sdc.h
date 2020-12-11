@@ -26,12 +26,13 @@ class Sdc {
     Sdc(ObjectId mode_id);
 
     //init
-    void init();
+    void initIds();
+    void initPtrs();
 
     //get
     ObjectId getAnalysisModeId() { return analysis_mode_id_; }
     ObjectId getAnalysisViewId() { return analysis_view_id_; }
-    ObjectId getAnalysisCornerId() { return analyais_corner_id_; }
+    ObjectId getAnalysisCornerId() { return analysis_corner_id_; }
     ObjectId getMainLibertyId() { return main_liberty_id_; }
     ObjectId getMainLibertyUnitsId() { return main_liberty_units_id_; }
 
@@ -41,14 +42,16 @@ class Sdc {
 
     //get
     SdcCaseAnalysisContainerPtr get_case_analysis_container() { return case_analysis_container_ptr_; }
+    SdcCurrentDesignContainerPtr get_design_container() { return design_container_ptr_; }
 
   private:
     SdcCaseAnalysisContainerPtr case_analysis_container_ptr_;
+    SdcCurrentDesignContainerPtr design_container_ptr_;
 
   private:
     ObjectId analysis_mode_id_;
     ObjectId analysis_view_id_;
-    ObjectId analyais_corner_id_;
+    ObjectId analysis_corner_id_;
     ObjectId main_liberty_id_;
     ObjectId main_liberty_units_id_;
 };

@@ -54,17 +54,15 @@ class SetHierarchySeparator {
 };
 using SetHierarchySeparatorPtr = std::shared_ptr<SetHierarchySeparator>; 
 
-class Sdc;
 class SetUnits {
   public:
-    void setAndCheckCapacitance(const std::shared_ptr<Sdc> &sdc, const std::string &cap);
-    void setAndCheckResistance(const std::shared_ptr<Sdc> &sdc, const std::string &res);
-    void setAndCheckTime(const std::shared_ptr<Sdc> &sdc, const std::string &time);
-    void setAndCheckVoltage(const std::shared_ptr<Sdc> &sdc, const std::string &voltage);
-    void setAndCheckCurrent(const std::shared_ptr<Sdc> &sdc, const std::string &current);
-    void setAndCheckPower(const std::shared_ptr<Sdc> &sdc, const std::string &power);
-
-    void splitUnit(float &value, std::string &suffix, std::string &unit);
+    void setAndCheckCapacitance(const std::string &cap);
+    void setAndCheckResistance(const std::string &res);
+    void setAndCheckTime(const std::string &time);
+    void setAndCheckVoltage(const std::string &voltage);
+    void setAndCheckCurrent(const std::string &current);
+    void setAndCheckPower(const std::string &power);
+    void splitUnit(float &value, std::string &suffix, const std::string &unit);
 
   private:
     float capacitance_unit_value_ = 0.0; // farad
@@ -73,6 +71,7 @@ class SetUnits {
     float voltage_unit_value_ = 0.0; // volt
     float current_unit_value_ = 0.0; // ampere
     float power_unit_value_ = 0.0; // watt
+    ObjectId liberty_units_id_;
 
   public:
     COMMAND_GET_SET_VAR(capacitance_unit_value, CapacitanceUnit)
@@ -81,6 +80,7 @@ class SetUnits {
     COMMAND_GET_SET_VAR(voltage_unit_value, VoltageUnit)
     COMMAND_GET_SET_VAR(current_unit_value, CurrentUnit)
     COMMAND_GET_SET_VAR(power_unit_value, PowerUnit)
+    COMMAND_GET_SET_VAR(liberty_units_id, LibertyUnitsId)
 };
 using SetUnitsPtr = std::shared_ptr<SetUnits>;
 

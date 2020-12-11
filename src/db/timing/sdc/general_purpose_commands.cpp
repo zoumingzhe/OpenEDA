@@ -43,26 +43,30 @@ void SetHierarchySeparator::setAndCheck(const std::string &input) {
     separator_ = input.front();
 }
 
-void SetUnits::splitUnit(float &value, std::string &suffix, std::string &unit) {
-    std::regex re("((\\d+).(\\d+))?([a-z])");
-    std::smatch results;
-    std::regex_match(unit, results, re);
-    if (results.size() != 2) {
-        //TODO error messages
-        return;
-    }
-    value = std::stof(results[0]); 
-    suffix = results[1]; 
+void SetUnits::splitUnit(float &value, std::string &suffix, const std::string &target) {
+     std::regex re("([0-9]*\\.?[0-9]*)?([a-zA-Z]+)");
+     std::smatch sm;
+     std::regex_match(target, sm, re);
+     if (!sm.ready() or (sm.size()!=3)) {
+         //TODO error messages
+         return;
+     }
+     try {
+         if (sm[1].str().size()) {
+             value = std::stof(sm[1].str());
+         }
+         suffix = sm[2].str();
+     } catch (std::exception &ex) {
+         //TODO error messages
+     }
 }
 
-void SetUnits::setAndCheckCapacitance(const std::shared_ptr<Sdc> &sdc, const std::string &cap) {
+void SetUnits::setAndCheckCapacitance(const std::string &cap) {
     float value = 0.0;
     std::string suffix = ""; 
     splitUnit(value, suffix, cap);
     capacitance_unit_value_ = value * UnitMultiply::getCapacitiveUnitMultiply(suffix);
-
-    ObjectId units_id = sdc->getMainLibertyUnitsId();
-    TUnits* units = Object::addr<TUnits>(units_id);
+    TUnits* units = Object::addr<TUnits>(liberty_units_id_);
     if (units == nullptr) {
         //TODO error messages
         return;
@@ -75,19 +79,17 @@ void SetUnits::setAndCheckCapacitance(const std::shared_ptr<Sdc> &sdc, const std
     }
 }
 
-void SetUnits::setAndCheckResistance(const std::shared_ptr<Sdc> &sdc, const std::string &res) {
+void SetUnits::setAndCheckResistance(const std::string &res) {
     float value = 0.0;
     std::string suffix = ""; 
     splitUnit(value, suffix, res);
     resistance_unit_value_ = value * UnitMultiply::getCapacitiveUnitMultiply(suffix);
-
-    ObjectId units_id = sdc->getMainLibertyUnitsId();
-    TUnits* units = Object::addr<TUnits>(units_id);
+    TUnits* units = Object::addr<TUnits>(liberty_units_id_);
     if (units == nullptr) {
         //TODO error messages
         return;
     }
-    const auto& lib_res_unit = units->getResisitanceUnit();
+    const auto& lib_res_unit = units->getResistanceUnit();
     float lib_res_value = (lib_res_unit.digits)*(lib_res_unit.scale);
     if (resistance_unit_value_ != lib_res_value) {
         //TODO error messages
@@ -95,14 +97,12 @@ void SetUnits::setAndCheckResistance(const std::shared_ptr<Sdc> &sdc, const std:
     }
 }
 
-void SetUnits::setAndCheckTime(const std::shared_ptr<Sdc> &sdc, const std::string &time) {
+void SetUnits::setAndCheckTime(const std::string &time) {
     float value = 0.0;
     std::string suffix = ""; 
     splitUnit(value, suffix, time);
     time_unit_value_ = value * UnitMultiply::getCapacitiveUnitMultiply(suffix);
-
-    ObjectId units_id = sdc->getMainLibertyUnitsId();
-    TUnits* units = Object::addr<TUnits>(units_id);
+    TUnits* units = Object::addr<TUnits>(liberty_units_id_);
     if (units == nullptr) {
         //TODO error messages
         return;
@@ -115,19 +115,19 @@ void SetUnits::setAndCheckTime(const std::shared_ptr<Sdc> &sdc, const std::strin
     }
 }
 
-void SetUnits::setAndCheckVoltage(const std::shared_ptr<Sdc> &sdc, const std::string &voltage) {
+void SetUnits::setAndCheckVoltage(const std::string &voltage) {
     float value = 0.0;
     std::string suffix = ""; 
     splitUnit(value, suffix, voltage);
     voltage_unit_value_ = value * UnitMultiply::getCapacitiveUnitMultiply(suffix);
-
-    ObjectId units_id = sdc->getMainLibertyUnitsId();
-    TUnits* units = Object::addr<TUnits>(units_id);
+    TUnits* units = Object::addr<TUnits>(liberty_units_id_);
     if (units == nullptr) {
         //TODO error messages
         return;
     }
-    const auto& lib_vol_unit = units->getVoltageUnit();
+    //TODO need solo fix the spile issue
+    //const auto& lib_vol_unit = units->getVoltageUnit();
+    const auto& lib_vol_unit = units->getVolatgeUnit();
     float lib_vol_value = (lib_vol_unit.digits)*(lib_vol_unit.scale);
     if (voltage_unit_value_ != lib_vol_value) {
         //TODO error messages
@@ -135,14 +135,12 @@ void SetUnits::setAndCheckVoltage(const std::shared_ptr<Sdc> &sdc, const std::st
     }
 }
 
-void SetUnits::setAndCheckCurrent(const std::shared_ptr<Sdc> &sdc, const std::string &current) {
+void SetUnits::setAndCheckCurrent(const std::string &current) {
     float value = 0.0;
     std::string suffix = ""; 
     splitUnit(value, suffix, current);
     current_unit_value_ = value * UnitMultiply::getCapacitiveUnitMultiply(suffix);
-
-    ObjectId units_id = sdc->getMainLibertyUnitsId();
-    TUnits* units = Object::addr<TUnits>(units_id);
+    TUnits* units = Object::addr<TUnits>(liberty_units_id_);
     if (units == nullptr) {
         //TODO error messages
         return;
@@ -155,14 +153,12 @@ void SetUnits::setAndCheckCurrent(const std::shared_ptr<Sdc> &sdc, const std::st
     }
 }
 
-void SetUnits::setAndCheckPower(const std::shared_ptr<Sdc> &sdc, const std::string &power) {
+void SetUnits::setAndCheckPower(const std::string &power) {
     float value = 0.0;
     std::string suffix = ""; 
     splitUnit(value, suffix, power);
     power_unit_value_ = value * UnitMultiply::getCapacitiveUnitMultiply(suffix);
-
-    ObjectId units_id = sdc->getMainLibertyUnitsId();
-    TUnits* units = Object::addr<TUnits>(units_id);
+    TUnits* units = Object::addr<TUnits>(liberty_units_id_);
     if (units == nullptr) {
         //TODO error messages
         return;

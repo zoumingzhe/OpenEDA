@@ -26,23 +26,20 @@ std::string SdcCurrentInstanceContainer::getName() {
     if (inst) {
         return inst->getName();
     }
-    return SdcCurrentDesignContainer::getName(); 
 }
 
-std::ostream &operator<<(std::ostream &os, const SdcCurrentInstanceContainer &rhs) {
+std::ostream &operator<<(std::ostream &os, SdcCurrentInstanceContainer &rhs) {
     os << "current_instance " << rhs.getName() << "\n"; 
     return os;
 }
 
-SetHierarchySeparatorPtr SdcHierarchySeparatorContainer::separator_ = std::make_shared<SetHierarchySeparator>();
-std::ostream &operator<<(std::ostream &os, const SdcHierarchySeparatorContainer &rhs) {
+std::ostream &operator<<(std::ostream &os, SdcHierarchySeparatorContainer &rhs) {
     os << "set_hierarchy_separator " << rhs.get() << "\n";
     return os;
 }
 
 
 //object access commands
-CurrentDesignPtr SdcCurrentDesignContainer::current_design_ = std::make_shared<CurrentDesign>(); 
 std::string SdcCurrentDesignContainer::getName() {
     const ObjectId &cell_id = current_design_->getCellId(); 
     Cell* cell = Object::addr<Cell>(cell_id);
@@ -53,8 +50,7 @@ std::string SdcCurrentDesignContainer::getName() {
     return "";
 }
 
-
-std::ostream &operator<<(std::ostream &os, const SdcCurrentDesignContainer &rhs) {
+std::ostream &operator<<(std::ostream &os, SdcCurrentDesignContainer &rhs) {
     os << "current_design " << rhs.getName() << "\n";
     return os;
 }
