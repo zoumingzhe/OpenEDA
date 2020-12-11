@@ -4,6 +4,7 @@
 #include "db/core/db.h"
 #include "db/core/inst.h"
 #include "db/core/net.h"
+#include "db/util/transform.h"
 
 namespace open_edi {
 namespace db {
@@ -87,6 +88,28 @@ void Pin::setInst(Inst* v) {
         inst_ = 0;
     } else {
         inst_ = v->getId();
+    }
+}
+
+void Pin::getBoxVector(std::vector <Box> & box_vector) const {
+    Inst *inst = getInst();
+    Term *term = getTerm();
+    ediAssert(term != nullptr && inst != nullptr);
+    Box box(0, 0, 0, 0);
+    for (int index = 0; index < term->getPortNum(); ++index) {
+        Port *port = term->getPort(index);
+        for (int layergeom_index = 0;
+            layergeom_index < port->getLayerGeometryNum(); ++layergeom_index) {
+            LayerGeometry *layer_geom = port->getLayerGeometry(layergeom_index);
+            for (int geom_i = 0; geom_i < layer_geom->getVecNum(); ++geom_i) {
+            Geometry *geo = layer_geom->getGeometry(geom_i);
+            if (geo == nullptr ||
+                geo->getType() != GeometryType::kRect) continue;
+            Box box = geo->getBox();
+            transformByInst(inst, box);
+            box_vector.push_back(box);
+            }
+        }
     }
 }
 
