@@ -21,6 +21,10 @@ Segmentation::~Segmentation() {
     max_id = -1;
 }
 
+void Segmentation::cleanData() {
+    nodes_array_seg.clear();
+}
+
 std::vector<Node *> Segmentation::getWireSegmentationRet() {
     return nodes_array_seg;
 }

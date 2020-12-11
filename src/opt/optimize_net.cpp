@@ -124,6 +124,8 @@ int OptimizeNet::optimize_net (int argc, char **argv) {
     vector<VanSizing *> solutions;
     van_->getSolutions(solutions);
     outputSolution(output_file,solutions,buffers.size(),outputAllResults);
+    seg->cleanData();
+    delete seg;
     return 0;
 }
 
