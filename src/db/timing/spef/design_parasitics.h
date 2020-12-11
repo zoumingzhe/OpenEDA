@@ -24,13 +24,16 @@
 #include "db/core/object.h"
 #include "db/util/array.h"
 #include "util/data_traits.h"
+#include "parasitic_device.h"
 
 namespace open_edi {
 namespace db {
 
+
 class DesignParasitics : public Object {
   public:
     using BaseType = Object;
+    using CellNetParaMap = std::unordered_map<ObjectId, ObjectId>;
 
     /// @brief default constructor
     DesignParasitics();
@@ -53,7 +56,8 @@ class DesignParasitics : public Object {
     /// @brief move assignment
     DesignParasitics &operator=(DesignParasitics &&rhs) noexcept;
 
-    //std::vector<ParasiticNode *>& get_net_parasitic_nodes(Net *net) {} //To add
+    std::vector<std::vector<OptParaNode>> getOptNetParasiticNodes(ObjectId net_id);
+    // DNetParasitics* getNetDNetCaps(Net *net) const;
     //std::vector<ParasiticDevice *>& get_net_capacitors(Net *net) {} //To add
     //std::vector<ParasiticDevice *>& get_net_resistors(Net *net) {} //To add
 
@@ -84,9 +88,12 @@ class DesignParasitics : public Object {
     ObjectId cell_vec_id_;
     //Spef SymbolIndex vector id
     ObjectId spef_vec_id_;
+    /// ArrayObject<Netsparasitics*> *
     ObjectId netsparasitics_vec_id_;
     /// The value to determine which value to read in from triplet value in SPEF
     uint8_t spef_field_;
+    /// Cell indexed Net to DNetParasitics map
+    mutable CellNetParaMap *net_detailed_para_map_;
 };
 
 }  // namespace db

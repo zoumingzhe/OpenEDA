@@ -131,6 +131,14 @@ class ParasiticCap : public ParasiticDevice {
     float capacitance_;
 };
 
+struct OptParaNode {
+    /// ParasiticNode
+    ObjectId node_;
+    ObjectId parent_;
+    float resistance_;
+    float capacitance_;
+};
+
 }  // namespace db
 }  // namespace open_edi
 

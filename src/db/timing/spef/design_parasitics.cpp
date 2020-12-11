@@ -28,11 +28,13 @@ DesignParasitics::DesignParasitics()
       cell_vec_id_(UNINIT_OBJECT_ID),
       spef_vec_id_(UNINIT_OBJECT_ID),
       netsparasitics_vec_id_(UNINIT_OBJECT_ID),
-      spef_field_(1) {
+      spef_field_(1),
+      net_detailed_para_map_(nullptr) {
     setObjectType(ObjectType::kObjectTypeDesignParasitics);
 }
 
 DesignParasitics::~DesignParasitics() {
+    delete net_detailed_para_map_;
 }
 
 DesignParasitics::DesignParasitics(Object* owner, DesignParasitics::IndexType id)
@@ -40,7 +42,8 @@ DesignParasitics::DesignParasitics(Object* owner, DesignParasitics::IndexType id
       cell_vec_id_(UNINIT_OBJECT_ID),
       spef_vec_id_(UNINIT_OBJECT_ID),
       netsparasitics_vec_id_(UNINIT_OBJECT_ID),
-      spef_field_(1) {
+      spef_field_(1),
+      net_detailed_para_map_(nullptr) {
     setObjectType(ObjectType::kObjectTypeDesignParasitics);
 }
 
@@ -129,6 +132,7 @@ void DesignParasitics::copy(DesignParasitics const& rhs) {
     spef_vec_id_  = rhs.spef_vec_id_;
     netsparasitics_vec_id_ = rhs.netsparasitics_vec_id_;
     spef_field_ = rhs.spef_field_;
+    net_detailed_para_map_ = new CellNetParaMap(*rhs.net_detailed_para_map_);
 }
 
 void DesignParasitics::move(DesignParasitics&& rhs) {
@@ -137,6 +141,8 @@ void DesignParasitics::move(DesignParasitics&& rhs) {
     spef_vec_id_ = std::move(rhs.spef_vec_id_);
     netsparasitics_vec_id_ = std::move(rhs.netsparasitics_vec_id_);
     spef_field_ = std::move(rhs.spef_field_);
+    net_detailed_para_map_ = rhs.net_detailed_para_map_;
+    rhs.net_detailed_para_map_ = nullptr;
 }
 
 std::ofstream &operator<<(std::ofstream &os, DesignParasitics const &rhs) {
@@ -150,6 +156,32 @@ std::ofstream &operator<<(std::ofstream &os, DesignParasitics const &rhs) {
 	}
     }
     return os;
+}
+
+std::vector<std::vector<OptParaNode>> 
+DesignParasitics::getOptNetParasiticNodes(ObjectId net_id) {
+    if (cell_vec_id_ == UNINIT_OBJECT_ID) {
+        return {};
+    }
+    if (!net_detailed_para_map_) {
+        net_detailed_para_map_ = new CellNetParaMap();
+        auto cell_vct = addr<ArrayObject<ObjectId>>(cell_vec_id_);
+        // TODO: doesn't support hier for now
+        assert(cell_vct->size() == 1);
+        auto nets_parasitic_vct = addr<ArrayObject<ObjectId>>(netsparasitics_vec_id_);
+        auto nets_parasitics = addr<NetsParasitics>((*nets_parasitic_vct)[0]);
+        auto para_vct = addr<ArrayObject<ObjectId>>(nets_parasitics->getNetParasitics());
+        for (auto &&para_id : *para_vct) {
+            auto para = addr<NetParasitics>(para_id);
+            (*net_detailed_para_map_)[para->getNetId()] = para_id;
+        }
+    }
+    auto iter = net_detailed_para_map_->find(net_id);
+    if (iter != net_detailed_para_map_->end()) {
+        return dynamic_cast<DNetParasitics*>(addr<DNetParasitics>(iter->second))->getParasiticTree();
+    } else {
+        return {};
+    }
 }
 
 }  // namespace db

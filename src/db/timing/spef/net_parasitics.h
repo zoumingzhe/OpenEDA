@@ -56,6 +56,7 @@ class DNetParasitics : public NetParasitics {
     ObjectId getGroundCapVecId() const { return gcap_vec_id_; }
     ObjectId getCouplingCapVecId() const { return xcap_vec_id_; }
     ObjectId getResistorVecId() const { return res_vec_id_; } 
+    std::vector<std::vector<OptParaNode>> getParasiticTree() const;
 
     ObjectId createPinNode(ObjectId pinId);
     ObjectId createIntNode(uint32_t intNodeId);
@@ -71,6 +72,7 @@ class DNetParasitics : public NetParasitics {
     /// Don't need this any more and to use net to get connecting pins instead
     //ObjectId pin_node_vec_id_;
     /// The vector to store Grounded Cap pointer belongs to this net
+    /// ArrayObject<ParasiticNode>
     ObjectId gcap_vec_id_;
     /// The vector to store Coupling Cap pointer belongs to this net
     ObjectId xcap_vec_id_;

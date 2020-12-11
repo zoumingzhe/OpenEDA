@@ -247,14 +247,15 @@ void SpefReader::addPinNode(const char *pinName) {
     }
 }
 
-ObjectId SpefReader::getParasiticNode(std::string nodeName) {
+ObjectId SpefReader::getParasiticNode(const std::string &nodeName) {
     ObjectId paraNodeId = UNINIT_OBJECT_ID;
     if (nets_parasitics_ && dnet_parasitics_) {
-	if (net_node_map_.find(nodeName) == net_node_map_.end()) {
+        auto iter = net_node_map_.find(nodeName);
+	if (iter == net_node_map_.end()) {
             paraNodeId = nets_parasitics_->createParaNode(dnet_parasitics_, nodeName.c_str());
             net_node_map_[nodeName] = paraNodeId;
         } else {
-            paraNodeId = net_node_map_[nodeName];
+            paraNodeId = iter->second;
         }
     }
     return paraNodeId;

@@ -75,7 +75,7 @@ class SpefReader {
     void addDNetBegin(Net *net);
     void addDNetEnd();
     void addPinNode(const char *pinName);
-    ObjectId getParasiticNode(std::string nodeName);
+    ObjectId getParasiticNode(const std::string &nodeName);
     void addGroundCap(const char *nodeName);
     void addCouplingCap(const char *nodeName1, const char *nodeName2);
     void addResistor(const char *nodeName1, const char *nodeName2);
@@ -95,7 +95,7 @@ class SpefReader {
     void __spef_parse_end(FILE *fp);
     int  __spef_parse();
 
-    std::map<std::string, ObjectId> net_node_map_; //use to check if node created for net
+    std::unordered_map<std::string, ObjectId> net_node_map_; //use to check if node created for net
     DesignParasitics *design_parasitics_;
     NetsParasitics *nets_parasitics_;
     DNetParasitics *dnet_parasitics_;

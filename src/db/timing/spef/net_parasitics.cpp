@@ -182,6 +182,10 @@ void DNetParasitics::addResistor(ObjectId node1Id, ObjectId node2Id, float resVa
     }
 }
 
+std::vector<std::vector<OptParaNode>> DNetParasitics::getParasiticTree() const {
+    return {};
+}
+
 RNetParasitics::RNetParasitics()
     : NetParasitics(),
       c2_(0.0),
