@@ -149,6 +149,17 @@ int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
 }
 
 void IO::destroyTree() {
+    for (int i = nodes_array.size() - 1; i >= 0; i--) {
+        Node *cur_node = nodes_array[i], *temp, *seg;
+        if (cur_node->parent && nodes_.find(cur_node->parent->id) == nodes_.end()) {       
+            seg = cur_node->parent;
+            while (seg && nodes_.find(seg->id) == nodes_.end()) {
+                temp = seg;
+                seg = seg->parent;
+                delete temp;
+            }
+        }
+    }
     for(auto &node : nodes_array) {
         if(node->type == SINK){
             if(node->solutions[0]){

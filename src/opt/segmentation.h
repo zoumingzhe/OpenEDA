@@ -11,6 +11,7 @@ class Segmentation {
   public:
     Segmentation();
     ~Segmentation();
+    void cleanData();
 
     std::vector<Node *> getWireSegmentationRet();
     int computeWireSegmentation(std::vector<Node *> nodes_array_raw,
