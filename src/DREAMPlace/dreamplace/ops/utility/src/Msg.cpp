@@ -43,7 +43,9 @@ int dreamplaceVPrintStream(MessageType m, FILE* stream, const char* format, va_l
 
 	// print message 
 	int ret = vfprintf(stream, format, args);
-	
+
+    fflush(stream);
+
 	return ret;
 }
 
