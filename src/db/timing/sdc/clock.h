@@ -24,28 +24,39 @@ namespace open_edi {
 namespace db {
 
 using ClockId = open_edi::util::ULong;
-static const ClockId invalid_clock_id = -1;
+static const ClockId kInvalidClockId = -1;
 class Clock {
   public:
+    Clock();
+    Clock(ClockId id);
+    Clock(const Clock &rhs);
+    Clock(Clock &&rhs) noexcept;
+    Clock &operator=(const Clock &rhs);
+    Clock &operator=(Clock &&rhs) noexcept;
+    ~Clock();
+
+  public:
+    void setName(const std::string &name) { name_ = name; }
+    void setWaveform(const float &edge) { waveform_.emplace_back(edge); }
     void setPeriod(const float &period) { period_ = period; }
     void setClockId(const ClockId &id) { id_ = id; }
-    void setWaveform(const float &edge) { waveform_.emplace_back(edge); }
-    void setName(const std::string &name) { name_ = name; }
     void SetGenerated() { is_generated_ = true; }
 
+    const std::string &getName() { return name_; }
+    const std::vector<float> &getWaveform() { return waveform_; }
     const float &getPeriod() { return period_; }
     const ClockId &getId() { return id_; }
-    const std::vector<float> &getWaveform() { return waveform_; }
-    const std::string &getName() { return name_; }
     bool isGenerated() { return is_generated_; }
 
     friend std::ostream &operator<<(std::ostream &os, Clock &rhs);
 
   private:
+    void copy(const Clock &rhs);
+    void move(Clock &&rhs);
+    std::string name_ = "";
     std::vector<float> waveform_;
     float period_ = 0.0;
-    std::string name_ = "";
-    ClockId id_ = invalid_clock_id;
+    ClockId id_ = kInvalidClockId;
     bool is_generated_ : 1;
 };
 using ClockPtr = std::shared_ptr<Clock>;
@@ -73,14 +84,14 @@ class ClockPinPair {
     const ClockId& getPinId() { return pin_id_; }
 
   private:
-    ClockId clock_id_ = invalid_clock_id;
+    ClockId clock_id_ = kInvalidClockId;
     ObjectId pin_id_;
 };
 using ClockPinPairPtr = std::shared_ptr<ClockPinPair>;
 
 class ClockPair {
   public:
-    ClockPair(ClockId first = invalid_clock_id, ClockId second = invalid_clock_id) : first_id_(first), second_id_(second) {}
+    ClockPair(ClockId first = kInvalidClockId, ClockId second = kInvalidClockId) : first_id_(first), second_id_(second) {}
     //deconstructor
     //operator ==
     void SetFirstId(const ClockId &id) { first_id_ = id; } 
@@ -90,8 +101,8 @@ class ClockPair {
     const ClockId &getSecondId() { return second_id_; }
 
   private:
-    ClockId first_id_ = invalid_clock_id;
-    ClockId second_id_ = invalid_clock_id;
+    ClockId first_id_ = kInvalidClockId;
+    ClockId second_id_ = kInvalidClockId;
 };
 using ClockPairPtr = std::shared_ptr<ClockPair>;
 
