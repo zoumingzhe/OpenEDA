@@ -40,31 +40,35 @@ using CreateClockPtr = std::shared_ptr<CreateClock>;
 
 class CreateGeneratedClock {
   public:
-    void addEdgeShift(const float edge_shift) { edge_shifts_.emplace_back(edge_shift); }
-    void addSourceObject(const ObjectId source_object) { source_objects_.emplace_back(source_object); }
+    void addEdgeShift(const float& edge_shift) { edge_shifts_.emplace_back(edge_shift); }
+    void addSourcePin(const ObjectId id) { source_pins_.emplace_back(id); }
+    void addSourceNet(const ObjectId id) { source_nets_.emplace_back(id); }
+    void addSourceMasterPin(const ObjectId id) { source_master_pins_.emplace_back(id); }
     void addEdge(const int edge) { edges_.emplace_back(edge); }
 
   private:
     std::string comment_ = "";
+    std::vector<float> edge_shifts_;
+    std::vector<ObjectId> source_pins_;
+    std::vector<ObjectId> source_nets_;
+    std::vector<ObjectId> source_master_pins_;
+    std::vector<int> edges_;
     float duty_cycle_ = 0.0;
-    ObjectId source_master_pin_;
-    ObjectId master_clock_;
+    ClockId master_clock_;
     int divided_by_ = 0;
     int multiply_by_ = 0;
-    std::vector<float> edge_shifts_;
-    std::vector<ObjectId> source_objects_;
-    std::vector<int> edges_;
 
   public:
     COMMAND_GET_SET_VAR(comment, Comment)
+    COMMAND_GET_SET_VAR(edge_shifts, EdgeShifts)
+    COMMAND_GET_SET_VAR(source_pins, SourcePins)
+    COMMAND_GET_SET_VAR(source_nets, SourceNets)
+    COMMAND_GET_SET_VAR(source_master_pins, SourceMasterPins)
+    COMMAND_GET_SET_VAR(edges, Edges)
     COMMAND_GET_SET_VAR(duty_cycle, DutyCycle)
-    COMMAND_GET_SET_VAR(source_master_pin, SourceMasterPin)
     COMMAND_GET_SET_VAR(master_clock, MasterClock)
     COMMAND_GET_SET_VAR(divided_by, DividedBy)
     COMMAND_GET_SET_VAR(multiply_by, MultiplyBy)
-    COMMAND_GET_SET_VAR(edge_shifts, EdgeShifts)
-    COMMAND_GET_SET_VAR(source_objects, SourceObjects)
-    COMMAND_GET_SET_VAR(edges, Edges)
     COMMAND_GET_SET_FLAG(invert_, Invert)
     COMMAND_GET_SET_FLAG(add_, Add)
     COMMAND_GET_SET_FLAG(combinational_, Combinational)

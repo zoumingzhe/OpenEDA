@@ -27,23 +27,26 @@ using ClockId = open_edi::util::ULong;
 static const ClockId invalid_clock_id = -1;
 class Clock {
   public:
-    void setPeriod(const float period) { period_ = period; }
-    void setClockId(const ClockId& id) { id_ = id; }
-    void setWaveform(const float& edge) { waveform_.emplace_back(edge); }
-    void setName(const std::string& name) { name_ = name; }
+    void setPeriod(const float &period) { period_ = period; }
+    void setClockId(const ClockId &id) { id_ = id; }
+    void setWaveform(const float &edge) { waveform_.emplace_back(edge); }
+    void setName(const std::string &name) { name_ = name; }
+    void SetGenerated() { is_generated_ = true; }
 
-    const float getPeriod() { return period_; } 
-    const ClockId getId() { return id_; }
+    const float &getPeriod() { return period_; }
+    const ClockId &getId() { return id_; }
     const std::vector<float> &getWaveform() { return waveform_; }
-    const std::string &getName() { return name_; } 
+    const std::string &getName() { return name_; }
+    bool isGenerated() { return is_generated_; }
 
-    friend std::ostream &operator<<(std::ostream &os, const Clock &rhs);
+    friend std::ostream &operator<<(std::ostream &os, Clock &rhs);
 
   private:
-    float period_ = 0.0;
-    ClockId id_ = invalid_clock_id;
     std::vector<float> waveform_;
+    float period_ = 0.0;
     std::string name_ = "";
+    ClockId id_ = invalid_clock_id;
+    bool is_generated_ : 1;
 };
 using ClockPtr = std::shared_ptr<Clock>;
 

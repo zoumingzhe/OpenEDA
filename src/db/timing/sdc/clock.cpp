@@ -17,9 +17,11 @@
 namespace open_edi {
 namespace db {
 
-std::ostream &operator<<(std::ostream &os, const Clock &rhs) {
-    //TODO 
-    os << "Clock name: "<< rhs.name_ << " period: " << rhs.period_ << " id: " << rhs.id_ << "\n";
+std::ostream &operator<<(std::ostream &os, Clock &rhs) {
+    os << "Clock name: " << rhs.name_ << " period: " << rhs.period_ << " id: " << rhs.id_ << "\n";
+    os << "waveform: {";
+    copy(rhs.waveform_.begin(), rhs.waveform_.end(), std::ostream_iterator<float>(os, " "));
+    os << " }" << "\n";
     return os; 
 }
 
