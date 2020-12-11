@@ -47,6 +47,11 @@ using SdcCurrentInstanceContainerPtr = std::shared_ptr<SdcCurrentInstanceContain
 
 class SdcHierarchySeparatorContainer {
   public:
+    SdcHierarchySeparatorContainer() { separator_ = std::make_shared<SetHierarchySeparator>(); }
+    ~SdcHierarchySeparatorContainer() = default;
+    SdcHierarchySeparatorContainer(const SdcHierarchySeparatorContainer &container) = delete;
+    SdcHierarchySeparatorContainer& operator=(const SdcHierarchySeparatorContainer &container) = delete;
+
     void add(SetHierarchySeparatorPtr separator) { separator_ = separator; }
     char get() { return separator_->getSeparator(); };
     friend std::ostream &operator<<(std::ostream &os, SdcHierarchySeparatorContainer &rhs);

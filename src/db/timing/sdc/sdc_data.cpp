@@ -26,6 +26,8 @@ std::string SdcCurrentInstanceContainer::getName() {
     if (inst) {
         return inst->getName();
     }
+    //TODO return top?
+    return "";
 }
 
 std::ostream &operator<<(std::ostream &os, SdcCurrentInstanceContainer &rhs) {
@@ -35,6 +37,17 @@ std::ostream &operator<<(std::ostream &os, SdcCurrentInstanceContainer &rhs) {
 
 std::ostream &operator<<(std::ostream &os, SdcHierarchySeparatorContainer &rhs) {
     os << "set_hierarchy_separator " << rhs.get() << "\n";
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, SdcUnitsContainer &rhs) {
+    os << "set_units "; 
+    os << "-time " << rhs.getSdcTimeUnits() << "s";
+    os << "-capacitance " << rhs.getSdcCapacitanceUnits() << "F";
+    os << "-current " << rhs.getSdcCurrentUnits() << "A";
+    os << "-voltage " << rhs.getSdcVoltageUnits() << "V";
+    os << "-resistance " << rhs.getSdcResistanceUnits() << "Ohm";
+    os << "-power " << rhs.getSdcPowerUnits() << "W";
     return os;
 }
 
