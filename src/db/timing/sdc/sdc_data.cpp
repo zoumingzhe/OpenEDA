@@ -70,22 +70,161 @@ std::ostream &operator<<(std::ostream &os, SdcCurrentDesignContainer &rhs) {
 
 // environment commands
 // create_clock
-/*
-void SdcClockContainer::add(const CreateClock &create_clock) {
-    auto& count = clock_ids_.size();
-    create_clocks_.emplace(count, create_clock);
-    clock_ids_.emplace_back(count+1);
-    
-
-
+const std::string SdcClockContainer::getClockName(const ClockId &id) {
+    const auto &clock_names = data_->getClockNames();
+    if (id<0 or id>=(ClockId)(data_->getClockNum())) {
+        //TODO error message
+        return "";
+    }
+    return clock_names[id]; 
 }
-*/
 
+const ClockId SdcClockContainer::getClockId(const std::string &name) {
+    const auto &name_to_id = data_->getNameToId();
+    const auto &found = name_to_id.find(name);
+    if (found == name_to_id.end()) {
+        //TODO error message
+        return kInvalidClockId;
+    }
+    return found->second;
+}
 
+const ClockPtr SdcClockContainer::getClock(const ClockId &id) {
+    const auto &clocks = data_->getClocks();
+    if (id<0 or id>=(ClockId)(data_->getClockNum())) {
+        //TODO error message
+        return nullptr;
+    }
+    return clocks[id];
+}
 
+const ClockPtr SdcClockContainer::getClock(const std::string &name) {
+    const auto &name_to_id = data_->getNameToId();
+    const auto &found = name_to_id.find(name);
+    if (found == name_to_id.end()) {
+        //TODO error message
+        return nullptr;
+    }
+    const auto &id = found->second; 
+    if (id<0 or id>=(ClockId)(data_->getClockNum())) {
+        //TODO error message
+        return nullptr;
+    }
+    const auto &clocks = data_->getClocks();
+    return clocks[id];
+}
 
+const ClockPtr SdcClockContainer::getClockOnPin(const ObjectId &pin_id) {
+    const auto &pin_clock_map = data_->getPinClockMap();
+    const auto &found = pin_clock_map.find(pin_id);
+    if (found == pin_clock_map.end()) {
+        //TODO error message
+        return nullptr;
+    }
+    return found->second;
+}
 
+bool SdcClockContainer::isClockPin(const ObjectId &pin_id) {
+    const auto &pin_clock_map = data_->getPinClockMap();
+    const auto &found = pin_clock_map.find(pin_id);
+    if (found == pin_clock_map.end()) {
+        return false;
+    }
+    return true;
+}
 
+std::ostream &operator<<(std::ostream &os, SdcClockContainer &rhs) {
+    for (const auto &id_to_create_clock : rhs.data_->getCreateClocks()) {
+        const auto &clock_id = id_to_create_clock.first; 
+        const auto &create_clock = id_to_create_clock.second; 
+        const auto &clock = rhs.getClock(clock_id);
+        os  << "create_clock ";
+        os  << "-period " << clock->getPeriod()
+            << "-name " << clock->getName()
+            << "-comment " << create_clock->getComment();
+        os  << "-waveform {";
+        copy(clock->getWaveform().begin(), clock->getWaveform().end(), std::ostream_iterator<float>(os, " "));
+        os  << " } ";
+        if (create_clock->isAdd()) {
+            os  << "-add ";
+        }
+        for (const auto &clock_pin: rhs.data_->getPinClockMap()) {
+            const auto &other_clock = clock_pin.second;
+            if (!other_clock) {
+                // error messages
+                continue;
+            }
+            if (other_clock->getId() == clock_id) {
+                const ObjectId &pin_id = clock_pin.first; 
+                Pin* pin = Object::addr<Pin>(pin_id);
+                if (!pin) {
+                    // error messages
+                    continue;
+                }
+                const auto &pin_name = pin->getName();
+                os << pin_name << " ";
+            }
+        }
+        os << "\n";
+    }
+    for (const auto &id_to_generated_clock : rhs.data_->getCreateGeneratedClocks()) {
+        const auto &clock_id = id_to_generated_clock.first; 
+        const auto &generated_clock = id_to_generated_clock.second; 
+        const auto &clock = rhs.getClock(clock_id);
+        os  << "create_generated_clock ";
+        os  << "-name " << clock->getName();
+        os  << "-source ";
+        for (const auto &pin_id: generated_clock->getSourceMasterPins()) {
+            Pin* pin = Object::addr<Pin>(pin_id);
+            if (!pin) {
+                // error messages
+                continue;
+            }
+            const auto &pin_name = pin->getName();
+            os << pin_name << " ";
+        }
+        os  << "-divided_by " << generated_clock->getDividedBy() 
+            << "-multiply_by " << generated_clock->getMultiplyBy();
+        os  << "-edges {" ;
+        copy(generated_clock->getEdges().begin(), generated_clock->getEdges().end(), std::ostream_iterator<int>(os, " "));
+        os  << " } "; 
+        if (generated_clock->isCombinational()) {
+            os  << "-combinational ";
+        }
+        os  << "-duty_cycle " << generated_clock->getDutyCycle(); 
+        if (generated_clock->isInvert()) {
+            os  << "-invert ";
+        }
+        os  << "-edge_shift {";
+        copy(generated_clock->getEdgeShifts().begin(), generated_clock->getEdgeShifts().end(), std::ostream_iterator<float>(os, " "));
+        os  << " } ";
+        if (generated_clock->isAdd()) {
+            os  << "-add ";
+        }
+        const auto &master_clock = generated_clock->getMasterClock();
+        os  << "-master_clock " << rhs.getClockName(master_clock);
+        os  << "-comment " << generated_clock->getComment();
+        for (const auto &clock_pin: rhs.data_->getPinClockMap()) {
+            const auto &other_clock = clock_pin.second;
+            if (!other_clock) {
+                // error messages
+                continue;
+            }
+            if (other_clock->getId() == clock_id) {
+                const ObjectId &pin_id = clock_pin.first; 
+                Pin* pin = Object::addr<Pin>(pin_id);
+                if (!pin) {
+                    // error messages
+                    continue;
+                }
+                const auto &pin_name = pin->getName();
+                os << pin_name << " ";
+            }
+        }
+        os << "\n";
+    }
+    return os;
+}
 
 // set_case_analysis
 void SdcCaseAnalysisContainer::add(const ObjectId &pin_id, const SetCaseAnalysisPtr &case_analysis_ptr) {

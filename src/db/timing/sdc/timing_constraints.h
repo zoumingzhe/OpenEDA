@@ -41,16 +41,12 @@ using CreateClockPtr = std::shared_ptr<CreateClock>;
 class CreateGeneratedClock {
   public:
     void addEdgeShift(const float& edge_shift) { edge_shifts_.emplace_back(edge_shift); }
-    void addSourcePin(const ObjectId id) { source_pins_.emplace_back(id); }
-    void addSourceNet(const ObjectId id) { source_nets_.emplace_back(id); }
     void addSourceMasterPin(const ObjectId id) { source_master_pins_.emplace_back(id); }
     void addEdge(const int edge) { edges_.emplace_back(edge); }
 
   private:
     std::string comment_ = "";
     std::vector<float> edge_shifts_;
-    std::vector<ObjectId> source_pins_;
-    std::vector<ObjectId> source_nets_;
     std::vector<ObjectId> source_master_pins_;
     std::vector<int> edges_;
     float duty_cycle_ = 0.0;
@@ -61,8 +57,6 @@ class CreateGeneratedClock {
   public:
     COMMAND_GET_SET_VAR(comment, Comment)
     COMMAND_GET_SET_VAR(edge_shifts, EdgeShifts)
-    COMMAND_GET_SET_VAR(source_pins, SourcePins)
-    COMMAND_GET_SET_VAR(source_nets, SourceNets)
     COMMAND_GET_SET_VAR(source_master_pins, SourceMasterPins)
     COMMAND_GET_SET_VAR(edges, Edges)
     COMMAND_GET_SET_VAR(duty_cycle, DutyCycle)
@@ -74,6 +68,36 @@ class CreateGeneratedClock {
     COMMAND_GET_SET_FLAG(combinational_, Combinational)
 };
 using CreateGeneratedClockPtr = std::shared_ptr<CreateGeneratedClock>;
+
+class ClockContainerData {
+  public:
+    size_t getClockNum() { return clock_ids_.size(); }
+    void addClockId(const ClockId &id) { return clock_ids_.emplace_back(id); }
+
+    void addClock(ClockPtr &clock, CreateClockPtr &create_clock);
+    void addClock(ClockPtr &clock, CreateGeneratedClockPtr &create_generated_clock);
+    void addClockPin(ObjectId &pin_id, ClockPtr &clock) { pin_clock_map_.emplace(pin_id, clock); }
+
+
+  private:
+    std::vector<ClockId> clock_ids_;
+    std::vector<std::string> clock_names_;
+    std::vector<ClockPtr> clocks_;
+    std::unordered_map<std::string, ClockId> name_to_id_;
+    std::unordered_map<ClockId, CreateClockPtr> create_clocks_;
+    std::unordered_map<ClockId, CreateGeneratedClockPtr> create_generated_clocks_;
+    std::unordered_map<ObjectId, ClockPtr> pin_clock_map_;
+
+  public:
+    COMMAND_GET_SET_VAR(clock_ids, ClockIds)
+    COMMAND_GET_SET_VAR(clock_names, ClockNames)
+    COMMAND_GET_SET_VAR(clocks, Clocks)
+    COMMAND_GET_SET_VAR(name_to_id, NameToId)
+    COMMAND_GET_SET_VAR(create_clocks, CreateClocks)
+    COMMAND_GET_SET_VAR(create_generated_clocks, CreateGeneratedClocks)
+    COMMAND_GET_SET_VAR(pin_clock_map, PinClockMap)
+};
+using ClockContainerDataPtr = std::shared_ptr<ClockContainerData>;
 
 class GroupPath {
   private:

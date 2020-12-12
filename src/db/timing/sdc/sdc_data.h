@@ -184,24 +184,29 @@ using SdcGetPortsContainerPtr = std::shared_ptr<SdcGetPortsContainer>;
 //timing constraint commands
 class SdcClockContainer {
   public:
-    void add(const ClockId& clock_id, const CreateClock& create_clock);
-    void add(const ClockId& clock_id, const CreateGeneratedClock& create_generated_clock);
+    SdcClockContainer() { data_ = std::make_shared<ClockContainerData>(); }
+    ~SdcClockContainer() = default;
+    SdcClockContainer(const SdcClockContainer &container) = delete;
+    SdcClockContainer& operator=(const SdcClockContainer &container) = delete;
 
-    const std::vector<Clock>& getClocks() { return clocks_; }
-    std::string getClockName(const ClockId id);
-    const Clock& getClock(const ClockId id);
-    const Clock& getClock(const std::string &name);
+  public:
+    const std::vector<ClockPtr> &getClocks() { return data_->getClocks(); }
+    const std::vector<ClockId> &getClockIds() { return data_->getClockIds(); } 
+    const std::vector<std::string> &getClockNames() { return data_->getClockNames(); }
+
+    const std::string getClockName(const ClockId &id);
     const ClockId getClockId(const std::string &name);
+
+    const ClockPtr getClock(const ClockId &id);
+    const ClockPtr getClock(const std::string &name);
+
+    const ClockPtr getClockOnPin(const ObjectId &pin_id);
+    bool isClockPin(const ObjectId &pin_id);
 
     friend std::ostream &operator<<(std::ostream &os, SdcClockContainer &rhs);
 
   private:
-    std::vector<ClockId> clock_ids_;
-    std::vector<std::string> clock_names_;
-    std::vector<Clock> clocks_;
-    std::unordered_map<ClockId, CreateClock> create_clocks_;
-    std::unordered_map<ClockId, CreateGeneratedClock> create_generated_clocks_;
-    static const Clock invaild_clock_;
+    ClockContainerDataPtr data_;
 };
 using SdcClockContainerPtr = std::shared_ptr<SdcClockContainer>;
 
