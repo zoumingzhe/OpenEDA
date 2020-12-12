@@ -13,9 +13,18 @@
  */
 
 #include "db/timing/sdc/multivoltage_power_commands.h"
+#include "db/timing/timinglib/timinglib_units.h"
 
 namespace open_edi {
 namespace db {
+
+void SetMaxDynamicPower::set(const float &value, const std::string &unit) {
+    power_value_ = value * UnitMultiply::getCapacitiveUnitMultiply(unit);
+}
+
+void SetMaxLeakagePower::set(const float &value, const std::string &unit) {
+    power_value_ = value * UnitMultiply::getCapacitiveUnitMultiply(unit);
+}
 
 
 }

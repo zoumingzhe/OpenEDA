@@ -106,6 +106,9 @@ class SetLevelShifterThreshold {
 using SetLevelShifterThresholdPtr = std::shared_ptr<SetLevelShifterThreshold>;
 
 class SetMaxDynamicPower {
+  public:
+    void set(const float &value, const std::string &unit);
+
   private:
     float power_value_ = 0.0; 
 
@@ -114,12 +117,27 @@ class SetMaxDynamicPower {
 };
 using SetMaxDynamicPowerPtr = std::shared_ptr<SetMaxDynamicPower>;
 
-class SetMaxLeakagePower {
+class MaxDynamicPowerContainerData {
+  public:
+    void set(const ObjectId &current_cell, const SetMaxDynamicPowerPtr &power) { dynamic_power_.emplace(current_cell, power); }
+
   private:
-    float leakage_power_  = 0.0;
+    std::unordered_map<ObjectId, SetMaxDynamicPowerPtr> dynamic_power_;
 
   public:
-    COMMAND_GET_SET_VAR(leakage_power, LeakagePower)
+    COMMAND_GET_SET_VAR(dynamic_power, DynamicPower)
+};
+using MaxDynamicPowerContainerDataPtr = std::shared_ptr<MaxDynamicPowerContainerData>;
+
+class SetMaxLeakagePower {
+  public:
+    void set(const float &value, const std::string &unit);
+
+  private:
+    float power_value_  = 0.0;
+
+  public:
+    COMMAND_GET_SET_VAR(power_value, PowerValue)
 };
 using SetMaxLeakagePowerPtr = std::shared_ptr<SetMaxLeakagePower>;
 

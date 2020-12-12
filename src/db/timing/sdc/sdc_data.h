@@ -553,8 +553,17 @@ class SdcLevelShifterThresholdContainer {
 using SdcLevelShifterThresholdContainerPtr = std::shared_ptr<SdcLevelShifterThresholdContainer>;
 
 class SdcMaxDynamicPowerContainer {
+  public:
+    SdcMaxDynamicPowerContainer() { data_ = std::make_shared<MaxDynamicPowerContainerData>(); }
+
+  public:
+    void add(const MaxDynamicPowerContainerDataPtr &data) { data_ = data; }
+    const float getCellPower(const ObjectId &cell_id) const;
+
+    friend std::ostream &operator<<(std::ostream &os, SdcMaxDynamicPowerContainer &rhs);
+
   private:
-      std::unordered_map<ObjectId, SetMaxDynamicPowerPtr> dynamic_power_;
+    MaxDynamicPowerContainerDataPtr data_;
 };
 using SdcMaxDynamicPowerContainerPtr = std::shared_ptr<SdcMaxDynamicPowerContainer>; 
 
