@@ -341,6 +341,14 @@ std::ostream &operator<<(std::ostream &os, SdcLevelShifterStrategyContainer &rhs
     return os;
 }
 
+std::ostream &operator<<(std::ostream &os, SdcLevelShifterThresholdContainer &rhs) {
+    os  << "set_level_shifter_threshold ";
+    os  << "-voltage " << rhs.getVoltage()
+        << "-percent " << rhs.getPercent() 
+        << "\n";
+    return os;
+}
+
 
 
 

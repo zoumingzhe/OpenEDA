@@ -31,9 +31,6 @@ namespace db {
 class SdcCurrentInstanceContainer {
   public:
     SdcCurrentInstanceContainer() { current_instance_ = std::make_shared<CurrentInstance>(); }
-    ~SdcCurrentInstanceContainer() = default;
-    SdcCurrentInstanceContainer(const SdcCurrentInstanceContainer &container) = delete;
-    SdcCurrentInstanceContainer& operator=(const SdcCurrentInstanceContainer &container) = delete;
 
     void add(CurrentInstancePtr instance) { current_instance_ = instance; }
     const std::string getName() const;
@@ -48,9 +45,6 @@ using SdcCurrentInstanceContainerPtr = std::shared_ptr<SdcCurrentInstanceContain
 class SdcHierarchySeparatorContainer {
   public:
     SdcHierarchySeparatorContainer() { separator_ = std::make_shared<SetHierarchySeparator>(); }
-    ~SdcHierarchySeparatorContainer() = default;
-    SdcHierarchySeparatorContainer(const SdcHierarchySeparatorContainer &container) = delete;
-    SdcHierarchySeparatorContainer& operator=(const SdcHierarchySeparatorContainer &container) = delete;
 
     void add(SetHierarchySeparatorPtr separator) { separator_ = separator; }
     const char get() const { return separator_->getSeparator(); };
@@ -64,9 +58,6 @@ using SdcHierarchySeparatorContainerPtr = std::shared_ptr<SdcHierarchySeparatorC
 class SdcUnitsContainer {
   public:
     SdcUnitsContainer() { units_ = std::make_shared<SetUnits>(); }
-    ~SdcUnitsContainer() = default;
-    SdcUnitsContainer(const SdcUnitsContainer &container) = delete;
-    SdcUnitsContainer& operator=(const SdcUnitsContainer &container) = delete;
 
     void add(SetUnitsPtr units) { units_ = units; };
     const float &getSdcCapacitanceUnits() const { return units_->getCapacitanceUnit(); };
@@ -111,9 +102,6 @@ using SdcAllRegistersContainerPtr = std::shared_ptr<SdcAllRegistersContainer>;
 class SdcCurrentDesignContainer {
   public:
     SdcCurrentDesignContainer() { current_design_ = std::make_shared<CurrentDesign>(); }
-    ~SdcCurrentDesignContainer() = default;
-    SdcCurrentDesignContainer(const SdcCurrentDesignContainer &container) = delete;
-    SdcCurrentDesignContainer& operator=(const SdcCurrentDesignContainer &container) = delete;
 
     void add(CurrentDesignPtr design) { current_design_ = design; }
     std::string getName();
@@ -185,9 +173,6 @@ using SdcGetPortsContainerPtr = std::shared_ptr<SdcGetPortsContainer>;
 class SdcClockContainer {
   public:
     SdcClockContainer() { data_ = std::make_shared<ClockContainerData>(); }
-    ~SdcClockContainer() = default;
-    SdcClockContainer(const SdcClockContainer &container) = delete;
-    SdcClockContainer& operator=(const SdcClockContainer &container) = delete;
 
   public:
     const std::vector<ClockPtr> &getClocks() { return data_->getClocks(); }
@@ -529,9 +514,6 @@ using SdcWireLoadSelectionGroupContainerPtr= std::shared_ptr<SdcWireLoadSelectio
 class SdcVoltageAreaContainer {
   public:
     SdcVoltageAreaContainer() { data_ = std::make_shared<VoltageAreaContainerData>(); }
-    ~SdcVoltageAreaContainer() = default;
-    SdcVoltageAreaContainer(const SdcVoltageAreaContainer &container) = delete;
-    SdcVoltageAreaContainer& operator=(const SdcVoltageAreaContainer &container) = delete;
 
   public:
     //TODO get origin data functions
@@ -546,19 +528,29 @@ using SdcVoltageAreaContainerPtr = std::shared_ptr<SdcVoltageAreaContainer>;
 
 class SdcLevelShifterStrategyContainer {
   public:
-    const LevelShifterStrategy &getLevelShifterStrategy() { return data.getRule(); }
+    void add(const SetLevelShifterStrategy &data) { data_ = data; }
+    const LevelShifterStrategy &getLevelShifterStrategy() const { return data_.getRule(); }
     friend std::ostream &operator<<(std::ostream &os, SdcLevelShifterStrategyContainer &rhs);
 
   private:
-    SetLevelShifterStrategy data;
+    SetLevelShifterStrategy data_;
 };
 using SdcLevelShifterStrategyContainerPtr = std::shared_ptr<SdcLevelShifterStrategyContainer>;
 
-class SdcLevelShifterThreshold {
+class SdcLevelShifterThresholdContainer {
+  public:
+    SdcLevelShifterThresholdContainer() { data_ = std::make_shared<SetLevelShifterThreshold>(); }
+
+  public:
+    void add(const SetLevelShifterThresholdPtr &data) { data_ = data; }
+    const float &getVoltage() const { return data_->getVoltage(); }
+    const float &getPercent() const { return data_->getPercent(); } 
+    friend std::ostream &operator<<(std::ostream &os, SdcLevelShifterThresholdContainer &rhs);
+
   private:
-    SetLevelShifterThreshold threshold_;
+    SetLevelShifterThresholdPtr data_;
 }; 
-using SdcLevelShifterThresholdPtr = std::shared_ptr<SdcLevelShifterThreshold>;
+using SdcLevelShifterThresholdContainerPtr = std::shared_ptr<SdcLevelShifterThresholdContainer>;
 
 class SdcMaxDynamicPowerContainer {
   private:
