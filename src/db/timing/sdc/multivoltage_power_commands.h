@@ -141,6 +141,18 @@ class SetMaxLeakagePower {
 };
 using SetMaxLeakagePowerPtr = std::shared_ptr<SetMaxLeakagePower>;
 
+class MaxLeakagePowerContainerData {
+  public:
+    void set(const ObjectId &current_cell, const SetMaxLeakagePowerPtr &power) { leakage_power_.emplace(current_cell, power); }
+
+  private:
+    std::unordered_map<ObjectId, SetMaxLeakagePowerPtr> leakage_power_;
+
+  public:
+    COMMAND_GET_SET_VAR(leakage_power, LeakagePower)
+};
+using MaxLeakagePowerContainerDataPtr = std::shared_ptr<MaxLeakagePowerContainerData>;
+
 
 
 }

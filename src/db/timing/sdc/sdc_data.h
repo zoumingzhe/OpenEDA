@@ -568,11 +568,19 @@ class SdcMaxDynamicPowerContainer {
 using SdcMaxDynamicPowerContainerPtr = std::shared_ptr<SdcMaxDynamicPowerContainer>; 
 
 class SdcMaxLeakagePowerContainer {
-  private:
-    std::unordered_map<ObjectId, SetMaxLeakagePowerPtr> leakage_power_;
-};
-using SdcMaxLeakagePowerContainerPtr = std::shared_ptr<SdcMaxLeakagePowerContainer>;
+  public:
+    SdcMaxLeakagePowerContainer() { data_ = std::make_shared<MaxLeakagePowerContainerData>(); }
 
+  public:
+    void add(const MaxLeakagePowerContainerDataPtr &data) { data_ = data; }
+    const float getCellPower(const ObjectId &cell_id) const;
+
+    friend std::ostream &operator<<(std::ostream &os, SdcMaxLeakagePowerContainer &rhs);
+
+  private:
+    MaxLeakagePowerContainerDataPtr data_;
+};
+using SdcMaxLeakagePowerContainerPtr = std::shared_ptr<SdcMaxLeakagePowerContainer>; 
 
 }
 }

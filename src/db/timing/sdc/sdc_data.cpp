@@ -392,6 +392,49 @@ std::ostream &operator<<(std::ostream &os, SdcMaxDynamicPowerContainer &rhs) {
     return os;
 }
 
+const float SdcMaxLeakagePowerContainer::getCellPower(const ObjectId &cell_id) const {
+    if (!data_) {
+        // error message
+        return 0.0; 
+    }
+    const auto &cell_power = data_->getLeakagePower();
+    const auto &found = cell_power.find(cell_id);
+    if (found == cell_power.end()) {
+        // message
+        return 0.0;
+    }
+    const auto &power = found->second;
+    if (!power) {
+        // message
+        return 0.0;
+    }
+    return power->getPowerValue();
+}
+
+std::ostream &operator<<(std::ostream &os, SdcMaxLeakagePowerContainer &rhs) {
+    if (!rhs.data_) {
+        // error message
+        return os; 
+    }
+    const auto &cell_power_map = rhs.data_->getLeakagePower();
+    for (const auto &cell_to_power : cell_power_map) {
+        const auto &cell_id = cell_to_power.first;
+        const auto &cell = Object::addr<Cell>(cell_id);
+        if (!cell) {
+            // message
+            continue;
+        }
+        const auto &cell_name = cell->getName();
+        const auto &power_value = cell_to_power.second;
+        os  << "set_max_leakage_power ";
+        os  << "-power " << power_value 
+            << "-unit " << "W" 
+            << "#cell_name " << cell_name 
+            << "\n";
+    }
+    return os;
+}
+
 
 
 
