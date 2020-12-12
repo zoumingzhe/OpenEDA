@@ -27,6 +27,10 @@ endif()
 
 # must turn fPIC on 
 set_target_properties(${_SUBLIBNAME} PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+if (CMAKE_PLACE)
+  set_target_properties(${_SUBLIBNAME} PROPERTIES CXX_VISIBILITY_PRESET default)
+endif(CMAKE_PLACE)
+
 install(TARGETS ${_SUBLIBNAME}
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib

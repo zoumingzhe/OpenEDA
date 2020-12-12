@@ -45,6 +45,8 @@ file(GLOB SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
     )
+list(FILTER SOURCES EXCLUDE REGEX "common_place_DB.cpp")
+set(COMMON_DB_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/common_place_DB.cpp")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/.." 
                     "${CMAKE_CURRENT_SOURCE_DIR}/../../../..")
@@ -54,19 +56,19 @@ include_directories("${Python_INCLUDE_DIRS}")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
-#add_executable(test_p ${SOURCES})
-#target_link_libraries(test_p ${UTILITY_LIBRARY_DIRS}/libutility.a)
-#target_link_libraries(test_p ${Python_LIBRARIES})
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_VISIBILITY_PRESET default)
+add_library(common_place_db SHARED ${COMMON_DB_SOURCES})
+set_target_properties(common_place_db PROPERTIES CXX_VISIBILITY_PRESET default)
 
 link_directories(${Python_LIBRARY_DIRS})
 link_directories(${Python_SITELIB})
 link_directories(${UTILITY_LIBRARY_DIRS})
 
 if (CUDA_FOUND)
-  target_link_libraries(${PROJECT_NAME} PUBLIC ${Python_LIBRARIES} ${CUDA_LINKED})
+  target_link_libraries(${PROJECT_NAME} PUBLIC common_place_db ${Python_LIBRARIES} ${CUDA_LINKED})
 else (CUDA_FOUND)
-  target_link_libraries(${PROJECT_NAME} PUBLIC ${Python_LIBRARIES})
+  target_link_libraries(${PROJECT_NAME} PUBLIC common_place_db ${Python_LIBRARIES})
 endif(CUDA_FOUND)
-#install ( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/test_p DESTINATION dreamplace )
 
+install ( TARGETS common_place_db LIBRARY DESTINATION lib/share )
 

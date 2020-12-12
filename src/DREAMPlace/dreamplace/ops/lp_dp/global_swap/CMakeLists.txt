@@ -56,6 +56,7 @@ link_directories(${UTILITY_LIBRARY_DIRS} ${CUB_DIR})
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
+set_target_properties(${PROJECT_NAME} PROPERTIES CXX_VISIBILITY_PRESET default)
 if (CUDA_FOUND)
   target_link_libraries(${PROJECT_NAME} PUBLIC ${CUDA_LINKED} utility ${CUDA_curand_LIBRARY})
 else (CUDA_FOUND)

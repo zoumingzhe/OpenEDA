@@ -39,41 +39,72 @@ torch_minor_version = "-DTORCH_MINOR_VERSION=%d" % (int(tokens[1]))
 
 cxx_flags = ['-fvisibility=hidden', torch_major_version, torch_minor_version]
 
-if ("${CMAKE_PLACE}".upper() == 'ON') or ("${CMAKE_PLACE}".upper() == 'TRUE') or ("${CMAKE_PLACE}" == '1'):
-    lib_dirs.append('${COMMON_DB_LIBRARY_DIRS}')
-    lib_dirs.append('${DB_DIRS}/db')
-    lib_dirs.append('${DB_DIRS}/util')
-    libs.append('place_flow') 
-    libs.append('openedi_db')
-    libs.append('openedi_util')
-    include_dirs.append('${OPS_DIR}/../../..')
-    cxx_flags.append('-D_CMAKE_PLACE')
-
 def add_prefix(filename):
     return os.path.join('${CMAKE_CURRENT_SOURCE_DIR}/src', filename)
 
-setup(
+if ("${CMAKE_PLACE}".upper() == 'ON') or ("${CMAKE_PLACE}".upper() == 'TRUE') or ("${CMAKE_PLACE}" == '1'):
+    lib_dirs.append('${CMAKE_CURRENT_BINARY_DIR}/../flow')
+    libs.append('common_place_db')
+    include_dirs.append('${OPS_DIR}/../../..')
+    run_time_library_dirs = ['${CMAKE_INSTALL_PREFIX}/lib/share', '$ORIGIN/../lib/share']
+    cxx_flags.append('-D_CMAKE_PLACE')
+
+    setup(
         name='place_io',
         ext_modules=[
-            CppExtension('place_io_cpp', 
+            CppExtension('place_io_cpp',
                 [
-                    add_prefix('BenchMetrics.cpp'),  
-                    add_prefix('BinMap.cpp'),  
-                    add_prefix('Enums.cpp'),  
-                    add_prefix('Net.cpp'),  
-                    add_prefix('Node.cpp'),  
-                    add_prefix('Region.cpp'),  
-                    add_prefix('Group.cpp'),  
-                    add_prefix('Params.cpp'),  
-                    add_prefix('PlaceDB.cpp'),  
+                    add_prefix('BenchMetrics.cpp'),
+                    add_prefix('BinMap.cpp'),
+                    add_prefix('Enums.cpp'),
+                    add_prefix('Net.cpp'),
+                    add_prefix('Node.cpp'),
+                    add_prefix('Region.cpp'),
+                    add_prefix('Group.cpp'),
+                    add_prefix('Params.cpp'),
+                    add_prefix('PlaceDB.cpp'),
                     add_prefix('DefWriter.cpp'),
                     add_prefix('BookshelfWriter.cpp'),
-                    add_prefix('PyPlaceDB.cpp'),  
-                    add_prefix('PybindPlaceDB.cpp'),  
-                    add_prefix('PybindPyPlaceDB.cpp'),  
-                    add_prefix('place_io.cpp'),  
+                    add_prefix('PyPlaceDB.cpp'),
+                    add_prefix('PybindPlaceDB.cpp'),
+                    add_prefix('PybindPyPlaceDB.cpp'),
+                    add_prefix('place_io.cpp'),
                     ],
-                include_dirs=copy.deepcopy(include_dirs), 
+                include_dirs=copy.deepcopy(include_dirs),
+                library_dirs=copy.deepcopy(lib_dirs),
+                libraries=copy.deepcopy(libs),
+                runtime_library_dirs=run_time_library_dirs,
+                extra_compile_args={
+                    'cxx': cxx_flags,
+                    }
+                ),
+            ],
+        cmdclass={
+            'build_ext': BuildExtension
+            })
+else:
+    setup(
+        name='place_io',
+        ext_modules=[
+            CppExtension('place_io_cpp',
+                [
+                    add_prefix('BenchMetrics.cpp'),
+                    add_prefix('BinMap.cpp'),
+                    add_prefix('Enums.cpp'),
+                    add_prefix('Net.cpp'),
+                    add_prefix('Node.cpp'),
+                    add_prefix('Region.cpp'),
+                    add_prefix('Group.cpp'),
+                    add_prefix('Params.cpp'),
+                    add_prefix('PlaceDB.cpp'),
+                    add_prefix('DefWriter.cpp'),
+                    add_prefix('BookshelfWriter.cpp'),
+                    add_prefix('PyPlaceDB.cpp'),
+                    add_prefix('PybindPlaceDB.cpp'),
+                    add_prefix('PybindPyPlaceDB.cpp'),
+                    add_prefix('place_io.cpp'),
+                    ],
+                include_dirs=copy.deepcopy(include_dirs),
                 library_dirs=copy.deepcopy(lib_dirs),
                 libraries=copy.deepcopy(libs),
                 extra_compile_args={
