@@ -36,8 +36,8 @@ class SdcCurrentInstanceContainer {
     SdcCurrentInstanceContainer& operator=(const SdcCurrentInstanceContainer &container) = delete;
 
     void add(CurrentInstancePtr instance) { current_instance_ = instance; }
-    std::string getName();
-    ObjectId getId() { return current_instance_->getInstanceId(); };
+    const std::string getName() const;
+    const ObjectId getId() const { return current_instance_->getInstanceId(); };
     friend std::ostream &operator<<(std::ostream &os, SdcCurrentInstanceContainer &rhs);
 
   private:
@@ -53,7 +53,7 @@ class SdcHierarchySeparatorContainer {
     SdcHierarchySeparatorContainer& operator=(const SdcHierarchySeparatorContainer &container) = delete;
 
     void add(SetHierarchySeparatorPtr separator) { separator_ = separator; }
-    char get() { return separator_->getSeparator(); };
+    const char get() const { return separator_->getSeparator(); };
     friend std::ostream &operator<<(std::ostream &os, SdcHierarchySeparatorContainer &rhs);
 
   private:
@@ -69,12 +69,12 @@ class SdcUnitsContainer {
     SdcUnitsContainer& operator=(const SdcUnitsContainer &container) = delete;
 
     void add(SetUnitsPtr units) { units_ = units; };
-    const float &getSdcCapacitanceUnits() { return units_->getCapacitanceUnit(); };
-    const float &getSdcResistanceUnits() { return units_->getResistanceUnit(); };
-    const float &getSdcTimeUnits() { return units_->getTimeUnit(); };
-    const float &getSdcVoltageUnits() { return units_->getVoltageUnit(); };
-    const float &getSdcCurrentUnits() { return units_->getCurrentUnit(); };
-    const float &getSdcPowerUnits() { return units_->getPowerUnit(); };
+    const float &getSdcCapacitanceUnits() const { return units_->getCapacitanceUnit(); };
+    const float &getSdcResistanceUnits() const { return units_->getResistanceUnit(); };
+    const float &getSdcTimeUnits() const { return units_->getTimeUnit(); };
+    const float &getSdcVoltageUnits() const { return units_->getVoltageUnit(); };
+    const float &getSdcCurrentUnits() const { return units_->getCurrentUnit(); };
+    const float &getSdcPowerUnits() const { return units_->getPowerUnit(); };
     friend std::ostream &operator<<(std::ostream &os, SdcUnitsContainer &rhs);
 
   private:
@@ -527,16 +527,32 @@ using SdcWireLoadSelectionGroupContainerPtr= std::shared_ptr<SdcWireLoadSelectio
 
 //multivoltage power commands
 class SdcVoltageAreaContainer {
+  public:
+    SdcVoltageAreaContainer() { data_ = std::make_shared<VoltageAreaContainerData>(); }
+    ~SdcVoltageAreaContainer() = default;
+    SdcVoltageAreaContainer(const SdcVoltageAreaContainer &container) = delete;
+    SdcVoltageAreaContainer& operator=(const SdcVoltageAreaContainer &container) = delete;
+
+  public:
+    //TODO get origin data functions
+    const CreateVoltageAreaPtr getCellVoltageArea(const ObjectId &id) const;
+
+    friend std::ostream &operator<<(std::ostream &os, SdcVoltageAreaContainer &rhs);
+
   private:
-    std::unordered_map<ObjectId, CreateVoltageAreaPtr> cell_voltage_area_;
-}; 
+    VoltageAreaContainerDataPtr data_;
+};
 using SdcVoltageAreaContainerPtr = std::shared_ptr<SdcVoltageAreaContainer>;
 
-class SdcLevelShifterStrategy {
+class SdcLevelShifterStrategyContainer {
+  public:
+    const LevelShifterStrategy &getLevelShifterStrategy() { return data.getRule(); }
+    friend std::ostream &operator<<(std::ostream &os, SdcLevelShifterStrategyContainer &rhs);
+
   private:
-    SetLevelShifterStrategyPtr strategy_;
+    SetLevelShifterStrategy data;
 };
-using SdcLevelShifterStrategyPtr = std::shared_ptr<SdcLevelShifterStrategy>;
+using SdcLevelShifterStrategyContainerPtr = std::shared_ptr<SdcLevelShifterStrategyContainer>;
 
 class SdcLevelShifterThreshold {
   private:

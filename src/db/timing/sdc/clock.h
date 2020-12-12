@@ -44,15 +44,10 @@ class Clock {
     void setClockId(const ClockId &id) { id_ = id; }
     void SetGenerated() { is_generated_ = true; }
 
-    const std::string &getName() { return name_; }
     const std::string &getName() const { return name_; }
-    const std::vector<float> &getWaveform() { return waveform_; }
     const std::vector<float> &getWaveform() const { return waveform_; }
-    const float &getPeriod() { return period_; }
     const float &getPeriod() const { return period_; }
-    const ClockId &getId() { return id_; }
     const ClockId &getId() const { return id_; }
-    bool isGenerated() { return is_generated_; }
     bool isGenerated() const { return is_generated_; }
 
     friend std::ostream &operator<<(std::ostream &os, Clock &rhs);

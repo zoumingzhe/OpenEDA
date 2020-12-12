@@ -20,7 +20,7 @@ namespace db {
 //general purpose commands
 
 
-std::string SdcCurrentInstanceContainer::getName() {
+const std::string SdcCurrentInstanceContainer::getName() const {
     const ObjectId &inst_id = current_instance_->getInstanceId();
     const Inst* inst = Object::addr<Inst>(inst_id);
     if (inst) {
@@ -286,6 +286,77 @@ std::ostream &operator<<(std::ostream &os, SdcCaseAnalysisContainer &rhs) {
 }
 
 
-//
+//multivoltage power commands
+const CreateVoltageAreaPtr SdcVoltageAreaContainer::getCellVoltageArea(const ObjectId &cell_id) const {
+   const auto &cell_voltage_area = data_->getCellVoltageArea(); 
+   const auto &found = cell_voltage_area.find(cell_id);
+   if (found == cell_voltage_area.end()) {
+       // messages;
+       return nullptr;
+   }
+   return found->second;
+}
+
+std::ostream &operator<<(std::ostream &os, SdcVoltageAreaContainer &rhs) {
+    if (!rhs.data_) {
+        // error messages
+        return os;
+    }
+    const auto &cell_voltage_area_map = rhs.data_->getCellVoltageArea(); 
+    for (const auto &cell_to_area : cell_voltage_area_map) {
+        const auto &cell_id = cell_to_area.first;
+        const auto &voltage_area = cell_to_area.second; 
+        if (!voltage_area) {
+            // error message
+            continue;
+        }
+        const auto &box_vector = voltage_area->getCoordinates();
+        const auto &cell = Object::addr<Cell>(cell_id);
+        if (!cell) {
+            //error message
+            continue;
+        }
+        const auto &cell_name = cell->getName();
+        os  << "create_voltage_area "
+            << "-name " << voltage_area->getName();
+        os  << "-corrdinate "; 
+        for (const auto &box : box_vector) {
+            if (!box) {
+                // error messages
+                continue;
+            }
+            os << "{ " << box->getLLX() << " " << box->getLLY() << " " << box->getURX() << " " << box->getURY() << " } "; 
+        }
+        os  << "-guard_band_x " << voltage_area->getGuardBandX()
+            << "-guard_band_y " << voltage_area->getGuardBandY()
+            << cell_name;
+        os  << "\n";
+    }
+    return os;
+}
+
+
+std::ostream &operator<<(std::ostream &os, SdcLevelShifterStrategyContainer &rhs) {
+    os << "set_level_shifter_strategy " << toString(rhs.getLevelShifterStrategy()) << "\n";
+    return os;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 }

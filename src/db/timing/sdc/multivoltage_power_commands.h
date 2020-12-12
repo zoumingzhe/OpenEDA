@@ -26,27 +26,69 @@
 namespace open_edi {
 namespace db {
 
+class BoxCoordinate {
+  private:
+    float llx_ = 0.0;
+    float lly_ = 0.0;
+    float urx_ = 0.0;
+    float ury_ = 0.0;
+
+  public:
+    COMMAND_GET_SET_VAR(llx, LLX)
+    COMMAND_GET_SET_VAR(lly, LLY)
+    COMMAND_GET_SET_VAR(urx, URX)
+    COMMAND_GET_SET_VAR(ury, URY)
+};
+using BoxCoordinatePtr = std::shared_ptr<BoxCoordinate>;
+
 class CreateVoltageArea {
+  public:
+    void add(BoxCoordinatePtr &box) { coordinates_.emplace_back(box); }
+
   private:
     std::string name_ = "";
-    //Box coordinate_;
-    //Point<float> polygons_;
+    std::vector<BoxCoordinatePtr> coordinates_;
     int guard_band_x_ = 0;
     int guard_band_y_ = 0;
   
   public:
     COMMAND_GET_SET_VAR(name, Name)
-    //COMMAND_GET_SET_VAR(coordinate, Coordinate)
-    //COMMAND_GET_SET_VAR(polygons, Polygons)
+    COMMAND_GET_SET_VAR(coordinates, Coordinates)
     COMMAND_GET_SET_VAR(guard_band_x, GuardBandX)
     COMMAND_GET_SET_VAR(guard_band_y, GuardBandY)
 };
 using CreateVoltageAreaPtr = std::shared_ptr<CreateVoltageArea>;
 
-enum class LevelShifterStrategy {kAll, kLowToHigh, kHighToLow, kUnknown};
+class VoltageAreaContainerData {
+  public:
+    void add(ObjectId &cell_id, CreateVoltageAreaPtr &voltage_area) { cell_voltage_area_.emplace(cell_id, voltage_area); } 
+
+  private:
+    std::unordered_map<ObjectId, CreateVoltageAreaPtr> cell_voltage_area_;
+
+  public:
+    COMMAND_GET_SET_VAR(cell_voltage_area, CellVoltageArea)
+};
+using VoltageAreaContainerDataPtr = std::shared_ptr<VoltageAreaContainerData>; 
+
+enum class LevelShifterStrategy : Bits8 {kAll, kLowToHigh, kHighToLow, kUnknown};
+inline std::string toString(const LevelShifterStrategy &strategy) {
+    switch (strategy) {
+        case LevelShifterStrategy::kAll:
+            return "all";
+        case LevelShifterStrategy::kLowToHigh:
+            return "low_to_high";
+        case LevelShifterStrategy::kHighToLow:
+            return "high_to_low";
+        default:
+            return "Unknown";
+    }
+}
+
 class SetLevelShifterStrategy {
   private:
     LevelShifterStrategy rule_ = LevelShifterStrategy::kUnknown;
+
   public:
     COMMAND_GET_SET_VAR(rule, Rule)
 }; 
