@@ -63,6 +63,10 @@ void Clock::move(Clock &&rhs) {
     is_generated_ = rhs.is_generated_;
 }
 
+bool Clock::operator==(const Clock &rhs) const {
+    return ((name_ == rhs.getName()) and (id_ == rhs.getId()));
+}
+
 std::ostream &operator<<(std::ostream &os, Clock &rhs) {
     os << "Clock name: " << rhs.name_ << " period: " << rhs.period_ << " id: " << rhs.id_ << "\n";
     os << "waveform: {";
