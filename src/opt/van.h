@@ -20,7 +20,8 @@ class Van {
 
     void optimization(const std::vector<Node *> &nodes_array,
                     const std::vector<Buffer> &buffers,
-                    const std::vector<Buffer> &drivers);
+                    const std::vector<Buffer> &drivers,
+                    uint64_t used_id);
     void getSolutions(std::vector<VanSizing *> &solutions);
     void setPinCapacitanceLimits(double cap_limits, bool overwrite);
 
@@ -34,6 +35,7 @@ class Van {
     std::vector<Buffer> buffers_;
     BufferNode *location_head_;
     double pin_capacitance_limits_;
+    uint64_t used_id_;
 
     void insertNonRedundantVanSizing(VanSizing *node, VanSizing *head);
     void mergeNonRedundantVanNode(VanNode *node, BufferNode *location, VanNode *list);

@@ -94,7 +94,7 @@ void *OptimizeNets::runWorker() {
         #endif
         OptimizeNet *opt = new OptimizeNet(output_dir_);
         vector<Node *> array = p_input_[net->net_id];
-        int result = opt->optimize_net(r0_,c0_,net->net_id,array,buffers_,drivers_);
+        int result = opt->optimize_net(r0_,c0_,net->net_id,array,buffers_,drivers_,0);
         solution_queue_.push(new VanSolution(result));
         delete opt;
         delete net;

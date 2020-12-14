@@ -23,7 +23,8 @@ class OptimizeNet {
     int optimize_net (double r0, double c0, int id,
                 const std::vector<Node *> &nodes_array,
                 const std::vector<Buffer> &buffers,
-                const std::vector<Buffer> &drivers);
+                const std::vector<Buffer> &drivers,
+                uint64_t used_id);
   private:
     IOFILE *io_;
     std::string output_dir_;

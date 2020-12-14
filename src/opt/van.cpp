@@ -90,7 +90,9 @@ void Van::insertNonRedundantVanSizing(VanSizing *node, VanSizing *head) {
 
 void Van::optimization(const vector<Node *> &nodes_array,
                      const vector<Buffer> &buffers,
-                     const vector<Buffer> &drivers) {
+                     const vector<Buffer> &drivers,
+                     uint64_t used_id) {
+    used_id_ = used_id;
     clearSolutions();
     buffers_ = buffers;
     vanGinneken(nodes_array);
@@ -194,8 +196,21 @@ void Van::vanGinneken(const vector<Node *> &nodes_array) {
     #if DEBUG_VAN
     cout << "start van Ginneken" << endl;
     #endif
-    for (int64_t i=0;i<nodes_array.size()-1;i++) {//i>0, exclude source node
-        Node *child_node = nodes_array[i];
+    for (uint64_t i=nodes_array.size()-1;i>0;i--) {//i>0, exclude source node
+        Node *cur_node = nodes_array[i];
+        /*while (cur_node->parent->id > used_id_) {
+            double wire_length = distance(cur_node->parent, cur_node);
+            addWire(wire_length, cur_node);
+            if (cur_node->parent->type == CANDIDATE) {
+                addBuffer(cur_node->parent, cur_node);
+            }
+            cur_node->parent->solutions[0] = cur_node->solutions[0];
+            cur_node->parent->solutions[1] = cur_node->solutions[1];
+            cur_node->solutions[0] = nullptr;
+            cur_node->solutions[1] = nullptr;
+            cur_node = cur_node->parent;
+        }*/
+        Node *child_node = cur_node;
         Node *parent_node = child_node->parent;
         double wire_length = distance(parent_node,child_node);
         addWire(wire_length, child_node);
