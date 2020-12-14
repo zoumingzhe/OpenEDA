@@ -99,7 +99,7 @@ int OptimizeNet::optimize_net (int argc, char **argv) {
     }
     vector<Buffer> buffers;
     vector<Buffer> drivers;
-    io_ = new IO();
+    io_ = new IOFILE();
     io_->readBufferLibrary(buffer_file,buffers);
     int error = io_->readInputTree(net_file,drivers);
     if(error==-1){

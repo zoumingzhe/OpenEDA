@@ -1,19 +1,19 @@
-#include "io.h"
+#include "io_file.h"
 
 using namespace std;
 
 namespace open_edi {
 namespace opt {
 
-IO::IO() {
+IOFILE::IOFILE() {
     used_id_ = 0;
 }
 
-IO::~IO() {
+IOFILE::~IOFILE() {
     destroyTree();
 }
 
-void IO::readBufferLibrary(const string file_name, vector<Buffer> &buffers) {
+void IOFILE::readBufferLibrary(const string file_name, vector<Buffer> &buffers) {
     buffers.clear();
     fin_.open(file_name);
     if ( fin_.is_open() ) {
@@ -32,7 +32,7 @@ void IO::readBufferLibrary(const string file_name, vector<Buffer> &buffers) {
     sort(buffers.begin(),buffers.end());
 }
 
-int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
+int IOFILE::readInputTree(string file_name, vector<Buffer> &drivers) {
     destroyTree();
     fin_.open(file_name);
     if ( !fin_.is_open() ) {
@@ -48,6 +48,11 @@ int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
     #endif
     //read source
     Node *node = new Node();
+    node->r0 = r0_;
+    node->c0 = c0_;
+    node->c_down = 0.0;
+    node->c_edge = 0.0;
+    node->r_edge = 0.0;
     node->id = 0;
     node->type = SOURCE;
     node->parent = NULL;
@@ -74,10 +79,15 @@ int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
         last->buffer_location = NULL;
         last->area = 0;
         node = new Node();
+        node->r0 = r0_;
+        node->c0 = c0_; 
         node->type = SINK;
         node->parent = NULL;
         fin_ >> what >> node->id >> node->x >> node->y >> last->capacitance >> last->time;
         last->capacitance /= 1000;//convert to pF
+        node->c_down = last->capacitance;
+        node->c_edge = 0.0;
+        node->r_edge = 0.0;
         node->solutions[last->polarity] = last;
         node->solutions[!last->polarity] = NULL;
         nodes_[node->id] = node;
@@ -91,6 +101,11 @@ int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
     fin_ >> what >> num;
     for(int i=0;i<num;i++){
         node = new Node();
+        node->r0 = r0_;
+        node->c0 = c0_;
+        node->c_down = 0.0;
+        node->c_edge = 0.0;
+        node->r_edge = 0.0;
         node->type = CANDIDATE;
         node->parent = NULL;
         fin_ >> what >> node->id >> node->x >> node->y;
@@ -111,6 +126,8 @@ int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
         #endif
         Node *node_parent = nodes_[id_from];
         Node *node_child = nodes_[id_to];
+        node_child->c_edge = c0_ * (fabs(node_parent->x - node_child->x) + fabs(node_parent->y - node_child->y));
+        node_child->r_edge = r0_ * (fabs(node_parent->x - node_child->x) + fabs(node_parent->y - node_child->y));
         node_child->parent = node_parent;
         node_parent->children.push_back(node_child);
     }
@@ -121,9 +138,9 @@ int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
     Node *front = NULL;
     nodes_queue.push(nodes_[0]);
     while(nodes_queue.size() > 0) {
-	    front = nodes_queue.front();
+	front = nodes_queue.front();
         nodes_array.push_back(front);
-	    nodes_queue.pop();
+	nodes_queue.pop();
         for (int i = 0; i < front->children.size(); i++) {
             nodes_queue.push(front->children[i]);
         }
@@ -131,7 +148,7 @@ int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
     return 0;
 }
 
-void IO::destroyTree() {
+void IOFILE::destroyTree() {
     for(auto &node : nodes_array) {
         if(node->type == SINK){
             if(node->solutions[0]){
@@ -147,15 +164,15 @@ void IO::destroyTree() {
     nodes_array.clear();
 }
 
-double IO::getR0() {
+double IOFILE::getR0() {
     return r0_;
 }
 
-double IO::getC0() {
+double IOFILE::getC0() {
     return c0_;
 }
 
-void IO::getTreeCopy(vector<Node *> &array) {
+void IOFILE::getTreeCopy(vector<Node *> &array) {
     unordered_map<uint64_t, Node *> nodes_copy;
     for(auto &node : nodes_){
         Node *node_src = node.second;
@@ -164,6 +181,11 @@ void IO::getTreeCopy(vector<Node *> &array) {
         node_dst->x = node_src->x;
         node_dst->y = node_src->y;
         node_dst->type = node_src->type;
+        node_dst->r0 = node_src->r0 ;
+        node_dst->c0 = node_src->c0 ;
+        node_dst->c_down = node_src->c_down ;
+        node_dst->c_edge = node_src->c_edge ;
+        node_dst->r_edge = node_src->r_edge ;
         VanNode *solution_src = node_src->solutions[0];
         if(solution_src){
             VanNode *solution_dst = new VanNode();
@@ -196,7 +218,7 @@ void IO::getTreeCopy(vector<Node *> &array) {
     Node *front = NULL;
     nodes_queue.push(nodes_[0]);
     while(nodes_queue.size() > 0) {
-	    front = nodes_queue.front();
+	front = nodes_queue.front();
         Node *front_copy = nodes_copy[front->id];
         if(front->parent){
             front_copy->parent = nodes_copy[front->parent->id];
@@ -204,7 +226,7 @@ void IO::getTreeCopy(vector<Node *> &array) {
             front_copy->parent = NULL;
         }
         array.push_back(front_copy);
-	    nodes_queue.pop();
+	nodes_queue.pop();
         for (int i = 0; i < front->children.size(); i++) {
             nodes_queue.push(front->children[i]);
         }

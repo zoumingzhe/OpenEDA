@@ -14,6 +14,7 @@ target_include_directories(${_SUBLIBNAME} PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/.. 
     ${PROFILER_DIR}/include
     ${TCL_DIR}/include
+    ${Boost_INCLUDE_DIRS}
     )
 
 

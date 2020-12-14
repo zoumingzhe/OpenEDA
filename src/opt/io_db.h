@@ -1,13 +1,17 @@
-#ifndef IO_H
-#define IO_H
+#ifndef IO_DB_H
+#define IO_DB_H
 
 #include <fstream>
 #include <queue>
 #include <unordered_map>
+#include <set>
 #include <algorithm>
 #include <math.h>
 #include <string>
 #include "optimize.h"
+#include "db/core/db.h"
+
+
 
 #define DEBUG_IO 0
 #if DEBUG_IO
@@ -17,27 +21,27 @@
 namespace open_edi {
 namespace opt {
 
-class IO {
+class IODB {
   public:
-    IO();
-    ~IO();
-
-    std::vector<Node *> nodes_array;
+    IODB();
+    ~IODB();
 
     void readBufferLibrary(const std::string file_name, std::vector<Buffer> &buffers);
     int readInputTree(const std::string file_name, std::vector<Buffer> &drivers);
 
     double getR0();
     double getC0();
-    void getTreeCopy(std::vector<Node *> &array);
+    size_t getTotalLevel();
+    void getNodesByLevel(uint32_t level, std::vector<std::vector<Node *>> &nodes_array);
   private:
     std::ifstream fin_;
     std::ofstream fout_;
-    std::unordered_map<uint64_t, Node *> nodes_;
+    std::unordered_map<std::string,db::Inst *> insts_;
+    std::unordered_map<db::Net *,std::vector<Node *>> net_nodes_;
+    std::vector<std::set<db::Net *>> nets_level_;
 
     double r0_;     //wire unit resistance
     double c0_;     //wire unit capacitance
-    uint64_t used_id_;
     
     void destroyTree();
 };

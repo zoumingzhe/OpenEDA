@@ -69,6 +69,11 @@ struct Node {
     VanNode *solutions[2];      //positive & negative polarity
     Node *parent;
     std::vector<Node *> children;
+    double r0;                  //wire unit resistance
+    double c0;                  //wire unit capacitance
+    double c_down;              // downstream capacitance rooted at this node
+    double c_edge;              // capacitance of edge from this node to it's parent
+    double r_edge;              // resistance of edge from this node to it's parent
 };
 
 }//namespace opt
