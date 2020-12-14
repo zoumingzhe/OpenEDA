@@ -147,7 +147,11 @@ if __name__ == "__main__":
     # run placement 
     tt = time.time()
     logging.root.name = 'DREAMPlace'
-    logging.basicConfig(level=logging.INFO, format='[%(levelname)-7s] %(name)s - %(message)s', stream=sys.stdout)
+    env_DEBUG = os.environ.get('DREAMPLACE_DEBUG')
+    if env_DEBUG == '1':
+        logging.basicConfig(level=logging.DEBUG, format='[%(levelname)-7s] %(name)s - %(message)s', stream=sys.stdout)
+    else:
+        logging.basicConfig(level=logging.INFO, format='[%(levelname)-7s] %(name)s - %(message)s', stream=sys.stdout)
     params = Params.Params()
     params.printWelcome()
     if len(sys.argv) == 1 or '-h' in sys.argv[1:] or '--help' in sys.argv[1:]:
