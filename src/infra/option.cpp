@@ -212,7 +212,7 @@ void Option::setName( const char * v) {
 int Option::checkRule() {
     // mandatory should be set
     if (isRequired()) {
-        if (isSet() == false) {
+        if (isSet() == false && tempIsSet() == false) {
             message->issueMsg("INFRA", kOptionMandatory, kError, getName().c_str());
         }
     }

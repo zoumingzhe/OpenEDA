@@ -440,7 +440,6 @@ void registerDatabaseTclCommands(Tcl_Interp *itp) {
     Tcl_CreateCommand(itp, "write_lef", writeLefCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "read_def", readDefCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "write_def", writeDefCommand, NULL, NULL);
-    Tcl_CreateCommand(itp, "read_verilog", readVerilogCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "write_verilog", writeVerilogCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "read_timing_library", readTimingLibCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "create_analysis_view", createAnalysisViewCommand, NULL, NULL);
@@ -454,6 +453,11 @@ void registerDatabaseTclCommands(Tcl_Interp *itp) {
     // testing commands. TODO: remove them.
     Tcl_CreateCommand(itp, "__create_cell", createCellCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "__report_cell", reportCellCommand, NULL, NULL);
+    // Command read_verilog:
+    {
+        registerReadVerilog();
+        Tcl_CreateCommand(itp, "read_verilog", readVerilogCommand, NULL, NULL);
+    }
 }
 
 } // namespace db
