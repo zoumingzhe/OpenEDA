@@ -1,19 +1,19 @@
-#include "io.h"
+#include "io_file.h"
 
 using namespace std;
 
 namespace open_edi {
 namespace opt {
 
-IO::IO() {
+IOFILE::IOFILE() {
     used_id_ = 0;
 }
 
-IO::~IO() {
+IOFILE::~IOFILE() {
     destroyTree();
 }
 
-void IO::readBufferLibrary(const string file_name, vector<Buffer> &buffers) {
+void IOFILE::readBufferLibrary(const string file_name, vector<Buffer> &buffers) {
     buffers.clear();
     fin_.open(file_name);
     if ( fin_.is_open() ) {
@@ -32,7 +32,7 @@ void IO::readBufferLibrary(const string file_name, vector<Buffer> &buffers) {
     sort(buffers.begin(),buffers.end());
 }
 
-int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
+int IOFILE::readInputTree(string file_name, vector<Buffer> &drivers) {
     destroyTree();
     fin_.open(file_name);
     if ( !fin_.is_open() ) {
@@ -148,7 +148,7 @@ int IO::readInputTree(string file_name, vector<Buffer> &drivers) {
     return 0;
 }
 
-void IO::destroyTree() {
+void IOFILE::destroyTree() {
     for (int i = nodes_array.size() - 1; i >= 0; i--) {
         Node *cur_node = nodes_array[i], *temp, *seg;
         if (cur_node->parent && nodes_.find(cur_node->parent->id) == nodes_.end()) {       
@@ -175,15 +175,15 @@ void IO::destroyTree() {
     nodes_array.clear();
 }
 
-double IO::getR0() {
+double IOFILE::getR0() {
     return r0_;
 }
 
-double IO::getC0() {
+double IOFILE::getC0() {
     return c0_;
 }
 
-void IO::getTreeCopy(vector<Node *> &array) {
+void IOFILE::getTreeCopy(vector<Node *> &array) {
     unordered_map<uint64_t, Node *> nodes_copy;
     for(auto &node : nodes_){
         Node *node_src = node.second;

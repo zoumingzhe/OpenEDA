@@ -1,9 +1,9 @@
 #ifndef OPTIMIZENETS_H
 #define OPTIMIZENETS_H
 
-#include <shared_mutex>
+
 #include "util/map_reduce.h"
-#include "io.h"
+#include "io_db.h"
 
 #define DEBUG_NETS 0
 #if DEBUG_NETS
@@ -21,11 +21,12 @@ class OptimizeNets : public util::MTMRApp {
     ~OptimizeNets();
 
     int parseCommand(int argc, char *argv[]);
+    void runOptimize();
 
   protected:
-    class Net : public util::MTTask {
+    class NetTask : public util::MTTask {
       public:
-        Net(int id) : net_id(id) {};
+        NetTask(int id) : net_id(id) {};
         int net_id;
     };
     class VanSolution : public util::MTTask {
@@ -33,18 +34,17 @@ class OptimizeNets : public util::MTMRApp {
         VanSolution(int solution) : van_solution(solution) {};
         int van_solution;
     };
+
   private:
     int j_;
-    IO *io_;
-    std::shared_timed_mutex mutex_;
+    IODB *io_;
     std::string output_dir_;
     std::vector<Buffer> buffers_;
     std::vector<Buffer> drivers_;
     std::vector<std::vector<Node *>> p_input_;
-    std::vector<uint64_t> used_id_array_;
     double r0_;
     double c0_;
-    int simulate_nets_;
+    uint32_t current_level_;
 
     virtual void preRun();
     virtual void* runMapper();

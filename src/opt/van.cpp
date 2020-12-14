@@ -96,9 +96,13 @@ void Van::optimization(const vector<Node *> &nodes_array,
     clearSolutions();
     buffers_ = buffers;
     vanGinneken(nodes_array);
+    #if DEBUG_VAN
+    cout << "solutions propagated" << endl;
+    #endif
     //clear negative polarity solutions
-    deleteSolutions(nodes_array[0]->solutions[1]);
-    nodes_array[0]->solutions[1] = nullptr;
+    Node *sourec_node = nodes_array.back();
+    deleteSolutions(sourec_node->solutions[1]);
+    sourec_node->solutions[1] = nullptr;
     //add driver
     VanSizing dummy_head;
     dummy_head.time = max_double_;
@@ -115,7 +119,7 @@ void Van::optimization(const vector<Node *> &nodes_array,
     for(uint64_t i=0;i<drivers.size();i++) {
         Buffer driver = drivers[i];
         potential.driver_id = i;
-        VanNode *solution = nodes_array[0]->solutions[0];
+        VanNode *solution = sourec_node->solutions[0];
         while(solution != nullptr) {//update solutions
             potential.time = solution->time-driver.resistance*solution->capacitance-driver.delay;
             potential.area = solution->area + driver.area;
@@ -127,13 +131,13 @@ void Van::optimization(const vector<Node *> &nodes_array,
     }
     solutions_ = dummy_head.next;
     //clear node solutions
-    VanNode *solution = nodes_array[0]->solutions[0];
+    VanNode *solution = sourec_node->solutions[0];
     while(solution){
         VanNode *next = solution->next;
         deleteSolution(solution);
         solution = next;
     }
-    nodes_array[0]->solutions[0] = nullptr;
+    sourec_node->solutions[0] = nullptr;
 }
 
 void Van::mergeNonRedundantVanNode(VanNode *node, BufferNode *location, VanNode *list) {
@@ -194,7 +198,7 @@ void Van::vanGinneken(const vector<Node *> &nodes_array) {
     #endif
     for (uint64_t i=nodes_array.size()-1;i>0;i--) {//i>0, exclude source node
         Node *cur_node = nodes_array[i];
-        while (cur_node->parent->id > used_id_) {
+        /*while (cur_node->parent->id > used_id_) {
             double wire_length = distance(cur_node->parent, cur_node);
             addWire(wire_length, cur_node);
             if (cur_node->parent->type == CANDIDATE) {
@@ -205,7 +209,7 @@ void Van::vanGinneken(const vector<Node *> &nodes_array) {
             cur_node->solutions[0] = nullptr;
             cur_node->solutions[1] = nullptr;
             cur_node = cur_node->parent;
-        }
+        }*/
         Node *child_node = cur_node;
         Node *parent_node = child_node->parent;
         double wire_length = distance(parent_node,child_node);

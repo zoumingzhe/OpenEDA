@@ -1,7 +1,7 @@
 #ifndef OPTIMIZENET_H
 #define OPTIMIZENET_H
 
-#include "io.h"
+#include "io_file.h"
 #include "van.h"
 
 #include <unistd.h>
@@ -26,7 +26,7 @@ class OptimizeNet {
                 const std::vector<Buffer> &drivers,
                 uint64_t used_id);
   private:
-    IO *io_;
+    IOFILE *io_;
     std::string output_dir_;
     Van *van_;
 

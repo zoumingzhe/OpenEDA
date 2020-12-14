@@ -23,7 +23,7 @@ static int optimizeNets(ClientData cld, Tcl_Interp *itp, int argc, const char *a
         return -1;
     }
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
-    opt->run(1,1,1);
+    opt->runOptimize();
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
     chrono::duration<double, std::milli> elapsed = end - begin;
     cout << "elapsed time: " << elapsed.count() << " [ms]" << endl;
