@@ -27,6 +27,8 @@ int GlobalPlace::run()
     }
     //well a tricky way to get path of target python module to start with. 
     std::wstring modulePath;
+    std::wstring modulePathBuild;
+    std::wstring modulePathConfig;
     char dest[PATH_MAX];
     memset(dest,0,sizeof(dest)); // readlink does not null terminate!
     if (readlink("/proc/self/exe", dest, PATH_MAX) == -1)
@@ -40,7 +42,13 @@ int GlobalPlace::run()
         std::string temp(dirname(pathCopy));
         modulePath = std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t >().from_bytes(temp);
         std::wstring temp1(L"/../dreamplace");
+        modulePathBuild = modulePath;
+        std::wstring temp2(L"/../../../src/DREAMPlace/dreamplace");
+        modulePathConfig = modulePath;
+        std::wstring temp3(L"/../DREAMPlace/dreamplace");
         modulePath.append(temp1);
+        modulePathBuild.append(temp2);
+        modulePathConfig.append(temp3);
     }
     int rtn_value = 0;
     std::string json_file; // = getPara()->getJsonFile();
@@ -76,6 +84,10 @@ int GlobalPlace::run()
     paths.append(kSitePathsOrig);
     paths.push_back(':');
     paths.append(modulePath);
+    paths.push_back(':');
+    paths.append(modulePathBuild);
+    paths.push_back(':');
+    paths.append(modulePathConfig);
     PySys_SetPath(paths.c_str());
 
     PyObject *module_name = PyUnicode_FromString(kModuleName.c_str());

@@ -46,7 +46,7 @@ if ("${CMAKE_PLACE}".upper() == 'ON') or ("${CMAKE_PLACE}".upper() == 'TRUE') or
     lib_dirs.append('${CMAKE_CURRENT_BINARY_DIR}/../flow')
     libs.append('common_place_db')
     include_dirs.append('${OPS_DIR}/../../..')
-    run_time_library_dirs = ['${CMAKE_INSTALL_PREFIX}/lib/share', '$ORIGIN/../lib/share']
+    run_time_library_dirs = ['${CMAKE_INSTALL_PREFIX}/lib/share', '$ORIGIN/../lib/share', '$ORIGIN/../DREAMPlace/dreamplace/ops/flow']
     cxx_flags.append('-D_CMAKE_PLACE')
 
     setup(
