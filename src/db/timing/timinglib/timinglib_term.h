@@ -15,6 +15,7 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include "db/core/object.h"
 #include "db/timing/timinglib/timinglib_commondef.h"
@@ -107,7 +108,8 @@ class TTerm : public Object {
     std::string getName(void) const;
     SymbolIndex getNameIndex(void);
     TFunction *getFunction(void);
-    TimingArc *getTimingarc(ObjectId id);
+    TimingArc *getTimingArc(ObjectId id);
+    std::vector<TimingArc *> getTimingArcs(void);
     TPgTerm *getRelatedPowerPin(void) const;
     TPgTerm *getRelatedGroundPin(void) const;
 
