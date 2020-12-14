@@ -100,9 +100,9 @@ void Van::optimization(const vector<Node *> &nodes_array,
     cout << "solutions propagated" << endl;
     #endif
     //clear negative polarity solutions
-    Node *sourec_node = nodes_array.back();
-    deleteSolutions(sourec_node->solutions[1]);
-    sourec_node->solutions[1] = nullptr;
+    Node *source_node = nodes_array.back();
+    deleteSolutions(source_node->solutions[1]);
+    source_node->solutions[1] = nullptr;
     //add driver
     VanSizing dummy_head;
     dummy_head.time = max_double_;
@@ -119,7 +119,7 @@ void Van::optimization(const vector<Node *> &nodes_array,
     for(uint64_t i=0;i<drivers.size();i++) {
         Buffer driver = drivers[i];
         potential.driver_id = i;
-        VanNode *solution = sourec_node->solutions[0];
+        VanNode *solution = source_node->solutions[0];
         while(solution != nullptr) {//update solutions
             potential.time = solution->time-driver.resistance*solution->capacitance-driver.delay;
             potential.area = solution->area + driver.area;
@@ -131,13 +131,13 @@ void Van::optimization(const vector<Node *> &nodes_array,
     }
     solutions_ = dummy_head.next;
     //clear node solutions
-    VanNode *solution = sourec_node->solutions[0];
+    VanNode *solution = source_node->solutions[0];
     while(solution){
         VanNode *next = solution->next;
         deleteSolution(solution);
         solution = next;
     }
-    sourec_node->solutions[0] = nullptr;
+    source_node->solutions[0] = nullptr;
 }
 
 void Van::mergeNonRedundantVanNode(VanNode *node, BufferNode *location, VanNode *list) {
@@ -196,7 +196,7 @@ void Van::vanGinneken(const vector<Node *> &nodes_array) {
     #if DEBUG_VAN
     cout << "start van Ginneken" << endl;
     #endif
-    for (uint64_t i=nodes_array.size()-1;i>0;i--) {//i>0, exclude source node
+    for (int64_t i=0;i<nodes_array.size()-1;i++) {//i>0, exclude source node
         Node *cur_node = nodes_array[i];
         /*while (cur_node->parent->id > used_id_) {
             double wire_length = distance(cur_node->parent, cur_node);
