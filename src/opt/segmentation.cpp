@@ -1,7 +1,6 @@
 #include <cmath>
 
 #include "segmentation.h"
-#include "io.h"
 
 
 #define DEBUG_SEG 0

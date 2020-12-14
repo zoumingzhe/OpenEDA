@@ -42,7 +42,6 @@ class OptimizeNets : public util::MTMRApp {
     std::vector<Buffer> buffers_;
     std::vector<Buffer> drivers_;
     std::vector<std::vector<Node *>> p_input_;
-    std::vector<uint64_t> used_id_array_;
     double r0_;
     double c0_;
     uint32_t current_level_;

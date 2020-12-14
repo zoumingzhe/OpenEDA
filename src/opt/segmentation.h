@@ -1,8 +1,8 @@
 #ifndef SEGMENTATION_H
 #define SEGMENTATION_H
 
-#include "io.h"
 #include <iostream>
+#include "io_file.h"
 
 namespace open_edi {
 namespace opt {
