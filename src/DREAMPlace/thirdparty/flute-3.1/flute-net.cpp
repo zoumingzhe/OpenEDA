@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "flute.h"
+#include "flute.hpp"
 
 int main()
 {

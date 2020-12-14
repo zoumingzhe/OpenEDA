@@ -3,7 +3,7 @@
 #include <string.h>
 #include "bookshelf_IO.h"
 #include "memAlloc.h"
-#include "flute.h"
+#include "flute.hpp"
 
 float HPwl();
 float flutewl();
