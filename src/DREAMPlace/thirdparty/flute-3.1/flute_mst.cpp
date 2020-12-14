@@ -5,7 +5,7 @@
 #include <string.h>
 #include <assert.h>
 #include "dl.h"
-#include "flute.h"
+#include "flute.hpp"
 
 #include "mst2.h"
 

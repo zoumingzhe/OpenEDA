@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <math.h>
-#include "flute.h"
+#include "flute.hpp"
 
 #if D<=7
 #define MGROUP 5040/4  // Max. # of groups, 7! = 5040
