@@ -203,6 +203,5 @@ if __name__ == "__main__":
     logging.info("placement takes %.3f seconds" % (time.time()-tt))
 
 
-#test
 
 
