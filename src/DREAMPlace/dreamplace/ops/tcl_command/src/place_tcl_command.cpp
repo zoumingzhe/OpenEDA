@@ -61,7 +61,7 @@ static int placeDesignWrap(ClientData cld, Tcl_Interp *itp, int argc, const char
 static int placeDesignCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
   dreamplacePrint(kINFO, "Starting place_design\n");
   
-  bool isNormalFlow = true;
+  bool isNormalFlow = false;
   //TODO: 
   //Command* cmd = CommandManager::parseCommand(argc, argv);
   //   if (cmd->isOptionSet("-wrapflow")) //default is true 
