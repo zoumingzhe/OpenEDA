@@ -56,6 +56,8 @@ Inst::Inst() {
 
 Inst::Inst(Inst const &rhs) { copy(rhs); }
 
+Inst::~Inst() { clear(); }
+
 Inst &Inst::operator=(Inst const &rhs) {
     if (this != &rhs) {
         copy(rhs);
@@ -520,7 +522,30 @@ ArrayObject<ObjectId> *Inst::getPGPinArray() const {
 }
 
 void Inst::clear() {
-    // TODO.
+    //clear pg pins:
+    ArrayObject<ObjectId> *id_array = getPGPinArray();
+    if (id_array != nullptr) {
+        for (ArrayObject<ObjectId>::iterator iter = id_array->begin();
+            iter != id_array->end(); ++iter) {
+            if (*iter == 0) continue; //invalid pin id.
+            Pin *pin = addr<Pin>(*iter);
+            Object::deleteObject<Pin>(pin);
+        }
+    }
+    __deleteObjectIdArray(pg_pins_);
+
+    //clear pins:
+    id_array = getPinArray();
+    if (id_array != nullptr) {
+        for (ArrayObject<ObjectId>::iterator iter = id_array->begin();
+            iter != id_array->end(); ++iter) {
+            if (*iter == 0) continue; //invalid pin id.
+            Pin *pin = addr<Pin>(*iter);
+            Object::deleteObject<Pin>(pin);
+        }
+    }
+    __deleteObjectIdArray(pins_);
+    //TODO: if master != 0, decr master's ref_count.
 }
 
 void Inst::print(FILE *fp) {

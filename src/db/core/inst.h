@@ -50,6 +50,7 @@ class Inst : public Object {
     Inst();
     Inst(Inst const &rhs);
     Inst &operator=(Inst const &rhs);
+    ~Inst();
 
     bool getHasEeqMaster() const;
     void setHasEeqMaster(bool flag);

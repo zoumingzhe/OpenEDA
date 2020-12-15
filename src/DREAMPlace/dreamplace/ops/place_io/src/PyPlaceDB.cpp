@@ -158,9 +158,11 @@ bool readBookshelf(PlaceDB& db)
 }
 
 #ifdef _CMAKE_PLACE
-void PyPlaceDB::set() 
+void PyPlaceDB::set(unsigned long db_ptr)
 {
-    CommonPlaceDB* db = CommonPlaceDB::getPlaceDBInstance();
+    CommonPlaceDB *db = (CommonPlaceDB*)db_ptr;
+    num_nodes = db->getNumNodes();
+    dreamplacePrint(kINFO, "get num_nodes: %d from common_place_db.\n", num_nodes);
     //setup from common db.
     //to be implemented.
 }

@@ -42,6 +42,8 @@ if (CUDA_FOUND)
     set_target_properties( ${CUDA_LINKED}
         PROPERTIES CUDA_SEPARABLE_COMPILATION ON
         )
+
+    
 endif(CUDA_FOUND)
 file(GLOB SOURCES 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
@@ -49,8 +51,14 @@ file(GLOB SOURCES
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../.."
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../.."
     "${LIMBO_SOURCE_DIR}"
-    "${Boost_INCLUDE_DIRS}"
-    "${CUB_DIR}")
+    "${Boost_INCLUDE_DIRS}")
+
+if(CUDA_FOUND)     
+    if (NOT ${CUDA_VERSION_MAJOR} VERSION_GREATER "10")
+        include_directories("${CUB_DIR}")
+    endif (NOT ${CUDA_VERSION_MAJOR} VERSION_GREATER "10")
+endif(CUDA_FOUND)
+
 link_directories(${UTILITY_LIBRARY_DIRS} ${CUB_DIR})
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
