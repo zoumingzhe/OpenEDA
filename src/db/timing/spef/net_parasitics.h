@@ -50,13 +50,19 @@ class NetParasitics : public Object {
 
 class DNetParasitics : public NetParasitics {
   public:
+    // using AdjNode = std::tuple<ParasiticNode, float, float>;
+    // enum class AdjaNodeIndex {
+    //     NEXT_NODE = 0,
+    //     RES,
+    //     CAPS
+    // }
     DNetParasitics();
     ~DNetParasitics();
     //ObjectId getPinNodeVecId() const { return pin_node_vec_id_; }
     ObjectId getGroundCapVecId() const { return gcap_vec_id_; }
     ObjectId getCouplingCapVecId() const { return xcap_vec_id_; }
     ObjectId getResistorVecId() const { return res_vec_id_; } 
-    std::vector<std::vector<OptParaNode>> getParasiticTree() const;
+    std::vector<std::vector<OptParaNode>> getParasiticForest();
 
     ObjectId createPinNode(ObjectId pinId);
     ObjectId createIntNode(uint32_t intNodeId);
@@ -65,6 +71,9 @@ class DNetParasitics : public NetParasitics {
     void addGroundCap(ObjectId nodeId, float capValue);
     void addCouplingCap(ObjectId node1Id, ObjectId node2Id, float capValue);
     void addResistor(ObjectId node1Id, ObjectId node2Id, float resValue);
+    void checkLoop();
+    bool hasParasiticForest() const { return parasitic_forest_.size() > 0; };
+    void addRoot(ParasiticPinNode *node);
     
 
   private:
@@ -72,12 +81,21 @@ class DNetParasitics : public NetParasitics {
     /// Don't need this any more and to use net to get connecting pins instead
     //ObjectId pin_node_vec_id_;
     /// The vector to store Grounded Cap pointer belongs to this net
-    /// ArrayObject<ParasiticNode>
+    /// ArrayObject<ParasiticCap>
     ObjectId gcap_vec_id_;
     /// The vector to store Coupling Cap pointer belongs to this net
     ObjectId xcap_vec_id_;
     /// The vector to store Resistor pointer belongs to this net
     ObjectId res_vec_id_;
+    std::vector<ParasiticPinNode*> *roots_;
+    std::unordered_map<ParasiticNode*, std::list<ParasiticResistor*>> *adjacent_map_;
+    std::unordered_map<ParasiticNode*, float> *node_gcap_map_;
+    std::vector<std::vector<OptParaNode>> parasitic_forest_;
+
+    void buildParasiticForest();
+    void prepareGraphData();
+    void clearGraphData();
+    void addAdjacentEdge(ParasiticNode *from, ParasiticResistor *resistance);
 };
 
 class RNetParasitics : public NetParasitics {

@@ -367,6 +367,10 @@ ObjectId  NetsParasitics::createParaNode(DNetParasitics *netParasitics, const ch
 		pin = findPin(nodeName);
 		if (pin != nullptr) {
 		    ObjectId pinNodeId = netParasitics->createPinNode(pin->getId());
+                    if (pin->getDirection() == SignalDirection::kOutput || pin->getDirection() == SignalDirection::kInout) {
+                        auto pin_addr = Object::addr<ParasiticPinNode>(pinNodeId);
+                        netParasitics->addRoot(pin_addr);
+                    }
                     /*if (pin->getNet()->getId() == netParasitics->getNetId()) { //Add internal pin node
                         netParasitics->addPinNode(pinNodeId);
 		    }*/
@@ -724,6 +728,91 @@ std::ofstream& operator<<(std::ofstream& os, NetsParasitics &rhs) {
     rhs.clearTempMapContent();
 
     return os;
+}
+
+void DNetParasitics::buildParasiticForest() {
+    assert(adjacent_map_);
+    auto size = adjacent_map_->size();
+    for (auto root : *roots_) {
+        std::vector<OptParaNode> tree;
+        tree.reserve(size);
+        size_t index = 0;
+        tree.push_back({root->getId(), UNINIT_OBJECT_ID, 0, 0});
+        for (int i = 0; i < size; ++i) {
+            // To reduce runtime memory, using pre-reversed vector to do queueing.
+            OptParaNode cur_node = tree[i];
+            auto node_addr = Object::addr<ParasiticNode>(cur_node.node);
+            auto resistances = (*adjacent_map_)[node_addr];
+            for (auto res : resistances) {
+                auto next_addr = node_addr->getId() == res->getNode1Id() ?
+                                   Object::addr<ParasiticNode>(res->getNode2Id()) :
+                                   Object::addr<ParasiticNode>(res->getNode1Id());
+                tree.push_back({next_addr->getId(), /* node */
+                                           cur_node.node,                            /* parent_node */
+                                           res->getResistance(),       /* resistance */
+                                           (*node_gcap_map_)[next_addr]       /* capacitance */
+                                           });
+            }
+        }
+        parasitic_forest_.push_back(std::move(tree));
+    }
+}
+
+void DNetParasitics::addAdjacentEdge(ParasiticNode *from, ParasiticResistor *resistance) {
+    auto iter = adjacent_map_->find(from);
+    if (iter == adjacent_map_->end()) {
+        (*adjacent_map_)[from] = {resistance};
+    } else {
+        iter->second.push_back(resistance);
+    }
+}
+
+void DNetParasitics::prepareGraphData() {
+    assert(!node_gcap_map_);
+    assert(!adjacent_map_);
+    node_gcap_map_ = new std::unordered_map<ParasiticNode*, float>();
+    adjacent_map_ = new std::unordered_map<ParasiticNode*, std::list<ParasiticResistor*>>();
+
+    auto gcap_vec = Object::addr<ArrayObject<ObjectId>>(gcap_vec_id_);
+    for (auto gcap_id : (*gcap_vec)) {
+        auto gcap = Object::addr<ParasiticCap>(gcap_id);
+        auto node = Object::addr<ParasiticNode>(gcap->getNode1Id());
+        (*node_gcap_map_)[node] = gcap->getCapacitance();
+    }
+    auto res_vec = Object::addr<ArrayObject<ObjectId>>(res_vec_id_);
+    for (auto res_id : (*res_vec)) {
+        auto res = Object::addr<ParasiticResistor>(res_id);
+        auto node1_addr = Object::addr<ParasiticNode>(res->getNode1Id());
+        auto node2_addr = Object::addr<ParasiticNode>(res->getNode2Id());
+
+        // non-directed
+        addAdjacentEdge(node1_addr, res);
+        addAdjacentEdge(node2_addr, res);
+    }
+}
+
+void DNetParasitics::clearGraphData() { 
+    delete adjacent_map_; 
+    delete node_gcap_map_;
+    adjacent_map_ = nullptr; 
+    node_gcap_map_ = nullptr;
+}
+
+std::vector<std::vector<OptParaNode>> DNetParasitics::getParasiticForest() {
+    if (!hasParasiticForest()) {
+        prepareGraphData();
+        buildParasiticForest();
+        clearGraphData();
+    }
+    return parasitic_forest_;
+}
+
+void DNetParasitics::checkLoop() {
+    auto gcaps = Object::addr<ArrayObject<ObjectId>>(gcap_vec_id_);
+    auto res = Object::addr<ArrayObject<ObjectId>>(res_vec_id_);
+    if (gcaps->getSize() != res->getSize() - 1) {
+        printf("C size: %lld R size %lld\n", (long long)gcaps->getSize(), (long long)res->getSize());
+    }
 }
 
 }  // namespace db

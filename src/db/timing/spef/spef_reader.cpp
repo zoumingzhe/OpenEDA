@@ -231,6 +231,10 @@ void SpefReader::addDNetBegin(Net *net) {
 }
 
 void SpefReader::addDNetEnd() { 
+    if (dnet_parasitics_) {
+        printf("Net %s\n", net_->getName().c_str());
+        dnet_parasitics_->checkLoop();
+    }
     net_ = nullptr; 
     dnet_parasitics_ = nullptr;
     net_node_map_.clear(); 

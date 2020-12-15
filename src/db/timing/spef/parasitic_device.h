@@ -133,11 +133,27 @@ class ParasiticCap : public ParasiticDevice {
 
 struct OptParaNode {
     /// ParasiticNode
-    ObjectId node_;
-    ObjectId parent_;
-    float resistance_;
-    float capacitance_;
+    ObjectId    node;
+    ObjectId    parent;
+    float       resistance;
+    float       capacitance;
 };
+
+// class ParasiticEdge {
+//   public:
+//     ParasiticEdge(ParasiticVertex *vtx, float resistance) :
+//         vertex_(vtx), resistance_(resistance) {};
+//     ParasiticVertex* getNext() const;
+//   private:
+//     ParasiticVertex *vertex_;
+//     float resistance_;
+// };
+// 
+// class ParasiticVertex {
+//   private:
+//     ParasiticNode *node_;
+//     std::list<ParasiticEdge> edges_;
+// };
 
 }  // namespace db
 }  // namespace open_edi

@@ -38,8 +38,18 @@ DNetParasitics::DNetParasitics()
     : NetParasitics(),
       gcap_vec_id_(UNINIT_OBJECT_ID),
       xcap_vec_id_(UNINIT_OBJECT_ID),
-      res_vec_id_(UNINIT_OBJECT_ID) {
+      res_vec_id_(UNINIT_OBJECT_ID),
+      roots_(nullptr),
+      adjacent_map_(nullptr),
+      node_gcap_map_(nullptr) {
     setObjectType(ObjectType::kObjectTypeDNetParasitics);
+}
+
+DNetParasitics::~DNetParasitics()
+{
+    delete roots_;
+    delete adjacent_map_;
+    delete node_gcap_map_;
 }
 
 ///Don't need to save it as we could get connecting pins directly from net
@@ -182,16 +192,19 @@ void DNetParasitics::addResistor(ObjectId node1Id, ObjectId node2Id, float resVa
     }
 }
 
-std::vector<std::vector<OptParaNode>> DNetParasitics::getParasiticTree() const {
-    return {};
-}
-
 RNetParasitics::RNetParasitics()
     : NetParasitics(),
       c2_(0.0),
       r1_(0.0),
       c1_(0.0) {
     setObjectType(ObjectType::kObjectTypeRNetParasitics);
+}
+
+void DNetParasitics::addRoot(ParasiticPinNode *node) {
+    if (!roots_) {
+        roots_ = new std::vector<ParasiticPinNode*>();
+    }
+    roots_->push_back(node);
 }
 
 }  // namespace db

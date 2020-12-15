@@ -167,7 +167,7 @@ DesignParasitics::getOptNetParasiticNodes(ObjectId net_id) {
         net_detailed_para_map_ = new CellNetParaMap();
         auto cell_vct = addr<ArrayObject<ObjectId>>(cell_vec_id_);
         // TODO: doesn't support hier for now
-        assert(cell_vct->size() == 1);
+        assert(cell_vct->getArraySize() == 1);
         auto nets_parasitic_vct = addr<ArrayObject<ObjectId>>(netsparasitics_vec_id_);
         auto nets_parasitics = addr<NetsParasitics>((*nets_parasitic_vct)[0]);
         auto para_vct = addr<ArrayObject<ObjectId>>(nets_parasitics->getNetParasitics());
@@ -178,7 +178,7 @@ DesignParasitics::getOptNetParasiticNodes(ObjectId net_id) {
     }
     auto iter = net_detailed_para_map_->find(net_id);
     if (iter != net_detailed_para_map_->end()) {
-        return dynamic_cast<DNetParasitics*>(addr<DNetParasitics>(iter->second))->getParasiticTree();
+        return dynamic_cast<DNetParasitics*>(Object::addr<DNetParasitics>(iter->second))->getParasiticForest();
     } else {
         return {};
     }
