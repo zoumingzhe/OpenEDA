@@ -476,20 +476,20 @@ class PlaceDB (object):
         self.rawdb = place_io.PlaceIOFunction.read(params)
         self.initialize_from_rawdb(params)
 
-    def read_common_db(self, params):
+    def read_common_db(self, params, db_ptr):
         """
         @brief read commonDB using c++
         @param params parmeters
         """
         self.dtype = datatypes[params.dtype]
-        self.initialize_from_common_db(params)
+        self.initialize_from_common_db(params, db_ptr)
 
-    def initialize_from_common_db(self, params):
+    def initialize_from_common_db(self, params, db_ptr):
         """
         @brief initialize from common db
         @param params parameters
         """
-        pydb = place_io.PlaceIOFunction.pydb(None)
+        pydb = place_io.PlaceIOFunction.pydb(None, db_ptr)
         self.initialize_from_pydb(pydb, params)
 
     def initialize_from_rawdb(self, params):
@@ -607,17 +607,17 @@ class PlaceDB (object):
             self.net2pin_map[i] = np.array(self.net2pin_map[i], dtype=np.int32)
         self.net2pin_map = np.array(self.net2pin_map)
 
-    def __call__(self, params, from_open_edi=False):
+    def __call__(self, params, db_ptr=None):
         """
         @brief top API to read placement files 
         @param params parameters 
         """
         tt = time.time()
 
-        if (not from_open_edi):
+        if (db_ptr is None):
             self.read(params)
         else:
-            self.read_common_db(params)
+            self.read_common_db(params, db_ptr)
         self.initialize(params)
 
         logging.info("reading benchmark takes %g seconds" % (time.time()-tt))
@@ -843,7 +843,7 @@ row height = %g, site width = %g
             f.write(content)
         logging.info("write_nets takes %.3f seconds" % (time.time()-tt))
 
-    def apply(self, params, node_x, node_y, for_open_edi=False):
+    def apply(self, params, node_x, node_y, db_ptr=None):
         """
         @brief apply placement solution and update database 
         """
@@ -860,11 +860,11 @@ row height = %g, site width = %g
             node_x = self.node_x * unscale_factor
             node_y = self.node_y * unscale_factor
 
-        if (not for_open_edi):
+        if (db_ptr is None):
             # update raw database 
             place_io.PlaceIOFunction.apply(self.rawdb, node_x, node_y)
         else:
-            place_io.PlaceIOFunction.apply(None, node_x, node_y)
+            place_io.PlaceIOFunction.apply(None, node_x, node_y, db_ptr)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
