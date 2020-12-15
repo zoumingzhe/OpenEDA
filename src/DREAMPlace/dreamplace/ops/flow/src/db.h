@@ -15,6 +15,7 @@
 
 #include <vector>
 #include <limits>
+#include <string>
 #include "utility/src/Msg.h"
 
 #include "db/core/db.h"
@@ -66,6 +67,7 @@ typedef dbi::LayerGeometry PlLGeometry;
 typedef dbi::Geometry PlGeometry;
 typedef dbi::Row PlRow;
 typedef dbi::Root PlRoot;
+typedef dbi::SignalDirection PlDirection;
 
 typedef uti::PlaceStatus kPlStatus;
 typedef uti::Polygon PlPolygon;
@@ -91,6 +93,7 @@ inline PlNet*         getNet(PlObjId idx)                { return PlObj::addr<Pl
 inline String const&  getNetName(PlNet* net)             { return net->getName(); }
 inline PlBits         getNetType(PlNet* net)             { return net->getType(); }
 inline bool           isNetClock(PlNet* net)             { return (getNetType(net) == dbi::kNetTypeClock); }
+inline PlDouble       getNetWeight(PlNet* net)           { return net->getWeight(); }
 // term
 inline PlUInt         getNumOfTerms()                    { return getPlTopCell()->getNumOfTerms(); }
 inline String const   getTermName(PlTerm* term)          { return term->getName(); }
@@ -115,13 +118,14 @@ inline PlUInt         getNumOfIOPins()                   { return getPlTopCell()
 inline PlArrayObj*    getNetPinArray(PlNet* net)         { return net->getPinArray(); }
 inline PlPin*         getPin(PlObjId idx)                { return PlObj::addr<PlPin>(idx); } // need API
 inline PlPin*         getIOPin(PlObjId idx)              { return getPlTopCell()->getIOPin(idx); } // need API
+inline PlDirection    getPinDirection(PlPin* pin)        { return pin->getDirection(); }
 inline PlNet*         getPinNet(PlPin* pin)              { return pin->getNet(); }
 inline String const&  getPinName(PlPin* pin)             { return pin->getName(); }
 inline PlInst*        getPinInst(PlPin* pin)             { return pin->getInst(); }
 inline PlTerm*        getPinTerm(PlPin* pin)             { return pin->getTerm(); }
 inline bool           isPinSpecial(PlPin* pin)           { return pin->getIsSpecial(); }
 inline bool           isConnectNets(PlPin* pin)          { return pin->getIsConnectNets(); }
-inline PlArrayObj*    getPinNetArray(PlPin* net)         { return net->getNetArray(); }
+inline PlArrayObj*    getPinNetArray(PlPin* pin)         { return pin->getNetArray(); }
 inline PlPoint        getPinLoc(PlPin* pin)              { return getTermLoc(getPinTerm(pin)); }
 inline PlInt          getPinLocX(PlPin* pin)             { return getPinLoc(pin).getX(); }
 inline PlInt          getPinLocY(PlPin* pin)             { return getPinLoc(pin).getY(); }
@@ -155,6 +159,8 @@ inline PlCell*        getCell(PlInt idx)                 { return PlObj::addr<Pl
 inline PlUInt         getCellNumOfTerms(PlCell* cell)    { return cell->getNumOfTerms(); }
 inline PlArrayObj*    getCellTerms(PlCell* cell)         { return cell->getTermArray(); }
 inline String const&  getCellName(PlCell* cell)          { return cell->getName(); }
+inline bool           isCellBlock(PlCell* cell)          { return cell->isClassBlock(); }
+inline PlLGeometry*   getCellOBSById(PlCell* cell, int idx)   { return cell->getOBS(idx); }
 // group
 inline PlUInt         getNumOfGroups()                   { return getPlTopCell()->getNumOfGroups(); }
 inline PlArrayObj*    getGroupArray()                    { return getPlTopCell()->getGroupArray(); }
@@ -175,11 +181,21 @@ inline PlBox          getCoreBox()                       { return getFloorplan()
 inline PlInt          getCoreXOffset()                   { return getFloorplan()->getXOffset(); }
 inline PlInt          getCoreYOffset()                   { return getFloorplan()->getYOffset(); }
 inline PlUInt         getFPNumOfRow(PlFloorplan* fp)     { return fp->getNumOfRows(); }
-inline PlUInt         getNumOfRow()                      { return getFloorplan()->getNumOfRows(); }
+inline PlUInt         getNumOfRows()                     { return getFloorplan()->getNumOfRows(); }
 inline PlObjId        getRowsId(PlFloorplan* fp)         { return fp->getRows(); }
 inline PlArrayObj*    getRowArray()                      { return PlObj::addr<PlArrayObj>(getFloorplan()->getRows()); }
 inline PlRow*         getRow(PlObjId idx)                { return PlObj::addr<PlRow>(idx); } // need API
 inline PlBox          getRowBox(PlRow* row)              { return row->getBox(); }
+// place blockage
+inline PlInt          getNumPlaceBlk()                   { return getFloorplan()->getNumOfPlaceBlockages(); }
+inline PlObjId        getPlaceBlksId(PlFloorplan* fp)    { return fp->getPlaceBlockages(); }
+inline PlArrayObj*    getPlaceBlkArray()                 { return PlObj::addr<PlArrayObj>(getFloorplan()->getPlaceBlockages()); }
+inline PlConstraint*  getPlaceBlk(PlObjId idx)           { return PlObj::addr<PlConstraint>(idx); }
+// route blockage
+inline PlInt          getNumRouteBlk()                   { return getFloorplan()->getNumOfRouteBlockages(); }
+inline PlObjId        getRouteBlksId(PlFloorplan* fp)    { return fp->getRouteBlockages(); }
+inline PlArrayObj*    getRouteBlkArray()                 { return PlObj::addr<PlArrayObj>(getFloorplan()->getRouteBlockages()); }
+inline PlConstraint*  getRouteBlk(PlObjId idx)           { return PlObj::addr<PlConstraint>(idx); }
 // Box
 inline PlInt          getBoxLLX(PlBox& box)              { return box.getLLX(); }
 inline PlInt          getBoxLLY(PlBox& box)              { return box.getLLY(); }
@@ -187,6 +203,7 @@ inline PlInt          getBoxURX(PlBox& box)              { return box.getURX(); 
 inline PlInt          getBoxURY(PlBox& box)              { return box.getURY(); }
 inline PlInt          getBoxHeight(PlBox& box)           { return box.getHeight(); }
 inline PlInt          getBoxWidth(PlBox& box)            { return box.getWidth(); }
+inline PlInt          getBoxArea(PlBox& box)             { return box.getHeight()*box.getWidth();}
 inline void           setBoxLLX(PlBox& box, PlInt lx)    { box.setLLX(lx); }
 inline void           setBoxLLY(PlBox& box, PlInt ly)    { box.setLLY(ly); }
 inline void           setBoxURX(PlBox& box, PlInt ux)    { box.setURX(ux); }
@@ -221,75 +238,89 @@ getPin1Box(PlPin* pin, PlBox& box)
 #define setMin2(a, b) if (a < b) b = a;
 #define setMax2(a, b) if (a > b) b = a;
 // iterations
-#define forEachNet()                                                                     \
+#define forEachNets(net)                                                                 \
         for (auto iter = getNetArray()->begin(); iter != getNetArray()->end(); ++iter) { \
           PlObjId netId = *iter;                                                         \
-          PlNet* net = getNet(netId);                                                    \
+          net = getNet(netId);                                                           \
           if (nullptr == net) continue;
-#define endForEachNet }
+#define endForEachNets }
 
-#define forEachNetPin(net) \
+#define forEachNetPins(net) \
         for (auto iter = getNetPinArray(net)->begin(); iter != getNetPinArray(net)->end(); ++iter) { \
           PlObjId pinId = *iter;                                                                     \
           PlPin* pin = getPin(pinId);                                                                \
           if (nullptr == pin) continue;
-#define endForEachNetPin }
+#define endForEachNetPins }
 
-#define forEachInst()                                                                              \
+#define forEachInsts(inst)                                                                             \
         for (auto iter = getInstanceArray()->begin(); iter != getInstanceArray()->end(); ++iter) { \
           PlObjId instId = *iter;                                                                  \
-          PlInst* inst = getInstance(instId);                                                      \
+          inst = getInstance(instId);                                                      \
           if (nullptr == inst) continue;
-#define endForEachInst }
+#define endForEachInsts }
 
-#define forEachInstPin(inst)                                                                             \
+#define forEachInstPins(inst)                                                                            \
         for (auto iter = getInstPinArray(inst)->begin(); iter != getInstPinArray(inst)->end(); ++iter) { \
           PlObjId pinId = *iter;                                                                         \
           PlPin* pin = getPin(pinId);                                                                    \
           if (nullptr == pin) continue;
-#define endForEachInstPin }
+#define endForEachInstPins }
 
-#define forEachCell()                                                                      \
+#define forEachCells(cell)                                                                     \
         for (auto iter = getCellArray()->begin(); iter != getCellArray()->end(); ++iter) { \
           PlObjId cellId = *iter;                                                          \
-          PlCell* cell = getCell(cellId);                                                  \
+          cell = getCell(cellId);                                                      \
           if (nullptr == cell) continue;
-#define endForEachCell }
+#define endForEachCells }
 
-#define forEachGruop()                                                                       \
+#define forEachGruops(group)                                                                      \
         for (auto iter = getGroupArray()->begin(); iter != getGroupArray()->end(); ++iter) { \
           PlObjId groupId = *iter;                                                           \
-          PlGroup* group = getGroup(groupId);                                                \
+          group = getGroup(groupId);                                                \
           if (nullptr == group) continue;
-#define endForEachGroup }
+#define endForEachGroups }
 
-#define forEachPlaceBlockage()                                                               \
+#define forEachPlaceBlockages(con)                                                               \
         for (auto iter = getGroupArray()->begin(); iter != getGroupArray()->end(); ++iter) { \
           PlGroup* group = getGroup(*iter);                                                  \
-          PlConstraint* con = getRegion(group);                                              \
+          con = getRegion(group);                                              \
           if (nullptr == con || !isRegionPlaceBlk(con)) continue;
-#define endForEachPlaceBlockage }
+#define endForEachPlaceBlockages }
 
-#define forEachRegionBox(con)                                                                              \
+#define forEachRegionBoxs(con)                                                                              \
         for (auto iter = getRegionBoxArray(con)->begin(); iter != getRegionBoxArray(con)->end(); ++iter) { \
           PlObjId boxId = *iter;                                                                           \
           PlBox* box = getBox(boxId);                                                                      \
           if (nullptr == box) continue;
-#define endForEachRegionBox }
+#define endForEachRegionBoxs }
 
-#define forEachIOPin(pin)                                             \
+#define forEachIOPins(pin)                                             \
         for (int pinId = 0; pinId < getNumOfIOPins(); ++pinId) {      \
           pin = getIOPin(pinId);                                      \
           if (nullptr == pin) continue;
-#define endForEachIOPin }
+#define endForEachIOPins }
 
-#define forEachRow(row)                                                                  \
+#define forEachRows(row)                                                                  \
         for (auto iter = getRowArray()->begin(); iter != getRowArray()->end(); ++iter) { \
           PlObjId rowId = *iter;                                                         \
           row = getRow(rowId);                                                           \
           if (nullptr == row) continue;
 #define endForEachRows }
+
+#define forEachPlaceBlks(blk)                                                                       \
+        for (auto iter = getPlaceBlkArray()->begin(); iter != getPlaceBlkArray()->end(); ++iter) { \
+          PlObjId blkId = *iter;                                                                   \
+          blk = getPlaceBlk(blkId);                                                                \
+          if (nullptr == blk) continue;
+#define endForEachPlaceBlks }
                          
+#define forEachRouteBlks(blk)                                                                       \
+        for (auto iter = getRouteBlkArray()->begin(); iter != getRouteBlkArray()->end(); ++iter) { \
+          PlObjId blkId = *iter;                                                                   \
+          blk = getRouteBlk(blkId);                                                                \
+          if (nullptr == blk) continue;
+#define endForEachRouteBlks }
+
 DREAMPLACE_END_NAMESPACE 
 
 #endif

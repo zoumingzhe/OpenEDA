@@ -61,7 +61,7 @@ static int placeDesignWrap(ClientData cld, Tcl_Interp *itp, int argc, const char
 static int placeDesignCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
   dreamplacePrint(kINFO, "Starting place_design\n");
   
-  bool isNormalFlow = false;
+  bool isNormalFlow = true;
   //TODO: 
   //Command* cmd = CommandManager::parseCommand(argc, argv);
   //   if (cmd->isOptionSet("-wrapflow")) //default is true 
@@ -83,17 +83,17 @@ static int placeDesignCommand(ClientData cld, Tcl_Interp *itp, int argc, const c
 // place_design
 static int placeDesignMain(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[])
 {
-  std::string jsonFile ;
+  std::string jsonFile;
   int flow_steps = 0x1FF;
   if (argc > 1) {
     Command* cmd = CommandManager::parseCommand(argc, argv);
     if (nullptr == cmd) {
       dreamplacePrint(kINFO, "error out\n");
     }
-    /*if (cmd->isOptionSet("-json_file")) {
-      bool res = cmd->getOptionValue("-json_file", jsonFile);
+    if (cmd->isOptionSet("-json_file")) {
+      //bool res = cmd->getOptionValue("-json_file", jsonFile);
       message->info("get option %s int data %d \n", "-json_file", jsonFile);
-    }*/
+    }
 
     if (cmd->isOptionSet("-global_place")) {
       bool value_bool;
@@ -133,11 +133,11 @@ static int placeDesignMain(ClientData cld, Tcl_Interp *itp, int argc, const char
 static void registerPlaceDesignManager()
 {
   CommandManager* cmd_manager = CommandManager::getCommandManager();
-//  Command* command = cmd_manager->createCommand("place_design", "Placement full flow", 
-//                        *(new Option("-detail_place", OptionDataType::kBool, false, "turn on detail place\n"))
-//                      + *(new Option("-global_place", OptionDataType::kBool, false, "turn on global place\n"))
-//                      + *(new Option("-json_file", OptionDataType::kString, false, "specify jason file\n"))
-//                     );
+  Command* command = cmd_manager->createCommand("place_design", "Placement full flow", 
+                        *(new Option("-detail_place", OptionDataType::kBool, false, "turn on detail place\n"))
+                      + *(new Option("-global_place", OptionDataType::kBool, false, "turn on global place\n"))
+                      + *(new Option("-json_file", OptionDataType::kString, false, "specify jason file\n"))
+                     );
 }
 
 static int calcWLCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[])

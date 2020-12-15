@@ -48,6 +48,7 @@ if ("${CMAKE_PLACE}".upper() == 'ON') or ("${CMAKE_PLACE}".upper() == 'TRUE') or
     libs.append('openedi_util')
     include_dirs.append('${OPS_DIR}/../../..')
     cxx_flags.append('-D_CMAKE_PLACE')
+    cxx_flags.append('-O0')
 
 def add_prefix(filename):
     return os.path.join('${CMAKE_CURRENT_SOURCE_DIR}/src', filename)

@@ -61,6 +61,7 @@ add_library(${PROJECT_NAME} STATIC ${SOURCES})
 link_directories(${Python_LIBRARY_DIRS})
 link_directories(${Python_SITELIB})
 link_directories(${UTILITY_LIBRARY_DIRS})
+link_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 if (CUDA_FOUND)
   target_link_libraries(${PROJECT_NAME} PUBLIC ${Python_LIBRARIES} ${CUDA_LINKED})
