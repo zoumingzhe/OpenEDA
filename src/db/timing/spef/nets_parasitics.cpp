@@ -600,7 +600,8 @@ void NetsParasitics::dumpDNetConn(std::ofstream& os, DNetParasitics *dNetPara) {
     if (netId != UNINIT_OBJECT_ID) {
         Net *net = Object::addr<Net>(netId);
         if (net) {
-	    ArrayObject<ObjectId> *objVector = net->getPinArray();
+	        ArrayObject<ObjectId> *objVector = net->getPinArray();
+          if (objVector != nullptr) {
             for (auto obj : *objVector) {
                 Pin *pin = Object::addr<Pin>(obj);
                 if (pin != nullptr) {
@@ -612,9 +613,10 @@ void NetsParasitics::dumpDNetConn(std::ofstream& os, DNetParasitics *dNetPara) {
 
                     os << (getPinDumpName(pin)) << (" ");
                     os << (getTermDirDumpName(pin)) << ("\n");
-	        }
+	            }
             }
-	}
+          }
+	      }
     }
     os << ("\n");
 }
