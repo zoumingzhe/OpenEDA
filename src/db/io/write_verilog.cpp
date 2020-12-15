@@ -322,12 +322,10 @@ static bool writeModules(std::ostream *out_stream) {
     Cell *top_cell = getTopCell();
     Cell *cell = nullptr;
     ArrayObject<ObjectId> *vct = nullptr;
-
+    ediAssert(top_cell != nullptr);
     ObjectId cells = top_cell->getCells();
 
-    if (cells == 0) {
-        return true;
-    } else {
+    if (cells != 0) {
         vct = top_cell->addr< ArrayObject<ObjectId> >(cells);
     }
     if (vct) {
@@ -341,10 +339,8 @@ static bool writeModules(std::ostream *out_stream) {
                 writeModule(out_stream, cell);
             }
         }
-    } else {
-        message->issueMsg(kError, "Get cell vector failed.\n");
-        return false;
     }
+    writeModule(out_stream, top_cell);
     return true;
 }
 

@@ -351,6 +351,8 @@ class Cell : public Object {
     Foreign *getForeign(int i) const;
     Density *getDensity(int index);
     LayerGeometry *getOBS(int index) const;
+    ArrayObject<ObjectId> *getOBSes() const;
+
 
     // add object (by ID) into vector
     void addCell(ObjectId id);
