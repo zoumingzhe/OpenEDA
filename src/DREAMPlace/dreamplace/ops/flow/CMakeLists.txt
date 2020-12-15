@@ -1,4 +1,4 @@
-project(place_flow)
+project(place_flow LANGUAGES CXX)
 
 if (CUDA_FOUND)
     add_definitions(-D_CUDA_FOUND)
@@ -69,5 +69,3 @@ else (CUDA_FOUND)
   target_link_libraries(${PROJECT_NAME} PUBLIC ${Python_LIBRARIES})
 endif(CUDA_FOUND)
 #install ( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/test_p DESTINATION dreamplace )
-
-

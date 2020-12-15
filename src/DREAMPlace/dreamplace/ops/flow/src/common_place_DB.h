@@ -75,6 +75,7 @@ class Para
     bool   isDBSaved()          const { return save_db_;}
     bool   isGPU()              const { return gpu_;        }
     int    getNumThreads()      const { return num_threads_;}
+    std::string getJsonFile()   const { return json_file_;  }
   private:
     PlBox    box_;
     int    num_bins_x_     = 1;

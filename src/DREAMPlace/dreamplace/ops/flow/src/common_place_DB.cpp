@@ -8,6 +8,7 @@
 #include <cstdio>
 #include "flow/src/common_place_DB.h"
 #include "utility/src/Msg.h"
+#include <string>
 
 DREAMPLACE_BEGIN_NAMESPACE
 
@@ -132,7 +133,8 @@ CommonDB::__init()
       init_y_[idx] = getBoxLLY(box);
       node_size_x_[idx] = getBoxWidth(box);
       node_size_y_[idx] = getBoxHeight(box);
-      inst_names_.push_back(static_cast<String>(inst->getName()));
+      inst_names_.push_back(inst->getName());
+      inst->setName("abc");
       inst_orients_.push_back(getInstOri(inst));
       idx_to_insts_.push_back(inst);
       // collect moveable inst pins
@@ -164,7 +166,7 @@ CommonDB::__init()
       init_y_[idx] = getBoxLLY(box);
       node_size_x_[idx] = getBoxWidth(box);
       node_size_y_[idx] = getBoxHeight(box);
-      inst_names_.push_back(static_cast<String>(getInstName(inst)));
+      inst_names_.push_back(getInstName(inst));
       inst_orients_.push_back(getInstOri(inst));
       idx_to_insts_.push_back(inst);
       // collect fixed inst pins

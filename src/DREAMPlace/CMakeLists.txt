@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.8.2)
+cmake_minimum_required(VERSION 3.9)
 
-project(DREAMPlace)
+project(DREAMPlace LANGUAGES CXX)
   
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT AND (NOT CMAKE_PLACE))
     set (CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/install" CACHE PATH "Prefix prepended to install directories" FORCE )
@@ -24,12 +24,16 @@ if(NOT CMAKE_CXX_ABI)
         "Choose the value for _GLIBCXX_USE_CXX11_ABI, options are: 0|1."
         FORCE)
 endif(NOT CMAKE_CXX_ABI)
-message(STATUS "CMAKE_CXX_ABI: _GLIBCXX_USE_CXX11_ABI=${CMAKE_CXX_ABI}")
-add_definitions(-D_GLIBCXX_USE_CXX11_ABI=${CMAKE_CXX_ABI})
+# openEDI need new lib
+#message(STATUS "CMAKE_CXX_ABI: _GLIBCXX_USE_CXX11_ABI=${CMAKE_CXX_ABI}")
+#add_definitions(-D_GLIBCXX_USE_CXX11_ABI=${CMAKE_CXX_ABI})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set(CMAKE_CXX_STANDARD 14)
+# new add fo openedi
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wreturn-type  -Wno-attributes")
 
 find_program(PYTHON "python" REQUIRED)
 find_package(Python 3.5 REQUIRED COMPONENTS Interpreter Development)
@@ -186,5 +190,11 @@ if (CMAKE_PLACE)
         ${LEMON_INCLUDE_DIRS}
         )
     add_definitions(-D_CMAKE_PLACE)
+    set_target_properties(${PROJECT_NAME_LOWERCASE}_DREAMPlace PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
+    install(TARGETS ${PROJECT_NAME_LOWERCASE}_DREAMPlace 
+      RUNTIME DESTINATION bin
+      LIBRARY DESTINATION lib
+      ARCHIVE DESTINATION lib/static
+      )
 endif(CMAKE_PLACE)
 # end of open-edi

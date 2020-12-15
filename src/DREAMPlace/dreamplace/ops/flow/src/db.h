@@ -15,7 +15,6 @@
 
 #include <vector>
 #include <limits>
-#include <string>
 #include "utility/src/Msg.h"
 
 #include "db/core/db.h"
