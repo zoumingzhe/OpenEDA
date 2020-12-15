@@ -21,6 +21,7 @@
 #include "db/util/box.h"
 #include "tcl/test_object_tcl_cmd.h"
 #include "util/util.h"
+#include "db/util/graph.h"
 
 namespace open_edi {
 namespace tcl {
@@ -248,6 +249,18 @@ void testArray() {
     }
 }
 
+void testGraph() {
+    GraphArc<Pin,Net> *gr;
+    // TODO: need an API to tell if design is in memory
+    Graph<Inst,Net>::iterator iter = Graph<Inst,Net>::iterator(getTopCell());
+    for (iter.begin(); !iter.end(); iter++) {
+        gr = *iter;
+        if (nullptr == gr) continue;
+        std::cout << "from: \'" << gr->getFrom()->getName() 
+            << "\' edge : \'" << gr->getEdge()->getName() 
+            << "\' to: \'" << gr->getTo()->getName() << "\'" << std::endl;
+    }
+}
 /**
  * @brief main entry for various tests.
  *
@@ -263,6 +276,7 @@ static int testApp(ClientData cld, Tcl_Interp *itp, int argc,
 
     testArray();
     testAppMem();
+    testGraph();
     utilTestMsg();
     
     ProfilerStop();

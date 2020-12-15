@@ -55,9 +55,9 @@ class TimingTable : public Object {
     IndexType memory() const;
 
     /// get
-    virtual TableAxis *get_axis1(void);
-    virtual TableAxis *get_axis2(void);
-    virtual TableAxis *get_axis3(void);
+    virtual TableAxis *getAxis1(void);
+    virtual TableAxis *getAxis2(void);
+    virtual TableAxis *getAxis3(void);
 
   protected:
     /// @brief copy object
@@ -97,10 +97,10 @@ class TimingTable0 : public TimingTable {
     IndexType memory() const;
 
     /// set
-    void set_value(float f);
+    void setValue(float f);
 
     /// get
-    float get_value(void);
+    float getValue(void);
 
   protected:
     /// @brief copy object
@@ -143,12 +143,12 @@ class TimingTable1 : public TimingTable {
     IndexType memory() const;
 
     /// set
-    void add_value(float f);
-    void set_axis1(ObjectId id);
+    void addValue(float f);
+    void setAxis1(ObjectId id);
 
     /// get
-    std::vector<float> get_values(void);
-    TableAxis *get_axis1();
+    std::vector<float> getValues(void);
+    TableAxis *getAxis1();
 
   protected:
     /// @brief copy object
@@ -192,14 +192,14 @@ class TimingTable2 : public TimingTable {
     IndexType memory() const;
 
     /// set
-    virtual void add_value(float f);
-    virtual void set_axis1(ObjectId id);
-    virtual void set_axis2(ObjectId id);
+    virtual void addValue(float f);
+    virtual void setAxis1(ObjectId id);
+    virtual void setAxis2(ObjectId id);
 
     /// get
-    float get_value(IndexType index1, IndexType index2);
-    TableAxis *get_axis1();
-    TableAxis *get_axis2();
+    float getValue(IndexType index1, IndexType index2);
+    TableAxis *getAxis1();
+    TableAxis *getAxis2();
 
   protected:
     /// @brief copy object
@@ -243,11 +243,11 @@ class TimingTable3 : public TimingTable2 {
     IndexType memory() const;
 
     /// set
-    void set_axis3(ObjectId id);
+    void setAxis3(ObjectId id);
 
     /// get
-    float get_value(IndexType index1, IndexType index2, IndexType index3);
-    TableAxis *get_axis3();
+    float getValue(IndexType index1, IndexType index2, IndexType index3);
+    TableAxis *getAxis3();
 
   protected:
     /// @brief copy object

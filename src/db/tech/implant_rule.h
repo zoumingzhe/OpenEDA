@@ -15,6 +15,8 @@
 #include <vector>
 
 #include "db/tech/layer.h"
+#include "util/util.h"
+#include "db/util/array.h"
 
 namespace open_edi {
 namespace db {
@@ -35,7 +37,7 @@ class SecondLayer;
  *              { exactEdgeLength   adjLength  [EXACTADJACENTLENGTH]}…]
  * ]; " ;
  */
-class ImplantCoreEdgeLength {
+class ImplantCoreEdgeLength : public Object {
   public:
     ImplantCoreEdgeLength() {
         memset(static_cast<void*>(this), 0, sizeof(ImplantCoreEdgeLength));
@@ -51,16 +53,16 @@ class ImplantCoreEdgeLength {
 
     void setMinLength(UInt32 len);
     void setNumExceptAdjLength(UInt32 num);
-    void setExactEdgeLength(UInt32 idx, UInt32 len);
-    void setAdjLength(UInt32 idx, UInt32 len);
-    void setIsExactAdjLength(UInt32 idx, bool v);
+    void addExactEdgeLength(UInt32 len);
+    void addAdjLength(UInt32 len);
+    void addIsExactAdjLength(bool v);
 
   private:
     UInt32 min_length_;
     UInt32 except_adj_length_num_;
-    UInt32* exact_edge_length_;
-    UInt32* adj_length_;
-    bool* is_exact_adj_length_;
+    ObjectId exact_edge_length_;
+    ObjectId adj_length_;
+    ObjectId is_exact_adj_length_;
 };
 
 /**
@@ -77,10 +79,10 @@ class ImplantCoreEdgeLength {
  *        [INTERSECTLAYERS  layerNameList ...]
  * ]; " ;
  */
-class ImplantSpacing {
+class ImplantSpacing : public Object {
   public:
     ImplantSpacing() {
-        memset(static_cast<void*>(this), 0, sizeof(ImplantSpacing));
+        //memset(static_cast<void*>(this), 0, sizeof(ImplantSpacing));
     }
     ~ImplantSpacing();
 
@@ -98,7 +100,6 @@ class ImplantSpacing {
     bool isExceptCornerTouch() const;
     bool hasIntersectLayer() const;
     Layer** getLayers() const;
-    ImplantSpacing* getNext() const;
 
     void setMinSpacing(UInt32 sp);
     void setPRL(UInt32 prl);
@@ -108,14 +109,12 @@ class ImplantSpacing {
     void setIsExceptCornerTouch(bool v);
     void setNumLayers(UInt32 num);
     void setLayers(Layer** layers);
-    void setLayer2(SecondLayer* l);
-    void setNext(ImplantSpacing* n);
+    void setLayer2(ObjectId l);
 
   private:
-    ImplantSpacing* next_;
     UInt32 min_spacing_;
     UInt32 prl_;
-    SecondLayer* sec_layer_;
+    ObjectId sec_layer_;
     Layer** layers_;
     UInt32 layers_num_;
     UInt32 length_;                    // LENGTH
@@ -138,7 +137,7 @@ class ImplantGroup {};
  *          [LENGTH  length ] [CHECKIMPLANTGROUP  groupName ]
  * ]; " ;
  */
-class ImplantWidth {
+class ImplantWidth : public Object {
   public:
     ImplantWidth() {
         memset(static_cast<void*>(this), 0, sizeof(ImplantWidth));
@@ -152,49 +151,50 @@ class ImplantWidth {
     void setLayer2Id(Int32 layer_id);
     bool isZeroPRL() const;
     bool isExceptCornerTouch() const;
-    ImplantGroup* getGroup() const;
-    ImplantWidth* getNext() const;
+    ArrayObject<ObjectId>* getGroup() const;
 
     void setWidth(UInt32 w);
     void setLength(UInt32 l);
     void setIsZeroPRL(bool v);
     void setIsExceptCornerTouch(bool v);
-    void setGroup(ImplantGroup* g);
-    void setNext(ImplantWidth* iw);
+    void setGroup(ObjectId g);
 
   private:
     UInt32 width_;
     UInt32 length_;
-    SecondLayer* sec_layer_;
-    ImplantGroup* group_;
-    ImplantWidth* next_;
+    ObjectId sec_layer_;
+    ObjectId group_;
 
     Bits is_zero_prl_ : 1;
     Bits is_except_corner_touch_ : 1;
 };
 
-class ImplantLayerRule {
+class ImplantLayerRule : public Object {
   public:
     ImplantLayerRule() {
-        memset(static_cast<void*>(this), 0, sizeof(ImplantLayerRule));
+        //memset(static_cast<void*>(this), 0, sizeof(ImplantLayerRule));
     }
 
   public:
-    ImplantCoreEdgeLength* getCoreEdgeLength() const;
-    ImplantSpacing* getSpacingList() const;
-    MinEnclArea* getMinEnclArea() const;
-    ImplantWidth* getWidth() const;
+    ImplantCoreEdgeLength* getCoreEdgeLength(int i) const;
+    ArrayObject<ObjectId> *getCoreEdgeLengths() const;
+    ImplantSpacing* getSpacingList(int i) const;
+    ArrayObject<ObjectId> *getSpacingLists() const;
+    MinEnclArea* getMinEnclArea(int i) const;
+    ArrayObject<ObjectId> *getMinEnclAreas() const;
+    ImplantWidth* getWidth(int i) const;
+    ArrayObject<ObjectId> *getWidths() const;
 
-    void setCoreEdgeLength(ImplantCoreEdgeLength* iel);
-    void setSpacingList(ImplantSpacing* is);
-    void setMinEnclArea(MinEnclArea* mea);
-    void setWidth(ImplantWidth* iw);
+    void addCoreEdgeLength(ObjectId iel);
+    void addSpacingList(ObjectId is);
+    void addMinEnclArea(ObjectId mea);
+    void addWidth(ObjectId iw);
 
   private:
-    ImplantCoreEdgeLength* core_edge_length_;
-    ImplantSpacing* spacing_list_;
-    MinEnclArea* min_encl_area_;
-    ImplantWidth* width_;
+    ObjectId core_edge_length_;
+    ObjectId spacing_list_;
+    ObjectId min_encl_area_;
+    ObjectId width_;
 };
 
 }  // namespace db

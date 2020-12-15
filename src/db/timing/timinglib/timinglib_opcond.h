@@ -51,13 +51,13 @@ class OperatingConditions : public TPvt {
     IndexType memory() const;
 
     /// set
-    void set_name(const std::string &name);
-    void set_wire_load_tree(WireLoadTree ty);
+    void setName(const std::string &name);
+    void setWireLoadTree(WireLoadTree ty);
 
     /// get
-    std::string get_name(void) const;
-    SymbolIndex get_name_index(void);
-    WireLoadTree get_wire_load_tree(void);
+    std::string getName(void) const;
+    SymbolIndex getNameIndex(void);
+    WireLoadTree getWireLoadTree(void);
 
     /// @brief output the information
     void print(std::ostream &stream);
@@ -70,6 +70,7 @@ class OperatingConditions : public TPvt {
     /// @brief overload output stream
     friend OStreamBase &operator<<(OStreamBase &os,
                                    OperatingConditions const &rhs);
+
   private:
     SymbolIndex name_;
     WireLoadTree wire_load_tree_;

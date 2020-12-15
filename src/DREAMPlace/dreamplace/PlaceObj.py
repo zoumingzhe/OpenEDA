@@ -125,9 +125,25 @@ class PlaceObj(nn.Module):
         '''
         name = "%dx%d bins" % (self.num_bins_x, self.num_bins_y)
 
+        if "gamma" in global_place_params:
+            self.global_param_gamma = global_place_params["gamma"]
+        else:
+            self.global_param_gamma = params.gamma
+
         self.gamma = torch.tensor(10 * self.base_gamma(params, placedb),
                                   dtype=self.data_collections.pos[0].dtype,
                                   device=self.data_collections.pos[0].device) 
+        if "stop_overflow" in global_place_params:
+            self.global_stop_overflow = global_place_params["stop_overflow"]
+        else:
+            self.global_stop_overflow = params.stop_overflow
+        
+        if "density_weight" in global_place_params:
+            self.global_density_weight = global_place_params["density_weight"]
+        else:
+            self.global_density_weight = params.density_weight
+
+
         if global_place_params["wirelength"] == "weighted_average":
             self.op_collections.wirelength_op, self.op_collections.update_gamma_op = self.build_weighted_average_wl(
                 params, placedb, self.data_collections,
@@ -561,6 +577,8 @@ class PlaceObj(nn.Module):
         @param params parameters
         @param placedb placement database
         """
+       
+        logging.info("=================initialize density weight=================")
         wirelength = self.op_collections.wirelength_op(
             self.data_collections.pos[0])
         if self.data_collections.pos[0].grad is not None:
@@ -575,7 +593,7 @@ class PlaceObj(nn.Module):
 
         grad_norm_ratio = wirelength_grad_norm / density_grad_norm
         self.density_weight = torch.tensor(
-            [params.density_weight * grad_norm_ratio],
+            [self.global_density_weight * grad_norm_ratio],
             dtype=self.data_collections.pos[0].dtype,
             device=self.data_collections.pos[0].device) 
         '''
@@ -583,8 +601,12 @@ class PlaceObj(nn.Module):
             [params.density_weight * grad_norm_ratio],
             dtype=self.data_collections.pos[0].dtype,
             device=self.data_collections.pos[0].device)
+       
         '''
-        
+       
+        logging.info("wirelength_grad_norm = %.5f, density_grad_norm = %.5f, grad_norm_ratio = %.5f, global_density_weight = %.5f, density_weight = %.5f" %\
+            (wirelength_grad_norm, density_grad_norm, grad_norm_ratio, self.global_density_weight, self.density_weight))
+        logging.info("================= end initialize density weight=================")
         return self.density_weight
 
     def build_update_density_weight(self, params, placedb):
@@ -610,6 +632,9 @@ class PlaceObj(nn.Module):
                             min=LOWER_PCOF, max=UPPER_PCOF)
                 
                 self.density_weight *= mu
+               
+                ##ensure density weight not too big
+                self.density_weight.clamp(max=5)
 
         return update_density_weight_op
 
@@ -623,7 +648,12 @@ class PlaceObj(nn.Module):
         bin_size_x = (placedb.xh - placedb.xl) / self.num_bins_x
         bin_size_y = (placedb.yh - placedb.yl) / self.num_bins_y
         
-        return params.gamma * (bin_size_x + bin_size_y)
+        logging.info("%g %g %g %g %dx%d" %(placedb.xl, placedb.yl, placedb.xh, placedb.yh, self.num_bins_x, self.num_bins_y))
+
+        base_gamma = self.global_param_gamma*(bin_size_x + bin_size_y)
+        logging.info("base gamma: %g" % (base_gamma))
+        return base_gamma;
+        #return params.gamma * (bin_size_x + bin_size_y)
         
 
     def update_gamma(self, iteration, overflow, base_gamma):

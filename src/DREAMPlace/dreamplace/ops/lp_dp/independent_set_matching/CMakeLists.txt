@@ -5,6 +5,7 @@ if (NOT CMAKE_CUDA_FLAGS)
 endif()
 
 if (CUDA_FOUND)
+    add_definitions(-D_CUDA_FOUND)
     file(GLOB CUDA_SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cu"
         )
@@ -15,10 +16,10 @@ if (CUDA_FOUND)
     list(APPEND CUDA_NVCC_FLAGS
         -O3 -std=c++14 ${CMAKE_CUDA_FLAGS} 
         )
-    list(APPEND CUDA_NVCC_FLAGS --compiler-options -fPIC)
+    list(APPEND CUDA_NVCC_FLAGS --compiler-options -fPIC --expt-relaxed-constexpr)
 
     cuda_add_library(
-        ${CUDA_LINKED} STATIC 
+        ${CUDA_LINKED} STATIC
         ${CUDA_SOURCES}
         )
 
@@ -45,17 +46,30 @@ endif(CUDA_FOUND)
 
 file(GLOB SOURCES 
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cu"
     )
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../.."
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../.."
     "${MUNKRES_CPP_INCLUDE_DIRS}"
     "${LEMON_INCLUDE_DIRS}"
-    "${CUB_DIR}"
+    #"${CUB_DIR}"
     "${LIMBO_SOURCE_DIR}"
     "${Boost_INCLUDE_DIRS}"
     )
 
+if(CUDA_FOUND)     
+    if (NOT ${CUDA_VERSION_MAJOR} VERSION_GREATER "10")
+        include_directories("${CUB_DIR}")
+    endif (NOT ${CUDA_VERSION_MAJOR} VERSION_GREATER "10")
+endif(CUDA_FOUND)
+
+
+link_directories(${UTILITY_LIBRARY_DIRS} ${CUB_DIR})
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
+if (CUDA_FOUND)
+  target_link_libraries(${PROJECT_NAME} PUBLIC ${CUDA_LINKED} utility ${CUDA_curand_LIBRARY})
+else (CUDA_FOUND)
+  target_link_libraries(${PROJECT_NAME} PUBLIC utility)
+endif(CUDA_FOUND)

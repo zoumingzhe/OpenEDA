@@ -60,9 +60,9 @@ TimingTable::IndexType TimingTable::memory() const {
     return ret;
 }
 
-TableAxis* TimingTable::get_axis1(void) { return nullptr; }
-TableAxis* TimingTable::get_axis2(void) { return nullptr; }
-TableAxis* TimingTable::get_axis3(void) { return nullptr; }
+TableAxis* TimingTable::getAxis1(void) { return nullptr; }
+TableAxis* TimingTable::getAxis2(void) { return nullptr; }
+TableAxis* TimingTable::getAxis3(void) { return nullptr; }
 
 OStreamBase& operator<<(OStreamBase& os, TimingTable const& rhs) {
     os << DataTypeName(className(rhs)) << DataBegin("(");
@@ -122,8 +122,8 @@ TimingTable0::IndexType TimingTable0::memory() const {
 
     return ret;
 }
-void TimingTable0::set_value(float f) { value_ = f; }
-float TimingTable0::get_value(void) { return value_; }
+void TimingTable0::setValue(float f) { value_ = f; }
+float TimingTable0::getValue(void) { return value_; }
 
 OStreamBase& operator<<(OStreamBase& os, TimingTable0 const& rhs) {
     os << DataTypeName(className(rhs)) << DataBegin("(");
@@ -202,13 +202,13 @@ TimingTable1::IndexType TimingTable1::memory() const {
     return ret;
 }
 
-void TimingTable1::add_value(float f) {
+void TimingTable1::addValue(float f) {
     ArrayObject<float>* p = nullptr;
     if (values_ == UNINIT_OBJECT_ID) {
         Timing* timing_lib = getTimingLib();
         if (timing_lib != nullptr) {
-            p = Object::createObject<ArrayObject<float>>(
-                  kObjectTypeArray, timing_lib->getId());
+            p = Object::createObject<ArrayObject<float>>(kObjectTypeArray,
+                                                         timing_lib->getId());
             if (p != nullptr) {
                 values_ = p->getId();
                 p->setPool(timing_lib->getPool());
@@ -221,13 +221,12 @@ void TimingTable1::add_value(float f) {
     if (p != nullptr) p->pushBack(f);
 }
 
-void TimingTable1::set_axis1(ObjectId id) { axis1_ = id; }
+void TimingTable1::setAxis1(ObjectId id) { axis1_ = id; }
 
-std::vector<float> TimingTable1::get_values(void) {
+std::vector<float> TimingTable1::getValues(void) {
     std::vector<float> values;
     if (values_ != UNINIT_OBJECT_ID) {
-        ArrayObject<float>* p =
-            addr<ArrayObject<float>>(values_);
+        ArrayObject<float>* p = addr<ArrayObject<float>>(values_);
         if (p != nullptr) {
             for (int64_t i = 0; i < p->getSize(); ++i)
                 values.emplace_back((*p)[i]);
@@ -237,7 +236,7 @@ std::vector<float> TimingTable1::get_values(void) {
     return values;
 }
 
-TableAxis* TimingTable1::get_axis1(void) {
+TableAxis* TimingTable1::getAxis1(void) {
     if (axis1_ != UNINIT_OBJECT_ID)
         return addr<TableAxis>(axis1_);
     else
@@ -354,13 +353,13 @@ TimingTable2::IndexType TimingTable2::memory() const {
     return ret;
 }
 
-void TimingTable2::add_value(float f) {
+void TimingTable2::addValue(float f) {
     ArrayObject<float>* p = nullptr;
     if (values_ == UNINIT_OBJECT_ID) {
         Timing* timing_lib = getTimingLib();
         if (timing_lib != nullptr) {
-            p = Object::createObject<ArrayObject<float>>(
-                  kObjectTypeArray, timing_lib->getId());
+            p = Object::createObject<ArrayObject<float>>(kObjectTypeArray,
+                                                         timing_lib->getId());
             if (p != nullptr) {
                 values_ = p->getId();
                 p->setPool(timing_lib->getPool());
@@ -372,28 +371,27 @@ void TimingTable2::add_value(float f) {
     }
     if (p != nullptr) p->pushBack(f);
 }
-void TimingTable2::set_axis1(ObjectId id) { axis1_ = id; }
-void TimingTable2::set_axis2(ObjectId id) { axis2_ = id; }
+void TimingTable2::setAxis1(ObjectId id) { axis1_ = id; }
+void TimingTable2::setAxis2(ObjectId id) { axis2_ = id; }
 
-float TimingTable2::get_value(IndexType index1, IndexType index2) {
-    TableAxis* t = get_axis1();
+float TimingTable2::getValue(IndexType index1, IndexType index2) {
+    TableAxis* t = getAxis1();
     if (t) {
         ArrayObject<float>* p = nullptr;
-        if (values_ != UNINIT_OBJECT_ID)
-            p = addr<ArrayObject<float>>(values_);
-        if (p != nullptr) return (*p)[index1 * t->get_size() + index2];
+        if (values_ != UNINIT_OBJECT_ID) p = addr<ArrayObject<float>>(values_);
+        if (p != nullptr) return (*p)[index1 * t->getSize() + index2];
     }
     return 0.0;
 }
 
-TableAxis* TimingTable2::get_axis1(void) {
+TableAxis* TimingTable2::getAxis1(void) {
     if (axis1_ != UNINIT_OBJECT_ID)
         return addr<TableAxis>(axis1_);
     else
         return nullptr;
 }
 
-TableAxis* TimingTable2::get_axis2(void) {
+TableAxis* TimingTable2::getAxis2(void) {
     if (axis2_ != UNINIT_OBJECT_ID)
         return addr<TableAxis>(axis2_);
     else
@@ -504,24 +502,23 @@ TimingTable3::IndexType TimingTable3::memory() const {
     return ret;
 }
 
-void TimingTable3::set_axis3(ObjectId id) { axis3_ = id; }
-float TimingTable3::get_value(IndexType index1, IndexType index2,
-                              IndexType index3) {
-    TableAxis* t1 = get_axis1();
-    TableAxis* t2 = get_axis2();
+void TimingTable3::setAxis3(ObjectId id) { axis3_ = id; }
+float TimingTable3::getValue(IndexType index1, IndexType index2,
+                             IndexType index3) {
+    TableAxis* t1 = getAxis1();
+    TableAxis* t2 = getAxis2();
     if (t1 && t2) {
         ArrayObject<float>* p = nullptr;
-        if (values_ != UNINIT_OBJECT_ID)
-            p = addr<ArrayObject<float>>(values_);
+        if (values_ != UNINIT_OBJECT_ID) p = addr<ArrayObject<float>>(values_);
         if (p != nullptr)
-            return (*p)[(index1 * t1->get_size() + index2) * t2->get_size() +
-                        index3];
+            return (
+                *p)[(index1 * t1->getSize() + index2) * t2->getSize() + index3];
     }
 
     return 0.0f;
 }
 
-TableAxis* TimingTable3::get_axis3(void) {
+TableAxis* TimingTable3::getAxis3(void) {
     if (axis3_ != UNINIT_OBJECT_ID)
         return addr<TableAxis>(axis3_);
     else

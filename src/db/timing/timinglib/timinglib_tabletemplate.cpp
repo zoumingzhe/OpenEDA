@@ -76,15 +76,14 @@ TableAxis::IndexType TableAxis::memory() const {
 }
 
 /// set
-void TableAxis::set_variable(TableAxisVariable tv) { variable_ = tv; }
-void TableAxis::add_value(float f) {
+void TableAxis::setVariable(TableAxisVariable tv) { variable_ = tv; }
+void TableAxis::addValue(float f) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib != nullptr) {
         ArrayObject<float>* object_array = nullptr;
         if (values_ == UNINIT_OBJECT_ID) {
-            object_array =
-                Object::createObject<ArrayObject<float>>(
-                    kObjectTypeArray, timing_lib->getId());
+            object_array = Object::createObject<ArrayObject<float>>(
+                kObjectTypeArray, timing_lib->getId());
             if (object_array != nullptr) {
                 object_array->setPool(timing_lib->getPool());
                 object_array->reserve(32);
@@ -98,14 +97,14 @@ void TableAxis::add_value(float f) {
 }
 
 /// get
-TableAxisVariable TableAxis::get_variable(void) { return variable_; }
-ArrayObject<float>* TableAxis::get_values(void) {
+TableAxisVariable TableAxis::getVariable(void) { return variable_; }
+ArrayObject<float>* TableAxis::getValues(void) {
     if (values_ == UNINIT_OBJECT_ID)
         return nullptr;
     else
         return Object::addr<ArrayObject<float>>(values_);
 }
-TableAxis::IndexType TableAxis::get_size(void) {
+TableAxis::IndexType TableAxis::getSize(void) {
     if (values_ != UNINIT_OBJECT_ID) {
         auto p = Object::addr<ArrayObject<float>>(values_);
         return p->getSize();
@@ -234,7 +233,7 @@ TableTemplate::IndexType TableTemplate::memory() const {
 }
 
 /// set
-void TableTemplate::set_name(const std::string& name) {
+void TableTemplate::setName(const std::string& name) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
@@ -244,11 +243,11 @@ void TableTemplate::set_name(const std::string& name) {
         }
     }
 }
-TableAxis* TableTemplate::create_axis1() {
+TableAxis* TableTemplate::createAxis1() {
     Timing* timing_lib = getTimingLib();
     if (timing_lib != nullptr) {
-        TableAxis* t = Object::createObject<TableAxis>(
-            kObjectTypeTableAxis, timing_lib->getId());
+        TableAxis* t = Object::createObject<TableAxis>(kObjectTypeTableAxis,
+                                                       timing_lib->getId());
         if (t != nullptr) {
             t->setOwner(this);
             axis1_ = t->getId();
@@ -257,11 +256,11 @@ TableAxis* TableTemplate::create_axis1() {
     }
     return nullptr;
 }
-TableAxis* TableTemplate::create_axis2() {
+TableAxis* TableTemplate::createAxis2() {
     Timing* timing_lib = getTimingLib();
     if (timing_lib != nullptr) {
-        TableAxis* t = Object::createObject<TableAxis>(
-            kObjectTypeTableAxis, timing_lib->getId());
+        TableAxis* t = Object::createObject<TableAxis>(kObjectTypeTableAxis,
+                                                       timing_lib->getId());
         if (t != nullptr) {
             t->setOwner(this);
             axis2_ = t->getId();
@@ -270,11 +269,11 @@ TableAxis* TableTemplate::create_axis2() {
     }
     return nullptr;
 }
-TableAxis* TableTemplate::create_axis3() {
+TableAxis* TableTemplate::createAxis3() {
     Timing* timing_lib = getTimingLib();
     if (timing_lib != nullptr) {
-        TableAxis* t = Object::createObject<TableAxis>(
-            kObjectTypeTableAxis, timing_lib->getId());
+        TableAxis* t = Object::createObject<TableAxis>(kObjectTypeTableAxis,
+                                                       timing_lib->getId());
         if (t != nullptr) {
             t->setOwner(this);
             axis3_ = t->getId();
@@ -285,27 +284,27 @@ TableAxis* TableTemplate::create_axis3() {
 }
 
 /// get
-std::string TableTemplate::get_name(void) const {
+std::string TableTemplate::getName(void) const {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
-SymbolIndex TableTemplate::get_name_index(void) { return name_; }
-TableAxis* TableTemplate::get_axis1(void) {
+SymbolIndex TableTemplate::getNameIndex(void) { return name_; }
+TableAxis* TableTemplate::getAxis1(void) {
     if (axis1_ != UNINIT_OBJECT_ID)
         return Object::addr<TableAxis>(axis1_);
     else
         return nullptr;
 }
-TableAxis* TableTemplate::get_axis2(void) {
+TableAxis* TableTemplate::getAxis2(void) {
     if (axis2_ != UNINIT_OBJECT_ID)
         return Object::addr<TableAxis>(axis2_);
     else
         return nullptr;
 }
-TableAxis* TableTemplate::get_axis3(void) {
+TableAxis* TableTemplate::getAxis3(void) {
     if (axis3_ != UNINIT_OBJECT_ID)
         return Object::addr<TableAxis>(axis3_);
     else
@@ -318,7 +317,7 @@ OStreamBase& operator<<(OStreamBase& os, TableTemplate const& rhs) {
     TableTemplate::BaseType const& base = rhs;
     os << base << DataDelimiter();
 
-    os << DataFieldName("name_") << rhs.get_name() << DataDelimiter();
+    os << DataFieldName("name_") << rhs.getName() << DataDelimiter();
     os << DataFieldName("axis1_") << rhs.axis1_;
     os << DataBegin("[");
     if (rhs.axis1_ != UNINIT_OBJECT_ID) {

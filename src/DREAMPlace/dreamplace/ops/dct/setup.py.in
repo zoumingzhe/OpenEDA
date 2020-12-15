@@ -18,6 +18,9 @@ os.environ["CUDA_HOME"] = "${CUDA_TOOLKIT_ROOT_DIR}"
 utility_dir = "${UTILITY_LIBRARY_DIRS}"
 ops_dir = "${OPS_DIR}"
 
+cuda_flags = '${CMAKE_CUDA_FLAGS}'.split(';')
+print("cuda_flags = %s" % (' '.join(cuda_flags)))
+
 include_dirs = [ops_dir]
 lib_dirs = [utility_dir]
 libs = ['utility']
@@ -83,7 +86,7 @@ if "${CUDA_FOUND}".upper() == 'TRUE':
                 libraries=copy.deepcopy(libs),
                 extra_compile_args={
                     'cxx' : [torch_major_version, torch_minor_version],
-                    'nvcc': []
+                    'nvcc': copy.deepcopy(cuda_flags)
                     }),
             CUDAExtension('dct_lee_cuda',
                 [
@@ -97,7 +100,7 @@ if "${CUDA_FOUND}".upper() == 'TRUE':
                 libraries=copy.deepcopy(libs),
                 extra_compile_args={
                     'cxx' : [torch_major_version, torch_minor_version],
-                    'nvcc': []
+                    'nvcc': copy.deepcopy(cuda_flags)
                     }),
             CUDAExtension('dct2_fft2_cuda',
                 [
@@ -109,7 +112,7 @@ if "${CUDA_FOUND}".upper() == 'TRUE':
                 libraries=copy.deepcopy(libs),
                 extra_compile_args={
                     'cxx' : [torch_major_version, torch_minor_version],
-                    'nvcc': []
+                    'nvcc': copy.deepcopy(cuda_flags)
                     }),
         ])
 

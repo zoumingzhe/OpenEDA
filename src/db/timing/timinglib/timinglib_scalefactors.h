@@ -53,20 +53,19 @@ class ScaleFactors : public Object {
     IndexType memory() const;
 
     /// set
-    void set_name(const std::string &name);
-    void add_scale(ScaleFactorType t, ScaleFactorPvt p, float f);
-    void add_scale(ScaleFactorType t, ScaleFactorPvt p, ScaleFactorRiseFall rf,
-                   float f);
+    void setName(const std::string &name);
+    void addScale(ScaleFactorType t, ScaleFactorPvt p, float f);
+    void addScale(ScaleFactorType t, ScaleFactorPvt p, ScaleFactorRiseFall rf,
+                  float f);
 
     /// get
-    std::string get_name(void) const;
-    float get_scale(ScaleFactorType t, ScaleFactorPvt p);
-    float get_scale(ScaleFactorType t, ScaleFactorPvt p,
-                    ScaleFactorRiseFall rf);
+    std::string getName(void) const;
+    float getScale(ScaleFactorType t, ScaleFactorPvt p);
+    float getScale(ScaleFactorType t, ScaleFactorPvt p, ScaleFactorRiseFall rf);
 
-    static bool is_rise_fall_suffix(ScaleFactorType type);
-    static bool is_rise_fall_prefix(ScaleFactorType type);
-    static bool is_high_low_suffix(ScaleFactorType type);
+    static bool isRiseFallSuffix(ScaleFactorType type);
+    static bool isRiseFallPrefix(ScaleFactorType type);
+    static bool isHighLowSuffix(ScaleFactorType type);
 
   protected:
     /// @brief copy object
