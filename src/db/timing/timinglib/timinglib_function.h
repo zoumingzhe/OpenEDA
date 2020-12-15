@@ -55,17 +55,17 @@ class TFunction : public Object {
     IndexType memory() const;
 
     /// set
-    void set_func_str(const std::string &str);
-    void set_tterm(ObjectId id);
-    void set_op(FuncOpType t);
-    void set_left(ObjectId id);
-    void set_right(ObjectId id);
+    void setFuncStr(const std::string &str);
+    void setTterm(ObjectId id);
+    void setOp(FuncOpType t);
+    void setLeft(ObjectId id);
+    void setRight(ObjectId id);
 
     /// get
-    TTerm *get_tterm(void);
-    FuncOpType get_op(void);
-    TFunction *get_left(void);
-    TFunction *get_right(void);
+    TTerm *getTterm(void);
+    FuncOpType getOp(void);
+    TFunction *getLeft(void);
+    TFunction *getRight(void);
 
     /// @brief output the information
     void print(std::ostream &stream);

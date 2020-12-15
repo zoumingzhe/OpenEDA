@@ -43,6 +43,8 @@ class Pin : public Object {
     /// @brief move assignment
     Pin& operator=(Pin&& rhs) noexcept;
 
+    SignalDirection getDirection() const;
+
     /// @brief getter for macro pin
     Term* getTerm() const;
 
@@ -55,7 +57,7 @@ class Pin : public Object {
     /// @brief setter for instance
     void setInst(Inst* v);
 
-    void setName(std::string name);
+    bool setName(std::string name);
     std::string& getName() const;
 
     /// @brief getter for net
@@ -65,12 +67,15 @@ class Pin : public Object {
     void setNet(Net* net);
     void addnet(Net* net);
 
-    bool getHasSpecial() const;
-    void setHasSpecial(bool flag);
+    bool getIsSpecial() const;
+    void setIsSpecial(bool flag);
 
     bool getIsConnectNets() const;
     void addNet(Net *net);
     ArrayObject<ObjectId> *getNetArray() const;
+
+    bool getIsPrimary() const;
+    void setIsPrimary(bool p);
 
   protected:
     /// @brief copy object
@@ -83,11 +88,11 @@ class Pin : public Object {
     friend IStreamBase& operator>>(IStreamBase& is, Pin& rhs);
 
   private:
-    bool    has_special_     : 1;
-    bool    is_connect_nets_ : 1;
-    int32_t unused_          : 31;
+    Bits32 is_special_      : 1;
+    Bits32 is_connect_nets_ : 1;
+    Bits32 is_primary_      : 1; 
+    Bits32 unused_          : 30;
 
-    SymbolIndex name_index_;
     ObjectId term_;  /// macro pin
     ObjectId inst_;  ///< an instance
     union {

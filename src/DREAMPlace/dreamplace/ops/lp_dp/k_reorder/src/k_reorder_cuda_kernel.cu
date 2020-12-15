@@ -28,7 +28,7 @@
 #include "utility/src/DetailedPlaceDB.cuh"
 #include "utility/src/FlatNestedVector.cuh"
 #include "utility/src/PitchNestedVector.cuh"
-#include "k_reorder/src/quick_perm.h"
+//#include "k_reorder/src/quick_perm.h"
 #include "k_reorder/src/row2node_map.h"
 #include "k_reorder/src/compute_independent_rows.h"
 #include "k_reorder/src/compute_reorder_instances.h"
@@ -47,6 +47,11 @@ DREAMPLACE_BEGIN_NAMESPACE
 /// A group contains independent rows. 
 /// An KReorderInstance contains an adjacent sequence of cells to be solved. 
 /// 
+
+//for historical reason, quick_perm() was defined in both k_reorder.cpp & k_xxx.cu. As we combine .cu with .cpp, now
+//.cu remove this def, and rely on .cpp (corresponding .a) to provide a unique one. So extern here.
+extern void print_perm(const std::vector<int> &a);
+extern std::vector<std::vector<int> > quick_perm(int N);
 
 /// a net for a reorder instance 
 template <typename T>
@@ -1032,7 +1037,7 @@ void k_reorder(DetailedPlaceDB<T>& db, KReorderState<T>& state, const std::vecto
 }
 
 template <typename T>
-int kreorderCUDALauncherNew(DetailedPlaceDB<T> db, int K, int max_iters, int num_threads)
+int kreorderCUDALauncherNew(DetailedPlaceDB<T>& db, int K, int max_iters, int num_threads)
 {
     dreamplacePrint(kDEBUG, "%d-reorder\n", K);
     hr_clock_rep total_time_start, total_time_stop; 
@@ -1235,6 +1240,11 @@ int kreorderCUDALauncherNew(DetailedPlaceDB<T> db, int K, int max_iters, int num
     dreamplacePrint(kINFO, "K-reorder time: %g ms\n", get_timer_period()*(total_time_stop-total_time_start));
 
     return 0; 
+}
+
+int kreorderCUDARun(DetailedPlaceDB<int>& db, int K, int maxIters, int numThreads)
+{
+  return kreorderCUDALauncherNew(db, K, maxIters, numThreads);
 }
 
 #define REGISTER_KERNEL_LAUNCHER(T) \

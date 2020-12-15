@@ -489,9 +489,9 @@ conn_defs:
 
 conn_def:
 	PPORT external_connection direction conn_attrs
-        { spefReader->addPinNode($2); /*spefReader->stringDelete($2);*/ }
+        { /*spefReader->addPinNode($2);*/ spefReader->stringDelete($2); }
 |	PINT internal_connection direction conn_attrs
-        { spefReader->addPinNode($2); /*spefReader->stringDelete($2);*/ }
+        { /*spefReader->addPinNode($2);*/ spefReader->stringDelete($2); }
 ;
 
 external_connection:

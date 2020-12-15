@@ -748,7 +748,7 @@ static bool writePins(FILE *fp) {
         fprintf(fp, "    - %s", pin->getName().c_str());
         Net *net = pin->getNet();
         fprintf(fp, " + NET %s\n", (net ? net->getName().c_str() : "ERROR"));
-        if (pin->getHasSpecial()) {
+        if (pin->getIsSpecial()) {
             fprintf(fp, "      + SPECIAL\n");
         }
         Term *term = pin->getTerm();

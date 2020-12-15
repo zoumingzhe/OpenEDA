@@ -197,7 +197,7 @@ void HierData::setRegions(ObjectId v) { regions_ = v; }
 // End of HierData
 
 void Cell::__init() {
-    name_index_ = -1;
+    name_index_ = kInvalidSymbolIndex;
     cell_type_ = CellType::kUnknown;
     hier_data_id_ = 0;
     originX_ = 0;
@@ -205,7 +205,6 @@ void Cell::__init() {
     sizeX_ = 0;
     sizeY_ = 0;
     terms_ = 0;
-    class_index_ = -1;
     eeq_index_ = -1;
     site_ = 0;
     site_patterns_ = 0;
@@ -223,6 +222,8 @@ void Cell::__init() {
     has_90_symmetry_ = 0;
     has_site_name_ = 0;
     is_fixed_mask_ = 0;
+    sub_class_type_ = kNoSubClass;
+    class_type_ = kNoClass;
 }
 
 /// @brief Cell default constructor
@@ -798,6 +799,7 @@ void Cell::addIOPin(ObjectId id) {
 Pin *Cell::createIOPin(std::string &name) {
     // TODO(ly): naming conflicts check.
     Pin *pin = createObject<Pin>(kObjectTypePin);
+    pin->setIsPrimary(true);
     pin->setName(name);
     addIOPin(pin->getId());
     return pin;
@@ -1031,18 +1033,16 @@ Cell *Cell::getCellFromTechLib(std::string name) {
 }
 
 Cell *Cell::getCell(std::string name) {
-    if (getCells() != 0) {
-        SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
-        if (symbol_index == kInvalidSymbolIndex) return nullptr;
+    SymbolIndex symbol_index = this->getOrCreateSymbol(name.c_str());
+    if (symbol_index == kInvalidSymbolIndex) return nullptr;
 
-        std::vector<ObjectId> object_vector =
-              this->getSymbolTable()->getReferences(symbol_index);
-        for (auto iter = object_vector.begin(); iter != object_vector.end();
-            iter++) {
-            Cell *target = addr<Cell>(*iter);
-            if (target && (target->getObjectType() == kObjectTypeCell))
-                return target;
-        }
+    std::vector<ObjectId> object_vector =
+        this->getSymbolTable()->getReferences(symbol_index);
+    for (auto iter = object_vector.begin(); iter != object_vector.end();
+        iter++) {
+        Cell *target = addr<Cell>(*iter);
+        if (target && (target->getObjectType() == kObjectTypeCell))
+            return target;
     }
 
     return getCellFromTechLib(name);
@@ -1429,15 +1429,184 @@ void Cell::resetTerms(const std::vector<Term *> &terms) {
     }
 }
 
-std::string const &Cell::getClass() {
-    return getSymbolByIndex(class_index_);
-    // return getSymbolTable()->getSymbolByIndex(class_index_);
+std::string const Cell::getClassString() {
+    //return getSymbolByIndex(class_index_);
+    std::string tmp = std::string("");
+    switch (class_type_) {
+        case kCover:
+            tmp = "COVER";
+            break;
+        case kRing:
+            tmp = "RING";
+            break;
+        case kBlock:
+            tmp = "BLOCK";
+            break;
+        case kPad:
+            tmp = "PAD";
+            break;
+        case kCore:
+            tmp = "CORE";
+            break;
+        case kEndcap:
+            tmp = "ENDCAP";
+            break;
+        default:
+            break;
+    }
+    if (sub_class_type_ == kNoSubClass) 
+        return tmp;
+
+    switch (sub_class_type_) {
+        case kCoverBump:
+            tmp += " BUMP";
+            break;
+        case kBlockBox:
+            tmp += " BLACKBOX";
+            break;
+        case kBlockSoft:
+            tmp += " SOFT";
+            break;
+        case kPadInput:
+            tmp += " INPUT";
+            break;
+        case kPadOutput:
+            tmp += " OUTPUT";
+            break;
+        case kPadInout:
+            tmp += " INOUT";
+            break;
+        case kPadPower:
+            tmp += " POWER";
+            break;
+        case kPadSpacer:
+            tmp += " SPACER";
+            break;
+        case kPadAreaIO:
+            tmp += " AREAIO";
+            break;
+        case kCoreFeedthru:
+            tmp += " FEEDTHRU";
+            break;
+        case kCoreTiehigh:
+            tmp += " TIEHIGH";
+            break;
+        case kCoreTielow:
+            tmp += " TIELOW";
+            break;
+        case kCoreSpacer:
+            tmp += " SPACER";
+            break;
+        case kCoreAntennaCell:
+            tmp += " ANTENNACELL";
+            break;
+        case kCoreWelltap:
+            tmp += " WELLTAP";
+            break;
+        case kEndcapPre:
+            tmp += " PRE";
+            break;
+        case kEndcapPost:
+            tmp += " POST";
+            break;
+        case kEndcapTopLeft:
+            tmp += " TOPLEFT";
+            break;
+        case kEndcapTopRight:
+            tmp += " TOPRIGHT";
+            break;
+        case kEndcapBottomLeft:
+            tmp += " BOTTOMLEFT";
+            break;
+        case kEndcapBottomRight:
+            tmp += " BOTTOMRIGHT";
+            break; 
+        default:
+            break;
+    }
+    return tmp;
 }
 
 void Cell::setClass(const char *v) {
-    SymbolIndex idx = getOrCreateSymbol(v);
-    if (idx != kInvalidSymbolIndex) {
-        class_index_ = idx;
+    if (v == nullptr)
+        return;
+    std::string tmp = v;
+    std::string class_string;
+    std::string sub_class_string;
+    bool has_sub_class = false;
+    std::string::size_type pos = tmp.find(" ");
+    if (pos != std::string::npos) {
+        has_sub_class = true;
+        class_string = tmp.substr(0,pos);
+        sub_class_string = tmp.substr(pos + 1);
+    } else {
+        class_string = tmp;
+    }
+    if (class_string == "COVER") {
+        class_type_ = kCover;
+    } else if (class_string == "RING") {
+        class_type_ = kRing;
+    } else if (class_string == "BLOCK") {
+        class_type_ = kBlock;
+    } else if (class_string == "PAD") {
+        class_type_ = kPad;
+    } else if (class_string == "CORE") {
+        class_type_ = kCore;
+    } else if (class_string == "ENDCAP") {
+        class_type_ = kEndcap;
+    } else {
+        message->issueMsg(kError, "Class type %s not supported.\n", sub_class_string.c_str());
+    }
+
+    if (has_sub_class) {
+        if (sub_class_string == "BUMP") {
+            sub_class_type_ = CellSubClassType::kCoverBump;
+        } else if (sub_class_string == "BLACKBOX") {
+            sub_class_type_ = CellSubClassType::kBlockBox;
+        } else if (sub_class_string == "SOFT") {
+            sub_class_type_ = CellSubClassType::kBlockSoft;
+        } else if (sub_class_string == "INPUT") {
+            sub_class_type_ = CellSubClassType::kPadInput;
+        } else if (sub_class_string == "OUTPUT") {
+            sub_class_type_ = CellSubClassType::kPadOutput;
+        }  else if (sub_class_string == "INOUT") {
+            sub_class_type_ = CellSubClassType::kPadInout;
+        }else if (sub_class_string == "POWER") {
+            sub_class_type_ = CellSubClassType::kPadPower;
+        } else if (sub_class_string == "SPACER") {
+            if (class_type_ == kPad) {
+                sub_class_type_ = CellSubClassType::kPadSpacer;
+            }
+            else if (class_type_ == kCore) {
+                sub_class_type_ = CellSubClassType::kCoreSpacer;
+            }
+        } else if (sub_class_string == "AREAIO") {
+            sub_class_type_ = CellSubClassType::kPadAreaIO;
+        } else if (sub_class_string == "FEEDTHRU") {
+            sub_class_type_ = CellSubClassType::kCoreFeedthru;
+        } else if (sub_class_string == "TIEHIGH") {
+            sub_class_type_ = CellSubClassType::kCoreTiehigh;
+        } else if (sub_class_string == "TIELOW") {
+            sub_class_type_ = CellSubClassType::kCoreTielow;
+        } else if (sub_class_string == "ANTENNACELL") {
+            sub_class_type_ = CellSubClassType::kCoreAntennaCell;
+        } else if (sub_class_string == "WELLTAP") {
+            sub_class_type_ = CellSubClassType::kCoreWelltap;
+        } else if (sub_class_string == "PRE") {
+            sub_class_type_ = CellSubClassType::kEndcapPre;
+        } else if (sub_class_string == "POST") {
+            sub_class_type_ = CellSubClassType::kEndcapPost;
+        } else if (sub_class_string == "TOPLEFT") {
+            sub_class_type_ = CellSubClassType::kEndcapTopLeft;
+        } else if (sub_class_string == "TOPRIGHT") {
+            sub_class_type_ = CellSubClassType::kEndcapTopRight;
+        } else if (sub_class_string == "BOTTOMLEFT") {
+            sub_class_type_ = CellSubClassType::kEndcapBottomLeft;
+        } else if (sub_class_string == "BOTTOMRIGHT") {
+            sub_class_type_ = CellSubClassType::kEndcapBottomRight;
+        } else {
+            message->issueMsg(kError, "sub class type %s not supported.\n", sub_class_string.c_str());
+        }
     }
 }
 
@@ -1528,6 +1697,15 @@ LayerGeometry *Cell::getOBS(int i) const {
         }
     }
     return nullptr;
+}
+
+ArrayObject<ObjectId> *Cell::getOBSes() const {
+    if (obses_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(obses_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 void Cell::addForeign(ObjectId id) {
@@ -1629,7 +1807,7 @@ Density *Cell::getDensity(int index) {
 void Cell::print() {
     Tech *lib = getOwnerCell()->getTechLib();
     message->info("MACRO %s \n", getName().c_str());
-    message->info("CLASS %s ;\n", getClass().c_str());
+    message->info("CLASS %s ;\n", getClassString().c_str());
     if (getIsFixedMask()) {
         message->info("   FIXEDMASK ;\n");
     }
@@ -1747,9 +1925,9 @@ void Cell::printLEF(std::ofstream &ofs) {
     Tech *lib = getTechLib();
     ofs << "MACRO"
         << " " << getName().c_str() << " \n";
-    if (getClass().size() > 0) {
+    if (getClassString().size() > 0) {
         ofs << "   CLASS"
-            << " " << getClass().c_str() << " ;\n";
+            << " " << getClassString().c_str() << " ;\n";
     }
     if (getIsFixedMask()) {
         ofs << "   FIXEDMASK ;\n";

@@ -27,39 +27,39 @@ ParasiticNode::ParasiticNode()
 
 ParasiticIntNode::ParasiticIntNode()
     : ParasiticNode(),
-      nodeId_(0) {
+      node_id_(0) {
     setObjectType(ObjectType::kObjectTypeParasiticIntNode);
 }
 
 ParasiticPinNode::ParasiticPinNode()
     : ParasiticNode(),
-      pinId_(UNINIT_OBJECT_ID) {
+      pin_id_(UNINIT_OBJECT_ID) {
     setObjectType(ObjectType::kObjectTypeParasiticPinNode);
 }
 
 ParasiticExtNode::ParasiticExtNode()
     : ParasiticNode(),
-      nodeNetId_(UNINIT_OBJECT_ID),
-      nodeId_(0) {
+      node_net_id_(UNINIT_OBJECT_ID),
+      node_id_(0) {
     setObjectType(ObjectType::kObjectTypeParasiticExtNode);
 }
 
 ParasiticDevice::ParasiticDevice()
     : ParasiticDevice::BaseType(),
-      node1Id_(UNINIT_OBJECT_ID) {
+      node1_id_(UNINIT_OBJECT_ID) {
     setObjectType(ObjectType::kObjectTypeParasiticDevice);
 }
 
 ParasiticResistor::ParasiticResistor()
     : ParasiticDevice(),
-      node2Id_(UNINIT_OBJECT_ID),
+      node2_id_(UNINIT_OBJECT_ID),
       resistance_(-1.0) {
     setObjectType(ObjectType::kObjectTypeParasiticResistor);
 }
 
 ParasiticXCap::ParasiticXCap()
     : ParasiticDevice(),   
-      node2Id_(UNINIT_OBJECT_ID),
+      node2_id_(UNINIT_OBJECT_ID),
       capacitance_(-1.0) {
     setObjectType(ObjectType::kObjectTypeParasiticXCap);
 }

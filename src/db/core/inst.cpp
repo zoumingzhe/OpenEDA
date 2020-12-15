@@ -56,6 +56,8 @@ Inst::Inst() {
 
 Inst::Inst(Inst const &rhs) { copy(rhs); }
 
+Inst::~Inst() { clear(); }
+
 Inst &Inst::operator=(Inst const &rhs) {
     if (this != &rhs) {
         copy(rhs);
@@ -117,19 +119,19 @@ Box Inst::getBox() {
     // size_y += origin_y;
 
     if (getOrient() == Orient::kN || getOrient() == Orient::kS ||
-        getOrient() == Orient::kW || getOrient() == Orient::kE) {
+        getOrient() == Orient::kFN || getOrient() == Orient::kFS) {
         llx = getLocation().getX();
         lly = getLocation().getY();
         urx = llx + size_x;
         ury = lly + size_y;
     }
 
-    if (getOrient() == Orient::kFN || getOrient() == Orient::kFS ||
+    if (getOrient() == Orient::kW || getOrient() == Orient::kE ||
         getOrient() == Orient::kFW || getOrient() == Orient::kFE) {
-        llx = getLocation().getX() - size_x;
+        llx = getLocation().getX();
         lly = getLocation().getY();
-        urx = getLocation().getX();
-        ury = getLocation().getY() + size_y;
+        urx = llx + size_y;
+        ury = lly + size_x;
     }
 
     Box bbox(llx, lly, urx, ury);
@@ -520,7 +522,30 @@ ArrayObject<ObjectId> *Inst::getPGPinArray() const {
 }
 
 void Inst::clear() {
-    // TODO.
+    //clear pg pins:
+    ArrayObject<ObjectId> *id_array = getPGPinArray();
+    if (id_array != nullptr) {
+        for (ArrayObject<ObjectId>::iterator iter = id_array->begin();
+            iter != id_array->end(); ++iter) {
+            if (*iter == 0) continue; //invalid pin id.
+            Pin *pin = addr<Pin>(*iter);
+            Object::deleteObject<Pin>(pin);
+        }
+    }
+    __deleteObjectIdArray(pg_pins_);
+
+    //clear pins:
+    id_array = getPinArray();
+    if (id_array != nullptr) {
+        for (ArrayObject<ObjectId>::iterator iter = id_array->begin();
+            iter != id_array->end(); ++iter) {
+            if (*iter == 0) continue; //invalid pin id.
+            Pin *pin = addr<Pin>(*iter);
+            Object::deleteObject<Pin>(pin);
+        }
+    }
+    __deleteObjectIdArray(pins_);
+    //TODO: if master != 0, decr master's ref_count.
 }
 
 void Inst::print(FILE *fp) {

@@ -12,6 +12,11 @@ if(NOT CMAKE_BUILD_TYPE)
         "Choose the type of build, options are: Debug Release."
         FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS "-g ${CMAKE_CXX_FLAGS}")
+endif(CMAKE_BUILD_TYPE)
+
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 if(NOT CMAKE_CXX_ABI)
@@ -54,9 +59,16 @@ set(LIMBO_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/Limbo)
 message(STATUS "LIMBO_SOURCE_DIR ${LIMBO_SOURCE_DIR}")
 set(LIMBO_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/thirdparty/Limbo)
 message(STATUS "LIMBO_BINARY_DIR ${LIMBO_BINARY_DIR}")
-set(CUB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cub)
-message(STATUS "CUB_DIR ${CUB_DIR}")
 
+if (CUDA_FOUND)
+    if (NOT ${CUDA_VERSION_MAJOR} VERSION_GREATER "10")
+        set(CUB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cub)
+        message(STATUS "CUB_DIR ${CUB_DIR}")
+    endif (NOT ${CUDA_VERSION_MAJOR} VERSION_GREATER "10")
+else (CUDA_FOUND) 
+    set(CUB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/cub)
+    message(STATUS "CUB_DIR ${CUB_DIR}")
+endif (CUDA_FOUND)
 # munkres-cpp for Hungarian algorithm 
 set(MUNKRES_CPP_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/munkres-cpp/src)
 set(MUNKRES_CPP_LINK_DIRS ${CMAKE_CURRENT_BINARY_DIR}/thirdparty/munkres-cpp)
@@ -170,5 +182,6 @@ if (CMAKE_PLACE)
         ${MUNKRES_CPP_INCLUDE_DIRS}
         ${LEMON_INCLUDE_DIRS}
         )
+    add_definitions(-D_CMAKE_PLACE)
 endif(CMAKE_PLACE)
 # end of open-edi

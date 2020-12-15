@@ -42,7 +42,7 @@ namespace Timinglib {
 class LibSyn;
 
 #define tb_namespace open_edi::db
-#define BUILD_PARAM const std::string &name, timinglib_attribute_value *v
+#define buildParam const std::string &name, timinglib_attribute_value *v
 
 typedef struct ObjectList {
     tb_namespace::Object *object = nullptr;
@@ -63,201 +63,199 @@ class LibBuilder {
     ~LibBuilder();
 
     // set
-    void set_lib_syn(LibSyn *s);
+    void setLibSyn(LibSyn *s);
 
-    void begin_group(timinglib_head *);
-    void end_group();
+    void beginGroup(timinglib_head *);
+    void endGroup();
 
-    void build_attribute(BUILD_PARAM);
+    void buildAttribute(buildParam);
 
   private:
-    void __build_group_map();
-    void __build_library(timinglib_head *);
-    void __build_cell(timinglib_head *);
-    void __build_pin(timinglib_head *);
-    void __build_pg_pin(timinglib_head *);
-    void __build_operating_conditions(timinglib_head *);
-    void __build_wire_load(timinglib_head *);
-    void __build_wire_load_table(timinglib_head *);
-    void __build_wire_load_selection(timinglib_head *);
-    void __build_lu_table_template(timinglib_head *);
-    void __build_ff(timinglib_head *);
-    void __build_latch(timinglib_head *);
-    void __build_statetable(timinglib_head *);
-    void __build_bus(timinglib_head *);
-    void __build_bundle(timinglib_head *);
-    void __build_type(timinglib_head *);
-    void __build_timing(timinglib_head *);
-    void __build_cell_rise(timinglib_head *);
-    void __build_cell_fall(timinglib_head *);
-    void __build_rise_transition(timinglib_head *);
-    void __build_fall_transition(timinglib_head *);
-    void __build_rise_constraint(timinglib_head *);
-    void __build_fall_constraint(timinglib_head *);
+    void __buildGroupMap();
+    void __buildLibrary(timinglib_head *);
+    void __buildCell(timinglib_head *);
+    void __buildPin(timinglib_head *);
+    void __buildPgPin(timinglib_head *);
+    void __buildOperatingConditions(timinglib_head *);
+    void __buildWireLoad(timinglib_head *);
+    void __buildWireLoadTable(timinglib_head *);
+    void __buildWireLoadSelection(timinglib_head *);
+    void __buildLuTableTemplate(timinglib_head *);
+    void __buildFf(timinglib_head *);
+    void __buildLatch(timinglib_head *);
+    void __buildStatetable(timinglib_head *);
+    void __buildBus(timinglib_head *);
+    void __buildBundle(timinglib_head *);
+    void __buildType(timinglib_head *);
+    void __buildTiming(timinglib_head *);
+    void __buildCellRise(timinglib_head *);
+    void __buildCellFall(timinglib_head *);
+    void __buildRiseTransition(timinglib_head *);
+    void __buildFallTransition(timinglib_head *);
+    void __buildRiseConstraint(timinglib_head *);
+    void __buildFallConstraint(timinglib_head *);
 
-    void __build_attr_map();
-    void __build_scaling_factors_attrs();
+    void __buildAttrMap();
+    void __buildScalingFactorsAttrs();
 
     // library
-    void __build_default_oc(BUILD_PARAM);
-    void __build_time_unit(BUILD_PARAM);
-    void __build_pulling_resistance_unit(BUILD_PARAM);
-    void __build_resistance_unit(BUILD_PARAM);
-    void __build_capacitive_load_unit(BUILD_PARAM);
-    void __build_voltage_unit(BUILD_PARAM);
-    void __build_current_unit(BUILD_PARAM);
-    void __build_leakage_power_unit(BUILD_PARAM);
-    void __build_distance_unit(BUILD_PARAM);
-    void __build_nom_temperature(BUILD_PARAM);
-    void __build_nom_voltage(BUILD_PARAM);
-    void __build_nom_process(BUILD_PARAM);
-    void __build_input_threshold_pct_fall(BUILD_PARAM);
-    void __build_input_threshold_pct_rise(BUILD_PARAM);
-    void __build_output_threshold_pct_fall(BUILD_PARAM);
-    void __build_output_threshold_pct_rise(BUILD_PARAM);
-    void __build_slew_lower_threshold_pct_fall(BUILD_PARAM);
-    void __build_slew_lower_threshold_pct_rise(BUILD_PARAM);
-    void __build_slew_upper_threshold_pct_fall(BUILD_PARAM);
-    void __build_slew_upper_threshold_pct_rise(BUILD_PARAM);
-    void __build_slew_derate_from_library(BUILD_PARAM);
-    void __build_scaling_factors_attr(BUILD_PARAM);
-    void __build_default_wire_load(BUILD_PARAM);
-    void __build_default_wire_load_area(BUILD_PARAM);
-    void __build_default_wire_load_mode(BUILD_PARAM);
-    void __build_default_wire_load_capacitance(BUILD_PARAM);
-    void __build_default_wire_load_resistance(BUILD_PARAM);
-    void __build_default_wire_load_selection(BUILD_PARAM);
-    void __build_default_input_pin_cap(BUILD_PARAM);
-    void __build_default_output_pin_cap(BUILD_PARAM);
-    void __build_default_inout_pin_cap(BUILD_PARAM);
-    void __build_default_max_capacitance(BUILD_PARAM);
-    void __build_default_max_fanout(BUILD_PARAM);
-    void __build_default_max_transition(BUILD_PARAM);
-    void __build_default_fanout_load(BUILD_PARAM);
-    void __build_default_cell_leakage_power(BUILD_PARAM);
-    void __build_voltage_map(BUILD_PARAM);
+    void __buildDefaultOc(buildParam);
+    void __buildTimeUnit(buildParam);
+    void __buildPullingResistanceUnit(buildParam);
+    void __buildResistanceUnit(buildParam);
+    void __buildCapacitiveLoadUnit(buildParam);
+    void __buildVoltageUnit(buildParam);
+    void __buildCurrentUnit(buildParam);
+    void __buildLeakagePowerUnit(buildParam);
+    void __buildDistanceUnit(buildParam);
+    void __buildNomTemperature(buildParam);
+    void __buildNomVoltage(buildParam);
+    void __buildNomProcess(buildParam);
+    void __buildInputThresholdPctFall(buildParam);
+    void __buildInputThresholdPctRise(buildParam);
+    void __buildOutputThresholdPctFall(buildParam);
+    void __buildOutputThresholdPctRise(buildParam);
+    void __buildSlewLowerThresholdPctFall(buildParam);
+    void __buildSlewLowerThresholdPctRise(buildParam);
+    void __buildSlewUpperThresholdPctFall(buildParam);
+    void __buildSlewUpperThresholdPctRise(buildParam);
+    void __buildSlewDerateFromLibrary(buildParam);
+    void __buildScalingFactorsAttr(buildParam);
+    void __buildDefaultWireLoad(buildParam);
+    void __buildDefaultWireLoadArea(buildParam);
+    void __buildDefaultWireLoadMode(buildParam);
+    void __buildDefaultWireLoadCapacitance(buildParam);
+    void __buildDefaultWireLoadResistance(buildParam);
+    void __buildDefaultWireLoadSelection(buildParam);
+    void __buildDefaultInputPinCap(buildParam);
+    void __buildDefaultOutputPinCap(buildParam);
+    void __buildDefaultInoutPinCap(buildParam);
+    void __buildDefaultMaxCapacitance(buildParam);
+    void __buildDefaultMaxFanout(buildParam);
+    void __buildDefaultMaxTransition(buildParam);
+    void __buildDefaultFanoutLoad(buildParam);
+    void __buildDefaultCellLeakagePower(buildParam);
+    void __buildVoltageMap(buildParam);
 
     // operating conditions
-    void __build_process(BUILD_PARAM);
-    void __build_temperature(BUILD_PARAM);
-    void __build_voltage(BUILD_PARAM);
-    void __build_tree_type(BUILD_PARAM);
+    void __buildProcess(buildParam);
+    void __buildTemperature(buildParam);
+    void __buildVoltage(buildParam);
+    void __buildTreeType(buildParam);
 
     // cell
-    void __build_area(BUILD_PARAM);
-    void __build_cell_footprint(BUILD_PARAM);
-    void __build_dont_touch(BUILD_PARAM);
-    void __build_dont_use(BUILD_PARAM);
-    void __build_always_on(BUILD_PARAM);
-    void __build_is_macro_cell(BUILD_PARAM);
-    void __build_is_pad(BUILD_PARAM);
-    void __build_is_decap_cell(BUILD_PARAM);
-    void __build_is_filler_cell(BUILD_PARAM);
-    void __build_is_tap_cell(BUILD_PARAM);
-    void __build_is_clock_gating_cell(BUILD_PARAM);
-    void __build_is_clock_isolation_cell(BUILD_PARAM);
-    void __build_is_isolation_cell(BUILD_PARAM);
-    void __build_is_no_enable(BUILD_PARAM);
-    void __build_clock_gating_integrated_cell(BUILD_PARAM);
-    void __build_antenna_diode_type(BUILD_PARAM);
-    void __build_is_level_shifter(BUILD_PARAM);
-    void __build_cell_leakage_power(BUILD_PARAM);
-    void __build_switch_cell_type(BUILD_PARAM);
-    void __build_retention_cell(BUILD_PARAM);
+    void __buildArea(buildParam);
+    void __buildCellFootprint(buildParam);
+    void __buildDontTouch(buildParam);
+    void __buildDontUse(buildParam);
+    void __buildAlwaysOn(buildParam);
+    void __buildIsMacroCell(buildParam);
+    void __buildIsPad(buildParam);
+    void __buildIsDecapCell(buildParam);
+    void __buildIsFillerCell(buildParam);
+    void __buildIsTapCell(buildParam);
+    void __buildIsClockGatingCell(buildParam);
+    void __buildIsClockIsolationCell(buildParam);
+    void __buildIsIsolationCell(buildParam);
+    void __buildIsNoEnable(buildParam);
+    void __buildClockGatingIntegratedCell(buildParam);
+    void __buildAntennaDiodeType(buildParam);
+    void __buildIsLevelShifter(buildParam);
+    void __buildCellLeakagePower(buildParam);
+    void __buildSwitchCellType(buildParam);
+    void __buildRetentionCell(buildParam);
 
     // pin
-    void __build_related_ground_pin(BUILD_PARAM);
-    void __build_related_power_pin(BUILD_PARAM);
-    void __build_max_transition(BUILD_PARAM);
-    void __build_fall_capacitance(BUILD_PARAM);
-    void __build_rise_capacitance(BUILD_PARAM);
-    void __build_three_state(BUILD_PARAM);
-    void __build_capacitance(BUILD_PARAM);
-    void __build_max_capacitance(BUILD_PARAM);
-    void __build_min_capacitance(BUILD_PARAM);
-    void __build_direction(BUILD_PARAM);
-    void __build_max_fanout(BUILD_PARAM);
-    void __build_min_fanout(BUILD_PARAM);
-    void __build_min_transition(BUILD_PARAM);
-    void __build_min_period(BUILD_PARAM);
-    void __build_min_pulse_width_high(BUILD_PARAM);
-    void __build_min_pulse_width_low(BUILD_PARAM);
-    void __build_clock(BUILD_PARAM);
-    void __build_clock_gate_clock_pin(BUILD_PARAM);
-    void __build_clock_gate_enable_pin(BUILD_PARAM);
-    void __build_function(BUILD_PARAM);
-    void __build_members(BUILD_PARAM);
-    void __build_bus_type(BUILD_PARAM);
+    void __buildRelatedGroundPin(buildParam);
+    void __buildRelatedPowerPin(buildParam);
+    void __buildMaxTransition(buildParam);
+    void __buildFallCapacitance(buildParam);
+    void __buildRiseCapacitance(buildParam);
+    void __buildThreeState(buildParam);
+    void __buildCapacitance(buildParam);
+    void __buildMaxCapacitance(buildParam);
+    void __buildMinCapacitance(buildParam);
+    void __buildDirection(buildParam);
+    void __buildMaxFanout(buildParam);
+    void __buildMinFanout(buildParam);
+    void __buildMinTransition(buildParam);
+    void __buildMinPeriod(buildParam);
+    void __buildMinPulseWidthHigh(buildParam);
+    void __buildMinPulseWidthLow(buildParam);
+    void __buildClock(buildParam);
+    void __buildClockGateClockPin(buildParam);
+    void __buildClockGateEnablePin(buildParam);
+    void __buildFunction(buildParam);
+    void __buildMembers(buildParam);
+    void __buildBusType(buildParam);
 
     // pg_pin
-    void __build_pg_type(BUILD_PARAM);
-    void __build_voltage_name(BUILD_PARAM);
+    void __buildPgType(buildParam);
+    void __buildVoltageName(buildParam);
 
     // type
-    void __build_bit_width(BUILD_PARAM);
-    void __build_bit_from(BUILD_PARAM);
-    void __build_bit_to(BUILD_PARAM);
-    void __build_downto(BUILD_PARAM);
+    void __buildBitWidth(buildParam);
+    void __buildBitFrom(buildParam);
+    void __buildBitTo(buildParam);
+    void __buildDownto(buildParam);
 
     // timing
-    void __build_timing_sense(BUILD_PARAM);
-    void __build_timing_type(BUILD_PARAM);
-    void __build_when(BUILD_PARAM);
-    void __build_related_pin(BUILD_PARAM);
+    void __buildTimingSense(buildParam);
+    void __buildTimingType(buildParam);
+    void __buildWhen(buildParam);
+    void __buildRelatedPin(buildParam);
 
     // wire_load
-    void __build_resistance(BUILD_PARAM);
-    void __build_slope(BUILD_PARAM);
-    void __build_fanout_length(BUILD_PARAM);
+    void __buildResistance(buildParam);
+    void __buildSlope(buildParam);
+    void __buildFanoutLength(buildParam);
 
     // wire_load_table
-    void __build_fanout_capacitance(BUILD_PARAM);
-    void __build_fanout_resistance(BUILD_PARAM);
-    void __build_fanout_area(BUILD_PARAM);
+    void __buildFanoutCapacitance(buildParam);
+    void __buildFanoutResistance(buildParam);
+    void __buildFanoutArea(buildParam);
 
     // wire_load_selection
-    void __build_wire_load_from_area(BUILD_PARAM);
+    void __buildWireLoadFromArea(buildParam);
 
     // lu_table_template
-    void __build_variable_1(BUILD_PARAM);
-    void __build_variable_2(BUILD_PARAM);
-    void __build_variable_3(BUILD_PARAM);
-    void __build_index_1(BUILD_PARAM);
-    void __build_index_2(BUILD_PARAM);
-    void __build_index_3(BUILD_PARAM);
+    void __buildVariable1(buildParam);
+    void __buildVariable2(buildParam);
+    void __buildVariable3(buildParam);
+    void __buildIndex1(buildParam);
+    void __buildIndex2(buildParam);
+    void __buildIndex3(buildParam);
 
     // cell_rise cell_fall rise_transition
     // fall_transition rise_constraint fall_constraint
-    void __build_values(BUILD_PARAM);
+    void __buildValues(buildParam);
 
-    void __get_terms_from_top_stack(
-        std::vector<tb_namespace::TTerm *> *libterms);
-    void __get_pg_terms_from_top_stack(
+    void __getTermsFromTopStack(std::vector<tb_namespace::TTerm *> *libterms);
+    void __getPgTermsFromTopStack(
         std::vector<tb_namespace::TPgTerm *> *libpgterms);
-    void __get_timingarcs_from_top_stack(
+    void __getTimingarcsFromTopStack(
         std::vector<tb_namespace::TimingArc *> *libtimingarcs);
-    void __get_objects_from_top_stack(
-        std::vector<tb_namespace::Object *> *objects);
-    void __delete_object_list(ObjectList *objects);
-    float __get_time_unit_multiply(const std::string &u);
-    float __get_resistance_unit_multiply(const std::string &u);
-    float __get_capacitive_unit_multiply(const std::string &u);
-    float __get_voltage_unit_multiply(const std::string &u);
-    float __get_current_unit_multiply(const std::string &u);
-    float __get_power_unit_multiply(const std::string &u);
-    float __get_distance_unit_multiply(const std::string &u);
-    void __get_pin_names_from_bus_range(const char *str,
-                                        std::vector<std::string> *pinNames);
-    tb_namespace::TCell *__get_tcell_by_timingarc(tb_namespace::TimingArc *t);
+    void __getObjectsFromTopStack(std::vector<tb_namespace::Object *> *objects);
+    void __deleteObjectList(ObjectList *objects);
+    float __getTimeUnitMultiply(const std::string &u);
+    float __getResistanceUnitMultiply(const std::string &u);
+    float __getCapacitiveUnitMultiply(const std::string &u);
+    float __getVoltageUnitMultiply(const std::string &u);
+    float __getCurrentUnitMultiply(const std::string &u);
+    float __getPowerUnitMultiply(const std::string &u);
+    float __getDistanceUnitMultiply(const std::string &u);
+    void __getPinNamesFromBusRange(const char *str,
+                                   std::vector<std::string> *pinNames);
+    tb_namespace::TCell *__getTcellByTimingarc(tb_namespace::TimingArc *t);
 
-    bool __is_int_type(timinglib_attribute_value *);
-    bool __is_double_type(timinglib_attribute_value *);
-    bool __is_string_type(timinglib_attribute_value *);
-    bool __is_bool_type(timinglib_attribute_value *);
-    float __get_double_value(timinglib_attribute_value *);
-    void __get_string_float_list(char *str, std::vector<double> *values);
-    void __split_string_by_delim(char *str, const char *delim,
-                                 std::vector<std::string> *rets);
+    bool __isIntType(timinglib_attribute_value *);
+    bool __isDoubleType(timinglib_attribute_value *);
+    bool __isStringType(timinglib_attribute_value *);
+    bool __isBoolType(timinglib_attribute_value *);
+    float __getDoubleValue(timinglib_attribute_value *);
+    void __getStringFloatList(char *str, std::vector<double> *values);
+    void __splitStringByDelim(char *str, const char *delim,
+                              std::vector<std::string> *rets);
 
     str_omap_t<std::function<void(timinglib_head *)>> group_builder_map_;
     str_omap_t<
@@ -276,7 +274,7 @@ class LibBuilder {
 
     LibSyn *libsyn_;
 
-    bool set_resistance_unit_;
+    bool setResistanceUnit_;
     str_omap_t<TypeGroup> type_group_lib_map_;
     str_omap_t<TypeGroup> type_group_cell_map_;
     str_omap_t<std::vector<tb_namespace::TTerm *>>

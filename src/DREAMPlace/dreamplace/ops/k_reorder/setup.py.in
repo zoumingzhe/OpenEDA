@@ -25,7 +25,17 @@ cub_dir = "${CUB_DIR}"
 cuda_flags = '${CMAKE_CUDA_FLAGS}'.split(';')
 print("cuda_flags = %s" % (' '.join(cuda_flags)))
 
-include_dirs = [ops_dir, os.path.abspath(limbo_source_dir), cub_dir, '${Boost_INCLUDE_DIRS}']
+if "${CUDA_VERSION_MAJOR}" != "":
+    cuda_major_version = int("${CUDA_VERSION_MAJOR}")
+else:
+    cuda_major_version = 0
+
+if cuda_major_version >= 11:
+    include_dirs = [ops_dir, os.path.abspath(limbo_source_dir), '${Boost_INCLUDE_DIRS}']
+else:
+    include_dirs = [ops_dir, os.path.abspath(limbo_source_dir), cub_dir, '${Boost_INCLUDE_DIRS}']
+
+
 lib_dirs = [os.path.join(os.path.abspath(limbo_binary_dir), 'limbo/parsers/gdsii/stream'), 
         os.path.join(os.path.abspath(limbo_binary_dir), 'limbo/thirdparty/gzstream'), 
         os.path.dirname('${ZLIB_LIBRARIES}'), 
@@ -65,7 +75,8 @@ if "${CUDA_FOUND}".upper() == 'TRUE':
                     ], 
                 include_dirs=copy.deepcopy(include_dirs), 
                 library_dirs=copy.deepcopy(lib_dirs),
-                libraries=['${CUDA_LINKED}', 'curand', 'culibos', 'cudadevrt', 'cudart'] + libs,
+                #libraries=['${CUDA_LINKED}', 'curand', 'culibos', 'cudadevrt', 'cudart'] + libs,
+                libraries=['${CUDA_LINKED}', 'culibos', 'cudadevrt', 'cudart'] + libs,
                 extra_compile_args={
                     'cxx': ['-O2', torch_major_version, torch_minor_version, '-fopenmp'], 
                     'nvcc': copy.deepcopy(cuda_flags)

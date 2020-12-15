@@ -41,7 +41,7 @@ class LibSyn {
 
     LibAnalysis *getAnalysis(void);
 
-    bool parse_desc_file();
+    bool parseDescFile();
     void generateAttrEnumHeader();
     void generateGroupEnumHeader();
     void generateSyntaxDeclsHAndCPP();
@@ -50,12 +50,12 @@ class LibSyn {
     void *getScanner(void);
 
   private:
-    void __lib_scan_begin(FILE *fp);
-    void __lib_scan_end(FILE *fp);
-    int __lib_parse();
-    void __desc_scan_begin(FILE *fp);
-    void __desc_scan_end(FILE *fp);
-    int __desc_parse();
+    void __libScanBegin(FILE *fp);
+    void __libScanEnd(FILE *fp);
+    int __libParse();
+    void __descScanBegin(FILE *fp);
+    void __descScanEnd(FILE *fp);
+    int __descParse();
 
     LibAnalysis *analysis_ = nullptr;
     LibBuilder *libbuilder_ = nullptr;
