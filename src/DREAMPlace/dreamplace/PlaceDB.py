@@ -142,8 +142,10 @@ class PlaceDB (object):
         self.flat_region_boxes *= scale_factor
         # may have performance issue 
         # I assume there are not many boxes 
-        for i in range(len(self.regions)): 
-            self.regions[i] *= scale_factor 
+        if len(self.regions):
+            self.regions=[i*scale_factor for i in self.regions]
+        #for i in range(len(self.regions)): 
+        #    self.regions[i] *= scale_factor 
         self.routing_grid_xl *=  scale_factor
         self.routing_grid_yl *=  scale_factor
         self.routing_grid_xh *=  scale_factor
@@ -452,7 +454,7 @@ class PlaceDB (object):
         @return a pair of (elements, cumulative column indices of the beginning element of each row)
         """
         # flat netpin map, length of #pins
-        flat_net2pin_map = np.zeros(len(pin2net_map), dtype=np.int32)
+        flat_net2pin_map = np.zeros(len(net2pin_map), dtype=np.int32)
         # starting index in netpin map for each net, length of #nets+1, the last entry is #pins  
         flat_net2pin_start_map = np.zeros(len(net2pin_map)+1, dtype=np.int32)
         count = 0
@@ -461,7 +463,7 @@ class PlaceDB (object):
             flat_net2pin_start_map[i] = count 
             count += len(net2pin_map[i])
         assert flat_net2pin_map[-1] != 0
-        flat_net2pin_start_map[len(net2pin_map)] = len(pin2net_map)
+        flat_net2pin_start_map[len(net2pin_map)] = len(net2pin_map)
 
         return flat_net2pin_map, flat_net2pin_start_map
 
@@ -474,20 +476,20 @@ class PlaceDB (object):
         self.rawdb = place_io.PlaceIOFunction.read(params)
         self.initialize_from_rawdb(params)
 
-    def read_common_db(self, params):
+    def read_common_db(self, params, db_ptr):
         """
         @brief read commonDB using c++
         @param params parmeters
         """
         self.dtype = datatypes[params.dtype]
-        self.initialize_from_common_db(params)
+        self.initialize_from_common_db(params, db_ptr)
 
-    def initialize_from_common_db(self, params):
+    def initialize_from_common_db(self, params, db_ptr):
         """
         @brief initialize from common db
         @param params parameters
         """
-        pydb = place_io.PlaceIOFunction.pydb(None)
+        pydb = place_io.PlaceIOFunction.pydb(None, db_ptr)
         self.initialize_from_pydb(pydb, params)
 
     def initialize_from_rawdb(self, params):
@@ -605,17 +607,17 @@ class PlaceDB (object):
             self.net2pin_map[i] = np.array(self.net2pin_map[i], dtype=np.int32)
         self.net2pin_map = np.array(self.net2pin_map)
 
-    def __call__(self, params, from_open_edi=False):
+    def __call__(self, params, db_ptr=None):
         """
         @brief top API to read placement files 
         @param params parameters 
         """
         tt = time.time()
 
-        if (not from_open_edi):
+        if (db_ptr is None):
             self.read(params)
         else:
-            self.read_common_db(params)
+            self.read_common_db(params, db_ptr)
         self.initialize(params)
 
         logging.info("reading benchmark takes %g seconds" % (time.time()-tt))
@@ -633,7 +635,8 @@ class PlaceDB (object):
                 params.scale_factor = math.pow(2, -(math.ceil(math.log(self.site_width,2))))
             else:
                 params.scale_factor = 1.0 / self.site_width
-            logging.info("set scale_factor = %g, as site_width = %g" % (params.scale_factor, self.site_width))
+       
+        logging.info("set scale_factor = %g, as site_width = %g" % (params.scale_factor, self.site_width))
         self.scale(params.scale_factor)
 
         content = """
@@ -687,9 +690,12 @@ row height = %g, site width = %g
                 ))
         content += "total_movable_node_area = %g, total_fixed_node_area = %g, total_space_area = %g\n" % (self.total_movable_node_area, self.total_fixed_node_area, self.total_space_area)
 
+        content += "placement density = %g (%g/%g)\n" % (self.total_movable_node_area / self.total_space_area, self.total_movable_node_area, self.total_space_area)
+        content += "core utilization = %g (%g/%g)\n" % ((self.total_movable_node_area + self.total_fixed_node_area) / self.area, self.total_movable_node_area + self.total_fixed_node_area, self.area)
+
         target_density = min(self.total_movable_node_area / self.total_space_area, 1.0)
         if target_density > params.target_density:
-            logging.warn("target_density %g is smaller than utilization %g, ignored" % (params.target_density, target_density))
+            logging.warn("target_density %g is smaller than placement density %g, ignored" % (params.target_density, target_density))
             params.target_density = target_density 
         content += "target_density = %g\n" % (params.target_density)
         # insert filler nodes 
@@ -837,7 +843,7 @@ row height = %g, site width = %g
             f.write(content)
         logging.info("write_nets takes %.3f seconds" % (time.time()-tt))
 
-    def apply(self, params, node_x, node_y, for_open_edi=False):
+    def apply(self, params, node_x, node_y, db_ptr=None):
         """
         @brief apply placement solution and update database 
         """
@@ -854,11 +860,11 @@ row height = %g, site width = %g
             node_x = self.node_x * unscale_factor
             node_y = self.node_y * unscale_factor
 
-        if (not for_open_edi):
+        if (db_ptr is None):
             # update raw database 
             place_io.PlaceIOFunction.apply(self.rawdb, node_x, node_y)
         else:
-            place_io.PlaceIOFunction.apply(None, node_x, node_y)
+            place_io.PlaceIOFunction.apply(None, node_x, node_y, db_ptr)
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

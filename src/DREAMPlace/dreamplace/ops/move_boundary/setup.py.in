@@ -18,6 +18,8 @@ utility_dir = "${UTILITY_LIBRARY_DIRS}"
 ops_dir = "${OPS_DIR}"
 os.environ["CUDA_HOME"] = "${CUDA_TOOLKIT_ROOT_DIR}"
 
+cuda_flags = '${CMAKE_CUDA_FLAGS}'.split(';')
+
 include_dirs = [ops_dir]
 lib_dirs = [utility_dir]
 libs = ['utility'] 
@@ -53,10 +55,11 @@ if "${CUDA_FOUND}".upper() == 'TRUE':
                     ], 
                 include_dirs=copy.deepcopy(include_dirs), 
                 library_dirs=copy.deepcopy(lib_dirs),
-                libraries=['cusparse', 'culibos'] + libs, 
+                #libraries=['cusparse', 'culibos'] + libs, 
+                libraries=['culibos'] + libs, 
                 extra_compile_args={
                     'cxx': ['-O2', torch_major_version, torch_minor_version], 
-                    'nvcc': []
+                    'nvcc': copy.deepcopy(cuda_flags) 
                     }
                 ),
         ])

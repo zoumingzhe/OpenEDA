@@ -41,11 +41,11 @@ cxx_flags = ['-fvisibility=hidden', torch_major_version, torch_minor_version]
 
 if ("${CMAKE_PLACE}".upper() == 'ON') or ("${CMAKE_PLACE}".upper() == 'TRUE') or ("${CMAKE_PLACE}" == '1'):
     lib_dirs.append('${COMMON_DB_LIBRARY_DIRS}')
-    lib_dirs.append('${DB_DIRS}/db')
-    lib_dirs.append('${DB_DIRS}/util')
-    libs.append('place_flow') 
-    libs.append('openedi_db')
-    libs.append('openedi_util')
+#    lib_dirs.append('${DB_DIRS}/db')
+#    lib_dirs.append('${DB_DIRS}/util')
+    libs.append('common_place_db')
+#    libs.append('openedi_db')
+#    libs.append('openedi_util')
     include_dirs.append('${OPS_DIR}/../../..')
     cxx_flags.append('-D_CMAKE_PLACE')
 
