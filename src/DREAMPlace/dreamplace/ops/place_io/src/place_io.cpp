@@ -111,10 +111,18 @@ void apply(unsigned long db_ptr,
         pybind11::array_t<T, pybind11::array::c_style | pybind11::array::forcecast> const& y
         )
 {
-    //CommonPlaceDB* db = CommonPlaceDB::getPlaceDBInstance();
-    CommonPlaceDB* db = (CommonPlaceDB* )db_ptr;
-    //update db's x,y.
-    //to be implemented.
+    /* update db's current x,y */
+    CommonPlaceDB *db = (CommonPlaceDB*)db_ptr;
+    if (nullptr == db) {
+      dreamplacePrint(kERROR, "Not find place common DB.\n");
+      return;
+    }
+    int numMoveNode = db->getNumMoveableNodes();
+    for (auto i = 0; i < numMoveNode; ++i)
+    {
+      db->setCurX(i, x.at(i));
+      db->setCurY(i, y.at(i));
+    }
     return;
 }
 #endif

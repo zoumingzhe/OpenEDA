@@ -45,7 +45,7 @@ int GlobalPlace::run()
         modulePath.append(temp1);
     }
     int rtn_value = 0;
-    std::string json_file; // = getPara()->getJsonFile();
+    std::string json_file = getPara().getJsonFile();
     //const std::wstring kModulePath(L"@CMAKE_INSTALL_PREFIX@/dreamplace");
     std::wstring kSitePaths(L"@Python_SITELIB@");
     std::wstring kSitePathsOrig(kSitePaths);
