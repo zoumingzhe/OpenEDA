@@ -455,6 +455,7 @@ void registerDatabaseTclCommands(Tcl_Interp *itp) {
                           OptionDataType::kStringList, true,
                           "verilog name list")));
     }
+
 }
 
 } // namespace db
