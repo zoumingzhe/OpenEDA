@@ -36,33 +36,41 @@ void IODB::readBufferLibrary(const string file_name, vector<Buffer> &buffers) {
 int IODB::readInputTree(string file_name, vector<Buffer> &drivers) {
     destroyTree();
     // read db
+    queue<Cell *> cells;
     Cell *top_cell = getTopCell();
     if(top_cell){
+        cells.push(top_cell);
+    }
+    while(!cells.empty()){
+        top_cell = cells.front();
+        cells.pop();
+        // get all instances
+        ArrayObject<ObjectId> *v_inst = top_cell->getInstanceArray();
+        if(v_inst){
+            ArrayObject<ObjectId> inst_ids = *v_inst;
+            for(int64_t j=0;j<inst_ids.getSize();j++){
+                ObjectId inst_id = inst_ids[j];
+                Inst *inst = Object::addr<Inst>(inst_id);
+                string name = inst->getName();
+                if(name[0]=='\\'){
+                    name.erase(0, 1);
+                }
+                if(name.back()==' '){
+                    name.pop_back();
+                }
+                insts_[name] = inst;
+            }
+        }
+        // get all cells
         ArrayObject<ObjectId> *v_cell = top_cell->getCellArray();
         if(v_cell){
             ArrayObject<ObjectId> cell_ids = *v_cell;
             for(int64_t i=0;i<cell_ids.getSize();i++){
                 ObjectId cell_id = cell_ids[i];
                 Cell *cell = Object::addr<Cell>(cell_id);
-                ArrayObject<ObjectId> *v_inst = cell->getInstanceArray();
-                ArrayObject<ObjectId> inst_ids = *v_inst;
-                for(int64_t j=0;j<inst_ids.getSize();j++){
-                    ObjectId inst_id = inst_ids[j];
-                    Inst *inst = Object::addr<Inst>(inst_id);
-                    string name = inst->getName();
-                    if(name[0]=='\\'){
-                        name.erase(0, 1);
-                    }
-                    if(name.back()==' '){
-                        name.pop_back();
-                    }
-                    insts_[name] = inst;
-                }
+                cells.push(cell);
             }
         }
-    }else{
-        cout << "no top cell" << endl;
-        return -1;
     }
 
     // read file
@@ -123,14 +131,14 @@ int IODB::readInputTree(string file_name, vector<Buffer> &drivers) {
                     Net *net = pin->getNet();
                     Node *node = new Node();
                     node->id = pin->getId();
-                    node->x = (uint64_t)net%5000;
-                    node->y = (uint64_t)pin%5000;
+                    node->x = (uint64_t)net%500;
+                    node->y = (uint64_t)pin%500;
                     node->type = CANDIDATE;//SINK
                     node->solutions[1] = NULL;
                     VanNode *solution = new VanNode();
                     solution->area = 0;
                     solution->buffer_location = NULL;
-                    solution->capacitance = (uint64_t)node%1000;
+                    solution->capacitance = (uint64_t)node%100;
                     solution->next = NULL;
                     solution->polarity = false;
                     solution->time = 0;

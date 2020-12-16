@@ -76,6 +76,12 @@ struct Node {
     double r_edge;              // resistance of edge from this node to it's parent
 };
 
+struct InstNode {
+    double delay;
+    std::vector<uint64_t> out_pins;
+    std::vector<uint64_t> in_pins;
+};
+
 }//namespace opt
 }//namespace open_edi
 #endif
