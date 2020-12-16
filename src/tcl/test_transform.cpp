@@ -126,30 +126,48 @@ static int transformTest(ClientData cld, Tcl_Interp *itp, int argc,
         return TCL_ERROR;
     }
     size_t last_slash = input_value.pin_.rfind("/");
-    std::string pin_name = input_value.pin_.substr(last_slash + 1);
-    std::string inst_name = input_value.pin_.substr(0, last_slash);
-    std::cout << "Info: searching pin " <<  pin_name 
-      << " on inst "  << inst_name << " to check bbox.\n";    
-    Inst * inst = top->getInstance(inst_name);
-    if (inst != nullptr) {
-        Pin *pin = inst->getPin(pin_name);
-        if (pin != nullptr) {
-            std::vector<Box> box_vector;
-            Box compared_box = *input_value.box_;
-            pin->getBoxVector(box_vector);
-            for (auto box : box_vector) {
-                if (box.getLLX() == compared_box.getLLX() &&
-                    box.getLLY() == compared_box.getLLY() &&
-                    box.getURX() == compared_box.getURX() &&
-                    box.getURY() == compared_box.getURY()) {
-                    std::cout << "Info: transform is expected.\n";
-                    break;
-                }
+    Pin *pin = nullptr;
+    Inst * inst = nullptr;
+    if (last_slash == std::string::npos) {
+        std::cout << "Info: searching IO pin " << input_value.pin_
+          << " to check bbox.\n";
+        pin = top->getIOPin(input_value.pin_);
+    } else {
+        std::string pin_name = input_value.pin_.substr(last_slash + 1);
+        std::string inst_name = input_value.pin_.substr(0, last_slash);
+        std::cout << "Info: searching pin " <<  pin_name
+          << " on inst "  << inst_name << " to check bbox.\n";
+        inst = top->getInstance(inst_name);
+        if (inst != nullptr) {
+            pin = inst->getPin(pin_name);
+        } else {
+            std::cout << "Error: failed to get inst " << inst_name << ".\n";
+            return TCL_ERROR;
+        }
+    }
+    if (pin != nullptr) {
+        std::vector<Box> box_vector;
+        Box compared_box = *input_value.box_;
+        pin->getBoxVector(box_vector);
+        for (auto box : box_vector) {
+            if (box.getLLX() == compared_box.getLLX() &&
+                box.getLLY() == compared_box.getLLY() &&
+                box.getURX() == compared_box.getURX() &&
+                box.getURY() == compared_box.getURY()) {
+                std::cout << "Info: transform is expected.\n";
+                break;
+            } else if (input_value.verbose_) {
+                std::cout << "Debug: transformed box: ( "<< box.getLLX()
+                  << " " << box.getLLY() << " " << box.getURX()
+                  << " " << box.getURY() << " ) not as expected ( " 
+                  << compared_box.getLLX() << " " << compared_box.getLLY()
+                  << " " << compared_box.getURX() << " "
+                  << compared_box.getURY() << " )\n";
             }
         }
-        if (input_value.verbose_) {
-            inst->printPinGeoms();
-        }
+    }
+    if (input_value.verbose_ && inst) {
+        inst->printPinGeoms();
     }
     //allocated in getData();
     delete input_value.box_;

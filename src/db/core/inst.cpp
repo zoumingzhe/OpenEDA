@@ -566,7 +566,7 @@ void Inst::printPinGeoms() {
                 box_vector[index].getLLX() << " " <<
                 box_vector[index].getLLY() << " " <<
                 box_vector[index].getURX() << " " <<
-                box_vector[index].getURY() << " )" << std::endl;
+                box_vector[index].getURY() << " )." << std::endl;
         }
         box_vector.clear();
     }

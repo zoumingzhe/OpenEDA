@@ -94,7 +94,7 @@ void Pin::setInst(Inst* v) {
 void Pin::getBoxVector(std::vector <Box> & box_vector) const {
     Inst *inst = getInst();
     Term *term = getTerm();
-    ediAssert(term != nullptr && inst != nullptr);
+    ediAssert(term != nullptr);
     Box box(0, 0, 0, 0);
     for (int index = 0; index < term->getPortNum(); ++index) {
         Port *port = term->getPort(index);
@@ -106,7 +106,11 @@ void Pin::getBoxVector(std::vector <Box> & box_vector) const {
             if (geo == nullptr ||
                 geo->getType() != GeometryType::kRect) continue;
             Box box = geo->getBox();
-            transformByInst(inst, box);
+            if (inst != nullptr) {
+                transformByInst(inst, box);
+            } else {
+                transformByIOPin(this, box);
+            }
             box_vector.push_back(box);
             }
         }

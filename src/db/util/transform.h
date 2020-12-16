@@ -16,16 +16,28 @@
 namespace open_edi {
 namespace db {
 class Inst;
-bool transformByInst(Inst *inst, Box &box);
-bool transformByInst(Inst *inst, Point &pt);
+class Pin;
+
+bool transformByInst(const Inst *inst, Box &box);
+bool transformByInst(const Inst *inst, Point &pt);
+
+bool transformByIOPin(const Pin *pin, Box &box);
+bool transformByIOPin(const Pin *pin, Point &pt);
 
 class Transform {
   public:
     Transform() : offset_(0, 0), orient_() {}
     ~Transform() {}
-    Transform(Inst *inst);
+    Transform(const Inst *inst);
+    Transform(const Pin *pin);
+
     void transformCoord(Point &pt);
+    void transformBox(Box &box);
+
   private:
+    void __setOffset(Point &placed_pt, Point &origin, int size_x, int size_y);
+    void __setOffset(Point &placed_pt, Point &origin);
+
     Point offset_;
     Orient orient_;
 };
