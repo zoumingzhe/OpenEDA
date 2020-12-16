@@ -34,7 +34,7 @@ class PlaceIOFunction(Function):
         return place_io_cpp.forward(args.split(' '))
 
     @staticmethod
-    def pydb(raw_db, db_ptr): 
+    def pydb(raw_db, db_ptr=None): 
         """
         @brief convert to python database 
         @param raw_db original placement database 
