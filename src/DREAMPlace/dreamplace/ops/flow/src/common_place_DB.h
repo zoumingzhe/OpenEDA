@@ -293,6 +293,8 @@ class CommonPlaceDB
     const BoxV&          getRowBoxes()              const { return db_.getRowBoxes();              }
     const String         getInstNameById(PlInt id)  const { return db_.getInstNames().at(id);      }
     const String         getNetNameById(PlInt id)   const { return db_.getNetNames().at(id);       }
+    const PlOrient       getInstOriById(PlInt id)   const { return db_.getInstOrients().at(id);    }
+    const PlDirection    getPinDirById(PlInt id)    const { return db_.getPinDirections().at(id);  }
     // common DB interface : get ptr array
     const Coord*         getInitX()                 const { return db_.getInitX().data();                 }
     const Coord*         getInitY()                 const { return db_.getInitX().data();                 }
@@ -360,6 +362,10 @@ class CommonPlaceDB
     void     setNumBinsY(const int num_bin_y)            { num_bins_y_ = num_bin_y;           }
     void     setNumSitesX(const int num_sites_x)         { num_sites_x_ = num_sites_x;        }
     void     setNumSitesY(const int num_sites_y)         { num_sites_y_ = num_sites_y;        }
+    void     setInitX(int i, Coord x)                    { db_.setInitX(i, x);                }
+    void     setInitY(int i, Coord x)                    { db_.setInitY(i, x);                }
+    void     setCurX(int i, Coord x)                     { cur_x_[i] = x;                     }
+    void     setCurY(int i, Coord y)                     { cur_y_[i] = y;                     }
 
 __attribute__ ((visibility("default")))
     void     updateXY(const int* x, const int* y);

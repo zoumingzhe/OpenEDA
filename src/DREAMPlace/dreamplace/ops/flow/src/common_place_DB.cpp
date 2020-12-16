@@ -134,7 +134,6 @@ CommonDB::__init()
       node_size_x_[idx] = getBoxWidth(box);
       node_size_y_[idx] = getBoxHeight(box);
       inst_names_.push_back(inst->getName());
-      inst->setName("abc");
       inst_orients_.push_back(getInstOri(inst));
       idx_to_insts_.push_back(inst);
       // collect moveable inst pins

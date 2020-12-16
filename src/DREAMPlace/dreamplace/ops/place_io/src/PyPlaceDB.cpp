@@ -159,16 +159,17 @@ bool readBookshelf(PlaceDB& db)
 
 #ifdef _CMAKE_PLACE
 void 
-PyPlaceDB::set() 
+PyPlaceDB::set(unsigned long db_ptr)
 {
     /* new set function for place_design flow */
     namespace gtl = boost::polygon; 
     using namespace gtl::operators;
     typedef gtl::polygon_90_set_data<PlaceDB::coordinate_type> PolygonSet; 
 
-    CommonPlaceDB* db = CommonPlaceDB::getPlaceDBInstance();
+    dreamplacePrint(kINFO, "Preparing python DB.\n");
+    CommonPlaceDB *db = (CommonPlaceDB*)db_ptr;
     if (nullptr == db) {
-      dreamplacePrint(kWARN, "Not find place common DB.\n");
+      dreamplacePrint(kERROR, "Not find place common DB.\n");
       return;
     }
 
@@ -179,24 +180,27 @@ PyPlaceDB::set()
     num_terminal_NIs = db->getNumIOPins();
     num_terminals = num_nodes - num_terminal_NIs - db->getNumMoveableNodes();
     int realNodeNum = db->getNumNodes() - num_terminal_NIs;
-    for (auto i = 0; i < realNodeNum; ++i) 
+    for (int i = 0; i < realNodeNum; ++i) 
     {
       //pybind11::dict node_name2id_map; ///< node name to id map, cell name 
       node_name2id_map[pybind11::str(db->getInstNameById(i))] = i; 
+      //pybind11::list node_orient; ///< 1D array, cell orientation 
+      node_orient.append(pybind11::str(toString(db->getInstOriById(i)))); 
     }
     //pybind11::list node_names; ///< 1D array, cell name
     node_names = pybind11::list(pybind11::cast(db->getInstNames())); 
-    //pybind11::list node_orient; ///< 1D array, cell orientation 
-    node_orient = pybind11::list(pybind11::cast(db->getInstOrients())); 
+    //node_orient = pybind11::list(pybind11::cast(db->getInstOrients())); 
 
     node_x = pybind11::list(pybind11::cast(db->getInitXV()));
-    node_x = pybind11::list(pybind11::cast(db->getInitYV()));
-    node_x = pybind11::list(pybind11::cast(db->getNodeSizeXV()));
-    node_y = pybind11::list(pybind11::cast(db->getNodeSizeYV()));
+    node_y = pybind11::list(pybind11::cast(db->getInitYV()));
+    node_size_x = pybind11::list(pybind11::cast(db->getNodeSizeXV()));
+    node_size_y = pybind11::list(pybind11::cast(db->getNodeSizeYV()));
+
     //pybind11::list node2orig_node_map?
-    
-    //pybind11::list pin_direct; ///< 1D array, pin direction IO 
-    pin_direct = pybind11::list(pybind11::cast(db->getPinDirections())); 
+    for (int i = 0; i < db->getNumPins(); ++i) {
+      //pybind11::list pin_direct; ///< 1D array, pin direction IO 
+      pin_direct.append(toString(db->getPinDirById(i))); 
+    }
     pin_offset_x = pybind11::list(pybind11::cast(db->getPinOffsetXV()));
     pin_offset_y = pybind11::list(pybind11::cast(db->getPinOffsetYV()));
 
@@ -208,7 +212,6 @@ PyPlaceDB::set()
       //pybind11::list net_names; ///< net name 
       net_names = pybind11::list(pybind11::cast(db->getNetNames()));
       net_weights = pybind11::list(pybind11::cast(db->getNetWeights()));
-      int id = 0;
       for (int i = 0; i < db->getNumNets(); ++i)
       {
         //pybind11::dict net_name2id_map; ///< net name to id map
@@ -276,6 +279,7 @@ PyPlaceDB::set()
     total_space_area = rowBoxArea - 
                        std::min(total_fixed_node_overlap_area, total_fixed_node_area); 
     num_movable_pins = db->getNumMoveablePins(); 
+    dreamplacePrint(kINFO, "Completed python DB.\n");
     
 }
 #endif
