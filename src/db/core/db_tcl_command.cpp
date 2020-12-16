@@ -406,35 +406,26 @@ static int testCommandManager(ClientData cld, Tcl_Interp *itp, int argc, const c
     return TCL_OK;  // runCommandWithProcessBar(testcmd, argc, argv);
 }
 
-static void registerTestCommandManager() {
-    CommandManager* cmd_manager = CommandManager::getCommandManager();
-    // std::vector<std::string>* enums = new std::vector<std::string>();
-    // enums->push_back("aa");
-    // enums->push_back("bb");
-    // enums->push_back("cc");
-    Command* test_command = cmd_manager->createCommand("test_cmd", "command descprition\n", *(new Option("-i", OptionDataType::kInt, false, 22, "opt description\n", 0, 10000))
-                                                                    + *(new Option("-b", OptionDataType::kBool, false, "opt description\n"))
-                                                                    + *(new Option("i1", OptionDataType::kInt, false, "opt description\n"))
-                                                                    + *(new Option("b2", OptionDataType::kBool, false, "opt description\n"))
-                                                                    + *(new Option("i2", OptionDataType::kInt, false, "opt description\n"))
-                                                                    + *(new Option("-s", OptionDataType::kString, false, "opt description\n"))
-                                                                    + *(new Option("-e", OptionDataType::kEnum, false, "aa bb cc", "opt description\n"))
-                                                                    + *(new Option("-p", OptionDataType::kPoint, false, "opt description\n"))
-                                                                    + *(new Option("-r", OptionDataType::kRect, false, "opt description\n"))
-                                                                    + *(new Option("-il", OptionDataType::kIntList, false, "opt description\n"))
-                                                                    + *(new Option("-x", OptionDataType::kInt, false, "opt description\n"))
-                                                                    + *(new Option("-y", OptionDataType::kInt, false, "opt description\n"))
-                                                                    + *(new Option("-z", OptionDataType::kInt, false, "opt description\n"))
-                                                                    + *(new Option("-sl", OptionDataType::kStringList, false, "opt description\n"))
-                                                                    + *(new Option("-f", OptionDataType::kDouble, false, 1.23, "opt description\n")),
-                                                                    *(new OptionGroup("-x", "-y", kDependency))
-                                                                    //+(new OptionGroup("-x", "-j", kExclusive))// should not pass register
-                                                                    +*(new OptionGroup("-x", "-z", kExclusive)));
-}
-
 void registerDatabaseTclCommands(Tcl_Interp *itp) {
-    registerTestCommandManager();
-    Tcl_CreateCommand(itp, "test_cmd", testCommandManager, NULL, NULL);
+    CommandManager* cmd_manager = CommandManager::getCommandManager();
+    Command* test_command = cmd_manager->createCommand(itp, testCommandManager, "test_cmd", "command descprition\n", cmd_manager->createOption("-i", OptionDataType::kInt, false, 22, "opt description\n", 0, 10000)
+                                                                    + cmd_manager->createOption("-b", OptionDataType::kBool, false, "opt description\n")
+                                                                    + cmd_manager->createOption("i1", OptionDataType::kInt, false, "opt description\n")
+                                                                    + cmd_manager->createOption("b2", OptionDataType::kBool, false, "opt description\n")
+                                                                    + cmd_manager->createOption("i2", OptionDataType::kInt, false, "opt description\n")
+                                                                    + cmd_manager->createOption("-s", OptionDataType::kString, false, "opt description\n")
+                                                                    + cmd_manager->createOption("-e", OptionDataType::kEnum, false, "aa bb cc", "opt description\n")
+                                                                    + cmd_manager->createOption("-p", OptionDataType::kPoint, false, "opt description\n")
+                                                                    + cmd_manager->createOption("-r", OptionDataType::kRect, false, "opt description\n")
+                                                                    + cmd_manager->createOption("-il", OptionDataType::kIntList, false, "opt description\n")
+                                                                    + cmd_manager->createOption("-x", OptionDataType::kInt, false, "opt description\n")
+                                                                    + cmd_manager->createOption("-y", OptionDataType::kInt, false, "opt description\n")
+                                                                    + cmd_manager->createOption("-z", OptionDataType::kInt, false, "opt description\n")
+                                                                    + cmd_manager->createOption("-sl", OptionDataType::kStringList, false, "opt description\n")
+                                                                    + cmd_manager->createOption("-f", OptionDataType::kDouble, false, 1.23, "opt description\n"),
+                                                                    cmd_manager->createOptionGroup("-x", "-y", kDependency)
+                                                                    //+(new OptionGroup("-x", "-j", kExclusive))// should not pass register
+                                                                    + cmd_manager->createOptionGroup("-x", "-z", kExclusive));
 
     Tcl_CreateCommand(itp, "read_lef", readLefCommand, NULL, NULL);
     Tcl_CreateCommand(itp, "write_lef", writeLefCommand, NULL, NULL);
@@ -455,9 +446,16 @@ void registerDatabaseTclCommands(Tcl_Interp *itp) {
     Tcl_CreateCommand(itp, "__report_cell", reportCellCommand, NULL, NULL);
     // Command read_verilog:
     {
-        registerReadVerilog();
-        Tcl_CreateCommand(itp, "read_verilog", readVerilogCommand, NULL, NULL);
+        Command* test_command = cmd_manager->createCommand(itp, readVerilogCommand,
+            "read_verilog", "read verilog files\n",
+            ( cmd_manager->createOption(toString(ReadVerilogOption::kTop),
+                          OptionDataType::kInt, false,
+                          "set top cell")
+            + cmd_manager->createOption(toString(ReadVerilogOption::kFileName),
+                          OptionDataType::kStringList, true,
+                          "verilog name list")));
     }
+
 }
 
 } // namespace db

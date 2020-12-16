@@ -176,31 +176,29 @@ static int transformTest(ClientData cld, Tcl_Interp *itp, int argc,
 
 void registerTestTransform(Tcl_Interp *itp) {
     CommandManager* cmd_manager = CommandManager::getCommandManager();
-    Command* test_command = cmd_manager->createCommand(
+    Command* test_command = cmd_manager->createCommand(itp, transformTest,
             "__unittest_transform", "unit test for transform: check pin's bbox\n",
-            ( *(new Option(kTransformTestOptionNames[0],
+            ( cmd_manager->createOption(kTransformTestOptionNames[0],
                           OptionDataType::kString, false,
-                          "file directory; default is current directory."))
-            + *(new Option(kTransformTestOptionNames[1],
+                          "file directory; default is current directory.")
+            + cmd_manager->createOption(kTransformTestOptionNames[1],
                           OptionDataType::kString, true,
-                          "lef file name"))
-            + *(new Option(kTransformTestOptionNames[2],
+                          "lef file name")
+            + cmd_manager->createOption(kTransformTestOptionNames[2],
                           OptionDataType::kString, true,
-                          "def file name"))
-            + *(new Option(kTransformTestOptionNames[3],
+                          "def file name")
+            + cmd_manager->createOption(kTransformTestOptionNames[3],
                           OptionDataType::kString, true,
-                          "pin name"))
-            + *(new Option(kTransformTestOptionNames[4],
+                          "pin name")
+            + cmd_manager->createOption(kTransformTestOptionNames[4],
                           OptionDataType::kRect, true,
-                          "expected box"))
-            + *(new Option(kTransformTestOptionNames[5],
+                          "expected box")
+            + cmd_manager->createOption(kTransformTestOptionNames[5],
                           OptionDataType::kBool, false,
-                          "verbose message")) 
+                          "verbose message")
             ));
     //hide this command:
     //test_command->setIsPublic(false);
-
-    Tcl_CreateCommand(itp, "__unittest_transform", transformTest, NULL, NULL);
 }
 
 }  // namespace tcl
