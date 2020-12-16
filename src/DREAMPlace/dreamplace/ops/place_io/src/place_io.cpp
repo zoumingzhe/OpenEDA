@@ -106,11 +106,13 @@ void apply(PlaceDB& db,
 /// take numpy array 
 /// x,y for movable nodes only.
 template <typename T>
-void apply(pybind11::array_t<T, pybind11::array::c_style | pybind11::array::forcecast> const& x, 
+void apply(unsigned long db_ptr,
+        pybind11::array_t<T, pybind11::array::c_style | pybind11::array::forcecast> const& x, 
         pybind11::array_t<T, pybind11::array::c_style | pybind11::array::forcecast> const& y
         )
 {
-    CommonPlaceDB* db = CommonPlaceDB::getPlaceDBInstance();
+    //CommonPlaceDB* db = CommonPlaceDB::getPlaceDBInstance();
+    CommonPlaceDB* db = (CommonPlaceDB* )db_ptr;
     //update db's x,y.
     //to be implemented.
     return;
@@ -205,15 +207,15 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
                 pybind11::array_t<double, pybind11::array::c_style | pybind11::array::forcecast> const& y) {apply(db, x, y);},
              "Apply Placement Solution (double)");
 #ifdef _CMAKE_PLACE
-    m.def("apply", [](
+    m.def("apply", [](unsigned long db_ptr,
                 pybind11::array_t<float, pybind11::array::c_style | pybind11::array::forcecast> const& x, 
-                pybind11::array_t<float, pybind11::array::c_style | pybind11::array::forcecast> const& y ) {DREAMPLACE_NAMESPACE::apply(x, y);},
+                pybind11::array_t<float, pybind11::array::c_style | pybind11::array::forcecast> const& y ) {DREAMPLACE_NAMESPACE::apply(db_ptr, x, y);},
              "Apply Placement Solution to common db (float)");
-    m.def("apply", [](
+    m.def("apply", [](unsigned long db_ptr,
                 pybind11::array_t<double, pybind11::array::c_style | pybind11::array::forcecast> const& x, 
-                pybind11::array_t<double, pybind11::array::c_style | pybind11::array::forcecast> const& y ) {DREAMPLACE_NAMESPACE::apply(x, y);},
+                pybind11::array_t<double, pybind11::array::c_style | pybind11::array::forcecast> const& y ) {DREAMPLACE_NAMESPACE::apply(db_ptr, x, y);},
              "Apply Placement Solution to common db (double)");
-    m.def("pydb", [](){return DREAMPLACE_NAMESPACE::PyPlaceDB();}, "Convert common DB to PyPlaceDB");
+    m.def("pydb", [](unsigned long db_ptr){return DREAMPLACE_NAMESPACE::PyPlaceDB(db_ptr);}, "Convert common DB to PyPlaceDB");
 #endif
     m.def("pydb", [](DREAMPLACE_NAMESPACE::PlaceDB const& db){return DREAMPLACE_NAMESPACE::PyPlaceDB(db);}, "Convert PlaceDB to PyPlaceDB");
     m.def("forward", &DREAMPLACE_NAMESPACE::place_io_forward, "PlaceDB IO Read");
