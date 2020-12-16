@@ -6,9 +6,9 @@
  ************************************************************************/
 #include <cstdlib>
 #include <cstdio>
+#include <string>
 #include "flow/src/common_place_DB.h"
 #include "utility/src/Msg.h"
-#include <string>
 
 DREAMPLACE_BEGIN_NAMESPACE
 
