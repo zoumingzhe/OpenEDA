@@ -996,7 +996,7 @@ void LibBuilder::__buildVoltageUnit(buildParam) {
                 int d = 0;
                 char suffix[10] = {'\0'};
                 sscanf(v->u.string_val, "%d%s", &d, suffix);
-                tb_namespace::TUnit &unit = units->getVolatgeUnit();
+                tb_namespace::TUnit &unit = units->getVoltageUnit();
                 unit.digits = d;
                 unit.suffix = suffix;
                 unit.scale = __getVoltageUnitMultiply(unit.suffix);

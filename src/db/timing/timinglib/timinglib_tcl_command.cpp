@@ -357,6 +357,8 @@ int readTimingLibCommand(ClientData cld, Tcl_Interp *itp, int argc,
                 return TCL_ERROR;
             }
 
+            mode->setOwner(view->getId());
+            corner->setOwner(view->getId());
             view->setAnalysisMode(mode->getId());
             view->setAnalysisCorner(corner->getId());
             view->setActive(true);
