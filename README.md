@@ -55,16 +55,18 @@ GUI - Graphic user interface
 
 #### Fast deployment(Virtual machine image)
 
-- Download and uncompress CentOS7Dev.zip, then import CentOS7Dev.ovf and launch the virtual machine.
+- Download and unzip CentOS7Dev.zip, then use the virtual machine software(Support VMware Workstations/VMware Player/Virtualbox) to import CentOS7Dev.ovf and start it.
 
 ```
 Download url: https://pan.baidu.com/s/1JnxVadThOJL3K2jsscRaGA
 Verification code: moqr
-Username:root
-Password:toor
 ```
 
+- Operating System Username:root, Password:toor.
+
 - Before checkout openedi code, Please source /opt/devtoolset/devtoolset.bash first.
+
+- The default configuration of the virtual machine is 4 cores and 8GB memory. If multi-threaded compilation is enabled (the number of threads is greater than 8) during the compilation process, it may cause insufficient resources. Please manually modify the hardware configuration of the virtual machine.
 
 #### Installation
 
