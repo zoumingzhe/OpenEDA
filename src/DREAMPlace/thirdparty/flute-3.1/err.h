@@ -2,11 +2,11 @@
 #define _ERR_H_
 
 void  err_msg(
-char* msg
+const char* msg
 );
 
 void  err_exit(
-char* msg
+const char* msg
 );
 
 #endif

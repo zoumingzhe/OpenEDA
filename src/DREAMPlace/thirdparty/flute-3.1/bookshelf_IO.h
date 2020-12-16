@@ -57,7 +57,7 @@ Iowa State University Research Foundation, Inc.
         creates extern vars:
             xCellCoord[], yCellCoord[]
     -------------------------------------------------------------------------------- */
-    extern void readPlFile(char benchmarkPath[], char plFile[]);
+    extern void readPlFile(const char benchmarkPath[], const char plFile[]);
     
     /* -----------------------------------------------------------------------------
         Reads the .scl file to get placement (core) region information
