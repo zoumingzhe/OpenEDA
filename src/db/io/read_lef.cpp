@@ -106,7 +106,7 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                     Object::createObject<LayerGeometry>(
                         kObjectTypeLayerGeometry, lib->getId());
                 current_lg = geo;
-                current_lg->setName(geometry->lefiGeometries::getLayer(i));
+                current_lg->setLayer(geometry->lefiGeometries::getLayer(i));
                 break;
             }
             case lefiGeomLayerExceptPgNetE:
@@ -314,7 +314,7 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                 current_lg->setType(GeometryType::kVia);
                 GeometryVia *v = Object::createObject<GeometryVia>(
                     kObjectTypeGeometryVia, lib->getId());
-                v->setName(via->name);
+                v->setViaMaster(via->name);
                 Point p(lib->micronsToDBU(via->x), lib->micronsToDBU(via->y));
                 v->setPoint(p);
                 v->setTopMaskNum(via->topMaskNum);
@@ -350,7 +350,7 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                         GeometryVia *v =
                             Object::createObject<GeometryVia>(
                                 kObjectTypeGeometryVia, lib->getId());
-                        v->setName(viaIter->name);
+                        v->setViaMaster(viaIter->name);
                         Point p(
                             lib->micronsToDBU(viaIter->x + i * viaIter->xStep),
                             lib->micronsToDBU(viaIter->y + j * viaIter->yStep));
