@@ -284,14 +284,14 @@ bool createSdcTimingConstraints() {
 	//07 set_sense
 	cmd = cmd_manager->createCommand(
 		   "set_sense", "\n", 
-		   *(new Option("-type", OptionDataType::kEnum, false, "\n")) + 
+		   *(new Option("-type", OptionDataType::kString, false, "\n")) + 
 		   *(new Option("-non_unate", OptionDataType::kBool, false, "\n")) + 
 		   *(new Option("-clocks", OptionDataType::kStringList, false, "\n")) + 
 		   *(new Option("-positive", OptionDataType::kBool, false, "\n")) + 
 		   *(new Option("-negative", OptionDataType::kBool, false, "\n")) + 
 		   *(new Option("-clock_leaf", OptionDataType::kBool, false, "\n")) + 
 		   *(new Option("-stop_propagation", OptionDataType::kBool, false, "\n")) + 
-		   *(new Option("-pulse", OptionDataType::kEnum, false, "\n")) + 
+		   *(new Option("-pulse", OptionDataType::kString, false, "\n")) + 
 		   *(new Option("object_list", OptionDataType::kStringList, true, "\n"))
 		   
 	   );
@@ -600,7 +600,7 @@ bool createSdcEnvironmentCommands() {
 		*(new Option("-max", OptionDataType::kBool, false, "\n")) +
 		*(new Option("-substract_pin_load", OptionDataType::kBool, false, "\n")) +
 		*(new Option("-pin_load", OptionDataType::kBool, false, "\n")) +
-		*(new Option("-pin_load", OptionDataType::kBool, false, "\n")) +
+		*(new Option("-wire_load", OptionDataType::kBool, false, "\n")) +
 		*(new Option("value", OptionDataType::kDouble, true, "\n")) +
 		*(new Option("objects", OptionDataType::kStringList, true, "\n"))      
 	);
