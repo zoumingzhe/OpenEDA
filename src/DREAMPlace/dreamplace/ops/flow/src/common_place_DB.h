@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <limits>
+//#include <string>
 #include "utility/src/Msg.h"
 #include "utility/src/DetailedPlaceDB.h"
 #include "utility/src/LegalizationDB.h"
@@ -26,9 +27,13 @@ struct plLoc
 
 typedef std::vector<Coord> LocV;
 typedef std::vector<PlInt> IntV;
-typedef std::vector<unsigned char> charV;
-typedef std::vector<double> doubleV;
-typedef std::vector<PlRow*> rowV;
+typedef std::vector<unsigned char> CharV;
+typedef std::vector<double> DoubleV;
+typedef std::vector<String> StringV;
+typedef std::vector<PlBox> BoxV;
+typedef std::vector<PlOrient> OrientV;
+typedef std::vector<PlDirection> DirectionV;
+typedef std::vector<PlInst*> InstV;
 // GP, LP and DP flow steps
 const int kNone           = 0;
 const int kMacroLegalize  = 1;
@@ -70,6 +75,7 @@ class Para
     bool   isDBSaved()          const { return save_db_;}
     bool   isGPU()              const { return gpu_;        }
     int    getNumThreads()      const { return num_threads_;}
+    std::string getJsonFile()   const { return json_file_;  }
   private:
     PlBox    box_;
     int    num_bins_x_     = 1;
@@ -115,16 +121,24 @@ class CommonDB
     const IntV&    getFlatPin2NodeMap()       const { return pin2node_map_;            } 
     const LocV&    getPinOffsetX()            const { return pin_offset_x_;            } 
     const LocV&    getPinOffsetY()            const { return pin_offset_y_;            } 
-    const charV&   getNetMask()               const { return net_mask_;                } 
+    const CharV&   getNetMask()               const { return net_mask_;                } 
+
+    const StringV&    getInstNames()          const { return inst_names_;              }
+    const OrientV&    getInstOrients()        const { return inst_orients_;            }
+    const DirectionV& getPinDirections()      const { return pin_dirs_;                }
+    const StringV&    getNetNames()           const { return net_names_;               }
+    const DoubleV&    getNetWeights()         const { return net_weights_;             }
+    const BoxV&       getRowBoxes()           const { return row_boxes_;               }
+
     int            getNumNodes()              const { return num_nodes_;               }
     int            getNumNets()               const { return num_nets_;                }
     int            getNumPins()               const { return num_pins_;                }
     int            getNumRegions()            const { return num_regions_;             }
     int            getNumFences()             const { return num_fences_;              }
     int            getNumMoveableNodes()      const { return num_movable_nodes_;       }
-    PlObjId        getInstId(int i)           const { return idx_to_instId_.at(i);     }
-    PlInt          getNumOfRows()             const { return rows_.size();             }
-    PlRow*         getRowById(PlInt i)        const { return rows_.at(i);              }
+    PlInst*        getInstById(int i)         const { return idx_to_insts_.at(i);      }
+    PlInt          getNumIOPins()             const { return num_io_pins_;             }
+    int            getNumMoveablePins()       const { return num_movable_pins_;        }
 
     void           setInitX(int i, Coord x)         { init_x_[i] = x;                  }
     void           setInitY(int i, Coord y)         { init_y_[i] = y;                  }
@@ -153,7 +167,7 @@ class CommonDB
     IntV           pin2node_map_           ; 
     LocV           pin_offset_x_           ; 
     LocV           pin_offset_y_           ; 
-    charV          net_mask_               ; 
+    CharV          net_mask_               ; 
     bool           isCommonDBReady_        ; 
     // for both LP and DP
     int            num_nodes_               = 0;        // number of nodes
@@ -163,8 +177,14 @@ class CommonDB
     int            num_regions_             = 0;        // number of regions for region_boxes and region_boxes_start
     int            num_fences_              = 0;        // number of fences for fence_boxes and fence_boxes_start
     int            num_movable_nodes_       = 0;        // num of movebale nodes 
-    std::vector<PlObjId> idx_to_instId_;                // get db inst id by place id
-    rowV           rows_;
+    int            num_movable_pins_        = 0;        // num of movebale pins 
+    InstV          idx_to_insts_;                // get db inst by place id
+    StringV        inst_names_;                  // save inst name
+    OrientV        inst_orients_;                // save inst orient
+    DirectionV     pin_dirs_;                    // save pin direction
+    StringV        net_names_;                   // save net name
+    DoubleV        net_weights_;                 // save net weight
+    BoxV           row_boxes_;                   // save row box
 
 };
 
@@ -217,9 +237,9 @@ class CommonPlaceDB
   public:
     static CommonPlaceDB* getPlaceDBInstance()
     {
-      //if (place_db_instance_ == nullptr) {
-      //  place_db_instance_ = new CommonPlaceDB();
-      //}
+      if (place_db_instance_ == nullptr) {
+        dreamplacePrint(kWARN, "Not find place common DB.\n");
+      }
       return place_db_instance_;
     }
     static CommonPlaceDB* getPlaceDBInstance(Para& para)
@@ -264,7 +284,17 @@ class CommonPlaceDB
     const IntV&          getFlatPin2NodeMapV()      const { return db_.getFlatPin2NodeMap();       } 
     const LocV&          getPinOffsetXV()           const { return db_.getPinOffsetX();            } 
     const LocV&          getPinOffsetYV()           const { return db_.getPinOffsetY();            } 
-    const charV&         getNetMaskV()              const { return db_.getNetMask();               } 
+    const CharV&         getNetMaskV()              const { return db_.getNetMask();               } 
+    const StringV&       getInstNames()             const { return db_.getInstNames();             }
+    const OrientV&       getInstOrients()           const { return db_.getInstOrients();           }
+    const DirectionV&    getPinDirections()         const { return db_.getPinDirections();         }
+    const StringV&       getNetNames()              const { return db_.getNetNames();              }
+    const DoubleV&       getNetWeights()            const { return db_.getNetWeights();            }
+    const BoxV&          getRowBoxes()              const { return db_.getRowBoxes();              }
+    const String         getInstNameById(PlInt id)  const { return db_.getInstNames().at(id);      }
+    const String         getNetNameById(PlInt id)   const { return db_.getNetNames().at(id);       }
+    const PlOrient       getInstOriById(PlInt id)   const { return db_.getInstOrients().at(id);    }
+    const PlDirection    getPinDirById(PlInt id)    const { return db_.getPinDirections().at(id);  }
     // common DB interface : get ptr array
     const Coord*         getInitX()                 const { return db_.getInitX().data();                 }
     const Coord*         getInitY()                 const { return db_.getInitX().data();                 }
@@ -292,10 +322,9 @@ class CommonPlaceDB
     int            getNumRegions()            const { return db_.getNumRegions();            }
     int            getNumFences()             const { return db_.getNumFences();             }
     int            getNumMoveableNodes()      const { return db_.getNumMoveableNodes();      }
-    PlObjId        getInstId(int i)           const { return db_.getInstId(i);               }
-    // row info for GP
-    PlInt          getNumOfRows()             const { return db_.getNumOfRows();             }
-    PlRow*         getRowById(PlInt i)        const { return db_.getRowById(i);                  }
+    PlInt          getNumIOPins()             const { return db_.getNumIOPins();             }
+    PlInst*        getInstById(int i)         const { return db_.getInstById(i);             }
+    int            getNumMoveablePins()       const { return db_.getNumPins();               }
 
     // internal DB interface: get
     double       getNodeWeight(int id)            const { return node_weights_.at(id); }
@@ -333,6 +362,10 @@ class CommonPlaceDB
     void     setNumBinsY(const int num_bin_y)            { num_bins_y_ = num_bin_y;           }
     void     setNumSitesX(const int num_sites_x)         { num_sites_x_ = num_sites_x;        }
     void     setNumSitesY(const int num_sites_y)         { num_sites_y_ = num_sites_y;        }
+    void     setInitX(int i, Coord x)                    { db_.setInitX(i, x);                }
+    void     setInitY(int i, Coord x)                    { db_.setInitY(i, x);                }
+    void     setCurX(int i, Coord x)                     { cur_x_[i] = x;                     }
+    void     setCurY(int i, Coord y)                     { cur_y_[i] = y;                     }
 
 __attribute__ ((visibility("default")))
     void     updateXY(const int* x, const int* y);
@@ -355,7 +388,7 @@ __attribute__ ((visibility("default")))
   private:
     Para                para_;                             // user setting
     CommonDB            db_;                               // edi db
-    doubleV             node_weights_;                     // weight of nodes, for LP only
+    DoubleV             node_weights_;                     // weight of nodes, for LP only
     PlBox               box_;                              // box of die area xl, yl, xh, yh
     LocV                cur_x_;                            // init loc X of nodes
     LocV                cur_y_;                            // init loc Y of nodes
