@@ -127,7 +127,7 @@ void SetUnits::setAndCheckVoltage(const std::string &voltage) {
     }
     //TODO need solo fix the spile issue
     //const auto& lib_vol_unit = units->getVoltageUnit();
-    const auto& lib_vol_unit = units->getVolatgeUnit();
+    const auto& lib_vol_unit = units->getVoltageUnit();
     float lib_vol_value = (lib_vol_unit.digits)*(lib_vol_unit.scale);
     if (voltage_unit_value_ != lib_vol_value) {
         //TODO error messages
