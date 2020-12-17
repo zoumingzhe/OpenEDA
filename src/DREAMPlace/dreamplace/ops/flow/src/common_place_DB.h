@@ -46,7 +46,7 @@ const int kKReorder2      = 1 << 6;
 const int kLegalityCheck  = 1 << 7;
 const int kDetailPlace    = (1 << 8) - 1;
 const int kGlobalPlace    = 1 << 8;
-const int kFullPlace      = 2*(1 << 8) - 1;
+const int kFullPlace      = (1 << 9) - 1;
 
 /// @brief a wrapper class of required data for user input paramaters
 class Para 
