@@ -913,7 +913,7 @@ void LibBuilder::__buildTimeUnit(buildParam) {
                 tb_namespace::TUnit &unit = units->getTimeUnit();
                 unit.digits = d;
                 unit.suffix = suffix;
-                unit.scale = __getTimeUnitMultiply(unit.suffix);
+                unit.scale = tb_namespace::UnitMultiply::getTimeUnitMultiply(unit.suffix);
             }
         }
     }
@@ -935,7 +935,7 @@ void LibBuilder::__buildPullingResistanceUnit(buildParam) {
                 tb_namespace::TUnit &unit = units->getPullingResistanceUnit();
                 unit.digits = d;
                 unit.suffix = suffix;
-                unit.scale = __getResistanceUnitMultiply(unit.suffix);
+                unit.scale = tb_namespace::UnitMultiply::getResistanceUnitMultiply(unit.suffix);
             }
         }
     }
@@ -956,7 +956,7 @@ void LibBuilder::__buildResistanceUnit(buildParam) {
                 tb_namespace::TUnit &unit = units->getResistanceUnit();
                 unit.digits = d;
                 unit.suffix = suffix;
-                unit.scale = __getResistanceUnitMultiply(unit.suffix);
+                unit.scale = tb_namespace::UnitMultiply::getResistanceUnitMultiply(unit.suffix);
                 setResistanceUnit_ = true;
             }
         }
@@ -977,7 +977,7 @@ void LibBuilder::__buildCapacitiveLoadUnit(buildParam) {
                 unit.digits = d;
                 if (v->next != nullptr && __isStringType(v->next)) {
                     unit.suffix = v->next->u.string_val;
-                    unit.scale = __getCapacitiveUnitMultiply(unit.suffix);
+                    unit.scale = tb_namespace::UnitMultiply::getCapacitiveUnitMultiply(unit.suffix);
                 }
             }
         }
@@ -999,7 +999,7 @@ void LibBuilder::__buildVoltageUnit(buildParam) {
                 tb_namespace::TUnit &unit = units->getVoltageUnit();
                 unit.digits = d;
                 unit.suffix = suffix;
-                unit.scale = __getVoltageUnitMultiply(unit.suffix);
+                unit.scale = tb_namespace::UnitMultiply::getVoltageUnitMultiply(unit.suffix);
             }
         }
     }
@@ -1020,7 +1020,7 @@ void LibBuilder::__buildCurrentUnit(buildParam) {
                 tb_namespace::TUnit &unit = units->getCurrentUnit();
                 unit.digits = d;
                 unit.suffix = suffix;
-                unit.scale = __getCurrentUnitMultiply(unit.suffix);
+                unit.scale = tb_namespace::UnitMultiply::getCurrentUnitMultiply(unit.suffix);
             }
         }
     }
@@ -1041,7 +1041,7 @@ void LibBuilder::__buildLeakagePowerUnit(buildParam) {
                 tb_namespace::TUnit &unit = units->getPowerUnit();
                 unit.digits = d;
                 unit.suffix = suffix;
-                unit.scale = __getPowerUnitMultiply(unit.suffix);
+                unit.scale = tb_namespace::UnitMultiply::getPowerUnitMultiply(unit.suffix);
             }
         }
     }
@@ -1062,7 +1062,7 @@ void LibBuilder::__buildDistanceUnit(buildParam) {
                 tb_namespace::TUnit &unit = units->getDistanceUnit();
                 unit.digits = d;
                 unit.suffix = suffix;
-                unit.scale = __getDistanceUnitMultiply(unit.suffix);
+                unit.scale = tb_namespace::UnitMultiply::getDistanceUnitMultiply(unit.suffix);
             }
         }
     }
@@ -2992,102 +2992,6 @@ void LibBuilder::__deleteObjectList(ObjectList *objects) {
         __deleteObjectList(objects->next);
 }
 
-float LibBuilder::__getTimeUnitMultiply(const std::string &u) {
-    std::string str;
-    std::transform(u.begin(), u.end(), std::back_inserter(str), ::tolower);
-    if (str == "s") return 1.0f;
-    if (str == "ks")
-        return 1.0e3f;
-    else if (str == "ms")
-        return 1e-3f;
-    else if (str == "us")
-        return 1e-6f;
-    else if (str == "ns")
-        return 1e-9f;
-    else if (str == "ps")
-        return 1e-12f;
-    else if (str == "fs")
-        return 1e-15f;
-    else
-        return 0.0f;
-}
-float LibBuilder::__getResistanceUnitMultiply(const std::string &u) {
-    std::string str;
-    std::transform(u.begin(), u.end(), std::back_inserter(str), ::tolower);
-    if (str == "ohm") return 1.0f;
-    if (str == "kohm")
-        return 1e+3f;
-    else if (str == "mohm")
-        return 1e-3f;
-    else if (str == "uohm")
-        return 1e-6f;
-    else if (str == "nohm")
-        return 1e-9f;
-    else if (str == "pohm")
-        return 1e-12f;
-    else if (str == "fohm")
-        return 1e-15f;
-    else
-        return 0.0f;
-}
-float LibBuilder::__getCapacitiveUnitMultiply(const std::string &u) {
-    std::string str;
-    std::transform(u.begin(), u.end(), std::back_inserter(str), ::tolower);
-    if (str == "f") return 1.0f;
-    if (str == "ff")
-        return 1e-15f;
-    else if (str == "pf")
-        return 1e-12f;
-    else
-        return 0.0f;
-}
-float LibBuilder::__getVoltageUnitMultiply(const std::string &u) {
-    std::string str;
-    std::transform(u.begin(), u.end(), std::back_inserter(str), ::tolower);
-    if (str == "v") return 1.0f;
-    if (str == "mv")
-        return 1e-3f;
-    else
-        return 0.0f;
-}
-float LibBuilder::__getCurrentUnitMultiply(const std::string &u) {
-    std::string str;
-    std::transform(u.begin(), u.end(), std::back_inserter(str), ::tolower);
-    if (str == "a")
-        return 1.0f;
-    else if (str == "ma")
-        return 1e-3f;
-    else if (str == "ua")
-        return 1e-6f;
-    else
-        return 0.0f;
-}
-float LibBuilder::__getPowerUnitMultiply(const std::string &u) {
-    std::string str;
-    std::transform(u.begin(), u.end(), std::back_inserter(str), ::tolower);
-    if (str == "w")
-        return 1.0f;
-    else if (str == "mw")
-        return 1e-3f;
-    else if (str == "nw")
-        return 1e-9f;
-    else if (str == "pw")
-        return 1e-12f;
-    else
-        return 0.0f;
-}
-float LibBuilder::__getDistanceUnitMultiply(const std::string &u) {
-    std::string str;
-    std::transform(u.begin(), u.end(), std::back_inserter(str), ::tolower);
-    if (str == "m")
-        return 1.0f;
-    else if (str == "mm")
-        return 1e-3f;
-    else if (str == "um")
-        return 1e-6f;
-    else
-        return 0.0f;
-}
 void LibBuilder::__getPinNamesFromBusRange(const char *str,
                                            std::vector<std::string> *pinNames) {
     const char *pattern =

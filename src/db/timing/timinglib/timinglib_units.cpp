@@ -147,5 +147,104 @@ OStreamBase &operator<<(OStreamBase &os, TUnits const &rhs) {
     os << DataEnd(")");
     return os;
 }
+
+float UnitMultiply::getTimeUnitMultiply(const std::string &u) {
+    std::string str;
+    std::transform(u.begin(), u.end(), std::back_inserter(str), ::tolower);
+    if (str == "s") return 1.0f;
+    if (str == "ks")
+        return 1.0e3f;
+    else if (str == "ms")
+        return 1e-3f;
+    else if (str == "us")
+        return 1e-6f;
+    else if (str == "ns")
+        return 1e-9f;
+    else if (str == "ps")
+        return 1e-12f;
+    else if (str == "fs")
+        return 1e-15f;
+    else
+        return 0.0f;
+}
+float UnitMultiply::getResistanceUnitMultiply(const std::string &u) {
+    std::string str;
+    std::transform(u.begin(), u.end(), std::back_inserter(str), ::tolower);
+    if (str == "ohm") return 1.0f;
+    if (str == "kohm")
+        return 1e+3f;
+    else if (str == "mohm")
+        return 1e-3f;
+    else if (str == "uohm")
+        return 1e-6f;
+    else if (str == "nohm")
+        return 1e-9f;
+    else if (str == "pohm")
+        return 1e-12f;
+    else if (str == "fohm")
+        return 1e-15f;
+    else
+        return 0.0f;
+}
+float UnitMultiply::getCapacitiveUnitMultiply(const std::string &u) {
+    std::string str;
+    std::transform(u.begin(), u.end(), std::back_inserter(str), ::tolower);
+    if (str == "f") return 1.0f;
+    if (str == "ff")
+        return 1e-15f;
+    else if (str == "pf")
+        return 1e-12f;
+    else
+        return 0.0f;
+}
+float UnitMultiply::getVoltageUnitMultiply(const std::string &u) {
+    std::string str;
+    std::transform(u.begin(), u.end(), std::back_inserter(str), ::tolower);
+    if (str == "v") return 1.0f;
+    if (str == "mv")
+        return 1e-3f;
+    else
+        return 0.0f;
+}
+float UnitMultiply::getCurrentUnitMultiply(const std::string &u) {
+    std::string str;
+    std::transform(u.begin(), u.end(), std::back_inserter(str), ::tolower);
+    if (str == "a")
+        return 1.0f;
+    else if (str == "ma")
+        return 1e-3f;
+    else if (str == "ua")
+        return 1e-6f;
+    else
+        return 0.0f;
+}
+float UnitMultiply::getPowerUnitMultiply(const std::string &u) {
+    std::string str;
+    std::transform(u.begin(), u.end(), std::back_inserter(str), ::tolower);
+    if (str == "w")
+        return 1.0f;
+    else if (str == "mw")
+        return 1e-3f;
+    else if (str == "nw")
+        return 1e-9f;
+    else if (str == "pw")
+        return 1e-12f;
+    else
+        return 0.0f;
+}
+float UnitMultiply::getDistanceUnitMultiply(const std::string &u) {
+    std::string str;
+    std::transform(u.begin(), u.end(), std::back_inserter(str), ::tolower);
+    if (str == "m")
+        return 1.0f;
+    else if (str == "mm")
+        return 1e-3f;
+    else if (str == "um")
+        return 1e-6f;
+    else
+        return 0.0f;
+}
+
+
 }  // namespace db
 }  // namespace open_edi

@@ -23,6 +23,7 @@
 #include "db/io/write_lef.h"
 #include "db/io/write_verilog.h"
 #include "db/timing/timinglib/timinglib_tcl_command.h"
+#include "db/timing/sdc/register_sdc_commands.h"
 #include "db/timing/spef/spef_tcl_command.h"
 #include "util/util.h"
 #include "infra/command_manager.h"
@@ -458,6 +459,8 @@ void registerDatabaseTclCommands(Tcl_Interp *itp) {
         registerReadVerilog();
         Tcl_CreateCommand(itp, "read_verilog", readVerilogCommand, NULL, NULL);
     }
+    // sdc tcl commands
+    registerSdcCommands(itp);
 }
 
 } // namespace db

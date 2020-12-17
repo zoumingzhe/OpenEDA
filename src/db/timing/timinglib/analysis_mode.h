@@ -23,6 +23,7 @@
 #include "db/core/object.h"
 #include "db/util/array.h"
 #include "util/data_traits.h"
+#include "db/timing/sdc/sdc.h"
 
 namespace open_edi {
 namespace db {
@@ -58,12 +59,15 @@ class AnalysisMode : public Object {
     /// set
     void setName(const std::string &name);
     void addConstraintFile(const std::string &file);
+    void createSdc();
+    void setSdc(SdcPtr sdc);
 
     /// get
     SymbolIndex getNameIndex(void);
     std::string getName(void) const;
     std::vector<std::string> getConstraintFiles(void);
     std::string getConstraintFile(SymbolIndex index) const;
+    SdcPtr getSdc(void) const;
 
     int numContraintFiles(void) const;
 
@@ -78,6 +82,7 @@ class AnalysisMode : public Object {
   private:
     SymbolIndex name_;
     ObjectId constraint_files_;
+    SdcPtr sdc_;
 };
 }  // namespace db
 }  // namespace open_edi

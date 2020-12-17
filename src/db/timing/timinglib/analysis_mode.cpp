@@ -112,6 +112,19 @@ void AnalysisMode::addConstraintFile(const std::string& file) {
     }
 }
 
+void AnalysisMode::createSdc(void) {
+    sdc_ = std::make_shared<Sdc>(this->getId());
+    assert(sdc_);
+    if (sdc_ == nullptr) {
+        //TODO messages
+        return;
+    }
+}
+
+void AnalysisMode::setSdc(SdcPtr sdc) {
+    sdc_ = sdc;
+}
+
 /// get
 SymbolIndex AnalysisMode::getNameIndex(void) { return name_; }
 std::string AnalysisMode::getName(void) const {
@@ -151,6 +164,7 @@ int AnalysisMode::numContraintFiles(void) const {
     }
     return 0;
 }
+SdcPtr AnalysisMode::getSdc(void) const { return sdc_; }
 
 OStreamBase& operator<<(OStreamBase& os, AnalysisMode const& rhs) {
     os << DataTypeName(className(rhs)) << DataBegin("(");

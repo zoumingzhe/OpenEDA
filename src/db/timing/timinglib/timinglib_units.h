@@ -114,6 +114,18 @@ class TUnits : public Object {
     TUnit scalar_unit_;
 };
 
+class UnitMultiply {
+  public:
+    static float getTimeUnitMultiply(const std::string &u);
+    static float getResistanceUnitMultiply(const std::string &u);
+    static float getCapacitiveUnitMultiply(const std::string &u);
+    static float getVoltageUnitMultiply(const std::string &u);
+    static float getCurrentUnitMultiply(const std::string &u);
+    static float getPowerUnitMultiply(const std::string &u);
+    static float getDistanceUnitMultiply(const std::string &u);
+};
+
+
 }  // namespace db
 }  // namespace open_edi
 
