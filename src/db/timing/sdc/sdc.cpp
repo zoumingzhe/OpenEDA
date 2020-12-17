@@ -22,6 +22,9 @@
 namespace open_edi {
 namespace db {
 
+Sdc::Sdc() {
+    initPtr();
+}
 
 Sdc::Sdc(ObjectId mode_id) : analysis_mode_id_(mode_id) {
     initId();
@@ -71,7 +74,6 @@ void Sdc::initPtr() {
     case_analysis_container_ = std::make_shared<SdcCaseAnalysisContainer>();
     design_container_ = std::make_shared<SdcCurrentDesignContainer>();
 }
-
 
 
 }

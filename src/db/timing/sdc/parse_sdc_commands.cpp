@@ -15,6 +15,8 @@
 #include "db/core/db.h"
 #include "db/timing/sdc/parse_sdc_commands.h"
 #include "db/timing/sdc/sdc.h"
+#include "db/timing/timinglib/analysis_view.h"
+#include "db/timing/timinglib/analysis_mode.h"
 #include "infra/command.h"
 #include "infra/command_manager.h"
 
@@ -30,13 +32,25 @@ using StringVectorPtr = std::shared_ptr<StringVector>;
 using DoubleVector = std::vector<double>;
 
 SdcPtr getSdc() {
-    Timing *timingLib = getTimingLib();
-    SdcPtr sdc_ptr = std::make_shared<Sdc>(UNINIT_OBJECT_ID);
-    assert(sdc_ptr);
-    if (!sdc_ptr) {
-        //TODO messages
+    SdcPtr sdc = std::make_shared<Sdc>();
+    Timing *timing_lib = getTimingLib();
+    if (!timing_lib) {
+        //TODO message
+        return sdc;
     }
-    return sdc_ptr;
+    //get first one
+    size_t first_view = 0;
+    AnalysisView *view = timing_lib->getAnalysisView(first_view);
+    if (!view) {
+        //TODO message
+        return sdc;
+    }
+    AnalysisMode *mode = view->getAnalysisMode();
+    if (!mode) {
+        //TODO message
+        return sdc;
+    }
+    return mode->getSdc();
 }
 
 // general purpose commands manager

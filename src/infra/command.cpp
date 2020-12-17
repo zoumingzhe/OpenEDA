@@ -24,7 +24,7 @@ namespace infra {
 void Command::addOption(Option* v) {
     options_.push_back(v);
     if (option_names_.find(v->getName()) != option_names_.end())
-        message->info("Error: option name already exsit\n");
+        message->info("Error: option name {%s} in command {%s} already exist\n", (v->getName()).c_str(), (this->getName()).c_str());
     option_names_.insert(std::make_pair<std::string, int>(v->getName(), options_.size()-1));
     options_by_order_[v->getName()] = v;
 }

@@ -114,11 +114,6 @@ void AnalysisMode::addConstraintFile(const std::string& file) {
 
 void AnalysisMode::createSdc(void) {
     sdc_ = std::make_shared<Sdc>(this->getId());
-    assert(sdc_);
-    if (sdc_ == nullptr) {
-        //TODO messages
-        return;
-    }
 }
 
 void AnalysisMode::setSdc(SdcPtr sdc) {
@@ -164,7 +159,8 @@ int AnalysisMode::numContraintFiles(void) const {
     }
     return 0;
 }
-SdcPtr AnalysisMode::getSdc(void) const { return sdc_; }
+SdcPtr AnalysisMode::getSdc(void) { return sdc_; }
+const SdcPtr AnalysisMode::getSdc(void) const { return sdc_; }
 
 OStreamBase& operator<<(OStreamBase& os, AnalysisMode const& rhs) {
     os << DataTypeName(className(rhs)) << DataBegin("(");

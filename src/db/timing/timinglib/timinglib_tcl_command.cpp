@@ -558,6 +558,12 @@ void printAnalysisModeCommandHelp() {
         "                     -constraint_file xxx\n");
     open_edi::util::message->info("                     -help\n");
 }
+
+
+int readSdcFile(Tcl_Interp *itp, const std::string &filename) {
+    return Tcl_EvalFile(itp, filename.c_str());
+}
+
 int createAnalysisModeCommand(ClientData cld, Tcl_Interp *itp, int argc,
                               const char *argv[]) {
     if (argc == 2 && !strcmp(argv[1], "-help")) {
@@ -618,6 +624,10 @@ int createAnalysisModeCommand(ClientData cld, Tcl_Interp *itp, int argc,
         }
         mode->addConstraintFile(args.constraint_file);
         mode->createSdc();
+        if (readSdcFile(itp, args.constraint_file) == TCL_ERROR) {
+            //TODO messages
+            return TCL_ERROR;
+        }
 
         open_edi::util::message->info("Creating mode %s successfully.\n",
                                       args.name.c_str());
@@ -630,6 +640,7 @@ int createAnalysisModeCommand(ClientData cld, Tcl_Interp *itp, int argc,
     }
     return TCL_OK;
 }
+
 
 typedef struct analysisCornerArgs {
     std::string name = "";

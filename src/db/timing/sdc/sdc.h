@@ -22,6 +22,7 @@ namespace db {
 
 class Sdc {
   public:
+    Sdc();
     Sdc(ObjectId mode_id);
 
     //init

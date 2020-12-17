@@ -67,7 +67,8 @@ class AnalysisMode : public Object {
     std::string getName(void) const;
     std::vector<std::string> getConstraintFiles(void);
     std::string getConstraintFile(SymbolIndex index) const;
-    SdcPtr getSdc(void) const;
+    SdcPtr getSdc(void);
+    const SdcPtr getSdc(void) const;
 
     int numContraintFiles(void) const;
 
