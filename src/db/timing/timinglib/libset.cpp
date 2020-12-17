@@ -82,7 +82,7 @@ LibSet::IndexType LibSet::memory() const {
 }
 
 /// set
-void LibSet::set_name(const std::string& name) {
+void LibSet::setName(const std::string& name) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
@@ -98,16 +98,14 @@ LibSet::IndexType LibSet::numTLibs() const { return timing_libs_map_.size(); }
 TLib* LibSet::addTLib(const std::string& filename, const std::string& name) {
     auto lib = __addTLibImpl(filename);
     if (lib) {
-        TLib::AttrType attr;
-        attr.set_name(name);
-        lib->setAttr(&attr);
+        lib->setName(name);
     }
     return lib;
 }
 
 /// get
-SymbolIndex LibSet::get_name_index(void) { return name_; }
-std::string LibSet::get_name(void) const {
+SymbolIndex LibSet::getNameIndex(void) { return name_; }
+std::string LibSet::getName(void) const {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         return timing_lib->getSymbolByIndex(name_);
@@ -115,7 +113,7 @@ std::string LibSet::get_name(void) const {
     return "";
 }
 
-std::vector<TLib*> LibSet::get_timing_libs(void) {
+std::vector<TLib*> LibSet::getTimingLibs(void) {
     std::vector<TLib*> libs;
     for (auto iter = timing_libs_map_.begin(); iter != timing_libs_map_.end();
          iter++) {
@@ -144,7 +142,7 @@ OStreamBase& operator<<(OStreamBase& os, LibSet const& rhs) {
     LibSet::BaseType const& base = rhs;
     os << base << DataDelimiter();
 
-    os << DataFieldName("name_") << rhs.get_name() << DataDelimiter();
+    os << DataFieldName("name_") << rhs.getName() << DataDelimiter();
 
     // write timing_libs_
     os << DataFieldName("timing_libs_");
@@ -180,8 +178,8 @@ TLib* LibSet::__addTLibImpl(const std::string& filename) {
         SymbolIndex idx = timing_lib->getOrCreateSymbol(filename.c_str());
         if (idx != kInvalidSymbolIndex) {
             timing_lib->addSymbolReference(idx, this->getId());
-            auto lib = Object::createObject<TLib>(
-                      kObjectTypeTLib, timing_lib->getId());
+            auto lib = Object::createObject<TLib>(kObjectTypeTLib,
+                                                  timing_lib->getId());
             if (lib) {
                 lib->setOwner(this);
                 ArrayObject<ObjectId>* p = nullptr;
@@ -194,8 +192,7 @@ TLib* LibSet::__addTLibImpl(const std::string& filename) {
                         p->reserve(32);
                     }
                 } else {
-                    p = Object::addr<ArrayObject<ObjectId>>(
-                        timing_libs_);
+                    p = Object::addr<ArrayObject<ObjectId>>(timing_libs_);
                 }
                 if (p != nullptr) {
                     ObjectId id = lib->getId();

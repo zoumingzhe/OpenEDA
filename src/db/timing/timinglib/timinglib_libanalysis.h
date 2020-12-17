@@ -112,10 +112,10 @@ typedef struct scandata {
     char string_buf[80960] = {'\0'};
     char token_comment_buf[102400] = {'\0'};
     char token_comment_buf2[102400] = {'\0'};
-    char *string_buf_ptr = {'\0'};
+    char *string_buf_ptr = nullptr;
     struct nl *file_name_list = nullptr;
-    char *curr_file = {'\0'};
-    char *curr_file_save = {'\0'};
+    char *curr_file = nullptr;
+    char *curr_file_save = nullptr;
     int include_stack_index = 0;
     void *include_stack[MAX_INCLUDE_DEPTH] = {nullptr};
 
@@ -148,32 +148,31 @@ class LibAnalysis {
     void setLibertyParseLogStr(std::string *parseLogStr);
     scandata *getScandata(void);
     LibStrtab *getStrtab(void);
-    char *search_string_for_linefeeds(char *str);
-    bool parse_desc_file();
+    char *searchStringForLinefeeds(char *str);
+    bool parseDescFile();
     void generateAttrEnumHeader();
     void generateGroupEnumHeader();
     void generateSyntaxDeclsHAndCPP();
     void generateAttrAndGroupLookup();
-    void set_tok(void);
-    void add_token(int retval, int set_num, int intnum, double floatnum,
-                   char *str);
-    int token_q_empty(void);
-    int injected_token(void *val);
-    void push_group(timinglib_head *h);
-    void pop_group(timinglib_head *h);
-    void make_complex(timinglib_head *h);
-    void make_simple(char *name, timinglib_attribute_value *v);
-    void syntax_push_group(libsynt_head *h);
-    void syntax_pop_group(void);
-    libsynt_attribute_info *syntax_make_complex(libsynt_head *h);
-    libsynt_attribute_info *syntax_make_simple(char *name,
-                                               libsynt_attr_type type,
-                                               void *constraint_ptr);
+    void setTok(void);
+    void addToken(int retval, int set_num, int intnum, double floatnum,
+                  char *str);
+    int tokenQEmpty(void);
+    int injectedToken(void *val);
+    void pushGroup(timinglib_head *h);
+    void popGroup(timinglib_head *h);
+    void makeComplex(timinglib_head *h);
+    void makeSimple(char *name, timinglib_attribute_value *v);
+    void syntaxPushGroup(libsynt_head *h);
+    void syntaxPopGroup(void);
+    libsynt_attribute_info *syntaxMakeComplex(libsynt_head *h);
+    libsynt_attribute_info *syntaxMakeSimple(char *name, libsynt_attr_type type,
+                                             void *constraint_ptr);
     bool isLibertySyntaxValid();
     bool dumpLibFile(const char *const filename, bool clearFileContent = true);
 
-    void clean_file_name(char *dirty, char *clean);
-    si2drValueTypeT convert_vt(char *type);
+    void cleanFileName(char *dirty, char *clean);
+    si2drValueTypeT convertVt(char *type);
     si2drMessageHandlerT si2drPIGetMessageHandler(si2drErrorT *err);
     si2drVoidT si2drSimpleAttrSetIsVar(si2drAttrIdT attr, si2drErrorT *err);
     /* helper functions for expr creation, building, and destruction */
@@ -389,79 +388,77 @@ class LibAnalysis {
                                              si2drErrorT *err);
     si2drBooleanT __si2drSimpleAttrGetIsVar(si2drAttrIdT attr,
                                             si2drErrorT *err);
-    si2drErrorT __syntax_check(si2drGroupIdT);
-    void __trace_check(si2drObjectIdT oid);
-    void __outinit_oid(si2drObjectIdT oid);
-    void __outinit_iter(si2drIterIdT iter);
-    void __inc_tracecount(void);
-    void __remove_token(int *retval, int *set_num, int *intnum,
-                        double *floatnum, char **str);
-    void __dump_attr(libsynt_attribute_info *a, FILE *outC, FILE *outH);
-    void __dump_group(libsynt_group_info *g, FILE *outC, FILE *outH);
-    void __lib__write_group(FILE *of, si2drGroupIdT group, char *indent);
-    void __create_floating_define_for_cell_area(si2drStringT string);
-    int __lib__name_needs_to_be_quoted(char *name);
-    char *__expr_string(si2drExprT *e);
-    LONG_DOUBLE __timinglib_get_element(struct timinglib_value_data *vd, ...);
-    void __timinglib_destroy_value_data(struct timinglib_value_data *vd);
-    void __timinglib___get_index_info(si2drAttrIdT index_x,
-                                      struct timinglib_value_data *vd,
-                                      int dimno);
-    si2drGroupIdT __get_containing_group(si2drGroupIdT group,
-                                         si2drStringT type);
-    struct timinglib_value_data *__timinglib_get_values_data(
+    si2drErrorT __syntaxCheck(si2drGroupIdT);
+    void __traceCheck(si2drObjectIdT oid);
+    void __outinitOid(si2drObjectIdT oid);
+    void __outinitIter(si2drIterIdT iter);
+    void __incTracecount(void);
+    void __removeToken(int *retval, int *set_num, int *intnum, double *floatnum,
+                       char **str);
+    void __dumpAttr(libsynt_attribute_info *a, FILE *outC, FILE *outH);
+    void __dumpGroup(libsynt_group_info *g, FILE *outC, FILE *outH);
+    void __libWriteGroup(FILE *of, si2drGroupIdT group, char *indent);
+    void __createFloatingDefineForCellArea(si2drStringT string);
+    int __libNameNeedsToBeQuoted(char *name);
+    char *__exprString(si2drExprT *e);
+    LONG_DOUBLE __timinglibGetElement(struct timinglib_value_data *vd, ...);
+    void __timinglibDestroyValueData(struct timinglib_value_data *vd);
+    void __timinglibGetIndexInfo(si2drAttrIdT index_x,
+                                 struct timinglib_value_data *vd, int dimno);
+    si2drGroupIdT __getContainingGroup(si2drGroupIdT group, si2drStringT type);
+    struct timinglib_value_data *__timinglibGetValuesData(
         si2drGroupIdT table_group);
-    int __num_get_precision(char *numstr);
-    si2drStringT __get_first_group_name(si2drGroupIdT group);
-    void __check_ccs_density(si2drGroupIdT group);
-    int __isa_formula(char *str);
-    void __add_varlist(char *name);
-    void __destroy_varlist(void);
-    void __print_var_list(void);
-    void __enter_define_cell_area(si2drAttrIdT a);
-    void __attribute_specific_checks(si2drAttrIdT a);
+    int __numGetPrecision(char *numstr);
+    si2drStringT __getFirstGroupName(si2drGroupIdT group);
+    void __checkCcsDensity(si2drGroupIdT group);
+    int __isaFormula(char *str);
+    void __addVarlist(char *name);
+    void __destroyVarlist(void);
+    void __printVarList(void);
+    void __enterDefineCellArea(si2drAttrIdT a);
+    void __attributeSpecificChecks(si2drAttrIdT a);
     char *__mystrtod(char *str, char **end);
-    int __count_floats_in_string(char *s);
-    int __count_strings_in_list(si2drAttrIdT attr);
-    void __check_lu_table_template_arraysize(si2drGroupIdT group);
-    void __check_power_lut_template_arraysize(si2drGroupIdT group);
-    void __check_cell_n_prop(si2drGroupIdT group);
-    void __check_clear_n_preset(si2drGroupIdT group);
-    void __check_members(si2drGroupIdT group);
-    void __check_interface_timing(si2drGroupIdT group);
-    void __check_bus_pin_directions(
+    int __countFloatsInString(char *s);
+    int __countStringsInList(si2drAttrIdT attr);
+    void __checkLuTableTemplateArraysize(si2drGroupIdT group);
+    void __checkPowerLutTemplateArraysize(si2drGroupIdT group);
+    void __checkCellNProp(si2drGroupIdT group);
+    void __checkClearNPreset(si2drGroupIdT group);
+    void __checkMembers(si2drGroupIdT group);
+    void __checkInterfaceTiming(si2drGroupIdT group);
+    void __checkBusPinDirections(
         si2drGroupIdT group) /* group is bus or bundle */;
-    void __check_driver_types(
+    void __checkDriverTypes(
         si2drGroupIdT
             group) /* group should be a pin, perhaps even bus or bundle  */;
-    int __get_bus_size(si2drGroupIdT group, char *busname);
-    int __get_bun_size(si2drGroupIdT group, char *bun);
-    void __gen_var_list(char *formula);
-    si2drGroupIdT __find_bu_by_function(si2drGroupIdT cellequiv, char *name);
-    si2drGroupIdT __find_pin_in_cellequiv(si2drGroupIdT cellequiv, char *name);
-    void __check_next_state_formula(si2drGroupIdT cell, char *formula,
-                                    int ffbankwidth, si2drAttrIdT attr);
-    void __check_ff_bank_widths(si2drGroupIdT group) /* called for ff_banks */;
-    void __check_bus_type(si2drGroupIdT bus);
-    void __find_all_refs_to_template(si2drGroupIdT group, char *name, int num);
-    void __check_index_x(si2drStringT indnam, si2drGroupIdT group);
-    void __check_lut_template(si2drGroupIdT group);
-    void __get_index_info(si2drAttrIdT index_x, struct timinglib_value_data *vd,
-                          int dimno);
-    struct timinglib_value_data *__get_vector_data(si2drGroupIdT vector);
-    void __check_vector(si2drGroupIdT group);
-    void __check_output_current_template(si2drGroupIdT group);
-    void __check_retention_cell(si2drGroupIdT group);
-    void __check_retention_pin(si2drGroupIdT group);
-    void __check_level_shift(si2drGroupIdT group);
-    void __check_ref_times(si2drGroupIdT group);
-    void __group_specific_checks(si2drGroupIdT group);
-    void __check_group_correspondence(si2drGroupIdT g, libsynt_group_info *gi);
-    void __check_attr_correspondence(si2drAttrIdT attr,
-                                     libsynt_attribute_info *ai);
-    std::string __oid_string(si2drObjectIdT oid);
-    std::string __iter_string(si2drIterIdT iter);
-    const char *__itype_string(si2drIterIdT iter);
+    int __getBusSize(si2drGroupIdT group, char *busname);
+    int __getBunSize(si2drGroupIdT group, char *bun);
+    void __genVarList(char *formula);
+    si2drGroupIdT __findBuByFunction(si2drGroupIdT cellequiv, char *name);
+    si2drGroupIdT __findPinInCellequiv(si2drGroupIdT cellequiv, char *name);
+    void __checkNextStateFormula(si2drGroupIdT cell, char *formula,
+                                 int ffbankwidth, si2drAttrIdT attr);
+    void __checkFfBankWidths(si2drGroupIdT group) /* called for ff_banks */;
+    void __checkBusType(si2drGroupIdT bus);
+    void __findAllRefsToTemplate(si2drGroupIdT group, char *name, int num);
+    void __checkIndexX(si2drStringT indnam, si2drGroupIdT group);
+    void __checkLutTemplate(si2drGroupIdT group);
+    void __getIndexInfo(si2drAttrIdT index_x, struct timinglib_value_data *vd,
+                        int dimno);
+    struct timinglib_value_data *__getVectorData(si2drGroupIdT vector);
+    void __checkVector(si2drGroupIdT group);
+    void __checkOutputCurrentTemplate(si2drGroupIdT group);
+    void __checkRetentionCell(si2drGroupIdT group);
+    void __checkRetentionPin(si2drGroupIdT group);
+    void __checkLevelShift(si2drGroupIdT group);
+    void __checkRefTimes(si2drGroupIdT group);
+    void __groupSpecificChecks(si2drGroupIdT group);
+    void __checkGroupCorrespondence(si2drGroupIdT g, libsynt_group_info *gi);
+    void __checkAttrCorrespondence(si2drAttrIdT attr,
+                                   libsynt_attribute_info *ai);
+    std::string __oidString(si2drObjectIdT oid);
+    std::string __iterString(si2drIterIdT iter);
+    const char *__itypeString(si2drIterIdT iter);
 
     si2drMessageHandlerT si2ErrMsg_ = nullptr;
     static si2drObjectIdT nulloid_;
@@ -476,9 +473,9 @@ class LibAnalysis {
     int l__iter_val_count_ = 0;
     int l__iter_attr_count_ = 0;
     int l__iter_def_count_ = 0;
-    int timinglib___debug_mode_ = 0;
-    int timinglib___nocheck_mode_ = 0;
-    FILE *timinglib___trace_mode_CFP_ = 0;
+    int timinglib_debug_mode_ = 0;
+    int timinglib_nocheck_mode_ = 0;
+    FILE *timinglib_trace_mode_CFP_ = 0;
     /* ==========================================================================================================================
      */
     /*     TRACE ROUTINES */

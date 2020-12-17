@@ -77,7 +77,7 @@ AnalysisMode::IndexType AnalysisMode::memory() const {
 }
 
 /// set
-void AnalysisMode::set_name(const std::string& name) {
+void AnalysisMode::setName(const std::string& name) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex idx = timing_lib->getOrCreateSymbol(name.c_str());
@@ -87,7 +87,7 @@ void AnalysisMode::set_name(const std::string& name) {
         }
     }
 }
-void AnalysisMode::add_constraint_file(const std::string& file) {
+void AnalysisMode::addConstraintFile(const std::string& file) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         ArrayObject<SymbolIndex>* p = nullptr;
@@ -100,8 +100,7 @@ void AnalysisMode::add_constraint_file(const std::string& file) {
                 p->reserve(32);
             }
         } else {
-            p = Object::addr<ArrayObject<SymbolIndex>>(
-                constraint_files_);
+            p = Object::addr<ArrayObject<SymbolIndex>>(constraint_files_);
         }
         if (p != nullptr) {
             SymbolIndex idx = timing_lib->getOrCreateSymbol(file.c_str());
@@ -114,21 +113,20 @@ void AnalysisMode::add_constraint_file(const std::string& file) {
 }
 
 /// get
-SymbolIndex AnalysisMode::get_name_index(void) { return name_; }
-std::string AnalysisMode::get_name(void) const {
+SymbolIndex AnalysisMode::getNameIndex(void) { return name_; }
+std::string AnalysisMode::getName(void) const {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
-std::vector<std::string> AnalysisMode::get_constraint_files(void) {
+std::vector<std::string> AnalysisMode::getConstraintFiles(void) {
     std::vector<std::string> strVec;
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         if (constraint_files_ != UNINIT_OBJECT_ID) {
-            auto p = Object::addr<ArrayObject<SymbolIndex>>(
-                constraint_files_);
+            auto p = Object::addr<ArrayObject<SymbolIndex>>(constraint_files_);
             if (p != nullptr) {
                 for (int64_t i = 0; i < p->getSize(); ++i) {
                     std::string str = timing_lib->getSymbolByIndex((*p)[i]);
@@ -139,17 +137,16 @@ std::vector<std::string> AnalysisMode::get_constraint_files(void) {
     }
     return strVec;
 }
-std::string AnalysisMode::get_constraint_file(SymbolIndex index) const {
+std::string AnalysisMode::getConstraintFile(SymbolIndex index) const {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         return timing_lib->getSymbolByIndex(index);
     }
     return "";
 }
-int AnalysisMode::num_contraint_files(void) const {
+int AnalysisMode::numContraintFiles(void) const {
     if (constraint_files_ != UNINIT_OBJECT_ID) {
-        auto p =
-            Object::addr<ArrayObject<SymbolIndex>>(constraint_files_);
+        auto p = Object::addr<ArrayObject<SymbolIndex>>(constraint_files_);
         if (p != nullptr) return p->getSize();
     }
     return 0;
@@ -161,14 +158,13 @@ OStreamBase& operator<<(OStreamBase& os, AnalysisMode const& rhs) {
     AnalysisMode::BaseType const& base = rhs;
     os << base << DataDelimiter();
 
-    os << DataFieldName("name_") << rhs.get_name() << DataDelimiter();
+    os << DataFieldName("name_") << rhs.getName() << DataDelimiter();
 
     // write constraint_files_
     os << DataFieldName("constraint_files_");
     ArrayObject<SymbolIndex>* p = nullptr;
     if (rhs.constraint_files_ != UNINIT_OBJECT_ID)
-        p = Object::addr<ArrayObject<SymbolIndex>>(
-            rhs.constraint_files_);
+        p = Object::addr<ArrayObject<SymbolIndex>>(rhs.constraint_files_);
     if (p != nullptr)
         os << p->getSize();
     else
@@ -177,7 +173,7 @@ OStreamBase& operator<<(OStreamBase& os, AnalysisMode const& rhs) {
     if (p != nullptr) {
         auto delimiter = DataDelimiter("");
         for (int64_t i = 0; i < p->getSize(); ++i) {
-            os << delimiter << rhs.get_constraint_file((*p)[i]);
+            os << delimiter << rhs.getConstraintFile((*p)[i]);
             delimiter = DataDelimiter();
         }
     }

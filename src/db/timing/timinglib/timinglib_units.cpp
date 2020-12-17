@@ -24,7 +24,7 @@ TUnits::TUnits() : TUnits::BaseType() {
 void TUnits::initValues() {
     time_unit_ = {1.0e-9f, 1, "s"};
     capacitance_unit_ = {1.0e-12f, 1, "F"};
-    volatge_unit_ = {1.0f, 1, "V"};
+    voltage_unit_ = {1.0f, 1, "V"};
     resistance_unit_ = {1.0f, 1, "ohm"};
     pulling_resistance_unit_ = {1.0f, 1, "ohm"};
     current_unit_ = {1.0e-3f, 1, "A"};
@@ -56,7 +56,7 @@ UInt32 TUnits::memory() const {
 
     ret += sizeof(time_unit_);
     ret += sizeof(capacitance_unit_);
-    ret += sizeof(volatge_unit_);
+    ret += sizeof(voltage_unit_);
     ret += sizeof(resistance_unit_);
     ret += sizeof(pulling_resistance_unit_);
     ret += sizeof(current_unit_);
@@ -68,32 +68,30 @@ UInt32 TUnits::memory() const {
 }
 
 /// Access APIs:
-TUnit &TUnits::get_time_unit(void) { return time_unit_; }
-TUnit &TUnits::get_capacitance_unit(void) { return capacitance_unit_; }
-TUnit &TUnits::get_volatge_unit(void) { return volatge_unit_; }
-TUnit &TUnits::get_resistance_unit(void) { return resistance_unit_; }
-TUnit &TUnits::get_pulling_resistance_unit(void) {
+TUnit &TUnits::getTimeUnit(void) { return time_unit_; }
+TUnit &TUnits::getCapacitanceUnit(void) { return capacitance_unit_; }
+TUnit &TUnits::getVoltageUnit(void) { return voltage_unit_; }
+TUnit &TUnits::getResistanceUnit(void) { return resistance_unit_; }
+TUnit &TUnits::getPullingResistanceUnit(void) {
     return pulling_resistance_unit_;
 }
-TUnit &TUnits::get_current_unit(void) { return current_unit_; }
-TUnit &TUnits::get_power_unit(void) { return power_unit_; }
-TUnit &TUnits::get_distance_unit(void) { return distance_unit_; }
-TUnit &TUnits::get_scalar_unit(void) { return scalar_unit_; }
+TUnit &TUnits::getCurrentUnit(void) { return current_unit_; }
+TUnit &TUnits::getPowerUnit(void) { return power_unit_; }
+TUnit &TUnits::getDistanceUnit(void) { return distance_unit_; }
+TUnit &TUnits::getScalarUnit(void) { return scalar_unit_; }
 
 // Set:
-void TUnits::set_time_unit(const TUnit &unit) { time_unit_ = unit; }
-void TUnits::set_capacitance_unit(const TUnit &unit) {
-    capacitance_unit_ = unit;
-}
-void TUnits::set_volatge_unit(const TUnit &unit) { volatge_unit_ = unit; }
-void TUnits::set_resistance_unit(const TUnit &unit) { resistance_unit_ = unit; }
-void TUnits::set_pulling_resistance_unit(const TUnit &unit) {
+void TUnits::setTimeUnit(const TUnit &unit) { time_unit_ = unit; }
+void TUnits::setCapacitanceUnit(const TUnit &unit) { capacitance_unit_ = unit; }
+void TUnits::setVolatgeUnit(const TUnit &unit) { voltage_unit_ = unit; }
+void TUnits::setResistanceUnit(const TUnit &unit) { resistance_unit_ = unit; }
+void TUnits::setPullingResistanceUnit(const TUnit &unit) {
     pulling_resistance_unit_ = unit;
 }
-void TUnits::set_current_unit(const TUnit &unit) { current_unit_ = unit; }
-void TUnits::set_power_unit(const TUnit &unit) { power_unit_ = unit; }
-void TUnits::set_distance_unit(const TUnit &unit) { distance_unit_ = unit; }
-void TUnits::set_scalar_unit(const TUnit &unit) { scalar_unit_ = unit; }
+void TUnits::setCurrentUnit(const TUnit &unit) { current_unit_ = unit; }
+void TUnits::setPowerUnit(const TUnit &unit) { power_unit_ = unit; }
+void TUnits::setDistanceUnit(const TUnit &unit) { distance_unit_ = unit; }
+void TUnits::setScalarUnit(const TUnit &unit) { scalar_unit_ = unit; }
 
 TUnits *TUnits::clone() const { return new TUnits(*this); }
 
@@ -102,7 +100,7 @@ void TUnits::copy(TUnits const &rhs) {
 
     time_unit_ = rhs.time_unit_;
     capacitance_unit_ = rhs.capacitance_unit_;
-    volatge_unit_ = rhs.volatge_unit_;
+    voltage_unit_ = rhs.voltage_unit_;
     resistance_unit_ = rhs.resistance_unit_;
     pulling_resistance_unit_ = rhs.pulling_resistance_unit_;
     current_unit_ = rhs.current_unit_;
@@ -116,7 +114,7 @@ void TUnits::move(TUnits &&rhs) {
 
     time_unit_ = std::move(rhs.time_unit_);
     capacitance_unit_ = std::move(rhs.capacitance_unit_);
-    volatge_unit_ = std::move(rhs.volatge_unit_);
+    voltage_unit_ = std::move(rhs.voltage_unit_);
     resistance_unit_ = std::move(rhs.resistance_unit_);
     pulling_resistance_unit_ = std::move(rhs.pulling_resistance_unit_);
     current_unit_ = std::move(rhs.current_unit_);
@@ -134,7 +132,7 @@ OStreamBase &operator<<(OStreamBase &os, TUnits const &rhs) {
     os << DataFieldName("time_unit_") << rhs.time_unit_ << DataDelimiter();
     os << DataFieldName("capacitance_unit_") << rhs.capacitance_unit_
        << DataDelimiter();
-    os << DataFieldName("volatge_unit_") << rhs.volatge_unit_
+    os << DataFieldName("voltage_unit_") << rhs.voltage_unit_
        << DataDelimiter();
     os << DataFieldName("resistance_unit_") << rhs.resistance_unit_
        << DataDelimiter();

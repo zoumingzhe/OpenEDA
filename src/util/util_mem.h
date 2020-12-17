@@ -63,7 +63,7 @@ class MemPage {
     uint64_t    getPageNo() {return page_no_;}
     float       printPageUsage(bool display = false);
     bool        isFree() {return size_avail_ == size_total_;} 
-
+    void        adjustFree() {free_ += size_total_ - size_avail_;}
     template<class T> T* allocate(uint32_t &offset);
     template<class T> T* allocate(uint64_t num, uint32_t &offset);
 
@@ -226,11 +226,12 @@ class MemPagePool {
 template<class T>
 void MemPagePool::free(int type, T *obj)
 {
+    obj->~T(); // de-construct
+
     std::lock_guard<std::mutex> sg(mutex_);
     uint64_t size = sizeof(T);
     __align(size);
 
-    obj->~T(); // de-construct
     auto it = free_list_.find(type); 
     if (it == free_list_.end()) {
         std::forward_list<void*> *fl = new std::forward_list<void*>;

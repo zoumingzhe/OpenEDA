@@ -4,6 +4,10 @@ if (NOT CMAKE_CUDA_FLAGS)
     set(CMAKE_CUDA_FLAGS "-gencode=arch=compute_60,code=sm_60")
 endif()
 
+get_filename_component(COMMON_DB_LIBRARY_DIRS ${CMAKE_CURRENT_BINARY_DIR}/../flow ABSOLUTE)
+get_filename_component(DB_DIRS ${CMAKE_BINARY_DIR}/src ABSOLUTE)
+message(STATUS "COMMON_DB_LIBRARY_DIRS ${COMMON_DB_LIBRARY_DIRS}")
+
 if (PYTHON)
     set(SETUP_PY_IN "${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in")
     set(SETUP_PY    "${CMAKE_CURRENT_BINARY_DIR}/setup.py")
@@ -18,7 +22,7 @@ if (PYTHON)
     add_custom_command(OUTPUT ${OUTPUT}
         COMMAND ${PYTHON} ${SETUP_PY} build --build-temp=${CMAKE_CURRENT_BINARY_DIR}/build --build-lib=${CMAKE_CURRENT_BINARY_DIR}/lib
         COMMAND ${CMAKE_COMMAND} -E touch ${OUTPUT}
-        DEPENDS ${SOURCES} lefparseradapt defparseradapt verilogparser gdsparser bookshelfparser programoptions gzstream 
+        DEPENDS ${SOURCES} lefparseradapt defparseradapt verilogparser gdsparser bookshelfparser programoptions gzstream
         )
 
     add_custom_target(clean_${PROJECT_NAME}

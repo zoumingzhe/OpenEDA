@@ -16,7 +16,6 @@
 #include "db/core/db.h"
 #include "db/timing/timinglib/timinglib_function.h"
 #include "db/timing/timinglib/timinglib_term.h"
-#include "db/timing/timinglib/timinglib_termattr.h"
 #include "db/timing/timinglib/timinglib_timingtable.h"
 
 namespace open_edi {
@@ -129,145 +128,158 @@ TimingArc::IndexType TimingArc::memory() const {
 }
 
 /// set
-void TimingArc::set_disabled(bool b) { is_disabled_ = b; }
-void TimingArc::set_timing_sense(TimingSense ts) { timing_sense_ = ts; }
-void TimingArc::set_timing_type(TimingType tt) {}
-TFunction* TimingArc::set_when(const std::string& str) {
+void TimingArc::setDisabled(bool b) { is_disabled_ = b; }
+void TimingArc::setTimingSense(TimingSense ts) { timing_sense_ = ts; }
+void TimingArc::setTimingType(TimingType tt) {}
+TFunction* TimingArc::setWhen(const std::string& str) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
-        auto p = Object::createObject<TFunction>(
-                  kObjectTypeTFunction, timing_lib->getId());
+        auto p = Object::createObject<TFunction>(kObjectTypeTFunction,
+                                                 timing_lib->getId());
         if (p) {
             when_ = p->getId();
-            p->set_func_str(str);
+            p->setFuncStr(str);
             p->setOwner(this);
         }
         return p;
     }
     return nullptr;
 }
-TimingTable* TimingArc::create_timing_table(ObjectType type) {
+TimingTable* TimingArc::createTimingTable(ObjectType type) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         TimingTable* p = nullptr;
         if (type == kObjectTypeTimingTable)
-            p = Object::createObject<TimingTable>(
-                    kObjectTypeTimingTable, timing_lib->getId());
+            p = Object::createObject<TimingTable>(kObjectTypeTimingTable,
+                                                  timing_lib->getId());
         else if (type == kObjectTypeTimingTable0)
-            p = Object::createObject<TimingTable0>(
-                    kObjectTypeTimingTable0, timing_lib->getId());
+            p = Object::createObject<TimingTable0>(kObjectTypeTimingTable0,
+                                                   timing_lib->getId());
         else if (type == kObjectTypeTimingTable1)
-            p = Object::createObject<TimingTable1>(
-                    kObjectTypeTimingTable1, timing_lib->getId());
+            p = Object::createObject<TimingTable1>(kObjectTypeTimingTable1,
+                                                   timing_lib->getId());
         else if (type == kObjectTypeTimingTable2)
-            p = Object::createObject<TimingTable2>(
-                    kObjectTypeTimingTable2, timing_lib->getId());
+            p = Object::createObject<TimingTable2>(kObjectTypeTimingTable2,
+                                                   timing_lib->getId());
         else if (type == kObjectTypeTimingTable3)
-            p = Object::createObject<TimingTable3>(
-                    kObjectTypeTimingTable3, timing_lib->getId());
+            p = Object::createObject<TimingTable3>(kObjectTypeTimingTable3,
+                                                   timing_lib->getId());
         return p;
     }
     return nullptr;
 }
-void TimingArc::set_cell_rise(ObjectId id) { cell_rise_ = id; }
-void TimingArc::set_cell_fall(ObjectId id) { cell_fall_ = id; }
-void TimingArc::set_rise_transition(ObjectId id) { rise_transition_ = id; }
-void TimingArc::set_fall_transition(ObjectId id) { fall_transition_ = id; }
-void TimingArc::set_rise_constraint(ObjectId id) { rise_constraint_ = id; }
-void TimingArc::set_fall_constraint(ObjectId id) { fall_constraint_ = id; }
-void TimingArc::add_related_pin(ObjectId id) {
+void TimingArc::setCellRise(ObjectId id) { cell_rise_ = id; }
+void TimingArc::setCellFall(ObjectId id) { cell_fall_ = id; }
+void TimingArc::setRiseTransition(ObjectId id) { rise_transition_ = id; }
+void TimingArc::setFallTransition(ObjectId id) { fall_transition_ = id; }
+void TimingArc::setRiseConstraint(ObjectId id) { rise_constraint_ = id; }
+void TimingArc::setFallConstraint(ObjectId id) { fall_constraint_ = id; }
+void TimingArc::addRelatedPin(ObjectId id) {
     if (id == UNINIT_OBJECT_ID) return;
     auto pin = Object::addr<TTerm>(id);
     if (pin) {
-        if (pin->getAttr()) {
-            ArrayObject<ObjectId>* p = nullptr;
-            if (related_pins_ == UNINIT_OBJECT_ID) {
-                Timing* timing_lib = getTimingLib();
-                if (timing_lib != nullptr) {
-                    p = Object::createObject<ArrayObject<ObjectId>>(
-                        kObjectTypeArray, timing_lib->getId());
-                    if (p != nullptr) {
-                        related_pins_ = p->getId();
-                        p->setPool(timing_lib->getPool());
-                        p->reserve(32);
-                    }
+        ArrayObject<ObjectId>* p = nullptr;
+        if (related_pins_ == UNINIT_OBJECT_ID) {
+            Timing* timing_lib = getTimingLib();
+            if (timing_lib != nullptr) {
+                p = Object::createObject<ArrayObject<ObjectId>>(
+                    kObjectTypeArray, timing_lib->getId());
+                if (p != nullptr) {
+                    related_pins_ = p->getId();
+                    p->setPool(timing_lib->getPool());
+                    p->reserve(32);
                 }
-            } else {
-                p = Object::addr<ArrayObject<ObjectId>>(related_pins_);
             }
-            if (p != nullptr) {
-                p->pushBack(id);
-                related_pins_map_[pin->getAttr()->get_name_index()] = id;
-            }
+        } else {
+            p = Object::addr<ArrayObject<ObjectId>>(related_pins_);
+        }
+        if (p != nullptr) {
+            p->pushBack(id);
+            related_pins_map_[pin->getNameIndex()] = id;
         }
     }
 }
 
 /// get
-bool TimingArc::is_disabled(void) { return is_disabled_; }
-TimingSense TimingArc::get_timing_sense(void) { return timing_sense_; }
-TimingType TimingArc::get_timing_type(void) { return timing_type_; }
-TFunction* TimingArc::get_when(void) {
+bool TimingArc::isDisabled(void) { return is_disabled_; }
+TimingSense TimingArc::getTimingSense(void) { return timing_sense_; }
+TimingType TimingArc::getTimingType(void) { return timing_type_; }
+TFunction* TimingArc::getWhen(void) {
     if (when_ != UNINIT_OBJECT_ID)
         return Object::addr<TFunction>(when_);
     else
         return nullptr;
 }
-TimingTable* TimingArc::get_cell_rise(void) {
+TimingTable* TimingArc::getCellRise(void) {
     if (cell_rise_ != UNINIT_OBJECT_ID)
         return Object::addr<TimingTable>(cell_rise_);
     else
         return nullptr;
 }
-TimingTable* TimingArc::get_cell_fall(void) {
+TimingTable* TimingArc::getCellFall(void) {
     if (cell_fall_ != UNINIT_OBJECT_ID)
         return Object::addr<TimingTable>(cell_fall_);
     else
         return nullptr;
 }
-TimingTable* TimingArc::get_rise_transition(void) {
+TimingTable* TimingArc::getRiseTransition(void) {
     if (rise_transition_ != UNINIT_OBJECT_ID)
         return Object::addr<TimingTable>(rise_transition_);
     else
         return nullptr;
 }
-TimingTable* TimingArc::get_fall_transition(void) {
+TimingTable* TimingArc::getFallTransition(void) {
     if (fall_transition_ != UNINIT_OBJECT_ID)
         return Object::addr<TimingTable>(fall_transition_);
     else
         return nullptr;
 }
-TimingTable* TimingArc::get_rise_constraint(void) {
+TimingTable* TimingArc::getRiseConstraint(void) {
     if (rise_constraint_ != UNINIT_OBJECT_ID)
         return Object::addr<TimingTable>(rise_constraint_);
     else
         return nullptr;
 }
-TimingTable* TimingArc::get_fall_constraint(void) {
+TimingTable* TimingArc::getFallConstraint(void) {
     if (fall_constraint_ != UNINIT_OBJECT_ID)
         return Object::addr<TimingTable>(fall_constraint_);
     else
         return nullptr;
 }
-TTerm* TimingArc::get_related_pin(const std::string& name) {
+TTerm* TimingArc::getRelatedPin(const std::string& name) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex id = timing_lib->getOrCreateSymbol(name.c_str());
         if (id != kInvalidSymbolIndex) {
             auto p = related_pins_map_.find(id);
-            if (p != related_pins_map_.end()) return get_related_pin(p->second);
+            if (p != related_pins_map_.end()) return getRelatedPin(p->second);
         }
     }
     return nullptr;
 }
-TTerm* TimingArc::get_related_pin(ObjectId id) {
+TTerm* TimingArc::getRelatedPin(ObjectId id) {
     if (id != UNINIT_OBJECT_ID)
         return Object::addr<TTerm>(id);
     else
         return nullptr;
 }
-
-ObjectType get_timingtable_objectType(const std::string& str) {
+std::vector<TTerm*> TimingArc::getRelatedPins(void) {
+    std::vector<TTerm*> relatedPins;
+    if (related_pins_ != UNINIT_OBJECT_ID) {
+        ArrayObject<ObjectId>* p = nullptr;
+        p = Object::addr<ArrayObject<ObjectId>>(related_pins_);
+        if (p != nullptr) {
+            int64_t count = p->getSize();
+            relatedPins.reserve(count);
+            for (int64_t i = 0; i < count; ++i) {
+                auto q = Object::addr<TTerm>((*p)[i]);
+                if (q != nullptr) relatedPins.emplace_back(q);
+            }
+        }
+    }
+    return relatedPins;
+}
+ObjectType getTimingtableObjectType(const std::string& str) {
     if (str == "kObjectTypeTimingTable")
         return kObjectTypeTimingTable;
     else if (str == "kObjectTypeTimingTable0")
@@ -281,7 +293,7 @@ ObjectType get_timingtable_objectType(const std::string& str) {
     return kObjectTypeMax;
 }
 
-std::string get_timingtable_str(ObjectType t) {
+std::string getTimingtableStr(ObjectType t) {
     switch (t) {
         case kObjectTypeTimingTable:
             return "kObjectTypeTimingTable";
@@ -298,7 +310,7 @@ std::string get_timingtable_str(ObjectType t) {
     }
 }
 
-void output_timing_table(OStreamBase* os, ObjectId id) {
+void outputTimingTable(OStreamBase* os, ObjectId id) {
     *os << id;
     *os << DataBegin("[");
     if (id != UNINIT_OBJECT_ID) {
@@ -307,34 +319,33 @@ void output_timing_table(OStreamBase* os, ObjectId id) {
             if (p->getObjectType() == kObjectTypeTimingTable0) {
                 auto q = dynamic_cast<TimingTable0*>(p);
                 if (q) {
-                    *os << get_timingtable_str(p->getObjectType())
+                    *os << getTimingtableStr(p->getObjectType())
                         << DataDelimiter();
                     *os << *q;
                 }
             } else if (p->getObjectType() == kObjectTypeTimingTable1) {
                 auto q = dynamic_cast<TimingTable1*>(p);
                 if (q) {
-                    *os << get_timingtable_str(p->getObjectType())
+                    *os << getTimingtableStr(p->getObjectType())
                         << DataDelimiter();
                     *os << *q;
                 }
             } else if (p->getObjectType() == kObjectTypeTimingTable2) {
                 auto q = dynamic_cast<TimingTable2*>(p);
                 if (q) {
-                    *os << get_timingtable_str(p->getObjectType())
+                    *os << getTimingtableStr(p->getObjectType())
                         << DataDelimiter();
                     *os << *q;
                 }
             } else if (p->getObjectType() == kObjectTypeTimingTable3) {
                 auto q = dynamic_cast<TimingTable3*>(p);
                 if (q) {
-                    *os << get_timingtable_str(p->getObjectType())
+                    *os << getTimingtableStr(p->getObjectType())
                         << DataDelimiter();
                     *os << *q;
                 }
             } else {
-                *os << get_timingtable_str(p->getObjectType())
-                    << DataDelimiter();
+                *os << getTimingtableStr(p->getObjectType()) << DataDelimiter();
                 *os << *p;
             }
         }
@@ -362,27 +373,27 @@ OStreamBase& operator<<(OStreamBase& os, TimingArc const& rhs) {
         os << DataEnd("]") << DataDelimiter();
     }
     os << DataFieldName("cell_rise_");
-    output_timing_table(&os, rhs.cell_rise_);
+    outputTimingTable(&os, rhs.cell_rise_);
     os << DataDelimiter();
 
     os << DataFieldName("cell_fall_");
-    output_timing_table(&os, rhs.cell_fall_);
+    outputTimingTable(&os, rhs.cell_fall_);
     os << DataDelimiter();
 
     os << DataFieldName("rise_transition_");
-    output_timing_table(&os, rhs.rise_transition_);
+    outputTimingTable(&os, rhs.rise_transition_);
     os << DataDelimiter();
 
     os << DataFieldName("fall_transition_");
-    output_timing_table(&os, rhs.fall_transition_);
+    outputTimingTable(&os, rhs.fall_transition_);
     os << DataDelimiter();
 
     os << DataFieldName("rise_constraint_");
-    output_timing_table(&os, rhs.rise_constraint_);
+    outputTimingTable(&os, rhs.rise_constraint_);
     os << DataDelimiter();
 
     os << DataFieldName("fall_constraint_");
-    output_timing_table(&os, rhs.fall_constraint_);
+    outputTimingTable(&os, rhs.fall_constraint_);
     os << DataDelimiter();
 
     os << DataFieldName("related_pins_");
@@ -399,8 +410,8 @@ OStreamBase& operator<<(OStreamBase& os, TimingArc const& rhs) {
         auto delimiter = DataDelimiter("");
         for (int64_t i = 0; i < p->getSize(); ++i) {
             auto q = Object::addr<TTerm>((*p)[i]);
-            if (q != nullptr && q->getAttr() != nullptr)
-                os << delimiter << q->getAttr()->get_name();
+            if (q != nullptr)
+                os << delimiter << q->getName();
             else
                 os << delimiter << "";
             delimiter = DataDelimiter();

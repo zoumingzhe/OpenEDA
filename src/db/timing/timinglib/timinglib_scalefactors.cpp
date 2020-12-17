@@ -90,7 +90,7 @@ ScaleFactors::IndexType ScaleFactors::memory() const {
 }
 
 /// set
-void ScaleFactors::set_name(const std::string& name) {
+void ScaleFactors::setName(const std::string& name) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
@@ -100,32 +100,32 @@ void ScaleFactors::set_name(const std::string& name) {
         }
     }
 }
-void ScaleFactors::add_scale(ScaleFactorType t, ScaleFactorPvt p, float f) {
+void ScaleFactors::addScale(ScaleFactorType t, ScaleFactorPvt p, float f) {
     scales_[static_cast<int>(t)][static_cast<int>(p)][0] = f;
 }
-void ScaleFactors::add_scale(ScaleFactorType t, ScaleFactorPvt p,
-                             ScaleFactorRiseFall rf, float f) {
+void ScaleFactors::addScale(ScaleFactorType t, ScaleFactorPvt p,
+                            ScaleFactorRiseFall rf, float f) {
     scales_[static_cast<int>(t)][static_cast<int>(p)][static_cast<int>(rf)] = f;
 }
 
 /// get
-std::string ScaleFactors::get_name(void) const {
+std::string ScaleFactors::getName(void) const {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
-float ScaleFactors::get_scale(ScaleFactorType t, ScaleFactorPvt p) {
+float ScaleFactors::getScale(ScaleFactorType t, ScaleFactorPvt p) {
     return scales_[static_cast<int>(t)][static_cast<int>(p)][0];
 }
-float ScaleFactors::get_scale(ScaleFactorType t, ScaleFactorPvt p,
-                              ScaleFactorRiseFall rf) {
+float ScaleFactors::getScale(ScaleFactorType t, ScaleFactorPvt p,
+                             ScaleFactorRiseFall rf) {
     return scales_[static_cast<int>(t)][static_cast<int>(p)]
                   [static_cast<int>(rf)];
 }
 
-bool ScaleFactors::is_rise_fall_suffix(ScaleFactorType type) {
+bool ScaleFactors::isRiseFallSuffix(ScaleFactorType type) {
     return type == ScaleFactorType::kCell || type == ScaleFactorType::kHold ||
            type == ScaleFactorType::kSetup ||
            type == ScaleFactorType::kRecovery ||
@@ -133,11 +133,11 @@ bool ScaleFactors::is_rise_fall_suffix(ScaleFactorType type) {
            type == ScaleFactorType::kNochange || type == ScaleFactorType::kSkew;
 }
 
-bool ScaleFactors::is_rise_fall_prefix(ScaleFactorType type) {
+bool ScaleFactors::isRiseFallPrefix(ScaleFactorType type) {
     return type == ScaleFactorType::kTransition;
 }
 
-bool ScaleFactors::is_high_low_suffix(ScaleFactorType type) {
+bool ScaleFactors::isHighLowSuffix(ScaleFactorType type) {
     return type == ScaleFactorType::kMin_Pulse_Width;
 }
 
@@ -158,7 +158,7 @@ OStreamBase& operator<<(OStreamBase& os, ScaleFactors const& rhs) {
     ScaleFactors::BaseType const& base = rhs;
     os << base << DataDelimiter();
 
-    os << DataFieldName("name_") << rhs.get_name() << DataDelimiter();
+    os << DataFieldName("name_") << rhs.getName() << DataDelimiter();
     os << DataFieldName("scales_");
 
     os << DataBegin("[");

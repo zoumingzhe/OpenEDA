@@ -18,6 +18,7 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include "db/core/object.h"
 #include "db/timing/timinglib/timinglib_commondef.h"
@@ -58,32 +59,33 @@ class TimingArc : public Object {
     IndexType memory() const;
 
     /// set
-    void set_disabled(bool b);
-    void set_timing_sense(TimingSense ts);
-    void set_timing_type(TimingType tt);
-    TFunction* set_when(const std::string& str);
-    static TimingTable* create_timing_table(ObjectType type);
-    void set_cell_rise(ObjectId id);
-    void set_cell_fall(ObjectId id);
-    void set_rise_transition(ObjectId id);
-    void set_fall_transition(ObjectId id);
-    void set_rise_constraint(ObjectId id);
-    void set_fall_constraint(ObjectId id);
-    void add_related_pin(ObjectId id);
+    void setDisabled(bool b);
+    void setTimingSense(TimingSense ts);
+    void setTimingType(TimingType tt);
+    TFunction* setWhen(const std::string& str);
+    static TimingTable* createTimingTable(ObjectType type);
+    void setCellRise(ObjectId id);
+    void setCellFall(ObjectId id);
+    void setRiseTransition(ObjectId id);
+    void setFallTransition(ObjectId id);
+    void setRiseConstraint(ObjectId id);
+    void setFallConstraint(ObjectId id);
+    void addRelatedPin(ObjectId id);
 
     /// get
-    bool is_disabled(void);
-    TimingSense get_timing_sense(void);
-    TimingType get_timing_type(void);
-    TFunction* get_when(void);
-    TimingTable* get_cell_rise(void);
-    TimingTable* get_cell_fall(void);
-    TimingTable* get_rise_transition(void);
-    TimingTable* get_fall_transition(void);
-    TimingTable* get_rise_constraint(void);
-    TimingTable* get_fall_constraint(void);
-    TTerm* get_related_pin(const std::string& name);
-    TTerm* get_related_pin(ObjectId id);
+    bool isDisabled(void);
+    TimingSense getTimingSense(void);
+    TimingType getTimingType(void);
+    TFunction* getWhen(void);
+    TimingTable* getCellRise(void);
+    TimingTable* getCellFall(void);
+    TimingTable* getRiseTransition(void);
+    TimingTable* getFallTransition(void);
+    TimingTable* getRiseConstraint(void);
+    TimingTable* getFallConstraint(void);
+    TTerm* getRelatedPin(const std::string& name);
+    TTerm* getRelatedPin(ObjectId id);
+    std::vector<TTerm*> getRelatedPins(void);
 
   protected:
     /// @brief copy object

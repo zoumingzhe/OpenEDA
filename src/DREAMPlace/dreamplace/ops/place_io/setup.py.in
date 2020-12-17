@@ -18,6 +18,7 @@ os.environ["CXX"] = "${CMAKE_CXX_COMPILER}"
 limbo_source_dir = "${LIMBO_SOURCE_DIR}"
 limbo_binary_dir = "${LIMBO_BINARY_DIR}"
 
+
 include_dirs = [os.path.abspath(limbo_source_dir), '${OPS_DIR}', '${Boost_INCLUDE_DIRS}', '${ZLIB_INCLUDE_DIRS}']
 lib_dirs = [os.path.join(os.path.abspath(limbo_binary_dir), 'limbo/parsers/lef/adapt'), 
         os.path.join(os.path.abspath(limbo_binary_dir), 'limbo/parsers/def/adapt'), 
@@ -27,13 +28,27 @@ lib_dirs = [os.path.join(os.path.abspath(limbo_binary_dir), 'limbo/parsers/lef/a
         os.path.join(os.path.abspath(limbo_binary_dir), 'limbo/programoptions'), 
         os.path.join(os.path.abspath(limbo_binary_dir), 'limbo/thirdparty/gzstream'), 
         '${Boost_LIBRARY_DIRS}', os.path.dirname('${ZLIB_LIBRARIES}'), '${UTILITY_LIBRARY_DIRS}']
+
 libs = ['lefparseradapt', 'defparseradapt', 'verilogparser', 'gdsparser', 'bookshelfparser', 'programoptions', 
 #'boost_system', 'boost_timer', 'boost_chrono', 
-'gzstream', 'z', 'utility'] 
+'gzstream', 'z', 'utility']
 
 tokens = str(torch.__version__).split('.')
 torch_major_version = "-DTORCH_MAJOR_VERSION=%d" % (int(tokens[0]))
 torch_minor_version = "-DTORCH_MINOR_VERSION=%d" % (int(tokens[1]))
+
+cxx_flags = ['-fvisibility=hidden', torch_major_version, torch_minor_version]
+
+if ("${CMAKE_PLACE}".upper() == 'ON') or ("${CMAKE_PLACE}".upper() == 'TRUE') or ("${CMAKE_PLACE}" == '1'):
+    lib_dirs.append('${COMMON_DB_LIBRARY_DIRS}')
+    lib_dirs.append('${DB_DIRS}/db')
+    lib_dirs.append('${DB_DIRS}/util')
+    libs.append('common_place_db')
+    libs.append('openedi_db')
+    libs.append('openedi_util')
+    include_dirs.append('${OPS_DIR}/../../..')
+    cxx_flags.append('-D_CMAKE_PLACE')
+    cxx_flags.append('-O0')
 
 def add_prefix(filename):
     return os.path.join('${CMAKE_CURRENT_SOURCE_DIR}/src', filename)
@@ -63,7 +78,7 @@ setup(
                 library_dirs=copy.deepcopy(lib_dirs),
                 libraries=copy.deepcopy(libs),
                 extra_compile_args={
-                    'cxx': ['-fvisibility=hidden', torch_major_version, torch_minor_version], 
+                    'cxx': cxx_flags,
                     }
                 ),
             ],

@@ -8,6 +8,7 @@
 import time 
 import os
 import sys
+from datetime import datetime
 import logging
 import torch
 import matplotlib 
@@ -21,7 +22,7 @@ import Params
 import PlaceDB
 import GlobalPlace
 
-def global_placer_run(json_file):
+def global_placer_run(json_file, db_ptr):
     """
     @brief Top function to run global placement.
     @json json_file for user settings.
@@ -41,7 +42,7 @@ def global_placer_run(json_file):
     logging.info('[start reading database at: %s]'%(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
 
     placedb = PlaceDB.PlaceDB()
-    placedb(params, true)  #true for open_edi
+    placedb(params, db_ptr)  #db_ptr for open_edi flow
 
     logging.info("[end reading database at:%s, takes %.2f seconds]" % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'),time.time()-tt))
 
@@ -65,7 +66,7 @@ def global_placer_run(json_file):
     logging.info('[start update database at: %s]'%(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
 
     cur_pos = placer.pos[0].data.clone().cpu().numpy()
-    placedb.apply(params, cur_pos[0:placedb.num_movable_nodes], cur_pos[placedb.num_nodes:placedb.num_nodes+placedb.num_movable_nodes], true)  #true for open_edi
+    placedb.apply(params, cur_pos[0:placedb.num_movable_nodes], cur_pos[placedb.num_nodes:placedb.num_nodes+placedb.num_movable_nodes], db_ptr)  #db_ptr for open_edi flow
 
     logging.info("[end update database at: %s, elapsed time %.2f seconds]" % (datetime.now().strftime('%Y-%m-%d %H:%M:%S'),time.time()-tt))
 

@@ -94,7 +94,7 @@ WireLoadTable::IndexType WireLoadTable::memory() const {
 }
 
 /// set
-void WireLoadTable::set_name(const std::string& name) {
+void WireLoadTable::setName(const std::string& name) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
@@ -104,44 +104,44 @@ void WireLoadTable::set_name(const std::string& name) {
         }
     }
 }
-void WireLoadTable::set_fanout_length(int n, float f) {
+void WireLoadTable::setFanoutLength(int n, float f) {
     fanout_length_.num = n;
     fanout_length_.value = f;
     fanout_length_.valid = true;
 }
-void WireLoadTable::set_fanout_capacitance(int n, float f) {
+void WireLoadTable::setFanoutCapacitance(int n, float f) {
     fanout_capacitance_.num = n;
     fanout_capacitance_.value = f;
     fanout_capacitance_.valid = true;
 }
-void WireLoadTable::set_fanout_resistance(int n, float f) {
+void WireLoadTable::setFanoutResistance(int n, float f) {
     fanout_resistance_.num = n;
     fanout_resistance_.value = f;
     fanout_resistance_.valid = true;
 }
-void WireLoadTable::set_fanout_area(int n, float f) {
+void WireLoadTable::setFanoutArea(int n, float f) {
     fanout_area_.num = n;
     fanout_area_.value = f;
     fanout_area_.valid = true;
 }
 
 /// get
-std::string WireLoadTable::get_name(void) const {
+std::string WireLoadTable::getName(void) const {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
-SymbolIndex WireLoadTable::get_name_index(void) { return name_; }
-FanoutPair WireLoadTable::get_fanout_length(void) { return fanout_length_; }
-FanoutPair WireLoadTable::get_fanout_capacitance(void) {
+SymbolIndex WireLoadTable::getNameIndex(void) { return name_; }
+FanoutPair WireLoadTable::getFanoutLength(void) { return fanout_length_; }
+FanoutPair WireLoadTable::getFanoutCapacitance(void) {
     return fanout_capacitance_;
 }
-FanoutPair WireLoadTable::get_fanout_resistance(void) {
+FanoutPair WireLoadTable::getFanoutResistance(void) {
     return fanout_resistance_;
 }
-FanoutPair WireLoadTable::get_fanout_area(void) { return fanout_area_; }
+FanoutPair WireLoadTable::getFanoutArea(void) { return fanout_area_; }
 
 OStreamBase& operator<<(OStreamBase& os, WireLoadTable const& rhs) {
     os << DataTypeName(className(rhs)) << DataBegin("(");
@@ -149,7 +149,7 @@ OStreamBase& operator<<(OStreamBase& os, WireLoadTable const& rhs) {
     WireLoadTable::BaseType const& base = rhs;
     os << base << DataDelimiter();
 
-    os << DataFieldName("name_") << rhs.get_name() << DataDelimiter();
+    os << DataFieldName("name_") << rhs.getName() << DataDelimiter();
     os << DataFieldName("fanout_length_");
     if (rhs.fanout_length_.valid == false)
         os << "";
@@ -260,7 +260,7 @@ WireLoad::IndexType WireLoad::memory() const {
 }
 
 /// set
-void WireLoad::set_name(const std::string& name) {
+void WireLoad::setName(const std::string& name) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
@@ -270,11 +270,11 @@ void WireLoad::set_name(const std::string& name) {
         }
     }
 }
-void WireLoad::set_area(float f) { area_ = f; }
-void WireLoad::set_resistance(float f) { resistance_ = f; }
-void WireLoad::set_capacitance(float f) { capacitance_ = f; }
-void WireLoad::set_slope(float f) { slope_ = f; }
-void WireLoad::add_fanout_length(int n, float f) {
+void WireLoad::setArea(float f) { area_ = f; }
+void WireLoad::setResistance(float f) { resistance_ = f; }
+void WireLoad::setCapacitance(float f) { capacitance_ = f; }
+void WireLoad::setSlope(float f) { slope_ = f; }
+void WireLoad::addFanoutLength(int n, float f) {
     ArrayObject<FanoutPair>* p = nullptr;
     if (fanout_lengths_ == UNINIT_OBJECT_ID) {
         Timing* timing_lib = getTimingLib();
@@ -300,19 +300,19 @@ void WireLoad::add_fanout_length(int n, float f) {
 }
 
 /// get
-std::string WireLoad::get_name(void) const {
+std::string WireLoad::getName(void) const {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
-SymbolIndex WireLoad::get_name_index(void) { return name_; }
-float WireLoad::get_area(void) { return area_; }
-float WireLoad::get_resistance(void) { return resistance_; }
-float WireLoad::get_capacitance(void) { return capacitance_; }
-float WireLoad::get_slope(void) { return slope_; }
-ArrayObject<FanoutPair>* WireLoad::get_fanout_lengths(void) {
+SymbolIndex WireLoad::getNameIndex(void) { return name_; }
+float WireLoad::getArea(void) { return area_; }
+float WireLoad::getResistance(void) { return resistance_; }
+float WireLoad::getCapacitance(void) { return capacitance_; }
+float WireLoad::getSlope(void) { return slope_; }
+ArrayObject<FanoutPair>* WireLoad::getFanoutLengths(void) {
     ArrayObject<FanoutPair>* p = nullptr;
     if (fanout_lengths_ != UNINIT_OBJECT_ID)
         p = addr<ArrayObject<FanoutPair>>(fanout_lengths_);
@@ -325,7 +325,7 @@ OStreamBase& operator<<(OStreamBase& os, WireLoad const& rhs) {
     WireLoad::BaseType const& base = rhs;
     os << base << DataDelimiter();
 
-    os << DataFieldName("name_") << rhs.get_name() << DataDelimiter();
+    os << DataFieldName("name_") << rhs.getName() << DataDelimiter();
     os << DataFieldName("area_") << rhs.area_ << DataDelimiter();
     os << DataFieldName("resistance_") << rhs.resistance_ << DataDelimiter();
     os << DataFieldName("capacitance_") << rhs.capacitance_ << DataDelimiter();
@@ -423,14 +423,14 @@ WireLoadForArea::IndexType WireLoadForArea::memory() const {
 }
 
 /// set
-void WireLoadForArea::set_min_area(float f) { min_area_ = f; }
-void WireLoadForArea::set_max_area(float f) { max_area_ = f; }
-void WireLoadForArea::set_wireload(ObjectId id) { wireload_ = id; }
+void WireLoadForArea::setMinArea(float f) { min_area_ = f; }
+void WireLoadForArea::setMaxArea(float f) { max_area_ = f; }
+void WireLoadForArea::setWireload(ObjectId id) { wireload_ = id; }
 
 /// get
-float WireLoadForArea::get_min_area(void) { return min_area_; }
-float WireLoadForArea::get_max_area(void) { return max_area_; }
-WireLoad* WireLoadForArea::get_wireload(void) {
+float WireLoadForArea::getMinArea(void) { return min_area_; }
+float WireLoadForArea::getMaxArea(void) { return max_area_; }
+WireLoad* WireLoadForArea::getWireload(void) {
     if (wireload_ != UNINIT_OBJECT_ID)
         return addr<WireLoad>(wireload_);
     else
@@ -518,7 +518,7 @@ WireLoadSelection::IndexType WireLoadSelection::memory() const {
 }
 
 /// set
-void WireLoadSelection::set_name(const std::string& name) {
+void WireLoadSelection::setName(const std::string& name) {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         SymbolIndex index = timing_lib->getOrCreateSymbol(name.c_str());
@@ -528,7 +528,7 @@ void WireLoadSelection::set_name(const std::string& name) {
         }
     }
 }
-void WireLoadSelection::add_wire_load_for_area(ObjectId id) {
+void WireLoadSelection::addWireLoadForArea(ObjectId id) {
     if (id != UNINIT_OBJECT_ID) {
         ArrayObject<ObjectId>* object_array = nullptr;
         if (wireloads_ == UNINIT_OBJECT_ID) {
@@ -543,23 +543,22 @@ void WireLoadSelection::add_wire_load_for_area(ObjectId id) {
                 }
             }
         } else {
-            object_array =
-                addr<ArrayObject<ObjectId>>(wireloads_);
+            object_array = addr<ArrayObject<ObjectId>>(wireloads_);
         }
         if (object_array != nullptr) object_array->pushBack(id);
     }
 }
 
 /// get
-std::string WireLoadSelection::get_name(void) const {
+std::string WireLoadSelection::getName(void) const {
     Timing* timing_lib = getTimingLib();
     if (timing_lib) {
         return timing_lib->getSymbolByIndex(name_);
     }
     return "";
 }
-SymbolIndex WireLoadSelection::get_name_index(void) { return name_; }
-WireLoadForArea* WireLoadSelection::get_wire_load_for_area(ObjectId id) {
+SymbolIndex WireLoadSelection::getNameIndex(void) { return name_; }
+WireLoadForArea* WireLoadSelection::getWireLoadForArea(ObjectId id) {
     if (id == UNINIT_OBJECT_ID) return nullptr;
     return addr<WireLoadForArea>(id);
 }
@@ -570,7 +569,7 @@ OStreamBase& operator<<(OStreamBase& os, WireLoadSelection const& rhs) {
     WireLoadSelection::BaseType const& base = rhs;
     os << base << DataDelimiter();
 
-    os << DataFieldName("name_") << rhs.get_name() << DataDelimiter();
+    os << DataFieldName("name_") << rhs.getName() << DataDelimiter();
     os << DataFieldName("wireloads_");
     ArrayObject<ObjectId>* p = nullptr;
     if (rhs.wireloads_ != UNINIT_OBJECT_ID)

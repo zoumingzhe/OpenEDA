@@ -14,19 +14,21 @@
 
 DREAMPLACE_BEGIN_NAMESPACE
 
+#ifdef _CUDA_FOUND
+int kreorderCUDARun(DetailedPlaceDB<int>& db, int K, int maxIters, int numThreads);
+#endif
 /// @brief a wrapper class of required data for edi db
 class KReorder
 {
   public:
     KReorder()
     {
-      CommonPlaceDB* db_ = CommonPlaceDB::getPlaceDBInstance();
+      db_ = CommonPlaceDB::getPlaceDBInstance();
       is_gpu_ = db_->getPara().isGPU();
       num_threads_ = db_->getPara().getNumThreads();
     }
     ~KReorder()
-    {
-    }
+    {}
     KReorder(const KReorder&) = delete;            // no copy
     KReorder &operator=(const KReorder&) = delete; // no copy
 

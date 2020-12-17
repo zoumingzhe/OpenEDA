@@ -1,6 +1,7 @@
-project(place_flow)
+project(place_flow LANGUAGES CXX)
 
 if (CUDA_FOUND)
+    add_definitions(-D_CUDA_FOUND)
     file(GLOB CUDA_SOURCES
         "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cu"
         )
@@ -14,7 +15,7 @@ if (CUDA_FOUND)
     list(APPEND CUDA_NVCC_FLAGS --compiler-options -fPIC)
 
     cuda_add_library(
-        ${CUDA_LINKED} STATIC 
+        ${CUDA_LINKED} STATIC
         ${CUDA_SOURCES}
         )
 
@@ -44,6 +45,7 @@ file(GLOB SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.c"
     )
+set(COMMON_DB_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/common_place_DB.cpp")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/.." 
                     "${CMAKE_CURRENT_SOURCE_DIR}/../../../..")
@@ -53,18 +55,15 @@ include_directories("${Python_INCLUDE_DIRS}")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
-#add_executable(test_p ${SOURCES})
-#target_link_libraries(test_p ${UTILITY_LIBRARY_DIRS}/libutility.a)
-#target_link_libraries(test_p ${Python_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${Python_LIBRARIES})
+add_library(common_place_db STATIC ${COMMON_DB_SOURCES})
 
 link_directories(${Python_LIBRARY_DIRS})
 link_directories(${Python_SITELIB})
 link_directories(${UTILITY_LIBRARY_DIRS})
+link_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-#if (CUDA_FOUND)
-#    target_link_libraries(test_p ${CUDA_LINKED})
-#endif(CUDA_FOUND)
-#install ( PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/test_p DESTINATION dreamplace )
-
-
+if (CUDA_FOUND)
+  target_link_libraries(${PROJECT_NAME} PUBLIC ${Python_LIBRARIES} ${CUDA_LINKED})
+else (CUDA_FOUND)
+  target_link_libraries(${PROJECT_NAME} PUBLIC ${Python_LIBRARIES})
+endif(CUDA_FOUND)

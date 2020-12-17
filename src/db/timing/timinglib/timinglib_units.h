@@ -71,26 +71,26 @@ class TUnits : public Object {
     UInt32 memory() const;
 
     /// Access APIs:
-    TUnit &get_time_unit(void);
-    TUnit &get_capacitance_unit(void);
-    TUnit &get_volatge_unit(void);
-    TUnit &get_resistance_unit(void);
-    TUnit &get_pulling_resistance_unit(void);
-    TUnit &get_current_unit(void);
-    TUnit &get_power_unit(void);
-    TUnit &get_distance_unit(void);
-    TUnit &get_scalar_unit(void);
+    TUnit &getTimeUnit(void);
+    TUnit &getCapacitanceUnit(void);
+    TUnit &getVoltageUnit(void);
+    TUnit &getResistanceUnit(void);
+    TUnit &getPullingResistanceUnit(void);
+    TUnit &getCurrentUnit(void);
+    TUnit &getPowerUnit(void);
+    TUnit &getDistanceUnit(void);
+    TUnit &getScalarUnit(void);
 
     // Set:
-    void set_time_unit(const TUnit &unit);
-    void set_capacitance_unit(const TUnit &unit);
-    void set_volatge_unit(const TUnit &unit);
-    void set_resistance_unit(const TUnit &unit);
-    void set_pulling_resistance_unit(const TUnit &unit);
-    void set_current_unit(const TUnit &unit);
-    void set_power_unit(const TUnit &unit);
-    void set_distance_unit(const TUnit &unit);
-    void set_scalar_unit(const TUnit &unit);
+    void setTimeUnit(const TUnit &unit);
+    void setCapacitanceUnit(const TUnit &unit);
+    void setVolatgeUnit(const TUnit &unit);
+    void setResistanceUnit(const TUnit &unit);
+    void setPullingResistanceUnit(const TUnit &unit);
+    void setCurrentUnit(const TUnit &unit);
+    void setPowerUnit(const TUnit &unit);
+    void setDistanceUnit(const TUnit &unit);
+    void setScalarUnit(const TUnit &unit);
 
   protected:
     /// @brief copy object
@@ -105,7 +105,7 @@ class TUnits : public Object {
 
     TUnit time_unit_;
     TUnit capacitance_unit_;
-    TUnit volatge_unit_;
+    TUnit voltage_unit_;
     TUnit resistance_unit_;
     TUnit pulling_resistance_unit_;
     TUnit current_unit_;

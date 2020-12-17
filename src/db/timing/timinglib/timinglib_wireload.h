@@ -20,8 +20,8 @@
 #include <vector>
 
 #include "db/core/object.h"
-#include "db/util/array.h"
 #include "db/timing/timinglib/timinglib_commondef.h"
+#include "db/util/array.h"
 
 namespace open_edi {
 namespace db {
@@ -61,19 +61,19 @@ class WireLoadTable : public Object {
     IndexType memory() const;
 
     /// set
-    void set_name(const std::string &name);
-    void set_fanout_length(int n, float f);
-    void set_fanout_capacitance(int n, float f);
-    void set_fanout_resistance(int n, float f);
-    void set_fanout_area(int n, float f);
+    void setName(const std::string &name);
+    void setFanoutLength(int n, float f);
+    void setFanoutCapacitance(int n, float f);
+    void setFanoutResistance(int n, float f);
+    void setFanoutArea(int n, float f);
 
     /// get
-    std::string get_name(void) const;
-    SymbolIndex get_name_index(void);
-    FanoutPair get_fanout_length(void);
-    FanoutPair get_fanout_capacitance(void);
-    FanoutPair get_fanout_resistance(void);
-    FanoutPair get_fanout_area(void);
+    std::string getName(void) const;
+    SymbolIndex getNameIndex(void);
+    FanoutPair getFanoutLength(void);
+    FanoutPair getFanoutCapacitance(void);
+    FanoutPair getFanoutResistance(void);
+    FanoutPair getFanoutArea(void);
 
   protected:
     /// @brief copy object
@@ -120,21 +120,21 @@ class WireLoad : public Object {
     IndexType memory() const;
 
     /// set
-    void set_name(const std::string &name);
-    void set_area(float f);
-    void set_resistance(float f);
-    void set_capacitance(float f);
-    void set_slope(float f);
-    void add_fanout_length(int n, float f);
+    void setName(const std::string &name);
+    void setArea(float f);
+    void setResistance(float f);
+    void setCapacitance(float f);
+    void setSlope(float f);
+    void addFanoutLength(int n, float f);
 
     /// get
-    std::string get_name(void) const;
-    SymbolIndex get_name_index(void);
-    float get_area(void);
-    float get_resistance(void);
-    float get_capacitance(void);
-    float get_slope(void);
-    ArrayObject<FanoutPair>* get_fanout_lengths(void);
+    std::string getName(void) const;
+    SymbolIndex getNameIndex(void);
+    float getArea(void);
+    float getResistance(void);
+    float getCapacitance(void);
+    float getSlope(void);
+    ArrayObject<FanoutPair> *getFanoutLengths(void);
 
   protected:
     /// @brief copy object
@@ -182,14 +182,14 @@ class WireLoadForArea : public Object {
     IndexType memory() const;
 
     /// set
-    void set_min_area(float f);
-    void set_max_area(float f);
-    void set_wireload(ObjectId id);
+    void setMinArea(float f);
+    void setMaxArea(float f);
+    void setWireload(ObjectId id);
 
     /// get
-    float get_min_area(void);
-    float get_max_area(void);
-    WireLoad *get_wireload(void);
+    float getMinArea(void);
+    float getMaxArea(void);
+    WireLoad *getWireload(void);
 
   protected:
     /// @brief copy object
@@ -234,13 +234,13 @@ class WireLoadSelection : public Object {
     IndexType memory() const;
 
     /// set
-    void set_name(const std::string &name);
-    void add_wire_load_for_area(ObjectId id);
+    void setName(const std::string &name);
+    void addWireLoadForArea(ObjectId id);
 
     /// get
-    std::string get_name(void) const;
-    SymbolIndex get_name_index(void);
-    WireLoadForArea *get_wire_load_for_area(ObjectId id);
+    std::string getName(void) const;
+    SymbolIndex getNameIndex(void);
+    WireLoadForArea *getWireLoadForArea(ObjectId id);
 
   protected:
     /// @brief copy object

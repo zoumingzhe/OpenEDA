@@ -11,6 +11,7 @@
 #include "db/tech/implant_rule.h"
 
 #include "db/util/vector_object_var.h"
+#include "db/core/cell.h"
 
 namespace open_edi {
 namespace db {
@@ -20,9 +21,6 @@ namespace db {
  * release the allocated memory
  */
 ImplantCoreEdgeLength::~ImplantCoreEdgeLength() {
-    if (exact_edge_length_) free(exact_edge_length_);
-    if (adj_length_) free(adj_length_);
-    if (is_exact_adj_length_) free(is_exact_adj_length_);
 }
 
 /**
@@ -57,10 +55,10 @@ UInt32 ImplantCoreEdgeLength::getNumExceptAdjLength() const {
  */
 void ImplantCoreEdgeLength::setNumExceptAdjLength(UInt32 num) {
     except_adj_length_num_ = num;
-    exact_edge_length_ =
-        (UInt32*)calloc(except_adj_length_num_, sizeof(UInt32));
-    adj_length_ = (UInt32*)calloc(except_adj_length_num_, sizeof(UInt32));
-    is_exact_adj_length_ = (bool*)calloc(except_adj_length_num_, sizeof(bool));
+    // exact_edge_length_ =
+    //     (UInt32*)calloc(except_adj_length_num_, sizeof(UInt32));
+    // adj_length_ = (UInt32*)calloc(except_adj_length_num_, sizeof(UInt32));
+    // is_exact_adj_length_ = (bool*)calloc(except_adj_length_num_, sizeof(bool));
 }
 
 /**
@@ -72,7 +70,17 @@ void ImplantCoreEdgeLength::setNumExceptAdjLength(UInt32 num) {
  * @return
  */
 UInt32 ImplantCoreEdgeLength::getExactEdgeLength(UInt32 idx) const {
-    return idx < except_adj_length_num_ ? exact_edge_length_[idx] : 0;
+    if (idx >= except_adj_length_num_) {
+        return 0;
+    }
+    
+    if (exact_edge_length_ == 0) 
+        return -1;
+    ArrayObject<UInt32> *array_ptr = addr< ArrayObject<UInt32> >(exact_edge_length_);
+    if (array_ptr == nullptr)
+        return -1;
+
+    return (*array_ptr)[idx];
 }
 
 /**
@@ -82,10 +90,20 @@ UInt32 ImplantCoreEdgeLength::getExactEdgeLength(UInt32 idx) const {
  * @param idx
  * @param len
  */
-void ImplantCoreEdgeLength::setExactEdgeLength(UInt32 idx, UInt32 len) {
-    if (idx < except_adj_length_num_) {
-        exact_edge_length_[idx] = len;
+void ImplantCoreEdgeLength::addExactEdgeLength(UInt32 len) {
+    ArrayObject<UInt32> *array_ptr = nullptr;
+    if (exact_edge_length_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<UInt32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        exact_edge_length_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<UInt32> >(exact_edge_length_);
     }
+
+    if (array_ptr) array_ptr->pushBack(len);
+
 }
 
 /**
@@ -97,7 +115,17 @@ void ImplantCoreEdgeLength::setExactEdgeLength(UInt32 idx, UInt32 len) {
  * @return
  */
 UInt32 ImplantCoreEdgeLength::getAdjLength(UInt32 idx) const {
-    return idx < except_adj_length_num_ ? adj_length_[idx] : 0;
+    if (idx >= except_adj_length_num_) {
+        return 0;
+    }
+    
+    if (adj_length_ == 0) 
+        return -1;
+    ArrayObject<UInt32> *array_ptr = addr< ArrayObject<UInt32> >(adj_length_);
+    if (array_ptr == nullptr)
+        return -1;
+
+    return (*array_ptr)[idx];
 }
 
 /**
@@ -107,10 +135,19 @@ UInt32 ImplantCoreEdgeLength::getAdjLength(UInt32 idx) const {
  * @param idx
  * @param len
  */
-void ImplantCoreEdgeLength::setAdjLength(UInt32 idx, UInt32 len) {
-    if (idx < except_adj_length_num_) {
-        adj_length_[idx] = len;
+void ImplantCoreEdgeLength::addAdjLength( UInt32 len) {
+    ArrayObject<UInt32> *array_ptr = nullptr;
+    if (adj_length_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<UInt32>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        adj_length_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<UInt32> >(adj_length_);
     }
+
+    if (array_ptr) array_ptr->pushBack(len);
 }
 
 /**
@@ -122,7 +159,17 @@ void ImplantCoreEdgeLength::setAdjLength(UInt32 idx, UInt32 len) {
  * @return
  */
 bool ImplantCoreEdgeLength::isExactAdjLength(UInt32 idx) const {
-    return idx < except_adj_length_num_ ? is_exact_adj_length_[idx] : false;
+    if (idx >= except_adj_length_num_) {
+        return false;
+    }
+    
+    if (is_exact_adj_length_ == 0) 
+        return false;
+    ArrayObject<bool> *array_ptr = addr< ArrayObject<bool> >(is_exact_adj_length_);
+    if (array_ptr == nullptr)
+        return -1;
+
+    return (*array_ptr)[idx];
 }
 
 /**
@@ -132,10 +179,19 @@ bool ImplantCoreEdgeLength::isExactAdjLength(UInt32 idx) const {
  * @param idx
  * @param v
  */
-void ImplantCoreEdgeLength::setIsExactAdjLength(UInt32 idx, bool v) {
-    if (idx < except_adj_length_num_) {
-        is_exact_adj_length_[idx] = v;
+void ImplantCoreEdgeLength::addIsExactAdjLength(bool v) {
+    ArrayObject<bool> *array_ptr = nullptr;
+    if (is_exact_adj_length_ == 0) {
+        array_ptr = getOwnerCell()->createObject<ArrayObject<bool>>(kObjectTypeArray);
+        if (array_ptr == nullptr) return;
+        array_ptr->setPool(getOwnerCell()->getPool());
+        array_ptr->reserve(16);        
+        is_exact_adj_length_ = array_ptr->getId();
+    } else {
+        array_ptr = addr< ArrayObject<bool> >(is_exact_adj_length_);
     }
+
+    if (array_ptr) array_ptr->pushBack(v);
 }
 
 /**
@@ -143,7 +199,6 @@ void ImplantCoreEdgeLength::setIsExactAdjLength(UInt32 idx, bool v) {
  * release the allocated memory
  */
 ImplantSpacing::~ImplantSpacing() {
-    if (sec_layer_) delete sec_layer_;
     // TODO: free layers_
 }
 
@@ -202,8 +257,9 @@ void ImplantSpacing::setLength(UInt32 len) { length_ = len; }
  * @param layer_id
  */
 void ImplantSpacing::setLayer2Id(Int32 layer_id) {
-    if (sec_layer_) {
-        sec_layer_->setSecondLayerId(layer_id);
+    SecondLayer* ptr = addr<SecondLayer>(sec_layer_);
+    if (ptr) {
+        ptr->setSecondLayerId(layer_id);
     }
 }
 
@@ -214,10 +270,11 @@ void ImplantSpacing::setLayer2Id(Int32 layer_id) {
  * @return
  */
 Int32 ImplantSpacing::getLayer2Id() const {
-    return sec_layer_ ? sec_layer_->getSecondLayerId() : -1;
+    SecondLayer* ptr = addr<SecondLayer>(sec_layer_);
+    return ptr ? ptr->getSecondLayerId() : -1;
 }
 
-void ImplantSpacing::setLayer2(SecondLayer* l) { sec_layer_ = l; }
+void ImplantSpacing::setLayer2(ObjectId l) { sec_layer_ = l; }
 
 /**
  * @brief
@@ -329,26 +386,9 @@ void ImplantSpacing::setLayers(Layer** layers) { layers_ = layers; }
 
 /**
  * @brief
- * get next spacing
- *
- * @return
- */
-ImplantSpacing* ImplantSpacing::getNext() const { return next_; }
-
-/**
- * @brief
- * set next spacing
- *
- * @param n
- */
-void ImplantSpacing::setNext(ImplantSpacing* n) { next_ = n; }
-
-/**
- * @brief
  * release the allocated memory
  */
 ImplantWidth::~ImplantWidth() {
-    if (sec_layer_) delete sec_layer_;
 }
 
 /**
@@ -390,8 +430,9 @@ void ImplantWidth::setLength(UInt32 len) { length_ = len; }
  * @param layer_id
  */
 void ImplantWidth::setLayer2Id(Int32 layer_id) {
-    if (sec_layer_) {
-        sec_layer_->setSecondLayerId(layer_id);
+    SecondLayer* ptr = addr<SecondLayer>(sec_layer_);
+    if (ptr) {
+        ptr->setSecondLayerId(layer_id);
     }
 }
 
@@ -402,7 +443,8 @@ void ImplantWidth::setLayer2Id(Int32 layer_id) {
  * @return
  */
 Int32 ImplantWidth::getLayer2Id() const {
-    return sec_layer_ ? sec_layer_->getSecondLayerId() : -1;
+    SecondLayer* ptr = addr<SecondLayer>(sec_layer_);
+    return ptr ? ptr->getSecondLayerId() : -1;
 }
 
 /**
@@ -447,7 +489,12 @@ void ImplantWidth::setIsExceptCornerTouch(bool v) {
  *
  * @return
  */
-ImplantGroup* ImplantWidth::getGroup() const { return group_; }
+ArrayObject<ObjectId>* ImplantWidth::getGroup() const { 
+    if (group_)
+        return addr<ArrayObject<ObjectId>>(group_);
+    
+    return nullptr;
+}
 
 /**
  * @brief
@@ -455,23 +502,8 @@ ImplantGroup* ImplantWidth::getGroup() const { return group_; }
  *
  * @param group
  */
-void ImplantWidth::setGroup(ImplantGroup* group) { group_ = group; }
+void ImplantWidth::setGroup(ObjectId group) { group_ = group; }
 
-/**
- * @brief
- * get next width;
- *
- * @return
- */
-ImplantWidth* ImplantWidth::getNext() const { return next_; }
-
-/**
- * @brief
- * set next width
- *
- * @param iw
- */
-void ImplantWidth::setNext(ImplantWidth* iw) { next_ = iw; }
 
 /**
  * @brief
@@ -479,8 +511,29 @@ void ImplantWidth::setNext(ImplantWidth* iw) { next_ = iw; }
  *
  * @return
  */
-ImplantCoreEdgeLength* ImplantLayerRule::getCoreEdgeLength() const {
-    return core_edge_length_;
+ImplantCoreEdgeLength* ImplantLayerRule::getCoreEdgeLength(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (core_edge_length_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(core_edge_length_);
+    }
+    if (vct) {
+        ImplantCoreEdgeLength *obj_data = addr<ImplantCoreEdgeLength>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
+
+ArrayObject<ObjectId> *ImplantLayerRule::getCoreEdgeLengths() const {
+    if (core_edge_length_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(core_edge_length_);
+        return array;
+    } else {
+        return nullptr;
+    }
 }
 
 /**
@@ -489,8 +542,18 @@ ImplantCoreEdgeLength* ImplantLayerRule::getCoreEdgeLength() const {
  *
  * @param iel
  */
-void ImplantLayerRule::setCoreEdgeLength(ImplantCoreEdgeLength* iel) {
-    core_edge_length_ = iel;
+void ImplantLayerRule::addCoreEdgeLength(ObjectId iel) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (core_edge_length_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        core_edge_length_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(core_edge_length_);
+    }
+    if (vct) vct->pushBack(iel);
 }
 
 /**
@@ -499,18 +562,48 @@ void ImplantLayerRule::setCoreEdgeLength(ImplantCoreEdgeLength* iel) {
  *
  * @return
  */
-ImplantSpacing* ImplantLayerRule::getSpacingList() const {
-    return spacing_list_;
+ImplantSpacing* ImplantLayerRule::getSpacingList(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (spacing_list_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(spacing_list_);
+    }
+    if (vct) {
+        ImplantSpacing *obj_data = addr<ImplantSpacing>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
 }
 
+ArrayObject<ObjectId> *ImplantLayerRule::getSpacingLists() const {
+    if (spacing_list_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(spacing_list_);
+        return array;
+    } else {
+        return nullptr;
+    }
+}
 /**
  * @brief
  * set spacing list
  *
  * @param is
  */
-void ImplantLayerRule::setSpacingList(ImplantSpacing* is) {
-    spacing_list_ = is;
+void ImplantLayerRule::addSpacingList(ObjectId is) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (spacing_list_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        spacing_list_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(spacing_list_);
+    }
+    if (vct) vct->pushBack(is);
 }
 
 /**
@@ -519,7 +612,30 @@ void ImplantLayerRule::setSpacingList(ImplantSpacing* is) {
  *
  * @return
  */
-MinEnclArea* ImplantLayerRule::getMinEnclArea() const { return min_encl_area_; }
+MinEnclArea* ImplantLayerRule::getMinEnclArea(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (min_encl_area_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(min_encl_area_);
+    }
+    if (vct) {
+        MinEnclArea *obj_data = addr<MinEnclArea>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
+
+ArrayObject<ObjectId> *ImplantLayerRule::getMinEnclAreas() const {
+    if (min_encl_area_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(min_encl_area_);
+        return array;
+    } else {
+        return nullptr;
+    }
+}
 
 /**
  * @brief
@@ -527,8 +643,18 @@ MinEnclArea* ImplantLayerRule::getMinEnclArea() const { return min_encl_area_; }
  *
  * @param mea
  */
-void ImplantLayerRule::setMinEnclArea(MinEnclArea* mea) {
-    min_encl_area_ = mea;
+void ImplantLayerRule::addMinEnclArea(ObjectId mea) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (min_encl_area_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        min_encl_area_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(min_encl_area_);
+    }
+    if (vct) vct->pushBack(mea);
 }
 
 /**
@@ -537,7 +663,30 @@ void ImplantLayerRule::setMinEnclArea(MinEnclArea* mea) {
  *
  * @return
  */
-ImplantWidth* ImplantLayerRule::getWidth() const { return width_; }
+ImplantWidth* ImplantLayerRule::getWidth(int i) const {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (width_ == 0) {
+        return nullptr;
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(width_);
+    }
+    if (vct) {
+        ImplantWidth *obj_data = addr<ImplantWidth>((*vct)[i]);
+        if (obj_data) {
+            return obj_data;
+        }
+    }
+    return nullptr;
+}
+
+ArrayObject<ObjectId> *ImplantLayerRule::getWidths() const {
+    if (width_ != 0) {
+        ArrayObject<ObjectId> *array = addr<ArrayObject<ObjectId>>(width_);
+        return array;
+    } else {
+        return nullptr;
+    }
+}
 
 /**
  * @brief
@@ -545,7 +694,19 @@ ImplantWidth* ImplantLayerRule::getWidth() const { return width_; }
  *
  * @param iw
  */
-void ImplantLayerRule::setWidth(ImplantWidth* iw) { width_ = iw; }
+void ImplantLayerRule::addWidth(ObjectId iw) {
+    ArrayObject<ObjectId> *vct = nullptr;
+    if (width_ == 0) {
+        vct = getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        if (vct == nullptr) return;
+        width_ = vct->getId();
+        vct->setPool(getOwnerCell()->getPool());
+        vct->reserve(16);
+    } else {
+        vct = addr<ArrayObject<ObjectId>>(width_);
+    }
+    if (vct) vct->pushBack(iw);
+}
 
 }  // namespace db
 }  // namespace open_edi

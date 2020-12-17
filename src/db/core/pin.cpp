@@ -9,9 +9,8 @@ namespace open_edi {
 namespace db {
 
 Pin::Pin() {
-    has_special_ = false;
+    is_special_ = false;
     is_connect_nets_ = false;
-    name_index_ = 0;
     term_ = 0;
     inst_ = 0;
     net_ = 0;
@@ -21,21 +20,22 @@ Pin::Pin(Pin const& rhs) { copy(rhs); }
 
 Pin::Pin(Pin&& rhs) noexcept { move(std::move(std::move(rhs))); }
 
-void Pin::setName(std::string name) {
-    Cell* top_cell = getOwnerCell();
-    if (!top_cell) {
-        message->issueMsg(kError,
-                          "Cannot find top cell when set pin name %s \n",
-                          name.c_str());
-        return;
+bool Pin::setName(std::string name) {
+    // Only do it for primary pin, since no duplicate.
+    if (getIsPrimary()){
+        SymbolIndex symbol_index = 
+            getOwnerCell()->getOrCreateSymbol(name.c_str());
+        if (symbol_index == kInvalidSymbolIndex) return false;
+
+        getOwnerCell()->addSymbolReference(symbol_index, getId());
     }
-    name_index_ = top_cell->getOrCreateSymbol(name);
-    top_cell->addSymbolReference(name_index_, this->getId());
+    return true;
 }
 
 std::string& Pin::getName() const {
-    Cell* top_cell = getOwnerCell();
-    return top_cell->getSymbolTable()->getSymbolByIndex(name_index_);
+    Term* master_term = getTerm();
+    ediAssert(nullptr != master_term);
+    return master_term->getName();
 }
 
 Pin& Pin::operator=(Pin const& rhs) {
@@ -50,6 +50,14 @@ Pin& Pin::operator=(Pin&& rhs) noexcept {
         move(std::move(std::move(rhs)));
     }
     return *this;
+}
+
+SignalDirection Pin::getDirection() const {
+    Term* term = nullptr;
+    term = getTerm();
+    if (nullptr != term) return term->getDirection();
+
+    return SignalDirection::kUnknown;
 }
 
 Term* Pin::getTerm() const {
@@ -125,17 +133,15 @@ ArrayObject<ObjectId> *Pin::getNetArray() const {
 }
 
 void Pin::copy(Pin const& rhs) {
-    has_special_ = rhs.has_special_;
-    name_index_ = rhs.name_index_;
+    is_special_ = rhs.is_special_;
     term_ = rhs.term_;
     inst_ = rhs.inst_;
     net_ = rhs.net_;
 }
 
 void Pin::move(Pin&& rhs) {
-    has_special_ = rhs.has_special_;
-    rhs.has_special_ = false;
-    name_index_ = std::exchange(rhs.name_index_, 0);
+    is_special_ = rhs.is_special_;
+    rhs.is_special_ = false;
     term_ = std::exchange(rhs.term_, 0);
     inst_ = std::exchange(rhs.inst_, 0);
     net_ = std::exchange(rhs.net_, 0);
@@ -195,10 +201,27 @@ IStreamBase& operator>>(IStreamBase& is, Pin& rhs) {
     return is;
 }
 
-bool Pin::getHasSpecial() const { return has_special_; }
+bool Pin::getIsSpecial() const { return is_special_; }
 
-void Pin::setHasSpecial(bool flag) { has_special_ = flag; }
+void Pin::setIsSpecial(bool flag) { is_special_ = flag; }
 
 bool Pin::getIsConnectNets() const { return is_connect_nets_; }
+
+/// @brief getIsPrimary 
+///
+/// @return 
+bool Pin::getIsPrimary() const
+{
+    return is_primary_;
+}
+
+/// @brief setIsPrimary 
+///
+/// @param p
+void Pin::setIsPrimary(bool p)
+{
+    is_primary_ = p;
+}
+
 }  // namespace db
 }  // namespace open_edi
