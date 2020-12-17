@@ -36,16 +36,20 @@ MainPlace::run()
     return;
   }
 
-  /// global place
-  GlobalPlace gplace;
-  if (gplace.run() != 0)
-  {
+  if (runGPFlow()) {
+    /// global place
+    GlobalPlace gplace;
+    if (gplace.run() != 0)
+    {
       //return;
+    }
   }
 
-  /// lpdp place 
-  LpdpPlace lpdp;
-  lpdp.run();
+  if (runDPFlow()) {
+    /// lpdp place 
+    LpdpPlace lpdp;
+    lpdp.run();
+  }
 
   // update DB
   updateDB();

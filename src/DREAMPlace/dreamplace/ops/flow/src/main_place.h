@@ -42,6 +42,8 @@ class MainPlace
     const Para& getPara()              const { return db_->getPara();                  }
     int         getFlowSteps()         const { return getPara().getFlowSteps();        }
     bool        isDBReady()            const { return (db_ && db_->isCommonDBReady()); }
+    bool        runGPFlow()            const { return (getFlowSteps() & kGlobalPlace); }
+    bool        runDPFlow()            const { return (getFlowSteps() & kDetailPlace); }
 
     void updateDB();  //update DB to openEDI
     void summaryMovement();

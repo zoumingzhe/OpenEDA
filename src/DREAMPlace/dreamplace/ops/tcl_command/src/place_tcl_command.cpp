@@ -84,7 +84,8 @@ static int placeDesignCommand(ClientData cld, Tcl_Interp *itp, int argc, const c
 static int placeDesignMain(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[])
 {
   std::string jsonFile;
-  int flow_steps = 0x1FF;
+  int flow_steps = kFullPlace;
+  int processor = kAUTO;;
   if (argc > 1) {
     Command* cmd = CommandManager::parseCommand(argc, argv);
     if (nullptr == cmd) {
@@ -101,7 +102,7 @@ static int placeDesignMain(ClientData cld, Tcl_Interp *itp, int argc, const char
       if (value_bool == true) {
         message->info("get option -global_place bool data true \n");
       } else {
-        flow_steps &= 0xFF;
+        flow_steps &= kDetailPlace;
         message->info("get option -global_place bool data false \n");
       }
     }
@@ -111,19 +112,28 @@ static int placeDesignMain(ClientData cld, Tcl_Interp *itp, int argc, const char
       if (value_bool == true) {
         message->info("get option -detail_place bool data true \n");
       } else {
-        flow_steps &= 0x100;
+        flow_steps &= kGlobalPlace;
         message->info("get option -detail_place bool data false \n");
       }
+    }
+    if (cmd->isOptionSet("-enable_processor")) {
+      bool res = cmd->getOptionValue("-enable_processor", processor);
+      message->info("get option -mode enum data %d \n", processor);
     }
   }
   // temporary input
   int num_bins_x = 1;
   int num_bins_y = 1;
   bool save_db   = false;
+
+  // specify processor by option and CUDA_FOUND
   bool gpu       = false;
 #ifdef _CUDA_FOUND
-   gpu = true;
+  if (processor == kAUTO || processor == kGPU) {
+    gpu = true;
+  }
 #endif  
+
   Para para(num_bins_x, num_bins_y, flow_steps, save_db, gpu, jsonFile);
   MainPlace place(para);
   place.run();
@@ -137,6 +147,7 @@ static void registerPlaceDesignManager()
                         *(new Option("-detail_place", OptionDataType::kBool, false, "turn on detail place\n"))
                       + *(new Option("-global_place", OptionDataType::kBool, false, "turn on global place\n"))
                       + *(new Option("-json_file", OptionDataType::kString, false, "specify jason file\n"))
+                      + *(new Option("-enable_processor", OptionDataType::kEnum, false, "CPU GPU AUTO", "specify processor to run place\n"))
                      );
 }
 
