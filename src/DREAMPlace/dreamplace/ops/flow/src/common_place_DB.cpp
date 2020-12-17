@@ -378,7 +378,7 @@ CommonPlaceDB::__buildInternalDB()
     setArea(getParaBox());
   }  else if (false && !getRowBoxes().empty()) {
     // TODO, row boxes is not ready in openEDI DB
-    // row boudning box
+    // all rows bounding box
     PlBox rowBBox;
     for (auto box : getRowBoxes())
     {
