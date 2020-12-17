@@ -202,7 +202,7 @@ inline PlInt          getBoxURX(PlBox& box)              { return box.getURX(); 
 inline PlInt          getBoxURY(PlBox& box)              { return box.getURY(); }
 inline PlInt          getBoxHeight(PlBox& box)           { return box.getHeight(); }
 inline PlInt          getBoxWidth(PlBox& box)            { return box.getWidth(); }
-inline PlInt          getBoxArea(PlBox& box)             { return box.getHeight()*box.getWidth();}
+inline PlInt          getBoxArea(PlBox& box)             { return (box.getHeight() * box.getWidth());}
 inline void           setBoxLLX(PlBox& box, PlInt lx)    { box.setLLX(lx); }
 inline void           setBoxLLY(PlBox& box, PlInt ly)    { box.setLLY(ly); }
 inline void           setBoxURX(PlBox& box, PlInt ux)    { box.setURX(ux); }

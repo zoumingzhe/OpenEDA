@@ -44,7 +44,9 @@ const int kIndependentSM  = 1 << 4;
 const int kGlobalSwap     = 1 << 5;
 const int kKReorder2      = 1 << 6;
 const int kLegalityCheck  = 1 << 7;
-const int kGlobalplace    = 1 << 8;
+const int kDetailPlace    = (1 << 8) - 1;
+const int kGlobalPlace    = 1 << 8;
+const int kFullPlace      = 2*(1 << 8) - 1;
 
 /// @brief a wrapper class of required data for user input paramaters
 class Para 
@@ -324,7 +326,7 @@ class CommonPlaceDB
     int            getNumMoveableNodes()      const { return db_.getNumMoveableNodes();      }
     PlInt          getNumIOPins()             const { return db_.getNumIOPins();             }
     PlInst*        getInstById(int i)         const { return db_.getInstById(i);             }
-    int            getNumMoveablePins()       const { return db_.getNumPins();               }
+    int            getNumMoveablePins()       const { return db_.getNumMoveablePins();       }
 
     // internal DB interface: get
     double       getNodeWeight(int id)            const { return node_weights_.at(id); }

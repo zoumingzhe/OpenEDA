@@ -17,6 +17,9 @@
 
 DREAMPLACE_BEGIN_NAMESPACE
 
+const int kGPU  = 0;
+const int kCPU  = 1;
+const int kAUTO = 2;
 void registerPlaceTclCommands(Tcl_Interp *itp);
 
 DREAMPLACE_END_NAMESPACE

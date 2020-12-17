@@ -225,10 +225,8 @@ PyPlaceDB::set(unsigned long db_ptr)
     pin2net_map = pybind11::list(pybind11::cast(db->getPin2NetMapV()));
 
     // collect all row boxes
-    double rowBoxArea = 0;
     for (auto box : db->getRowBoxes()) 
     {
-      rowBoxArea += getBoxArea(box);
       pybind11::tuple row = pybind11::make_tuple(getBoxLLX(box), getBoxLLY(box), getBoxURX(box), getBoxURY(box)); 
       rows.append(row); 
     }
@@ -276,7 +274,7 @@ PyPlaceDB::set(unsigned long db_ptr)
     // critical to make sure only overlap with the die area is computed 
     ps &= gtl::rectangle_data<PlaceDB::coordinate_type>(xl, yl, xh, yh);
     double total_fixed_node_overlap_area = gtl::area(ps);
-    total_space_area = rowBoxArea - 
+    total_space_area = getBoxArea(db->getArea()) -
                        std::min(total_fixed_node_overlap_area, total_fixed_node_area); 
     num_movable_pins = db->getNumMoveablePins(); 
     dreamplacePrint(kINFO, "Completed python DB.\n");

@@ -281,10 +281,11 @@ CommonDB::__init()
   // collect row boxes for GP
   PlRow* row = nullptr;
   forEachRows(row) {
-    row_boxes_.push_back(getRowBox(row));
+    PlBox box = getRowBox(row);
+    row_boxes_.push_back(box);
   } endForEachRows
 
-  dreamplacePrint(kINFO, "Total %d instance%c, %d moveable instance%c, %d cell%c, %d net%c, %d  pin%c, %d io pin%c, %d io pin instance%c, %d row%c \n", 
+  dreamplacePrint(kINFO, "Total %d instance%c, %d moveable instance%c, %d cell%c, %d net%c, %d  pin%c, %d io pin%c, %d io pin instance%c, %d moveable pin%c, %d row%c\n",
     num_nodes_, num_nodes_ > 1 ? 's' : ' ',
     num_movable_nodes_, num_movable_nodes_ > 1 ? 's' : ' ',
     getNumOfCells(), getNumOfCells() > 1 ? 's' : ' ',
@@ -292,8 +293,18 @@ CommonDB::__init()
     num_pins_, num_pins_ > 1 ? 's' : ' ',
     getNumOfIOPins(), getNumOfIOPins() > 1 ? 's' : ' ',
     num_io_pins_, num_io_pins_ > 1 ? 's' : ' ',
+    num_movable_pins_, num_movable_pins_ > 1 ? 's' : ' ',
     getNumOfRows(), getNumOfRows() > 1 ? 's' : ' '
   );
+
+  /* for debug
+  for (int i = 0; i < num_movable_nodes_; ++i)
+  {
+    dreamplacePrint(kINFO, "inst %d, box: %d, %d, %d, %d, node_size_x %d, node_size_y %d\n",
+        i, init_x_[i], init_y_[i], init_x_[i] + node_size_x_[i], init_y_[i]+node_size_y_[i],
+        node_size_x_[i], node_size_y_[i] );
+
+  }*/
 
   isCommonDBReady_ = true;
   dreamplacePrint(kINFO, "DB inilization is completed\n");
@@ -363,8 +374,19 @@ CommonPlaceDB::__buildInternalDB()
   if (!isCommonDBReady()) return;
   // copy core box
   if (!getParaBox().isInvalid()) {
+    // box defined by user
     setArea(getParaBox());
+  }  else if (false && !getRowBoxes().empty()) {
+    // TODO, row boxes is not ready in openEDI DB
+    // row boudning box
+    PlBox rowBBox;
+    for (auto box : getRowBoxes())
+    {
+      rowBBox.maxBox(box);
+    }
+    setArea(rowBBox);
   } else if (!getCoreBox().isInvalid()) {
+    // core area box
     setArea(getCoreBox());
   } else {
     PlPolygon* poly = getCorePolygon();
@@ -386,9 +408,8 @@ CommonPlaceDB::__buildInternalDB()
         }
       }
     }
-
   }
-  // copy currnt locations
+  // copy current locations
   cur_x_ = getInitXV();
   cur_y_ = getInitYV();
   // copy site  
