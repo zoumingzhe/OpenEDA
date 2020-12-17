@@ -1,4 +1,4 @@
-project(place_flow)
+project(place_flow LANGUAGES CXX)
 
 if (CUDA_FOUND)
     add_definitions(-D_CUDA_FOUND)
@@ -60,11 +60,10 @@ add_library(common_place_db STATIC ${COMMON_DB_SOURCES})
 link_directories(${Python_LIBRARY_DIRS})
 link_directories(${Python_SITELIB})
 link_directories(${UTILITY_LIBRARY_DIRS})
+link_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 if (CUDA_FOUND)
   target_link_libraries(${PROJECT_NAME} PUBLIC ${Python_LIBRARIES} ${CUDA_LINKED})
 else (CUDA_FOUND)
   target_link_libraries(${PROJECT_NAME} PUBLIC ${Python_LIBRARIES})
 endif(CUDA_FOUND)
-
-
