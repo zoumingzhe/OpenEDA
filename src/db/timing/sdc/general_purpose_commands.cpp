@@ -29,7 +29,7 @@ void CurrentInstance::cd(const std::string &dir) {
     // 7) dir == "\." --> top
 }
 
-const std::string legal_chars_ = "/@^#.|";
+const std::string SetHierarchySeparator::legal_chars_ = "/@^#.|";
 void SetHierarchySeparator::setAndCheck(const std::string &input) {
     if (input.size() != 1) {
         //TODO error messages

@@ -73,6 +73,7 @@ void Sdc::initId() {
 void Sdc::initPtr() {
     case_analysis_container_ = std::make_shared<SdcCaseAnalysisContainer>();
     design_container_ = std::make_shared<SdcCurrentDesignContainer>();
+    inst_container_ = std::make_shared<SdcCurrentInstanceContainer>();
 }
 
 

@@ -24,7 +24,6 @@ namespace open_edi {
 namespace db {
 
 using Command = open_edi::infra::Command;
-using CommandPtr = std::shared_ptr<Command>;
 using CommandManager = open_edi::infra::CommandManager;
 
 using StringVector = std::vector<std::string>;
@@ -32,42 +31,54 @@ using StringVectorPtr = std::shared_ptr<StringVector>;
 using DoubleVector = std::vector<double>;
 
 SdcPtr getSdc() {
-    SdcPtr sdc = std::make_shared<Sdc>();
+    SdcPtr default_sdc = std::make_shared<Sdc>();
     Timing *timing_lib = getTimingLib();
     if (!timing_lib) {
         //TODO message
-        return sdc;
+        return default_sdc;
     }
     //get first one
     size_t first_view = 0;
     AnalysisView *view = timing_lib->getAnalysisView(first_view);
     if (!view) {
         //TODO message
-        return sdc;
+        return default_sdc;
     }
     AnalysisMode *mode = view->getAnalysisMode();
     if (!mode) {
         //TODO message
-        return sdc;
+        return default_sdc;
     }
-    return mode->getSdc();
+    SdcPtr current_sdc = mode->getSdc();
+    if (!current_sdc) {
+        //TODO message
+    }
+    return current_sdc;
 }
 
-// general purpose commands manager
+// general purpose commands parser
+
 int parseSdcCurrentInstance(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
-Command* cmd = CommandManager::parseCommand(argc, argv);
+    Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
+    CurrentInstancePtr inst = std::make_shared<CurrentInstance>();
     if (cmd->isOptionSet("-instance")) {
-        std::string instance="";
-        bool res = cmd->getOptionValue("-instance", instance);
+        std::string dir = "";
+        bool res = cmd->getOptionValue("-instance", dir);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        //case_analysis_ptr->setValue(value);
-        message->info("get first value %s \n", instance.c_str());
+        inst->cd(dir);
+        //message->info("get first value %s \n", dir.c_str());
     }
-    
+    SdcPtr sdc = getSdc();
+    if (!sdc) {
+        return TCL_ERROR;
+    }
+    auto container = sdc->getCurrentInstanceContainer();
+    container->addData(inst);
+    message->info("%s\n", container->getInstName());
     return TCL_OK;
 }
 

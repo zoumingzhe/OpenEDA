@@ -34,10 +34,10 @@ class CurrentInstance {
     void cd(const std::string &dir);
 
   private:
-    ObjectId instance_id_ = UNINIT_OBJECT_ID;
+    ObjectId inst_id_ = UNINIT_OBJECT_ID;
 
   public:
-    COMMAND_GET_SET_VAR(instance_id, InstanceId)
+    COMMAND_GET_SET_VAR(inst_id, InstId)
 };
 using CurrentInstancePtr = std::shared_ptr<CurrentInstance>;
 
@@ -46,7 +46,7 @@ class SetHierarchySeparator {
     void setAndCheck(const std::string &input);
 
   private:
-    static const std::string legal_chars_ ;
+    static const std::string legal_chars_;
     char separator_ = '/';
 
   public:

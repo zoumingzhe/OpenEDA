@@ -30,14 +30,15 @@ namespace db {
 //general purpose commands
 class SdcCurrentInstanceContainer {
   public:
-    SdcCurrentInstanceContainer() { current_instance_ = std::make_shared<CurrentInstance>(); }
+    SdcCurrentInstanceContainer() { data_ = std::make_shared<CurrentInstance>(); }
 
-    const std::string getName() const;
-    const ObjectId getId() const { return current_instance_->getInstanceId(); };
+    void addData(const CurrentInstancePtr &data);
+    const std::string getInstName() const;
+    const ObjectId getInstId() const { return data_->getInstId(); };
     friend std::ostream &operator<<(std::ostream &os, SdcCurrentInstanceContainer &rhs);
 
   private:
-    CurrentInstancePtr current_instance_;
+    CurrentInstancePtr data_;
 };
 using SdcCurrentInstanceContainerPtr = std::shared_ptr<SdcCurrentInstanceContainer>;
 

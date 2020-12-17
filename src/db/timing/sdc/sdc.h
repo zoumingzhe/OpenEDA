@@ -38,11 +38,13 @@ class Sdc {
 
     //get
     SdcCaseAnalysisContainerPtr getCaseAnalysisContainer() { return case_analysis_container_; }
-    SdcCurrentDesignContainerPtr getDesignContainer() { return design_container_; }
+    SdcCurrentDesignContainerPtr getCurrentDesignContainer() { return design_container_; }
+    SdcCurrentInstanceContainerPtr getCurrentInstanceContainer() { return inst_container_; }
 
   private:
     SdcCaseAnalysisContainerPtr case_analysis_container_;
     SdcCurrentDesignContainerPtr design_container_;
+    SdcCurrentInstanceContainerPtr inst_container_;
 
   private:
     ObjectId analysis_mode_id_;

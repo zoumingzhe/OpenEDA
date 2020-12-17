@@ -18,18 +18,25 @@ namespace open_edi {
 namespace db {
 
 //general purpose commands
-const std::string SdcCurrentInstanceContainer::getName() const {
-    const ObjectId &inst_id = current_instance_->getInstanceId();
+const std::string SdcCurrentInstanceContainer::getInstName() const {
+    const ObjectId &inst_id = data_->getInstId();
     const Inst* inst = Object::addr<Inst>(inst_id);
     if (inst) {
         return inst->getName();
     }
-    //TODO return top?
     return "";
 }
 
+void SdcCurrentInstanceContainer::addData(const CurrentInstancePtr &data) {
+    if (!data) {
+        //TODO error messages
+        return;
+    }
+    data_ = data; 
+}
+
 std::ostream &operator<<(std::ostream &os, SdcCurrentInstanceContainer &rhs) {
-    os << "current_instance " << rhs.getName() << "\n"; 
+    os << "current_instance " << rhs.getInstName() << "\n"; 
     return os;
 }
 
