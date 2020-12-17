@@ -76,7 +76,10 @@ using AllRegistersPtr = std::shared_ptr<AllRegisters>;
 
 class CurrentDesign {
   public:
-    void cd(const std::string &dir);
+    CurrentDesign();
+    void init();
+
+    bool switchToCell(const std::string &cell_name) const; //sdc2.1 not support
 
   private:
     ObjectId cell_id_ = UNINIT_OBJECT_ID;

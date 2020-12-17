@@ -13,9 +13,33 @@
  */
 
 #include "db/timing/sdc/object_access_commands.h"
+#include "db/core/db.h"
 
 namespace open_edi {
 namespace db {
+
+
+CurrentDesign::CurrentDesign() {
+    init();
+}
+
+void CurrentDesign::init() {
+    Cell *top_cell = getTopCell();
+    if (!top_cell) {
+        //error messages
+        return;
+    }
+    cell_id_ = top_cell->getId();
+}
+
+bool CurrentDesign::switchToCell(const std::string &cell_name) const { //sdc2.1 not support
+    if (cell_name == "") {
+        //keep on top cell
+        return true;
+    }
+    return false;
+}
+
 
 }
 }

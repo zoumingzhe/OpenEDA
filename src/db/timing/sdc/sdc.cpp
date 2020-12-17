@@ -71,9 +71,12 @@ void Sdc::initId() {
 }
 
 void Sdc::initPtr() {
+    inst_container_ = std::make_shared<SdcCurrentInstanceContainer>();
+    separator_container_ = std::make_shared<SdcHierarchySeparatorContainer>();
     case_analysis_container_ = std::make_shared<SdcCaseAnalysisContainer>();
     design_container_ = std::make_shared<SdcCurrentDesignContainer>();
-    inst_container_ = std::make_shared<SdcCurrentInstanceContainer>();
+
+
 }
 
 

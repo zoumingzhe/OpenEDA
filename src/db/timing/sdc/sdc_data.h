@@ -864,15 +864,15 @@ using SdcAllRegistersContainerPtr = std::shared_ptr<SdcAllRegistersContainer>;
 
 class SdcCurrentDesignContainer {
   public:
-    SdcCurrentDesignContainer() { current_design_ = std::make_shared<CurrentDesign>(); }
+    SdcCurrentDesignContainer() { data_ = std::make_shared<CurrentDesign>(); }
 
-    void add(CurrentDesignPtr design) { current_design_ = design; }
-    std::string getName();
-    const ObjectId getId() const{ return current_design_->getCellId(); };
+    void setData(const CurrentDesignPtr &data);
+    const std::string getDesignName() const;
+    const ObjectId getDesignId() const{ return data_->getCellId(); };
     friend std::ostream &operator<<(std::ostream &os, SdcCurrentDesignContainer &rhs);
 
   private:
-    CurrentDesignPtr current_design_;
+    CurrentDesignPtr data_;
 };
 using SdcCurrentDesignContainerPtr = std::shared_ptr<SdcCurrentDesignContainer>;
 

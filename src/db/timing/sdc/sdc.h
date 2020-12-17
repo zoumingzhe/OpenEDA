@@ -37,14 +37,19 @@ class Sdc {
     const ObjectId getMainLibertyUnitsId() const { return main_liberty_units_id_; }
 
     //get
-    SdcCaseAnalysisContainerPtr getCaseAnalysisContainer() { return case_analysis_container_; }
-    SdcCurrentDesignContainerPtr getCurrentDesignContainer() { return design_container_; }
     SdcCurrentInstanceContainerPtr getCurrentInstanceContainer() { return inst_container_; }
+    SdcHierarchySeparatorContainerPtr getHierarchySeparatorContainer() { return separator_container_; }
+    SdcCaseAnalysisContainerPtr getCaseAnalysisContainer() { return case_analysis_container_; }
+
+
+    SdcCurrentDesignContainerPtr getCurrentDesignContainer() { return design_container_; }
 
   private:
+    SdcCurrentInstanceContainerPtr inst_container_;
+    SdcHierarchySeparatorContainerPtr separator_container_;
+
     SdcCaseAnalysisContainerPtr case_analysis_container_;
     SdcCurrentDesignContainerPtr design_container_;
-    SdcCurrentInstanceContainerPtr inst_container_;
 
   private:
     ObjectId analysis_mode_id_;

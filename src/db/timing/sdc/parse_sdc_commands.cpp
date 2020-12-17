@@ -31,10 +31,10 @@ using StringVectorPtr = std::shared_ptr<StringVector>;
 using DoubleVector = std::vector<double>;
 
 SdcPtr getSdc() {
-    SdcPtr default_sdc = std::make_shared<Sdc>();
     Timing *timing_lib = getTimingLib();
     if (!timing_lib) {
         //TODO message
+        SdcPtr default_sdc = std::make_shared<Sdc>();
         return default_sdc;
     }
     //get first one
@@ -42,15 +42,18 @@ SdcPtr getSdc() {
     AnalysisView *view = timing_lib->getAnalysisView(first_view);
     if (!view) {
         //TODO message
+        SdcPtr default_sdc = std::make_shared<Sdc>();
         return default_sdc;
     }
     AnalysisMode *mode = view->getAnalysisMode();
     if (!mode) {
         //TODO message
+        SdcPtr default_sdc = std::make_shared<Sdc>();
         return default_sdc;
     }
     SdcPtr current_sdc = mode->getSdc();
     if (!current_sdc) {
+        SdcPtr default_sdc = std::make_shared<Sdc>();
         //TODO message
     }
     return current_sdc;
@@ -422,14 +425,26 @@ int parseSdcAllRegisters(ClientData cld, Tcl_Interp *itp, int argc, const char *
 
     return TCL_OK;
 }
+
 int parseSdcCurrentDesign(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
     Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
-    if(cmd==nullptr){
+    if (!cmd) {
         return TCL_ERROR;	
 	}
+    CurrentDesignPtr design = std::make_shared<CurrentDesign>();
+    bool success = design->switchToCell(""); // sdc2.1 not support
+    if (!success) { 
+        //error messages
+        return TCL_ERROR;
+    }
+    SdcPtr sdc = getSdc();
+    auto container = sdc->getCurrentDesignContainer();
+    container->setData(design);
+    message->info("%s\n", (container->getDesignName()).c_str());
     return TCL_OK;
 }
+
 int parseSdcGetCells(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
     Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
