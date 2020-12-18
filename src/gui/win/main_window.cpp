@@ -17,6 +17,8 @@
 namespace open_edi {
 namespace gui {
 
+MainWindow* MainWindow::instance_ = nullptr;
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , view_(new QGraphicsView)

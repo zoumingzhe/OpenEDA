@@ -10,6 +10,8 @@
 namespace open_edi {
 namespace gui {
 
+#define MAINWINDOW MainWindow::getInstance()
+
 class ActionHandler;
 class MDIWindow;
 class RibbonMenuBar;
@@ -25,6 +27,9 @@ public:
 
 public:
     static MainWindow* getInstance(){
+        if(!instance_){
+            instance_ = new MainWindow;
+        }
         return instance_;
     }
 
