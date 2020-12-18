@@ -49,7 +49,7 @@ const std::string & Version::getVersionString() {
     return version_string_;
 }
 
-void Version::writeToFile(IOManager & io_handler, bool debug)
+void Version::writeToFile(IOManager & io_manager, bool debug)
 {
     const char *version = getVersionString().c_str();
     Bits8 size = strlen(version);
@@ -58,17 +58,17 @@ void Version::writeToFile(IOManager & io_handler, bool debug)
     }
     if (size == 0) return;
 
-    io_handler.write((char *) &(size), sizeof(Bits8));
+    io_manager.write((void *) &(size), sizeof(Bits8));
     if (debug) { 
         cout << "RWDBGINFO: version string: " << version << endl;
     }
-    io_handler.write((char *)version, size);
+    io_manager.write((void *)version, size);
 }
 
 void Version::readFromFile(IOManager & io_manager, bool debug)
 {
     Bits8 size = 0;
-    io_manager.read((char *) &(size), sizeof(Bits8));
+    io_manager.read((void *) &(size), sizeof(Bits8));
     if (debug) { 
         cout << "RWDBGINFO: version size " << (int)size << endl;
     }

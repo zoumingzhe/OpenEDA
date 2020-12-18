@@ -50,7 +50,6 @@ bool ReadDesign::__readSymFile(
         //std::cout << "Failed to open sym file " << sym_file << ".\n";
         return false;
     }
-    io_manager.seek(0, SEEK_SET);
 
     symbol_table->readFromFile(io_manager, getDebug());
     io_manager.close();
@@ -70,16 +69,12 @@ bool ReadDesign::__readPolyFile(
         //std::cout << "Failed to open poly file " << poly_file << ".\n";
         return false;
     }
-    io_manager.seek(0, SEEK_SET);
     polygon_table->readFromFile(io_manager, getDebug());
     io_manager.close();
     return true;
 }
 
-bool ReadDesign::__readDBFile(
-    MemPagePool *pool, 
-    std::string &filename
-) {
+bool ReadDesign::__readDBFile( MemPagePool *pool, std::string &filename) {
     std::string db_file = filename;
     db_file.append(kDBFilePostFix);
     // open:
@@ -90,14 +85,13 @@ bool ReadDesign::__readDBFile(
         //std::cout << "Failed to open DB file " << db_file << ".\n";
         return false;
     }
-    io_manager.seek(0, SEEK_SET);
     // read version:
     v_.readFromFile(io_manager, getDebug());
     // read into mem pool:
     size_t pool_id = 0;
     // TODO(luoying): pool_id is unused in object ID.
-    io_manager.read(reinterpret_cast<char *>(&(pool_id)), sizeof(size_t));
-    io_manager.read(reinterpret_cast<char *>(&(current_id_)), sizeof(ObjectId));
+    io_manager.read(reinterpret_cast<void *>(&(pool_id)), sizeof(size_t));
+    io_manager.read(reinterpret_cast<void *>(&(current_id_)), sizeof(ObjectId));
 
     //pool_ = MemPool::newPagePool();
     MemPool::insertPagePool(current_id_, pool);
@@ -107,11 +101,11 @@ bool ReadDesign::__readDBFile(
     }
     // read checksum:
     CheckSum csum;
-    uint32_t file_header_size = 0;
+    int64_t file_header_size = 0;
     uint32_t ref_value = 0;
-    io_manager.read(reinterpret_cast<char *>(&file_header_size),
-            sizeof(uint32_t));
-    io_manager.read(reinterpret_cast<char *>(&ref_value), sizeof(uint32_t));
+    io_manager.read(reinterpret_cast<void *>(&file_header_size),
+                                                    sizeof(file_header_size));
+    io_manager.read(reinterpret_cast<void *>(&ref_value), sizeof(ref_value));
     // close:
     io_manager.close();
     // check checksum:
@@ -303,6 +297,7 @@ bool WriteDesign::__preWork() {
 }
 
 bool WriteDesign::__writeDBFile( MemPagePool *pool, std::string &filename) {
+    MonitorId monitor_id = createMonitor();
     IOBuffer *io_buffer = nullptr;
     ediAssert(pool != nullptr);
     std::string db_file = filename;
@@ -321,32 +316,34 @@ bool WriteDesign::__writeDBFile( MemPagePool *pool, std::string &filename) {
 
     // write mem pool:
     size_t pool_id = pool->getPoolNo();
-    io_manager.write(reinterpret_cast<char *>(&pool_id), sizeof(size_t));
-    io_manager.write(reinterpret_cast<char *>(&current_id_), sizeof(ObjectId));
+    io_manager.write(reinterpret_cast<void *>(&pool_id), sizeof(size_t));
+    io_manager.write(reinterpret_cast<void *>(&current_id_), sizeof(ObjectId));
     pool->writeHeaderToFile(io_manager, getDebug());
     int64_t file_header_size = io_manager.tell();
     if (-1 == file_header_size) {
         message->issueMsg(kError, "Get file header size failed.\n");
         return false;
     }
+    outputMonitor(monitor_id, kElapsedTime, "before writeContentToFile", true);
+    resetMonitor(monitor_id);
     pool->writeContentToFile(io_manager, getDebug());
-    io_manager.close();
+    outputMonitor(monitor_id, kElapsedTime, "after writeContentToFile", true);
+    resetMonitor(monitor_id);
+
     // write checksum:
     CheckSum csum;
     uint32_t sum = csum.summary(db_file, file_header_size, getDebug());
-    if (false == io_manager.open(db_file.c_str(), "ab")) {
-        message->issueMsg(kError, "Failed to open output db file %s.\n",
-                          db_file.c_str());
-        return false;
-    }
-    io_manager.write(reinterpret_cast<char *>(&file_header_size),
-                                                     sizeof(uint32_t));
-    io_manager.write(reinterpret_cast<char *>(&sum), sizeof(uint32_t));
+
+    io_manager.write(reinterpret_cast<void *>(&file_header_size),
+                                                     sizeof(file_header_size));
+    io_manager.write(reinterpret_cast<void *>(&sum), sizeof(sum));
     // close:
     if (getDebug()) {
         pool->printUsage();
     }
     io_manager.close();
+    outputMonitor(monitor_id, kElapsedTime, "close", true);
+    destroyMonitor(monitor_id);
     return true;
 }
 
