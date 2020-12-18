@@ -133,7 +133,7 @@ int IODB::readInputTree(string file_name, vector<Buffer> &drivers) {
                     node->id = pin->getId();
                     node->x = (uint64_t)net%500;
                     node->y = (uint64_t)pin%500;
-                    Inst* inst = pin->getInst();node->type = CANDIDATE;//SINK
+                    node->type = CANDIDATE;//SINK
                     node->solutions[1] = NULL;
                     VanNode *solution = new VanNode();
                     solution->area = 0;
