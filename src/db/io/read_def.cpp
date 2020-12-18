@@ -2943,7 +2943,7 @@ int readPin(defiPin* def_pin) {
         for (int i = 0; i < def_pin->numLayer(); i++) {
             LayerGeometry* lg =
                 top_cell->createObject<LayerGeometry>(kObjectTypeLayerGeometry);
-            lg->setName(def_pin->layer(i));
+            lg->setLayer(def_pin->layer(i));
             if (def_pin->hasLayerSpacing(i)) {
                 lg->setMinSpacing(def_pin->layerSpacing(i));
             }
@@ -2967,7 +2967,7 @@ int readPin(defiPin* def_pin) {
         for (int i = 0; i < def_pin->numPolygons(); i++) {
             LayerGeometry* lg =
                 top_cell->createObject<LayerGeometry>(kObjectTypeLayerGeometry);
-            lg->setName(def_pin->polygonName(i));
+            lg->setLayer(def_pin->polygonName(i));
             if (def_pin->hasPolygonSpacing(i)) {
                 lg->setMinSpacing(def_pin->polygonSpacing(i));
             }
@@ -2997,7 +2997,7 @@ int readPin(defiPin* def_pin) {
             lg->setType(GeometryType::kVia);
             GeometryVia* v =
                 top_cell->createObject<GeometryVia>(kObjectTypeGeometryVia);
-            v->setName(def_pin->viaName(i));
+            v->setViaMaster(def_pin->viaName(i));
             Point pt(def_pin->viaPtX(i), def_pin->viaPtY(i));
             v->setPoint(pt);
             if (def_pin->viaTopMask(i) || def_pin->viaCutMask(i) ||
@@ -3043,7 +3043,7 @@ int readPin(defiPin* def_pin) {
             for (int i = 0; i < port->numLayer(); i++) {
                 LayerGeometry* lg = top_cell->createObject<LayerGeometry>(
                     kObjectTypeLayerGeometry);
-                lg->setName(port->layer(i));
+                lg->setLayer(port->layer(i));
                 if (port->hasLayerSpacing(i)) {
                     lg->setMinSpacing(port->layerSpacing(i));
                 }
@@ -3067,7 +3067,7 @@ int readPin(defiPin* def_pin) {
             for (int i = 0; i < port->numPolygons(); i++) {
                 LayerGeometry* lg = top_cell->createObject<LayerGeometry>(
                     kObjectTypeLayerGeometry);
-                lg->setName(port->polygonName(i));
+                lg->setLayer(port->polygonName(i));
                 if (port->hasPolygonSpacing(i)) {
                     lg->setMinSpacing(port->polygonSpacing(i));
                 }
@@ -3097,7 +3097,7 @@ int readPin(defiPin* def_pin) {
                 lg->setType(GeometryType::kVia);
                 GeometryVia* v =
                     top_cell->createObject<GeometryVia>(kObjectTypeGeometryVia);
-                v->setName(port->viaName(i));
+                v->setViaMaster(port->viaName(i));
                 Point pt(port->viaPtX(i), port->viaPtY(i));
                 v->setPoint(pt);
                 if (port->viaTopMask(i) || port->viaCutMask(i) ||

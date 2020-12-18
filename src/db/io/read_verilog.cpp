@@ -36,14 +36,14 @@ int kModuleNameHeaderLength = 10;
 
 void registerReadVerilog() {
     CommandManager* cmd_manager = CommandManager::getCommandManager();
-    Command* test_command = cmd_manager->createCommand(
-            "read_verilog", "read verilog files\n",
-            ( *(new Option(toString(ReadVerilogOption::kTop),
-                          OptionDataType::kInt, false,
-                          "set top cell"))
-            + *(new Option(toString(ReadVerilogOption::kFileName),
-                          OptionDataType::kStringList, true,
-                          "verilog name list"))));
+    // Command* test_command = cmd_manager->createCommand(itp, "read_verilog"
+    //         "read_verilog", "read verilog files\n",
+    //         ( *(new Option(toString(ReadVerilogOption::kTop),
+    //                       OptionDataType::kInt, false,
+    //                       "set top cell"))
+    //         + *(new Option(toString(ReadVerilogOption::kFileName),
+    //                       OptionDataType::kStringList, true,
+    //                       "verilog name list"))));
 }
 
 static bool parseArgument (

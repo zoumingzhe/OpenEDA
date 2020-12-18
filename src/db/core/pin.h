@@ -10,6 +10,7 @@
 #include "db/core/attr_object.h"
 #include "db/core/pin_attr.h"
 #include "db/util/array.h"
+#include "db/util/box.h"
 #include "util/enums.h"
 #include "util/point.h"
 
@@ -77,6 +78,7 @@ class Pin : public Object {
     bool getIsPrimary() const;
     void setIsPrimary(bool p);
 
+    void getBoxVector(std::vector <Box> & box_vector) const;
   protected:
     /// @brief copy object
     void copy(Pin const& rhs);
