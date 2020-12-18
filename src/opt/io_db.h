@@ -46,7 +46,7 @@ class IODB {
     
     void destroyTree();
 
-    void __connect_b_tree_with_upstream_net(BufferNode *buffer_node, std::unordered_map<BufferNode *, db::Inst *> b_node_inst_map, db::Net *net);
+    void __connect_b_tree_with_upstream_net(BufferNode *buffer_node, std::unordered_map<BufferNode *, db::Inst *> &b_node_inst_map, db::Net *net);
 };
 
 }//namespace opt

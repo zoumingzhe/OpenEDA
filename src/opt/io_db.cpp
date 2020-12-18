@@ -307,7 +307,7 @@ void IODB::commitBufferToDB(db::Pin *root_pin, BufferNode *b_tree_root) {
 }
 
 void IODB::__connect_b_tree_with_upstream_net(BufferNode *buffer_node,
-                                              std::unordered_map<BufferNode *, Inst *> b_node_inst_map,
+                                              std::unordered_map<BufferNode *, Inst *> &b_node_inst_map,
                                               Net *net) {
     // the caller should make sure buffer_node != NULL
     queue<BufferNode *> b_node_queue;
