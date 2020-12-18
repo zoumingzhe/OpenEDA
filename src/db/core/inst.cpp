@@ -487,9 +487,9 @@ uint64_t Inst::getNumProperties() const {
     return addr<ArrayObject<ObjectId>>(properties_id_)->getSize();
 }
 
-void Inst::addProperty(ObjectId obj_id) {
+ObjectId Inst::addProperty(ObjectId obj_id) {
     ArrayObject<ObjectId> *vobj = nullptr;
-    if (obj_id == 0) return;
+    if (obj_id == 0) return 0;
 
     if (properties_id_ == 0) {
         properties_id_ = __createPropertyArray();
@@ -498,6 +498,7 @@ void Inst::addProperty(ObjectId obj_id) {
     }
     ediAssert(vobj != nullptr);
     vobj->pushBack(obj_id);
+    return properties_id_;
 }
 
 ObjectId Inst::getPropertiesId() const { return properties_id_; }

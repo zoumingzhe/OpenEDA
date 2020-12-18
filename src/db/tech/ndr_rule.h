@@ -246,6 +246,7 @@ class NonDefaultRule : public Object {
     ObjectId getUseViasId() const;
     ObjectId getUseViaRulesId() const;
     ObjectId getPropertiesId() const;
+    NonDefaultRuleLayer* getNonDefaultRuleLayerByName(const char* layer_name) const;
 
     // Set:
     void setName(const char *v);
@@ -260,7 +261,7 @@ class NonDefaultRule : public Object {
     void addVia(ObjectId obj_id);
     void addUseVia(ObjectId obj_id);
     void addUseViaRule(ObjectId obj_id);
-    void addProperty(ObjectId obj_id);
+    ObjectId addProperty(ObjectId obj_id);
     void setHardSpacing(bool v);
     void setFromDEF(bool v);
     // print:

@@ -14,15 +14,15 @@
 #include "db/core/cell.h"
 #include "db/core/object.h"
 #include "db/core/pin.h"
-#include "db/core/special_wire.h"
 #include "db/core/via.h"
+#include "db/core/wire.h"
 #include "db/tech/layer.h"
 #include "util/enums.h"
 
 namespace open_edi {
 namespace db {
 
-class SpecialWire;
+class Wire;
 
 enum SpecialNetType {
     kSpecialNetTypeAnalog = 1,
@@ -60,6 +60,10 @@ class SpecialNet : public Object {
     uint64_t getNumProperties() const;
     ObjectId getPropertiesId() const;
 
+    Wire* createWire(int x1, int y1, int x2, int y2, int width);
+    Wire* createWire(int x1, int y1, int x2, int y2);
+    void addWire(Wire* wire);
+
     bool isAnalog();
     bool isClock();
     bool isGround();
@@ -81,16 +85,11 @@ class SpecialNet : public Object {
     void setWeight(double weight);
     void setOriginNet(SpecialNet* net);
     void setPropertySize(uint64_t v);
-
-    SpecialWireSection* createWireSection();
-    int addWireSection(SpecialWireSection* section);
-    void addProperty(ObjectId prop_id);
+    ObjectId addProperty(ObjectId prop_id);
 
     int addPin(Pin* pin);
+    Via* createVia(int x, int y, ViaMaster* via_master);
     int addVia(Via* via);
-    void addWire(SpecialWire* wire);
-
-    void deleteWire(SpecialWire* wire);
     void deleteVia(Via* Via);
 
     void print();
@@ -104,15 +103,14 @@ class SpecialNet : public Object {
     Bits status_ : 4;   /**< net status */
     Bits source_ : 4;   /**< net status */
     Bits pattern_ : 3;
-    ObjectId rule_;                        /**< rule in net */
-    ObjectId pins_;                        /**< pins */
-    std::vector<SpecialWire*> wire_rects_; /**< wire list in net */
-    ObjectId vias_;                        /**< Via list in net */
+    ObjectId rule_; /**< rule in net */
+    ObjectId pins_; /**< pins */
+    ObjectId vias_; /**< Via list in net */
     int voltage_;
     int frequency_;
-    double cap_;
-    double weight_;
-    ObjectId wire_sections_;
+    float cap_;
+    int weight_;
+    ObjectId wires_;
     ObjectId origin_net_;
     ObjectId properties_id_;
 };

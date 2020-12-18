@@ -254,7 +254,7 @@ void Property::printLEF(std::ofstream &ofs) const {
 }
 
 void Property::printDEF(FILE *fp) const {
-    fprintf(fp, "\n  + PROPERTY %s ", getPropName());
+    fprintf(fp, "  + PROPERTY %s ", getPropName());
     PropDataType data_type = getDataType();
     switch (data_type) {
         case (PropDataType::kInt):
@@ -267,6 +267,7 @@ void Property::printDEF(FILE *fp) const {
             fprintf(fp, "\"%s\"", getStringValue().c_str());
             break;
     }
+    fprintf(fp, "\n");
 }
 
 OStreamBase &operator<<(OStreamBase &os, Property const &rhs) {

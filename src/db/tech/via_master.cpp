@@ -799,9 +799,9 @@ void ViaMaster::setPropertySize(uint64_t v) {
     }
 }
 
-void ViaMaster::addProperty(ObjectId obj_id) {
+ObjectId ViaMaster::addProperty(ObjectId obj_id) {
     IdArray* vobj = nullptr;
-    if (obj_id == 0) return;
+    if (obj_id == 0) return 0;
 
     if (properties_ == 0) {
         properties_ = __createObjectIdArray(16);
@@ -810,6 +810,7 @@ void ViaMaster::addProperty(ObjectId obj_id) {
 
     ediAssert(vobj != nullptr);
     vobj->pushBack(obj_id);
+    return properties_;
 }
 
 ObjectId ViaMaster::getPropertiesId() const { return properties_; }

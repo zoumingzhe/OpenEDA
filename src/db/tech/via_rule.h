@@ -72,11 +72,10 @@ class ViaRule : public Object {
     ViaRuleCutLayer *creatViaRuleCutLayer();
 
     void addViaMaster(ViaMaster *via_master);
-    void addProperty(std::string prop);
     void addViaRuleMetalLayer(ViaRuleMetalLayer *via_rule);
     void setViaRuleCutLayer(ViaRuleCutLayer *via_rule);
     void setPropertySize(uint64_t v);
-    void addProperty(ObjectId obj_id);
+    ObjectId addProperty(ObjectId obj_id);
     bool getHasProperty() const;
     void setHasProperty(bool flag);
 

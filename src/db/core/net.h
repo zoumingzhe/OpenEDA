@@ -24,7 +24,8 @@ namespace open_edi {
 namespace db {
 
 class Wire;
-class WireGraph;
+class WirePatch;
+class NonDefaultRule;
 
 enum NetType {
     kNetTypeAnalog = 1,
@@ -124,17 +125,18 @@ class Net : public Object {
     void setType(NetType net_type);
     void setPattern(Bits pattern);
     void setNonDefaultRule(ObjectId rule);
+    void setNonDefaultRule(NonDefaultRule* rule);
     void setCell(ObjectId cell);
 
     int addPin(Pin* pin);
-    int addVPin(VPin* v_pin);
+    ObjectId addVPin(VPin* v_pin);
     void addWire(Wire* wire);
     void addVia(Via* via);
     void addSubNet(Net* sub_net);
     void addAssignNet(ObjectId assign_net);
     void addAssignConstant(int32_t assign_constant);
     void addAssignConstant(double assign_constant);
-    void addProperty(ObjectId prop_id);
+    ObjectId addProperty(ObjectId prop_id);
 
     void setXtalk(int xtalk);
     void setSource(Bits source);
@@ -149,13 +151,14 @@ class Net : public Object {
     void setPropertySize(uint64_t v);
 
     ArrayObject<ObjectId>* getPinArray() const;
-    
+
     Net* createSubNet(std::string& name);
     VPin* createVpin(std::string& name);
-    Via* createVia(ViaMaster* via_master);
-
-    WireGraph* creatGraph();
-    void addGraph(WireGraph* graph);
+    Via* createVia(int x, int y, ViaMaster* via_master);
+    Wire* createWire(int x1, int y1, int x2, int y2, int width);
+    WirePatch* creatPatch(int loc_x, int loc_y, int x1, int y1, int x2, int y2,
+                          int layer);
+    ObjectId addPatch(WirePatch* patch, ObjectId patches);
 
     void deleteVia(Via* Via);
     void deleteWire(Wire* wire);
@@ -166,37 +169,33 @@ class Net : public Object {
   private:
     SymbolIndex name_index_; /**< net name id */
 
-    bool is_bus_net_ : 1;   /**< the net is a bus */
-    bool is_of_bus_ : 1;    /**< the net is belong to a bus*/
-    bool is_from_term_ : 1; /**< the net is from module's term*/
-    bool is_sub_net_ : 1;
-    bool fix_bump_ : 1;
-    bool must_jion_ : 1;
-    AssignType assign_type_ : 3; /**< the type of right assign statement*/
-    Bits net_type_ : 4;          /**< net type */
-    Bits status_ : 4;            /**< net status */
-    Bits source_ : 4;            /**< net status */
+    Bits is_bus_net_ : 1;   /**< the net is a bus */
+    Bits is_of_bus_ : 1;    /**< the net is belong to a bus*/
+    Bits is_from_term_ : 1; /**< the net is from module's term*/
+    Bits is_sub_net_ : 1;
+    Bits fix_bump_ : 1;
+    Bits must_jion_ : 1;
+    Bits xtalk_ : 8;
+    Bits net_type_ : 4; /**< net type */
+    Bits status_ : 4;   /**< net status */
+    Bits source_ : 4;   /**< net status */
     Bits pattern_ : 3;
-    Bits reserved_ : 8;
-    ObjectId cell_;
+    Bits weight_ : 4;
+    AssignType assign_type_ : 3; /**< the type of right assign statement*/
+
     ObjectId rule_; /**< rule in net */
     ObjectId pins_; /**< pins */
     ObjectId vias_;
-    ObjectId v_pins_; /**< pins */
-    ObjectId wires_;  /**< wire list in net */
-    ObjectId graphs_;
-    ObjectId sub_nets_;
+    ObjectId wires_; /**< wire list in net */
+
     union {
         ObjectId assign_net_; /**< assign statement of verilog */
         int32_t assign_int_;
         double assign_real_;
     };
-    ObjectId properties_id_;
-    int xtalk_;
+
     int frequency_;
-    double cap_;
-    Bits weight_;
-    std::string origin_net_;
+    float cap_;
 };
 
 }  // namespace db
