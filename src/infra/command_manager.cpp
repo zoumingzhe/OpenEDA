@@ -168,7 +168,7 @@ Command* CommandManager::parseCommand(int argc, const char *argv[]) {
     return cmd;
 }
 
-Command* CommandManager::createCommand(const char* cmd_name, const char* description, Option& opt_head) {
+Command* CommandManager::createCommand(Tcl_Interp *itp, commandCallback cb, const char* cmd_name, const char* description, Option& opt_head) {
     Command* command = new Command();
     std::string name_cmd = cmd_name;
     command->setName(cmd_name);
@@ -185,11 +185,12 @@ Command* CommandManager::createCommand(const char* cmd_name, const char* descrip
         //  message->info("add opt %s in create command \n", opt_stack.top()->getName().c_str());
         opt_stack.pop();
     }
+    Tcl_CreateCommand(itp, cmd_name, cb, NULL, NULL);
 
     return command;
 }
 
-Command* CommandManager::createCommand(const char* cmd_name, const char* description, Option& opt_head, OptionGroup& group_head) {
+Command* CommandManager::createCommand(Tcl_Interp *itp, commandCallback cb, const char* cmd_name, const char* description, Option& opt_head, OptionGroup& group_head) {
     Command* command = new Command();
     std::string name_cmd = cmd_name;
     command->setName(cmd_name);
@@ -222,8 +223,38 @@ Command* CommandManager::createCommand(const char* cmd_name, const char* descrip
         group_ptr = group_ptr->getNext();
     }
 
+    Tcl_CreateCommand(itp, cmd_name, cb, NULL, NULL);
     return command;
 }
+
+Option& CommandManager::createOption(const char* name, OptionDataType type, bool is_required, const char* description) {
+    return *(new Option(name, type, is_required, description));
+}
+
+Option& CommandManager::createOption(const char* name, OptionDataType type, bool is_required, std::vector<std::string>* v, const char* description) {
+    return *(new Option(name, type, is_required, v, description));
+}
+
+Option& CommandManager::createOption(const char* name, OptionDataType type, bool is_required, const char* v, const char* description) {
+    return *(new Option(name, type, is_required, v, description));
+}
+
+Option& CommandManager::createOption(const char* name, OptionDataType type, bool is_required, bool v, const char* description) {
+    return *(new Option(name, type, is_required, v, description));
+}
+
+Option& CommandManager::createOption(const char* name, OptionDataType type, bool is_required, int v, const char* description, int min, int max) {
+    return *(new Option(name, type, is_required, v, description, min, max));
+}
+
+Option& CommandManager::createOption(const char* name, OptionDataType type, bool is_required, double v, const char* description, double min, double max){
+    return *(new Option(name, type, is_required, v, description, min, max));
+}
+
+OptionGroup& CommandManager::createOptionGroup(const char* name1, const char* name2, OptionRelation r) {
+    return *(new OptionGroup(name1, name2, r));
+}
+
 
 }  //  namespace infra
 }  //  namespace open_edi

@@ -18,14 +18,17 @@ namespace open_edi {
 namespace db {
 using IdArray = ArrayObject<ObjectId>;
 
-/*GeomPath &GeomPath::operator=(const GeomPath &path) {
-    for(int i = 0; i < path.getNumPoints(); i++){
-        ps_->push_back(path.getPoint(i));
-    }
-    this->setType(path.getType());
-    this->setNumMask( path.getColorMask());
-    return *this;
-}*/
+ Polygon* Geometry::getPath() const{
+    StorageUtil *owner_util = Object::getStorageUtilById(this->getOwnerId());
+    ediAssert(owner_util != nullptr);
+    return owner_util->getPolygonTable()->getPolygonByIndex(path_id);
+ }
+
+Polygon* Geometry::getPolygon() const{
+    StorageUtil *owner_util = Object::getStorageUtilById(this->getOwnerId());
+    ediAssert(owner_util != nullptr);
+    return owner_util->getPolygonTable()->getPolygonByIndex(polygon_id);
+}
 
 SymbolTable *GeometryVia::getSymbolTable() {
     Cell *top_cell = getTopCell();
@@ -42,8 +45,19 @@ SymbolIndex GeometryVia::getOrCreateSymbol(const char *name) {
     return getSymbolTable()->getOrCreateSymbol(name);
 }
 
-std::string GeometryVia::getName() {
-    return getSymbolTable()->getSymbolByIndex(name_index_);
+void GeometryVia::setViaMaster(const char *value) {
+    std::string name = value;
+    Tech *lib = getTopCell()->getTechLib();
+    ViaMaster* vm = lib->getViaMaster(name);
+    if (vm == nullptr) {
+        message->issueMsg(kError, "GeometryVia find via master %s failed.\n", value);
+        return;
+    }
+    via_master_index_ = vm->getId();
+}
+
+ViaMaster* GeometryVia::getViaMaster() {
+    return addr<ViaMaster>(via_master_index_);
 }
 
 LayerGeometry::LayerGeometry() {
@@ -66,8 +80,23 @@ SymbolIndex LayerGeometry::getOrCreateSymbol(const char *name) {
     return getSymbolTable()->getOrCreateSymbol(name);
 }
 
-std::string LayerGeometry::getName() {
-    return getSymbolTable()->getSymbolByIndex(name_index_);
+void LayerGeometry::setLayer(const char *value) {
+    Tech *lib = getTopCell()->getTechLib();
+    uint32_t index =  lib->getLayerLEFIndexByName(value);
+    if (index == -1) {
+        message->issueMsg(kError, "Layer Geometry find layer %s failed.\n", value);
+        return;
+    }
+    if (index > 255) {
+        message->issueMsg(kError, "Layer Geometry find layer index %d larger than 255.\n", index);
+        return;
+    }
+    layer_index_= index;
+}
+
+Layer* LayerGeometry::getLayer() {
+    Tech *lib = getTopCell()->getTechLib();
+    return lib->getLayer(layer_index_);
 }
 
 void LayerGeometry::addGeometry(ObjectId id) {
@@ -149,7 +178,11 @@ int64_t LayerGeometry::CreatePolygon(Polygon* p) {
 
 void LayerGeometry::print() {
     Tech *lib = getTechLib();
-    message->info("         LAYER %s ", this->getName().c_str());
+    if (getType() != GeometryType::kVia) {
+        if (this->getLayer() == nullptr)
+            return;
+        message->info("         LAYER %s ", this->getLayer()->getName());
+    }
     if ( this->hasEXCEPTPGNET())
         message->info("EXCEPTPGNET");
     if ( this->hasSpacing())
@@ -166,6 +199,8 @@ void LayerGeometry::print() {
         for (int i = 0; i < this->getVecNum(); i++) {
             if (this->getType() == GeometryType::kVia) {
                 GeometryVia *via = this->getGeometryVia(i);
+                if (via->getViaMaster() == nullptr)
+                    return;
                 if (via->getTopMaskNum() != 0 || via->getCutMaskNum() != 0
                     || via->getBottomMaskNum() != 0) {
                     message->info("         VIA MASK %d%d%d %g %g %s ;\n",
@@ -173,12 +208,12 @@ void LayerGeometry::print() {
                         via->getBottomMaskNum(),
                         lib->dbuToMicrons(via->getPoint().getX()),
                         lib->dbuToMicrons(via->getPoint().getY()),
-                        via->getName().c_str());
+                        via->getViaMaster()->getName().c_str());
                 } else {
                     message->info("         VIA %g %g %s ;\n",
                     lib->dbuToMicrons(via->getPoint().getX()),
                     lib->dbuToMicrons(via->getPoint().getY()),
-                    via->getName().c_str());
+                    via->getViaMaster()->getName().c_str());
                 }
             } else {
                 Geometry *geo = this->getGeometry(i);
@@ -228,8 +263,11 @@ void LayerGeometry::printLEF(std::ofstream & ofs, bool from_port) {
     Tech *lib = getTechLib();
     if (from_port && this->getType() != GeometryType::kVia)
         ofs << "   ";
-	if (getType() != GeometryType::kVia)
-    	ofs << "      LAYER" <<  " " <<  this->getName().c_str();
+	if (getType() != GeometryType::kVia) {
+        if (this->getLayer() == nullptr)
+            return;
+    	ofs << "      LAYER" <<  " " <<  this->getLayer()->getName();
+    }
     if (this->hasEXCEPTPGNET())
         ofs << " EXCEPTPGNET";
     if (this->hasSpacing())
@@ -249,6 +287,8 @@ void LayerGeometry::printLEF(std::ofstream & ofs, bool from_port) {
         for (int i = 0; i < this->getVecNum(); i++) {
             if (this->getType() == GeometryType::kVia) {
                 GeometryVia *via = this->getGeometryVia(i);
+                if (via->getViaMaster() == nullptr)
+                    return;
                 if (from_port)
                     ofs << "   ";
                 if (via->getTopMaskNum() != 0 || via->getCutMaskNum() != 0 || via->getBottomMaskNum() != 0) {
@@ -256,12 +296,12 @@ void LayerGeometry::printLEF(std::ofstream & ofs, bool from_port) {
                         via->getCutMaskNum() <<  via->getBottomMaskNum() <<  " " <<
                         lib->dbuToMicrons(via->getPoint().getX()) <<  " " <<
                         lib->dbuToMicrons(via->getPoint().getY()) <<  " " <<
-                        via->getName().c_str() << " ;\n";
+                        via->getViaMaster()->getName().c_str() << " ;\n";
                 } else {
                     ofs << "      VIA" <<  " " <<
                         lib->dbuToMicrons(via->getPoint().getX()) <<  " "
                         <<  lib->dbuToMicrons(via->getPoint().getY())
-                        <<  " " <<  via->getName().c_str() << " ;\n";
+                        <<  " " <<  via->getViaMaster()->getName().c_str() << " ;\n";
                 }
             } else {
                 Geometry *geo = this->getGeometry(i);
