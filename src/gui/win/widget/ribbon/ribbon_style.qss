@@ -1,0 +1,90 @@
+
+QWidget#RibbonPage
+{
+        background-color    : rgb(43, 87, 154);       
+}
+
+
+QMainWindow#MainWindow
+{
+	border : on;
+	background-color    : rgb(220,220,220);
+	border-color : red;
+	
+} 
+
+QWidget#RibbonTitleBar
+{
+	background-color    : #391216;  
+}
+
+QToolBar#QuickAccessBar
+{
+	background-color    : #1c9fbd;
+}
+
+QToolBar#QuickAccessBar>QToolButton:hover
+{
+	background-color    : #254c55;
+}
+
+QToolBar#QuickAccessToolBar>QToolButton:!hover
+{
+	background-color    : rgba(43,87,154,255);
+}
+
+/*
+QMenuBar#RibbonMenuBar
+{
+	background-color : #1cbd40;
+}
+
+QTabBar#RibbonMenuTabBar
+{
+	height: 32px;
+	background-color    : #b53232;
+}
+*/
+QTabBar#RibbonMenuTabBar::tab:selected{ height: 32px; background-color: rgba(241,241,241,255); color : black; }
+QTabBar#RibbonMenuTabBar::tab:!selected{ height: 32px; background-color: rgba(43,87,154,255); color: white;}
+
+
+QStackedWidget#RibbonMenuStackeWidget
+{
+	background-color    : #8a5858;
+}
+ 
+QWidget#RibbonGroupWidget
+{
+	background-color    : rgba(241, 241, 241, 0);
+}    
+
+/*
+QToolButton#RibbonToolButton
+{
+	background-color  : rgba(230, 230, 0, 0); /*背景为透明*/
+	border-color : rgba(0,0,0,0);
+}*/
+QToolButton#RibbonToolButton:hover
+{
+	/*border-radius: 3px;*/
+	border : off;
+	background-color  : rgba(220, 220, 220, 255);
+}
+
+QToolButton#RibbonToolButton:pressed
+{	border : off;
+	background-color  : rgba(210, 210, 210, 255);
+}
+
+QToolButton#RibbonToolButton:checked
+{	border : off;
+	background-color  : rgba(240, 240, 240, 255);
+}
+
+QDockWidget
+{
+	text-align: left;/* align the text to the left */
+	background: rgba(241, 241, 241, 255);
+	padding-left:5px;
+}

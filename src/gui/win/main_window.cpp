@@ -1,195 +1,112 @@
 #include "main_window.h"
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QTabWidget>
-#include <QMenuBar>
-#include <QStatusBar>
-#include <QLineEdit>
-#include <QSpacerItem>
-#include <QDialog>
+#include "widget/ribbon/ribbon.h"
+#include "widget/ribbon/ribbon_title_bar.h"
+#include "widget/ribbon/ribbon_page.h"
+#include "widget/ribbon/ribbon_group.h"
+#include "widget/mdi_window.h"
+#include "common/action_handler.h"
+#include "common/action_producer.h"
+#include "common/action_group_manager.h"
+#include "common/docks_manager.h"
+#include "widget/mdi_window.h"
+#include "util/util.h"
+
+#include <QComboBox>
+#include <QSpinBox>
 
 namespace open_edi {
 namespace gui {
 
+MainWindow* MainWindow::instance_ = nullptr;
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
+    , view_(new QGraphicsView)
+    , mdi_area_(nullptr)
+    , current_subwindow_(nullptr)
+    , ribbon_(nullptr)
 {
-   setObjectName("MainWindow");
-   setWindowTitle("Main Window");
+    setObjectName("MainWindow");
+    setAcceptDrops(true);
 
-   initCentralWidget();
-   initMenus();
-   initTools();
-   initDockWidgets();
-   initStatusBar();
+    init();
+    addActions();
+    createCentralWindow();
+    statusBar();
 }
 
 MainWindow::~MainWindow()
 {
-    delete main_stacked_wgt_;
-    main_stacked_wgt_ = nullptr;
-    delete h_tool_bar_;
-    h_tool_bar_ = nullptr;
-    delete  v_tool_bar_;
-    v_tool_bar_ = nullptr;
-    delete control_panel_wgt_;
-    control_panel_wgt_ = nullptr;
-    delete  layout_graphic_scene;
-    layout_graphic_scene = nullptr;
-    delete  layout_graphic_view;
-    layout_graphic_view = nullptr;
-    delete  log_wgt_;
-    log_wgt_ = nullptr;
 }
 
-void MainWindow::initCentralWidget()
+
+void MainWindow::init()
 {
-    main_stacked_wgt_ = new QStackedWidget(this);
-    setCentralWidget(main_stacked_wgt_);
+    ribbon_ = new RibbonMenuBar(this);
+    setMenuBar(ribbon_);
+    ribbon_->setFixedHeight(180);
 
-    layout_graphic_view = new GraphicView;
-    layout_graphic_scene = new GraphicScene;
-    layout_graphic_view->setScene(layout_graphic_scene);
-    layout_graphic_view->setMinimumSize(700,500);
-    main_stacked_wgt_->addWidget(layout_graphic_view);
+    action_handler_ = new ActionHandler(this);
+    action_handler_->setView(view_);
+    action_manager_ = new ActionGroupManager(this);
+    ActionProducer* producer = new ActionProducer(this, action_handler_);
+    producer->fillActionContainer(action_map_, action_manager_);
+
+    DocksManager* docks = new DocksManager(this);
+    docks->createDockWidgets();
+
 }
 
-void MainWindow::initMenus()
+void MainWindow::addActions()
 {
-    QMenu *menuMenu = menuBar()->addMenu(tr("File"));
-    menuMenu->addAction(tr("Import Design"));
-    menuMenu->addAction(tr("Save Design"));
-    menuMenu->addSeparator();
-    menuMenu->addAction(tr("Exit"));
+    QString res_path = QString::fromStdString(open_edi::util::getInstallPath()) + "/share/etc/res/tool/";
+    QString res_name = res_path + "undo.svg";
 
-    QMenu *menuEdit = menuBar()->addMenu(tr("Edit"));
-    menuEdit->addAction(tr("Undo"));
-    menuEdit->addAction(tr("Redo"));
-    menuEdit->addAction(tr("Copy"));
-    menuEdit->addAction(tr("Move"));
-    menuEdit->addAction(tr("Wirte"));
-    menuEdit->addAction(tr("Pin"));
+    RibbonTitleBar* title_bar = ribbon_->getTitleBar();
+    title_bar->addQuickAction(new QAction(QIcon(res_name), tr("undo")));
+    title_bar->addQuickAction(new QAction(QIcon(res_name), tr("undo")));
+    title_bar->addQuickAction(new QAction(QIcon(res_name), tr("undo")));
+    title_bar->addSystemAction(new QAction(QIcon(res_name), tr("undo")));
+    title_bar->addSystemAction(new QAction(QIcon(res_name), tr("undo")));
+    title_bar->addSystemAction(new QAction(QIcon(res_name), tr("undo")));
 
-    QMenu *menuEco = menuBar()->addMenu(tr("Eco"));
-    menuEco->addAction(tr("Add Buffer"));
-    menuEco->addAction(tr("Add Repeater"));
-    menuEco->addAction(tr("Size Cell"));
-    menuEco->addAction(tr("Remove Repeater"));
-    menuEco->addAction(tr("Remove Buffer"));
+    RibbonPage* page = ribbon_->addPage(tr("Common"));
+    RibbonGroup* group = page->addGroup(tr("File"));
+    group->addAction(action_map_["ImportDesign"], Qt::ToolButtonTextUnderIcon);
+    group->addAction(action_map_["ZoomIn"], Qt::ToolButtonTextBesideIcon);
 
-    QMenu *menuView = menuBar()->addMenu(tr("View"));
-    menuView->addAction(tr("Congestion Map"));
-    menuView->addAction(tr("Density Map"));
-    menuView->addAction(tr("Pin Density Map"));
-    menuView->addAction(tr("Redraw"));
-    menuView->addAction(tr("Zoom In"));
-    menuView->addAction(tr("Zoom Out"));
-    menuView->addAction(tr("Zoom Fit"));
-    menuView->addAction(tr("Zoom to Select"));
+    group = page->addGroup(tr("View"));
+    group->addAction(new QAction(QIcon(res_name), tr("undo")), Qt::ToolButtonTextUnderIcon);
+    group->addAction(new QAction(QIcon(res_name), tr("undo")), 0,0,1,1);
+    group->addAction(new QAction(QIcon(res_name), tr("undo")), 0,1,1,1);
+    group->addAction(new QAction(QIcon(res_name), tr("undo")), 0,2,1,1);
+    group->addAction(new QAction(QIcon(res_name), tr("undo")), 1,0,1,1);
+    group->addAction(new QAction(QIcon(res_name), tr("undo")), 1,1,1,1);
+    group->addAction(new QAction(QIcon(res_name), tr("undo")), 1,2,1,1);
 
-    QMenu *menuCheck = menuBar()->addMenu(tr("Check"));
-    menuCheck->addAction(tr("Check DRC"));
-    menuCheck->addAction(tr("Check Connectivity"));
-    menuCheck->addAction(tr("Check Process Antenna"));
-    menuCheck->addAction(tr("Check AC Limit"));
-    menuCheck->addAction(tr("Check Power Via"));
-    menuCheck->addAction(tr("Check Design"));
-    menuCheck->addAction(tr("Check Placement"));
+    group = page->addGroup(tr("Misc"));
+    group->addWidget(new QComboBox, 0,0,1,3);
+    group->addWidget(new QSpinBox, 1,0,1,3);
 
-    QMenu *menuPlace = menuBar()->addMenu(tr("Place"));
-    menuPlace->addAction(tr("Place Standard Cell"));
-    QMenu *menu2Physical = menuPlace->addMenu(tr("Physical Cell"));
-    menu2Physical->addAction(tr("Add Well Tap"));
-    menu2Physical->addAction(tr("Add End Cap"));
-    menu2Physical->addAction(tr("Add Filler"));
-    menu2Physical->addAction(tr("Add Tie Hi/Low"));
-    menu2Physical->addAction(tr("Remove Filler"));
-    menuPlace->addAction(tr("Place Spare Cell"));
-    QMenu *menu2Power = menuPlace->addMenu(tr("Physical Cell"));
-    menu2Power->addAction(tr("Add Power Switch"));
-    menu2Power->addAction(tr("Add Level Shifter"));
-    menu2Power->addAction(tr("Add Isolation"));
-    menuPlace->addAction(tr("Incremental Place"));
-    menuPlace->addAction(tr("Legalize Placement"));
-    menuPlace->addAction(tr("Scan Chain Reorder"));
-    menuPlace->addAction(tr("Add Place Blockage"));
-    menuPlace->addAction(tr("Create Place Region"));
-    menuPlace->addAction(tr("Add Cell Padding"));
-
-    QMenu *menuRoute = menuBar()->addMenu(tr("Route"));
-    menuRoute->addAction(tr("Route Global"));
-    menuRoute->addAction(tr("Route Track"));
-    menuRoute->addAction(tr("Route Detail"));
-    menuRoute->addAction(tr("Create Routing Rule"));
-    menuRoute->addAction(tr("Route Design"));
-    menuRoute->addAction(tr("Route Clock"));
-    menuRoute->addAction(tr("Route 2nd PG net"));
-    menuRoute->addAction(tr("Create Routing Blockage"));
-    menuRoute->addAction(tr("Add Metal Fill"));
-    menuRoute->addAction(tr("Add Via Fill"));
-    menuRoute->addAction(tr("Remove Metal Fill"));
-    menuRoute->addAction(tr("Remove Via Fill"));
-    menuRoute->addAction(tr("Report Congestion"));
-    menuRoute->addAction(tr("Special Route"));
-
-    QMenu *menuTools = menuBar()->addMenu(tr("Tools"));
-    menuTools->addAction(tr("Clock Tree Debugger"));
-    menuTools->addAction(tr("Timing Analysis Window"));
-    menuTools->addAction(tr("Schematic Viewer"));
-    menuTools->addAction(tr("Design Browser"));
-    menuTools->addAction(tr("Violation Browser"));
-
-    QMenu *menuFloorplan= menuBar()->addMenu(tr("Floorplan"));
-    menuFloorplan->addAction(tr("Initialize Floorplan"));
-    menuFloorplan->addAction(tr("Create Row"));
-    menuFloorplan->addAction(tr("Cut Row"));
-    menuFloorplan->addAction(tr("Floorplan Toolbox"));
-
-    QMenu *menuHelp = menuBar()->addMenu(tr("Help"));
-    menuHelp->addAction(tr("User Guide"));
-    menuHelp->addAction(tr("Command Reference"));
-    menuHelp->addAction(tr("About"));
-
+    ribbon_->addPage(tr("FloorPlan"));
+    ribbon_->addPage(tr("Timing"));
 }
 
-void MainWindow::initTools()
+
+void MainWindow::createCentralWindow()
 {
-    h_tool_bar_ = new ToolBar("Horizonal Tool Bar", this);
-    v_tool_bar_ = new ToolBar("Vertical Tool Bar", this);
-    addToolBar(Qt::TopToolBarArea, h_tool_bar_);
-    addToolBar(Qt::LeftToolBarArea, v_tool_bar_);
+    mdi_area_ = new QMdiArea(this);
+    setCentralWidget(mdi_area_);
+    mdi_area_->setViewMode(QMdiArea::TabbedView);
+    mdi_area_->setTabPosition(QTabWidget::South);
+    mdi_area_->setTabsClosable(true);
+    mdi_area_->setTabsMovable(true);
+    mdi_area_->setMaximumWidth(800);
+
+    MDIWindow* window = new MDIWindow(tr("Layout"));
+    mdi_area_->addSubWindow(window);
+    mdi_area_->addSubWindow(new MDIWindow(tr("Schematic")));
 }
-
-void MainWindow::initDockWidgets()
-{
-    control_panel_wgt_ = new ControlPanelWidget(tr("Layer Control"), this, Qt::WindowFlags(nullptr));
-    addDockWidget(Qt::RightDockWidgetArea, control_panel_wgt_);
-    log_wgt_ = new LogWidget(tr("Log"), this, Qt::WindowFlags(nullptr));
-    log_wgt_->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetClosable);
-    addDockWidget(Qt::BottomDockWidgetArea, log_wgt_);
-
-    QMenu *menuWindow = menuBar()->addMenu(tr("Window"));
-    menuWindow->addAction(control_panel_wgt_->toggleViewAction());
-    menuWindow->addAction(log_wgt_->toggleViewAction());
-
-    setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
-}
-
-void MainWindow::initStatusBar()
-{
-   QLineEdit *mouseLocate = new QLineEdit;
-   mouseLocate->setMaximumWidth(150);
-   mouseLocate->setReadOnly(true);
-   statusBar()->addPermanentWidget(mouseLocate);
-}
-
-
-void MainWindow::closeEvent(QCloseEvent *e)
-{
-    hide();
-    e ->ignore();
-}
-
 
 }
 }

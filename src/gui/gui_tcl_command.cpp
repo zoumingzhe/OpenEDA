@@ -21,17 +21,11 @@ namespace gui {
 #define DEFUALT_GUI_STARTUP_MOD      GUI_OFF_MODE 
 #endif
 
-static MainWindow *w = nullptr;
 static bool display = DEFUALT_GUI_DISPLAY;
 
 static int showGUI(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[])
 {
-
-    if(w == nullptr)
-    {
-        w = new MainWindow(nullptr);
-    }
-    w->show();
+    MAINWINDOW->show();
     
     return TCL_OK;
 }
@@ -39,7 +33,7 @@ static int showGUI(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]
 static int hideGUI(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[])
 {
 
-    if(w) w->hide();
+    MAINWINDOW->hide();
     
     return TCL_OK;
 }
