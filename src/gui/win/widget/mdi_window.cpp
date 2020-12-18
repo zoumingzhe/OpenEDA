@@ -1,6 +1,9 @@
-#include "mdi_window.h"
 #include <QDebug>
 #include <QGraphicsView>
+
+
+#include "mdi_window.h"
+#include "../layout/graphics_view.h"
 
 namespace open_edi {
 namespace gui {
@@ -10,7 +13,7 @@ MDIWindow::MDIWindow(const QString title,QWidget* parent)
 {
     setWindowTitle(title);
 
-    QGraphicsView *view = new QGraphicsView(this);
+    GraphicsView *view = new GraphicsView(this);
     setWidget(view);
 }
 
