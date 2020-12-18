@@ -1,40 +1,37 @@
 #include "action_handler.h"
 #include "../actions/action_edit_undo.h"
-#include "../actions/action_view_zoomin.h"
 #include "../actions/action_import_design.h"
+#include "../actions/action_view_zoomin.h"
+#include "../layout/graphics_view.h"
 
 namespace open_edi {
 namespace gui {
 
-ActionHandler::ActionHandler(QObject *parent)
-    : QObject(parent)
-    , view_(nullptr)
-{
-
+ActionHandler::ActionHandler(QObject* parent)
+  : QObject(parent), view_(nullptr) {
 }
 
-ActionHandler::~ActionHandler()
-{
-
+ActionHandler::~ActionHandler() {
 }
 
-void ActionHandler::setView(QGraphicsView *view){
+void ActionHandler::setView(QGraphicsView* view) {
     view_ = view;
 }
 
-ActionAbstract* ActionHandler::setCurrentAction(EDAGui::ActionType type)
-{
+ActionAbstract* ActionHandler::setCurrentAction(EDAGui::ActionType type) {
     ActionAbstract* action = nullptr;
 
-    if(!view_){
+    if (!view_) {
         return nullptr;
     }
 
-    switch (type)
-    {
+    switch (type) {
 
     case EDAGui::ActionFileImportDesign:
-        action = new ActionFileImportDesign(*view_, this);
+        // GraphicsView* lview = ;
+        connect(this, &ActionHandler::sendReadData, (GraphicsView*)view_, &GraphicsView::slotReadData);
+        emit sendReadData();
+        // action = new ActionFileImportDesign(*view_, this);
         break;
 
     case EDAGui::ActionFileSaveDesign:
@@ -67,56 +64,44 @@ ActionAbstract* ActionHandler::setCurrentAction(EDAGui::ActionType type)
     return action;
 }
 
-ActionAbstract* ActionHandler::getCurrentAction()
-{
-
+ActionAbstract* ActionHandler::getCurrentAction() {
 }
 
-void ActionHandler::slotImportDesign()
-{
+void ActionHandler::slotImportDesign() {
     setCurrentAction(EDAGui::ActionFileImportDesign);
 }
 
-
-void ActionHandler::slotSaveDesign()
-{
+void ActionHandler::slotSaveDesign() {
     setCurrentAction(EDAGui::ActionFileSaveDesign);
 }
 
-void ActionHandler::slotSetPreference()
-{
+void ActionHandler::slotSetPreference() {
     setCurrentAction(EDAGui::ActionFileSetPreference);
 }
 
-void ActionHandler::slotFindSelectObject()
-{
+void ActionHandler::slotFindSelectObject() {
     setCurrentAction(EDAGui::ActionFileFindSelectObject);
 }
 
-void ActionHandler::slotEditUndo()
-{
+void ActionHandler::slotEditUndo() {
     setCurrentAction(EDAGui::ActionEditUndo);
 }
 
-void ActionHandler::slotEditRedo()
-{
+void ActionHandler::slotEditRedo() {
     setCurrentAction(EDAGui::ActionEditRedo);
 }
 
-void ActionHandler::slotEditHighLight()
-{
+void ActionHandler::slotEditHighLight() {
     setCurrentAction(EDAGui::ActionEditHighLight);
 }
 
-void ActionHandler::slotViewZoomIn()
-{
+void ActionHandler::slotViewZoomIn() {
     setCurrentAction(EDAGui::ActionViewZoomIn);
 }
 
-void ActionHandler::slotViewZoomOut()
-{
+void ActionHandler::slotViewZoomOut() {
     setCurrentAction(EDAGui::ActionViewZoomOut);
 }
 
-}
-}
+} // namespace gui
+} // namespace open_edi

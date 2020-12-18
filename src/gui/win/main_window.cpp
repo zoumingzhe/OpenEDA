@@ -11,6 +11,7 @@
 #include "widget/mdi_window.h"
 #include "util/util.h"
 
+
 #include <QComboBox>
 #include <QSpinBox>
 
@@ -76,13 +77,20 @@ void MainWindow::addActions()
     group->addAction(action_map_["ZoomIn"], Qt::ToolButtonTextBesideIcon);
 
     group = page->addGroup(tr("View"));
-    group->addAction(new QAction(QIcon(res_name), tr("undo")), Qt::ToolButtonTextUnderIcon);
+
+    
+    // connect(import_design, &QAction::triggered, graphics_view_, &GraphicsView::slotReadData);
+    // menuMenu->addAction(import_lef); 
+    import_design_ = new QAction(tr("Import design"), this);
+    group->addAction(import_design_, Qt::ToolButtonTextUnderIcon);
     group->addAction(new QAction(QIcon(res_name), tr("undo")), 0,0,1,1);
     group->addAction(new QAction(QIcon(res_name), tr("undo")), 0,1,1,1);
     group->addAction(new QAction(QIcon(res_name), tr("undo")), 0,2,1,1);
     group->addAction(new QAction(QIcon(res_name), tr("undo")), 1,0,1,1);
     group->addAction(new QAction(QIcon(res_name), tr("undo")), 1,1,1,1);
     group->addAction(new QAction(QIcon(res_name), tr("undo")), 1,2,1,1);
+
+
 
     group = page->addGroup(tr("Misc"));
     group->addWidget(new QComboBox, 0,0,1,3);
@@ -95,17 +103,23 @@ void MainWindow::addActions()
 
 void MainWindow::createCentralWindow()
 {
-    mdi_area_ = new QMdiArea(this);
-    setCentralWidget(mdi_area_);
-    mdi_area_->setViewMode(QMdiArea::TabbedView);
-    mdi_area_->setTabPosition(QTabWidget::South);
-    mdi_area_->setTabsClosable(true);
-    mdi_area_->setTabsMovable(true);
-    mdi_area_->setMaximumWidth(800);
+    // mdi_area_ = new QMdiArea(this);
+    // setCentralWidget(mdi_area_);
+    // mdi_area_->setViewMode(QMdiArea::TabbedView);
+    // mdi_area_->setTabPosition(QTabWidget::South);
+    // mdi_area_->setTabsClosable(true);
+    // mdi_area_->setTabsMovable(true);
+    // mdi_area_->setMaximumWidth(800);
 
-    MDIWindow* window = new MDIWindow(tr("Layout"));
-    mdi_area_->addSubWindow(window);
-    mdi_area_->addSubWindow(new MDIWindow(tr("Schematic")));
+    // MDIWindow* window = new MDIWindow(tr("Layout"));
+    // mdi_area_->addSubWindow(window);
+    // mdi_area_->addSubWindow(new MDIWindow(tr("Schematic")));
+
+    graphics_view_ = new GraphicsView;
+    setCentralWidget(graphics_view_);
+    // graphics_view_->show();
+    connect(import_design_, &QAction::triggered, graphics_view_, &GraphicsView::slotReadData);
+
 }
 
 }

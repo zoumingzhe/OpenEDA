@@ -23,7 +23,7 @@ public:
     void setView(QGraphicsView *view);
 
 signals:
-
+    void sendReadData();
 public slots:
     void slotImportDesign();
     void slotSaveDesign();
