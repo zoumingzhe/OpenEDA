@@ -33,6 +33,7 @@ class IODB {
     double getC0();
     size_t getTotalLevel();
     void getNodesByLevel(uint32_t level, std::vector<std::vector<Node *>> &nodes_array);
+    void commitBufferToDB(db::Pin *root_pin, BufferNode *b_tree_root);
   private:
     std::ifstream fin_;
     std::ofstream fout_;
@@ -44,6 +45,8 @@ class IODB {
     double c0_;     //wire unit capacitance
     
     void destroyTree();
+
+    void __connect_b_tree_with_upstream_net(BufferNode *buffer_node, std::unordered_map<BufferNode *, db::Inst *> &b_node_inst_map, db::Net *net);
 };
 
 }//namespace opt
