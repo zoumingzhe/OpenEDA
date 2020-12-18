@@ -133,7 +133,7 @@ int IODB::readInputTree(string file_name, vector<Buffer> &drivers) {
                     node->id = pin->getId();
                     node->x = (uint64_t)net%500;
                     node->y = (uint64_t)pin%500;
-                    node->type = CANDIDATE;//SINK
+                    Inst* inst = pin->getInst();node->type = CANDIDATE;//SINK
                     node->solutions[1] = NULL;
                     VanNode *solution = new VanNode();
                     solution->area = 0;
@@ -208,6 +208,146 @@ void IODB::getNodesByLevel(uint32_t level, vector<vector<Node *>> &nodes_array) 
     set<db::Net *> nets = nets_level_[level];
     for(auto &net : nets){
         nodes_array.emplace_back(net_nodes_[net]);
+    }
+}
+
+void IODB::commitBufferToDB(db::Pin *root_pin, BufferNode *b_tree_root) {
+    if (b_tree_root == NULL || root_pin == NULL) {
+        return;
+    }
+    std::unordered_map<BufferNode *, Inst *> b_node_inst_map;
+    /* Step 1: delete net rooted at root pin */
+    Net *original_net = root_pin->getNet();
+    Object::deleteObject<Net>(original_net);
+    /* Step 2: create instances of buffers and their pins */
+    Inst *root_inst = root_pin->getInst();    
+    ObjectId owner_id = root_inst->getOwnerId();
+    Cell *owner_cell = NULL;
+    if (owner_id) { 
+        owner_cell = Object::addr<Cell>(owner_id);
+    }
+    else {
+        // print warning message
+        return;
+    }
+    queue<BufferNode *> b_node_queue;
+    BufferNode *temp = NULL;
+    b_node_queue.push(b_tree_root);
+    while(b_node_queue.size() > 0) {
+        temp = b_node_queue.front();
+        b_node_queue.pop();
+        if (temp->left) {
+            b_node_queue.push(temp->left);
+        }
+        if (temp->right) {
+            b_node_queue.push(temp->right);
+        }
+        if (temp->bufferType != -1) {
+            std::string buffer_name = "BUFFER_OPT_TEST_" + std::to_string(temp->id_at);
+            Inst *b_inst = owner_cell->createInstance(buffer_name);
+            b_node_inst_map[temp] = b_inst;
+            b_inst->setMaster("BUFFD0BWP12T"); // to do: get buffer cell name from bufferType
+            Cell *b_cell = b_inst->getMaster();
+            ArrayObject<ObjectId> *b_term_array_ptr = b_cell->getTermArray();
+            if (!b_term_array_ptr) {
+                // print error message
+                return;
+            }
+            else {
+                std::string at_pin_name = "PIN_BUFFER_AT_" + std::to_string(temp->id_at);
+                std::string to_pin_name = "PIN_BUFFER_TO_" + std::to_string(temp->id_to);
+                Pin *at_pin = b_inst->createInstancePin(at_pin_name);
+                Pin *to_pin = b_inst->createInstancePin(to_pin_name);
+                ArrayObject<ObjectId> b_term_array = *b_term_array_ptr;
+                for(int64_t i = 0; i < b_term_array.getSize(); i++) {
+                    ObjectId term_id = b_term_array[i];
+                    Term *b_term = Object::addr<Term>(term_id);
+                    SignalDirection term_dir = b_term->getDirection();
+                    if (term_dir == SignalDirection::kInput) {
+                        at_pin->setTerm(b_term);
+                    }
+                    else if (term_dir == SignalDirection::kOutput) {
+                        to_pin->setTerm(b_term);
+                    }
+                    else {
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+    /* Step 3: create connectivity between buffers by adding nets */
+    temp = NULL;
+    b_node_queue.push(b_tree_root);
+    while(b_node_queue.size() > 0) {
+        temp = b_node_queue.front();
+        b_node_queue.pop();
+        if (temp->left) {
+            b_node_queue.push(temp->left);
+        }
+        if (temp->right) {
+            b_node_queue.push(temp->right);
+        }
+        if (temp->bufferType != -1) {
+            Inst *b_inst = b_node_inst_map[temp];
+            std::string net_name = "NET_VG_" + b_inst->getName() + "_" + std::to_string(temp->id_to); 
+            std::string to_pin_name = "PIN_BUFFER_TO_" + std::to_string(temp->id_to);
+            Net *net = owner_cell->createNet(net_name);
+            Pin *to_pin = b_inst->getPin(to_pin_name);
+            to_pin->setNet(net);
+            net->addPin(to_pin);
+            if (temp->left) {
+                __connect_b_tree_with_upstream_net(temp->left, b_node_inst_map, net);
+            }
+            if (temp->right) {
+                __connect_b_tree_with_upstream_net(temp->right, b_node_inst_map, net);
+            }
+        }
+    }
+}
+
+void IODB::__connect_b_tree_with_upstream_net(BufferNode *buffer_node,
+                                              std::unordered_map<BufferNode *, Inst *> b_node_inst_map,
+                                              Net *net) {
+    // the caller should make sure buffer_node != NULL
+    queue<BufferNode *> b_node_queue;
+    BufferNode *temp = NULL;
+    if (buffer_node->bufferType != -1) {
+        Inst *b_inst = b_node_inst_map[buffer_node];
+        std::string at_pin_name = "PIN_BUFFER_AT_" + std::to_string(buffer_node->id_at);
+        Pin *at_pin = b_inst->getPin(at_pin_name);
+        at_pin->setNet(net);
+        net->addPin(at_pin);
+    }
+    else {
+        b_node_queue.push(buffer_node);
+        while (b_node_queue.size() > 0) {
+            temp = b_node_queue.front();
+            b_node_queue.pop();
+            // b_node_queue only contains dummy buffer nodes
+            if (temp->left && temp->left->bufferType == -1) {
+                b_node_queue.push(temp->left);
+            }
+            if (temp->right && temp->right->bufferType == -1) {
+                b_node_queue.push(temp->right);
+            }
+            // process left branch
+            if (temp->left && temp->left->bufferType != -1) {
+                Inst *b_inst_left = b_node_inst_map[temp->left];
+                std::string at_pin_left_name = "PIN_BUFFER_AT_" + std::to_string(temp->left->id_at);
+                Pin *at_pin_left = b_inst_left->getPin(at_pin_left_name);
+                at_pin_left->setNet(net);
+                net->addPin(at_pin_left);
+            }
+            // process right branch
+            if (temp->right && temp->right->bufferType != -1) {
+                Inst *b_inst_right = b_node_inst_map[temp->right];
+                std::string at_pin_right_name = "PIN_BUFFER_AT_" + std::to_string(temp->right->id_at);
+                Pin *at_pin_right = b_inst_right->getPin(at_pin_right_name);
+                at_pin_right->setNet(net);
+                net->addPin(at_pin_right);
+            }
+        }
     }
 }
 

@@ -168,6 +168,9 @@ Net::Net() {
     properties_id_ = 0;
 }
 
+Net::~Net() {
+}
+
 /**
  * @brief Get the Fix Bump object
  *
