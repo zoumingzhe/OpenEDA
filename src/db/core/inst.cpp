@@ -149,15 +149,28 @@ std::string Inst::getName() const {
 
 Cell *Inst::getMaster() const { return addr<Cell>(master_); }
 
-void Inst::setMaster(ObjectId master) { master_ = master; }
+void Inst::setMaster(ObjectId master_id) {
+    ediAssert(master_id != 0);
+    Cell *master = addr<Cell>(master_id);
+    ediAssert(master != nullptr);
+    __setMaster(master);
+}
+
 void Inst::setMaster(const std::string name) {
     Cell *master = getOwnerCell()->getCell(name);
     if (master) {
-        master_ = master->getId();
+        __setMaster(master);
     } else {
         message->issueMsg(kError, "cannot find cell %s for instance %s\n",
                           name.c_str(), getName().c_str());
     }
+}
+
+void Inst::__setMaster(Cell *master) {
+    ediAssert(master != nullptr);
+
+    master_ = master->getId();
+    master->incrRef(this);
 }
 
 UInt32 Inst::numPGPins() const {
@@ -193,27 +206,9 @@ Pin *Inst::getPGPin(const std::string &name) const {
     return nullptr;
 }
 
-ObjectId Inst::__createPinArray() {
-    ArrayObject<ObjectId> *vobj =
-        getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-    ediAssert(vobj != nullptr);
-    vobj->setPool(getOwnerCell()->getPool());
-    vobj->reserve(8);
-    return (vobj->getId());
-}
-
-ObjectId Inst::__createPropertyArray() {
-    ArrayObject<ObjectId> *vobj =
-        getOwnerCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
-    ediAssert(vobj != nullptr);
-    vobj->setPool(getOwnerCell()->getPool());
-    vobj->reserve(16);
-    return (vobj->getId());
-}
-
 void Inst::addPGPin(Pin *pin) {
     if (pg_pins_ == 0) {
-        pg_pins_ = __createPinArray();
+        pg_pins_ = __createObjectIdArray(8);
     }
     ArrayObject<ObjectId> *pin_vector = addr<ArrayObject<ObjectId>>(pg_pins_);
     pin_vector->pushBack(pin->getId());
@@ -259,7 +254,7 @@ Pin *Inst::getPinById(ObjectId obj_id) const {
 
 void Inst::addPin(Pin *pin) {
     if (pins_ == 0) {
-        pins_ = __createPinArray();
+        pins_ = __createObjectIdArray(8);
     }
     ArrayObject<ObjectId> *pin_vector = addr<ArrayObject<ObjectId>>(pins_);
     pin_vector->pushBack(pin->getId());
@@ -293,12 +288,12 @@ Pin *Inst::createInstancePin(std::string &pin_name) {
     ArrayObject<ObjectId> *pin_vector = nullptr;
     if (term->isPGType()) {
         if (pg_pins_ == 0) {
-            pg_pins_ = __createPinArray();
+            pg_pins_ = __createObjectIdArray(8);
         }
         pin_vector = addr<ArrayObject<ObjectId>>(pg_pins_);
     } else {
         if (pins_ == 0) {
-            pins_ = __createPinArray();
+            pins_ = __createObjectIdArray(8);
         }
         pin_vector = addr<ArrayObject<ObjectId>>(pins_);
     }
@@ -311,7 +306,7 @@ Pin *Inst::createInstancePinWithoutMaster(std::string &pin_name) {
     pin->setInst(this);
     ArrayObject<ObjectId> *pin_vector = nullptr;
     if (pins_ == 0) {
-        pins_ = __createPinArray();
+        pins_ = __createObjectIdArray(8);
     }
     pin_vector = Object::addr<ArrayObject<ObjectId>>(pins_);
     pin_vector->pushBack(pin->getId());
@@ -425,7 +420,7 @@ void Inst::copy(Inst const &rhs) {
     if (rhs_pg_pins_vector == nullptr) {
         pg_pins_ = 0;
     }
-    pg_pins_ = __createPinArray();
+    pg_pins_ = __createObjectIdArray(8);
     ArrayObject<ObjectId> *new_pg_pin_vector =
         addr<ArrayObject<ObjectId>>(pg_pins_);
     for (int i = 0; i < rhs_pg_pins_vector->getSize(); i++) {
@@ -441,7 +436,7 @@ void Inst::copy(Inst const &rhs) {
     if (rhs_pins_vector == nullptr) {
         pins_ = 0;
     }
-    pins_ = __createPinArray();
+    pins_ = __createObjectIdArray(8);
     ArrayObject<ObjectId> *new_pin_vector = addr<ArrayObject<ObjectId>>(pins_);
     for (int i = 0; i < rhs_pins_vector->getSize(); i++) {
         ObjectId pin_id = (*rhs_pins_vector)[i];
@@ -477,7 +472,7 @@ void Inst::setPropertySize(uint64_t v) {
         return;
     }
     if (!properties_id_) {
-        properties_id_ = __createPropertyArray();
+        properties_id_ = __createObjectIdArray(16);
     }
 }
 
@@ -492,7 +487,7 @@ void Inst::addProperty(ObjectId obj_id) {
     if (obj_id == 0) return;
 
     if (properties_id_ == 0) {
-        properties_id_ = __createPropertyArray();
+        properties_id_ = __createObjectIdArray(16);
     } else {
         vobj = addr<ArrayObject<ObjectId>>(properties_id_);
     }
@@ -544,7 +539,11 @@ void Inst::clear() {
         }
     }
     __deleteObjectIdArray(pins_);
-    //TODO: if master != 0, decr master's ref_count.
+
+    Cell *master = getMaster();
+    if (master != nullptr) {
+        master->decrRef(this);
+    }
 }
 
 void Inst::printPinGeoms() {

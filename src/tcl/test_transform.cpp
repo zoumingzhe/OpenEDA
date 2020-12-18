@@ -52,7 +52,7 @@ static bool parseArgument (
     Command* cmd = CommandManager::parseCommand(argc, argv);
     if (cmd == nullptr) return false;
 
-    bool res = false;
+    bool res = true;
     input_value.is_dir_set_ = false;
     input_value.verbose_ = false;
     //-directory

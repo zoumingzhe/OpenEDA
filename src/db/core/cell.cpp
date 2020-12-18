@@ -211,6 +211,8 @@ void Cell::__init() {
     foreigns_ = 0;
     densities_ = 0;
     obses_ = 0;
+    ref_insts_ = 0;
+
     memset(mask_shift_layers_, '0', sizeof(ObjectId) * max_layer_num);
     num_mask_shift_layers_ = 0;
     // flag:
@@ -1804,123 +1806,65 @@ Density *Cell::getDensity(int index) {
     return nullptr;
 }
 
-#if 0
-void Cell::print() {
-    Tech *lib = getOwnerCell()->getTechLib();
-    message->info("MACRO %s \n", getName().c_str());
-    message->info("CLASS %s ;\n", getClassString().c_str());
-    if (getIsFixedMask()) {
-        message->info("   FIXEDMASK ;\n");
-    }
-    if (numForeigns() > 0) {
-        for (int i = 0; i < numForeigns(); i++) {
-            Foreign *foreign = getForeign(i);
-            message->info("   FOREIGN %s ", foreign->getName().c_str());
-            if (foreign->hasForeignPoint()) {
-                message->info(" %g %g ",
-                              lib->dbuToMicrons(foreign->getforeignX()),
-                              lib->dbuToMicrons(foreign->getforeignX()));
-                if (foreign->hasForeignOrient()) {
-                    message->info("%s ", foreign->foreignOrientStr());
-                }
-            }
-            message->info(";\n");
-        }
-    }
-    if (hasOrigin()) {
-        message->info("   ORIGIN %g %g ;\n", lib->dbuToMicrons(getOriginX()),
-                      lib->dbuToMicrons(getOriginY()));
-    }
-    if (hasEEQ()) {
-        message->info("   EEQ %s ;\n", getEEQ().c_str());
-    }
-    if (hasSize()) {
-        message->info("   SIZE %g BY %g ;\n", lib->dbuToMicrons(getSizeX()),
-                      lib->dbuToMicrons(getSizeY()));
-    }
-    if (hasXSymmetry() || hasYSymmetry() || has90Symmetry()) {
-        message->info("   SYMMETRY");
-        if (hasXSymmetry()) message->info(" X");
-        if (hasYSymmetry()) message->info(" Y");
-        if (has90Symmetry()) message->info(" R90");
-        message->info("  ;\n");
-    }
-
-    if (hasSiteName()) message->info("   SITE %s ;\n", getSiteName().c_str());
-    if (getNumSites() > 0) {
-        for (int i = 0; i < getNumSites(); i++) {
-            SitePattern *pattern = getSitePattern(i);
-            if (pattern) {
-                if (pattern->getStepPattern().getxCount() > 0) {
-                    message->info(
-                        "   SITE %s %g %g %s DO %d BY %d STEP %g %g ;\n",
-                        pattern->getName().c_str(),
-                        lib->dbuToMicrons(pattern->getxOrigin()),
-                        lib->dbuToMicrons(pattern->getyOrigin()),
-                        toString(pattern->getOrient()).c_str(),
-                        pattern->getStepPattern().getxCount(),
-                        pattern->getStepPattern().getyCount(),
-                        lib->dbuToMicrons(pattern->getStepPattern().getxStep()),
-                        lib->dbuToMicrons(
-                            pattern->getStepPattern().getyStep()));
-                } else {
-                    message->info("   SITE %s %g %g %s ;\n",
-                                  pattern->getName().c_str(),
-                                  lib->dbuToMicrons(pattern->getxOrigin()),
-                                  lib->dbuToMicrons(pattern->getyOrigin()),
-                                  toString(pattern->getOrient()).c_str());
-                }
-            }
-        }
-    }
-
-    if (getNumOfTerms() > 0) {
-        for (int i = 0; i < getNumOfTerms(); i++) getTerm(i)->print();
-    }
-
-    ArrayObject<ObjectId> *vct = nullptr;
-    if (obses_ != 0) {
-        vct = addr<ArrayObject<ObjectId>>(obses_);
-        if (vct) {
-            for (int i = 0; i < vct->getSize(); i++) {
-                LayerGeometry *obj_data = getOBS(i);
-                if (obj_data) {
-                    message->info("   OBS\n");
-                    obj_data->print();
-                    message->info("   END\n");
-                }
-            }
-        }
-    }
-
-    if (densities_ != 0) {
-        vct = addr<ArrayObject<ObjectId>>(densities_);
-        if (vct) {
-            message->info("   DENSITY\n");
-            for (int i = 0; i < vct->getSize(); i++) {
-                Density *obj_data = getDensity(i);
-                if (obj_data) {
-                    message->info("      LAYER %s ;\n",
-                                  obj_data->getName().c_str());
-                    for (int j = 0; j < obj_data->getDensityLayerNum(); j++) {
-                        DensityLayer *layer = obj_data->getDensityLayer(j);
-                        message->info(
-                            "         RECT %g %g %g %g %g ;\n",
-                            lib->dbuToMicrons(layer->getRect().getLLX()),
-                            lib->dbuToMicrons(layer->getRect().getLLY()),
-                            lib->dbuToMicrons(layer->getRect().getURX()),
-                            lib->dbuToMicrons(layer->getRect().getURY()),
-                            layer->getDensity());
-                    }
-                }
-            }
-            message->info("   END\n");
-        }
-    }
-
-    message->info("END %s\n", getName().c_str());
+// instatiated insts:
+ArrayObject<ObjectId> *Cell::getRefInstArray() const {
+    if (ref_insts_ == 0) return nullptr;
+    ArrayObject<ObjectId> *vct = addr<ArrayObject<ObjectId>>(ref_insts_);
+    return vct;
 }
-#endif
+
+uint32_t Cell::getRefCount() const {
+    ArrayObject<ObjectId> *vct = getRefInstArray();
+
+    if (vct == nullptr) {
+        return 0;
+    }
+    return vct->getSize();
+}
+
+void Cell::incrRef(Inst *inst) {
+    ediAssert(inst != nullptr);
+
+    ArrayObject<ObjectId> *vct = getRefInstArray();
+    if (!vct) {
+        if (isHierCell()) {
+            ref_insts_ = __createObjectIdArray(8);
+        } else {
+            ref_insts_ = __createObjectIdArray(32);
+        }
+        vct = addr<ArrayObject<ObjectId>>(ref_insts_);
+    }
+    if (vct) {
+        vct->pushBack(inst->getId());
+    }
+}
+
+void Cell::decrRef(Inst *inst) {
+    ediAssert(inst != nullptr);
+
+    ArrayObject<ObjectId> *vct = getRefInstArray();
+    if (vct) {
+        ObjectId inst_id = inst->getId();
+        if (inst_id == 0) return;
+        int64_t size = vct->getSize();
+        int index;
+        for (index = 0; index < size; ++index) {
+            ObjectId cur_id = (*vct)[index];
+            if (cur_id == inst_id) {
+                break;
+            }
+        }
+        if (index < size) {
+            --size;
+            if (index != size) {
+                ObjectId last_id = (*vct)[size];
+                (*vct)[index] = last_id;
+            }
+            vct->adjustSize(size);
+        }
+    }
+}
+// End of instatiated insts.
 
 void Cell::printLEF(std::ofstream &ofs) {
     Tech *lib = getTechLib();

@@ -142,8 +142,7 @@ class Inst : public Object {
     friend IStreamBase &operator>>(IStreamBase &is, Inst &rhs);
 
   private:
-    ObjectId __createPinArray();
-    ObjectId __createPropertyArray();
+    void __setMaster(Cell *master);
 
     Bits has_eeq_master_ : 1;
     Bits has_source_ : 1;

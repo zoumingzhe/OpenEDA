@@ -474,8 +474,11 @@ class Cell : public Object {
     bool addMaskShiftLayer(ObjectId layer_id);
     ObjectId getMaskShiftLayer(uint8_t index);
 
+    ArrayObject<ObjectId> *getRefInstArray() const;
+    uint32_t getRefCount() const;
+    void incrRef(Inst *inst);
+    void decrRef(Inst *inst);
     // Print:
-    // void print();
     void printLEF(std::ofstream &ofs);
 
   private:
@@ -504,7 +507,9 @@ class Cell : public Object {
     ObjectId foreigns_;
     ObjectId densities_;
     ObjectId obses_;
-   
+    ObjectId ref_insts_;
+    //uint32_t ref_count_;
+
     ///< Component mask shift in DEF
     ObjectId mask_shift_layers_[max_layer_num];
     uint8_t num_mask_shift_layers_;

@@ -285,6 +285,8 @@ static int testApp(ClientData cld, Tcl_Interp *itp, int argc,
 }
 
 extern void registerTestTransform(Tcl_Interp *itp);
+extern void registerTestInstMaster(Tcl_Interp *itp);
+
 /**
  * @brief registerTestCommands
  *
@@ -293,6 +295,7 @@ extern void registerTestTransform(Tcl_Interp *itp);
 void registerTestCommands(Tcl_Interp *itp) {
     Tcl_CreateCommand(itp, "do_test", testApp, NULL, NULL);
     registerTestTransform(itp);
+    registerTestInstMaster(itp);
 
     //(temporarily) testing Tcl commands
     registerTestObjectCommand(itp);
