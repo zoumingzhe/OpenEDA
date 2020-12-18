@@ -111,7 +111,7 @@ class SdcGroupPathContainer {
   private:
     GroupPathContainerDataPtr data_;
 };
-using SdcGroupPathContinerPtr = std::shared_ptr<SdcGroupPathContainer>;
+using SdcGroupPathContainerPtr = std::shared_ptr<SdcGroupPathContainer>;
 
 class SdcClockGatingCheckContainer {
   public:
@@ -816,6 +816,7 @@ using SdcMaxLeakagePowerContainerPtr = std::shared_ptr<SdcMaxLeakagePowerContain
 //object access commands
 class SdcAllClocksContainer {
   public:
+    SdcAllClocksContainer() { data_ = std::make_shared<SdcClockContainer>(); }
     SdcAllClocksContainer(const SdcClockContainerPtr &data) { data_ = std::make_shared<SdcClockContainer>(); }
 
     const std::vector<std::string> &get_all_clocks() const { return data_->getClockNames(); };
@@ -828,6 +829,7 @@ using SdcAllClocksContainerPtr = std::shared_ptr<SdcAllClocksContainer>;
 
 class SdcAllInputsContainer {
   public:
+    SdcAllInputsContainer() { data_ = std::make_shared<SdcClockContainer>(); }
     SdcAllInputsContainer(const SdcClockContainerPtr &data) { data_ = std::make_shared<SdcClockContainer>(); }
 
     const std::vector<std::string> &get_all_inputs(const AllInputsPtr &conditions) const;
@@ -840,6 +842,7 @@ using SdcAllInputsContainerPtr = std::shared_ptr<SdcAllInputsContainer>;
 
 class SdcAllOutputsContainer {
   public:
+    SdcAllOutputsContainer() { data_ = std::make_shared<SdcClockContainer>(); }
     SdcAllOutputsContainer(const SdcClockContainerPtr &data) { data_ = std::make_shared<SdcClockContainer>(); }
 
     const std::vector<std::string> &get_all_outputs(const AllOutputsPtr &conditions) const;
@@ -852,6 +855,7 @@ using SdcAllOutputsContainerPtr = std::shared_ptr<SdcAllOutputsContainer>;
 
 class SdcAllRegistersContainer {
   public:
+    SdcAllRegistersContainer() { data_ = std::make_shared<SdcClockContainer>(); }
     SdcAllRegistersContainer(const SdcClockContainerPtr &data) { data_ = std::make_shared<SdcClockContainer>(); }
 
     const std::vector<std::string> &get_all_registers(const AllRegistersPtr &conditions) const;
@@ -888,7 +892,7 @@ class SdcGetCellsContainer {
     SdcCurrentDesignContainer current_design_;
     SdcCurrentInstanceContainer current_instance_;
 };
-using SdcGetCellContainerPtr = std::shared_ptr<SdcGetCellsContainer>;
+using SdcGetCellsContainerPtr = std::shared_ptr<SdcGetCellsContainer>;
 
 class SdcGetClocksContainer {
   public:
