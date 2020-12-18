@@ -858,14 +858,6 @@ std::ostream &operator<<(std::ostream &os, SdcAllClocksContainer &rhs) {
     return os;
 }
 
-void SdcCurrentDesignContainer::setData(const CurrentDesignPtr &data) {
-    if (!data) {
-        //TODO error messages
-        return;
-    }
-    data_ = data; 
-}
-
 const std::string SdcCurrentDesignContainer::getDesignName() const {
     const ObjectId &cell_id = data_->getCellId();
     Cell* cell = Object::addr<Cell>(cell_id);

@@ -25,8 +25,7 @@ CurrentDesign::CurrentDesign() {
 
 void CurrentDesign::init() {
     Cell *top_cell = getTopCell();
-    if (!top_cell) {
-        //error messages
+    if (!top_cell->getNumOfTerms() and !top_cell->getNumOfCells()) { //No Design Data
         return;
     }
     cell_id_ = top_cell->getId();

@@ -866,7 +866,10 @@ class SdcCurrentDesignContainer {
   public:
     SdcCurrentDesignContainer() { data_ = std::make_shared<CurrentDesign>(); }
 
-    void setData(const CurrentDesignPtr &data);
+    void setData(const CurrentDesignPtr &data) { data_ = data; };
+    const CurrentDesignPtr getData() const { return data_; };
+    CurrentDesignPtr getData() { return data_; };
+
     const std::string getDesignName() const;
     const ObjectId getDesignId() const{ return data_->getCellId(); };
     friend std::ostream &operator<<(std::ostream &os, SdcCurrentDesignContainer &rhs);

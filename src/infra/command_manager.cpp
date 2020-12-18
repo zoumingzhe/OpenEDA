@@ -66,6 +66,9 @@ Command* CommandManager::createCommandByName(const char* name) {
 
 Command* CommandManager::parseCommand(int argc, const char *argv[]) {
     Command* cmd = getCommandManager()->getCommandByName(argv[0]);
+    if (argc == 1) {
+        return cmd;
+    }
     if (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-help")) {
         message->info(cmd->getDescription().c_str());
         for (int i = 0; i < cmd->getOptionNum(); i++) {

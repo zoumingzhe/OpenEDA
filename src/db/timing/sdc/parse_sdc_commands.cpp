@@ -429,18 +429,14 @@ int parseSdcAllRegisters(ClientData cld, Tcl_Interp *itp, int argc, const char *
 int parseSdcCurrentDesign(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
     Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
-    if (!cmd) {
-        return TCL_ERROR;	
-	}
-    CurrentDesignPtr design = std::make_shared<CurrentDesign>();
+    SdcPtr sdc = getSdc();
+    auto container = sdc->getCurrentDesignContainer();
+    auto design = container->getData();
     bool success = design->switchToCell(""); // sdc2.1 not support
-    if (!success) { 
+    if (!success) {
         //error messages
         return TCL_ERROR;
     }
-    SdcPtr sdc = getSdc();
-    auto container = sdc->getCurrentDesignContainer();
-    container->setData(design);
     message->info("%s\n", (container->getDesignName()).c_str());
     return TCL_OK;
 }
