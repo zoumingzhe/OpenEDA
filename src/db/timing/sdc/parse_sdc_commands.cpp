@@ -37,15 +37,7 @@ SdcPtr getSdc() {
         SdcPtr default_sdc = std::make_shared<Sdc>();
         return default_sdc;
     }
-    //get first one
-    size_t first_view = 0;
-    AnalysisView *view = timing_lib->getAnalysisView(first_view);
-    if (!view) {
-        //TODO message
-        SdcPtr default_sdc = std::make_shared<Sdc>();
-        return default_sdc;
-    }
-    AnalysisMode *mode = view->getAnalysisMode();
+    AnalysisMode *mode = timing_lib->getAnalysisMode("my_mode");
     if (!mode) {
         //TODO message
         SdcPtr default_sdc = std::make_shared<Sdc>();
