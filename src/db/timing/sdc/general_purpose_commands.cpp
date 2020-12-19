@@ -56,17 +56,18 @@ bool CurrentInstance::cd(const std::string &dir) {
 }
 
 const std::string SetHierarchySeparator::legal_chars_ = "/@^#.|";
-void SetHierarchySeparator::setAndCheck(const std::string &input) {
+bool SetHierarchySeparator::setAndCheck(const std::string &input) {
+    constexpr bool success = true;
+    constexpr bool fail = false;
     if (input.size() != 1) {
-        //TODO error messages
-        return;
+        return fail;
     }
     auto found = legal_chars_.find(input); 
     if (found == std::string::npos) {
-        //TODO error messages
-        return;
+        return fail;
     }
     separator_ = input.front();
+    return success;
 }
 
 void SetUnits::splitUnit(float &value, std::string &suffix, const std::string &target) {

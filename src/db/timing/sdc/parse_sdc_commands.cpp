@@ -69,6 +69,7 @@ int parseSdcCurrentInstance(ClientData cld, Tcl_Interp *itp, int argc, const cha
         bool success = inst->cd(dir);
         if (!success) {
             //TODO messages;
+            //Don't return error and things continue to go on
             return TCL_ERROR;
         }
         message->info("%s\n", (container->getInstName()).c_str());
@@ -150,25 +151,33 @@ int parseSdcSetUnits(ClientData cld, Tcl_Interp *itp, int argc, const char *argv
 
     return TCL_OK;
 }
+
 int parseSdcSetHierarchySeparator(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
     Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
+    SdcPtr sdc = getSdc();
+    auto container = sdc->getHierarchySeparatorContainer();
+    auto separator = container->getData();
     if (!(cmd->isOptionSet("separator"))) {
+        //TODO messages
         return TCL_ERROR;
     }
     if (cmd->isOptionSet("separator")) {
-        std::string separator="";
-        bool res = cmd->getOptionValue("separator", separator);
+        std::string separator_str = "";
+        bool res = cmd->getOptionValue("separator", separator_str);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        //case_analysis_ptr->setValue(value);
-        message->info("get first value %s \n", separator.c_str());
+        bool success = separator->setAndCheck(separator_str);
+        if (!success) {
+            //error message
+            return TCL_ERROR;
+        }
     }
-
     return TCL_OK;
 }
+
 // object access commands manager
 int parseSdcAllClocks(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
     Command* cmd = CommandManager::parseCommand(argc, argv);

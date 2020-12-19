@@ -43,7 +43,7 @@ using CurrentInstancePtr = std::shared_ptr<CurrentInstance>;
 
 class SetHierarchySeparator {
   public:
-    void setAndCheck(const std::string &input);
+    bool setAndCheck(const std::string &input);
 
   private:
     static const std::string legal_chars_;
