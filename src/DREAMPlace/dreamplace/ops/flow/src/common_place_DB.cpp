@@ -104,11 +104,11 @@ CommonDB::__init()
     // init net to pin
     pin2net_map_.resize(num_pins_);
     flat_net2pin_map_.resize(num_pins_);
-    flat_net2pin_start_map_.resize(num_nets_);
+    flat_net2pin_start_map_.resize(num_nets_ + 1);
     // init inst(node) to pin
     pin2node_map_.resize(num_pins_);
     flat_node2pin_map_.resize(num_pins_);
-    flat_node2pin_start_map_.resize(num_nodes_);
+    flat_node2pin_start_map_.resize(num_nodes_ + 1);
     // init pin offset
     pin_offset_x_.resize(num_pins_);
     pin_offset_y_.resize(num_pins_);
@@ -133,14 +133,14 @@ CommonDB::__init()
       init_y_[idx] = getBoxLLY(box);
       node_size_x_[idx] = getBoxWidth(box);
       node_size_y_[idx] = getBoxHeight(box);
-      inst_names_.push_back(inst->getName());
-      inst_orients_.push_back(getInstOri(inst));
-      idx_to_insts_.push_back(inst);
+      inst_names_[idx] = inst->getName();
+      inst_orients_[idx] = getInstOri(inst);
+      idx_to_insts_[idx] = inst;
       // collect moveable inst pins
       if (getInstNumPins(inst) > 0) { 
         flat_node2pin_start_map_[idx] = pinIdx;
         forEachInstPins(inst) {
-          pin_dirs_.push_back(getPinDirection(pin));
+          pin_dirs_[pinIdx] = getPinDirection(pin);
           pin2Idx.insert(std::make_pair(pin, pinIdx));
           flat_node2pin_map_[pinIdx] = pinIdx;
           pin2node_map_[pinIdx] = idx;
@@ -165,14 +165,14 @@ CommonDB::__init()
       init_y_[idx] = getBoxLLY(box);
       node_size_x_[idx] = getBoxWidth(box);
       node_size_y_[idx] = getBoxHeight(box);
-      inst_names_.push_back(getInstName(inst));
-      inst_orients_.push_back(getInstOri(inst));
-      idx_to_insts_.push_back(inst);
+      inst_names_[idx] = getInstName(inst);
+      inst_orients_[idx] = getInstOri(inst);
+      idx_to_insts_[idx] = inst;
       // collect fixed inst pins
       if (getInstNumPins(inst) > 0) { 
         flat_node2pin_start_map_[idx] = pinIdx;
         forEachInstPins(inst) {
-          pin_dirs_.push_back(getPinDirection(pin));
+          pin_dirs_[pinIdx] = getPinDirection(pin);
           pin2Idx.insert(std::make_pair(pin, pinIdx));
           flat_node2pin_map_[pinIdx] = pinIdx;
           pin2node_map_[pinIdx] = idx;
@@ -192,7 +192,7 @@ CommonDB::__init()
     if (getPinNet(ioPin)) {
       PlBox box;
       if (getPin1Box(ioPin, box)) {
-        pin_dirs_.push_back(getPinDirection(ioPin));
+        pin_dirs_[pinIdx] = getPinDirection(ioPin);
         pin2Idx.insert(std::make_pair(ioPin, pinIdx));
         init_x_[idx] = getBoxLLX(box);
         init_y_[idx] = getBoxLLY(box);
@@ -208,6 +208,7 @@ CommonDB::__init()
       }
     }
   } endForEachIOPins
+  flat_node2pin_start_map_[idx] = pinIdx;
 
   // pins of same net to be abutted
   if (num_pins_ > 0) {
@@ -225,6 +226,7 @@ CommonDB::__init()
       } endForEachNetPins
       netIdx++;
     } endForEachNets
+    flat_net2pin_start_map_[netIdx] = pinIdx;
   }
 
   // collect fence num and fence box num for new memory
@@ -246,7 +248,7 @@ CommonDB::__init()
     if (numBox > 0) {
       // init fence
       flat_fence_boxes_.resize(numBox);
-      flat_fence_boxes_start_.resize(num_fences_);
+      flat_fence_boxes_start_.resize(num_fences_ + 1);
       std::unordered_map<PlConstraint*, int> regionId;
       idx = 0;
       int bIdx = 0;
@@ -264,6 +266,8 @@ CommonDB::__init()
           idx++;
         }
       } endForEachGroups
+      flat_fence_boxes_start_[idx] = bIdx;
+
       idx = 0;
       forEachInsts(inst) {
         if (isInstMoveable(inst)) {
@@ -279,10 +283,12 @@ CommonDB::__init()
   }
 
   // collect row boxes for GP
+  int rowId = 0;
+  row_boxes_.resize(getNumOfRows());
   PlRow* row = nullptr;
   forEachRows(row) {
     PlBox box = getRowBox(row);
-    row_boxes_.push_back(box);
+    row_boxes_[rowId++] = box;
   } endForEachRows
 
   dreamplacePrint(kINFO, "Total %d instance%c, %d moveable instance%c, %d cell%c, %d net%c, %d  pin%c, %d io pin%c, %d io pin instance%c, %d moveable pin%c, %d row%c\n",

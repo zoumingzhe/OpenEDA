@@ -274,7 +274,8 @@ PyPlaceDB::set(unsigned long db_ptr)
     // critical to make sure only overlap with the die area is computed 
     ps &= gtl::rectangle_data<PlaceDB::coordinate_type>(xl, yl, xh, yh);
     double total_fixed_node_overlap_area = gtl::area(ps);
-    total_space_area = getBoxArea(db->getArea()) -
+    PlBox coreBox = db->getArea();
+    total_space_area = getBoxArea(coreBox) -
                        std::min(total_fixed_node_overlap_area, total_fixed_node_area); 
     num_movable_pins = db->getNumMoveablePins(); 
     dreamplacePrint(kINFO, "Completed python DB.\n");
