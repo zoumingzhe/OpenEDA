@@ -21,7 +21,7 @@
 #include <memory>
 #include <set> 
 
-#include "db/core/object.h"
+#include "db/core/db.h"
 #include "db/timing/sdc/command_get_set_property.h"
 #include "db/timing/timinglib/timinglib_units.h"
 #include "db/timing/timinglib/timinglib_libbuilder.h"
@@ -31,7 +31,7 @@ namespace db {
 
 class CurrentInstance {
   public:
-    void cd(const std::string &dir);
+    bool cd(const std::string &dir);
 
   private:
     ObjectId inst_id_ = UNINIT_OBJECT_ID;

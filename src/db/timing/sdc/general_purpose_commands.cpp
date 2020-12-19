@@ -18,15 +18,41 @@
 namespace open_edi {
 namespace db {
 
-void CurrentInstance::cd(const std::string &dir) {
+bool CurrentInstance::cd(const std::string &dir) {
     //TODO
-    // 1) dir == ""
-    // 2) dir == "." --> current
-    // 3) dir == ".."
-    // 4) dir == "inst name"
-    // 5) dir == "../inst name"
-    // 6) dir == "../../inst name"
-    // 7) dir == "\." --> top
+    //Now support:
+    //1) "." ---> current_instance
+    //2) ".." ---> upper level instance
+    //3) "name" ---> down level instance
+    //Not support: 
+    //1) "../inst name" or "../../inst name"
+    //2) different separator 
+    constexpr bool success = true;
+    constexpr bool fail = false;
+    if (dir == "" or dir == ".") {
+        return success;
+    }
+    auto inst = Object::addr<Inst>(inst_id_);
+    std::string new_inst_name = "";
+    if (!inst) {
+        new_inst_name = dir;
+    } else {
+        const auto &inst_name = inst->getName();
+        if (dir == "..") {
+            const auto &pos = inst_name.find_last_of("/");
+            if (pos == std::string::npos) {
+                return fail;
+            }
+            new_inst_name = inst_name.substr(0, pos-1);
+        }
+        new_inst_name = inst_name + "/" + "dir";
+    }
+    auto new_inst = getTopCell()->getInstance(new_inst_name);
+    if (!new_inst) {
+        return fail;
+    }
+    inst_id_ = new_inst->getId();
+    return success;
 }
 
 const std::string SetHierarchySeparator::legal_chars_ = "/@^#.|";

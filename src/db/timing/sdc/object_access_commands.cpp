@@ -31,7 +31,7 @@ void CurrentDesign::init() {
     cell_id_ = top_cell->getId();
 }
 
-bool CurrentDesign::switchToCell(const std::string &cell_name) const { //sdc2.1 not support
+bool CurrentDesign::switchToCell(const std::string &cell_name) { //sdc2.1 not support switch to cell
     if (cell_name == "") {
         //keep on top cell
         return true;

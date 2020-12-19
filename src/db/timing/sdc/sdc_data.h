@@ -32,7 +32,9 @@ class SdcCurrentInstanceContainer {
   public:
     SdcCurrentInstanceContainer() { data_ = std::make_shared<CurrentInstance>(); }
 
-    void addData(const CurrentInstancePtr &data);
+    void setData(const CurrentInstancePtr &data) { data_ = data; };
+    const CurrentInstancePtr getData() const { return data_; };
+    CurrentInstancePtr getData() { return data_; };
     const std::string getInstName() const;
     const ObjectId getInstId() const { return data_->getInstId(); };
     friend std::ostream &operator<<(std::ostream &os, SdcCurrentInstanceContainer &rhs);

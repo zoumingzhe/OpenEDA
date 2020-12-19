@@ -32,8 +32,7 @@ bool createSdcGeneralPurposeCommands() {
 
     Command* cmd = cmd_manager->createCommand(
 	"current_instance","\n",
-            *(new Option("-instance",OptionDataType::kString,false,"\n"))+
-            *(new Option("value",OptionDataType::kDouble,false,"\n"))        //wrong with src/app/openeda,it's a hypothetical argument
+            *(new Option("instance", OptionDataType::kString, false, "\n"))
     );
     assert(cmd);
 
@@ -103,7 +102,7 @@ bool createSdcObjectAccessCommands() {
 
      cmd = cmd_manager->createCommand(
         "current_design","\n",
-            *(new Option())               //ÎÞoption 
+            *(new Option())
      );
      assert(cmd);
 

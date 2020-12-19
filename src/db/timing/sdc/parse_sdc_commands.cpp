@@ -56,24 +56,30 @@ SdcPtr getSdc() {
 int parseSdcCurrentInstance(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
     Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
-    CurrentInstancePtr inst = std::make_shared<CurrentInstance>();
-    if (cmd->isOptionSet("-instance")) {
+    SdcPtr sdc = getSdc();
+    auto container = sdc->getCurrentInstanceContainer();
+    auto inst = container->getData();
+    if (cmd->isOptionSet("instance")) {
         std::string dir = "";
-        bool res = cmd->getOptionValue("-instance", dir);
+        bool res = cmd->getOptionValue("instance", dir);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        inst->cd(dir);
-        //message->info("get first value %s \n", dir.c_str());
+        bool success = inst->cd(dir);
+        if (!success) {
+            //TODO messages;
+            return TCL_ERROR;
+        }
+        message->info("%s\n", (container->getInstName()).c_str());
+    } else {
+        if (inst->getInstId() != UNINIT_OBJECT_ID) {
+            message->info("%s\n", (container->getInstName()).c_str());
+            return TCL_OK;
+        }
+        auto design_container = sdc->getCurrentDesignContainer();
+        message->info("%s\n", (design_container->getDesignName()).c_str());
     }
-    SdcPtr sdc = getSdc();
-    if (!sdc) {
-        return TCL_ERROR;
-    }
-    auto container = sdc->getCurrentInstanceContainer();
-    container->addData(inst);
-    message->info("%s\n", container->getInstName());
     return TCL_OK;
 }
 

@@ -21,18 +21,10 @@ namespace db {
 const std::string SdcCurrentInstanceContainer::getInstName() const {
     const ObjectId &inst_id = data_->getInstId();
     const Inst* inst = Object::addr<Inst>(inst_id);
-    if (inst) {
-        return inst->getName();
+    if (!inst) {
+        return "";
     }
-    return "";
-}
-
-void SdcCurrentInstanceContainer::addData(const CurrentInstancePtr &data) {
-    if (!data) {
-        //TODO error messages
-        return;
-    }
-    data_ = data; 
+    return inst->getName();
 }
 
 std::ostream &operator<<(std::ostream &os, SdcCurrentInstanceContainer &rhs) {
@@ -862,7 +854,6 @@ const std::string SdcCurrentDesignContainer::getDesignName() const {
     const ObjectId &cell_id = data_->getCellId();
     Cell* cell = Object::addr<Cell>(cell_id);
     if (!cell) {
-        //return error messages
         return "";
     }
     return cell->getName();

@@ -79,7 +79,7 @@ class CurrentDesign {
     CurrentDesign();
     void init();
 
-    bool switchToCell(const std::string &cell_name) const; //sdc2.1 not support
+    bool switchToCell(const std::string &cell_name); //sdc2.1 not support switch to cell
 
   private:
     ObjectId cell_id_ = UNINIT_OBJECT_ID;
