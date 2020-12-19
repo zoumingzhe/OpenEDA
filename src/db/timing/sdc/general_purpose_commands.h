@@ -65,13 +65,13 @@ class SetUnits {
     void splitUnit(float &value, std::string &suffix, const std::string &unit);
 
   private:
-    float capacitance_unit_value_ = 0.0; // farad
-    float resistance_unit_value_ = 0.0; // ohm
-    float time_unit_value_ = 0.0; // sec
-    float voltage_unit_value_ = 0.0; // volt
-    float current_unit_value_ = 0.0; // ampere
-    float power_unit_value_ = 0.0; // watt
-    ObjectId liberty_units_id_;
+    float capacitance_unit_value_ = 0.0; // 1e-12 farad
+    float resistance_unit_value_ = 0.0; // 1 ohm
+    float time_unit_value_ = 0.0; // 1e-3 sec
+    float voltage_unit_value_ = 0.0; // 1 volt
+    float current_unit_value_ = 0.0; // 1e-3 ampere
+    float power_unit_value_ = 0.0; // 1e-3 watt
+    ObjectId liberty_units_id_ = UNINIT_OBJECT_ID;
 
   public:
     COMMAND_GET_SET_VAR(capacitance_unit_value, CapacitanceUnit)

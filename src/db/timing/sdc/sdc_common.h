@@ -19,9 +19,17 @@
 #include "db/core/db.h"
 #include "util/data_traits.h"
 #include "util/util.h"
+#include <cmath>
+#include <limits>
 
 namespace open_edi {
 namespace db {
+
+template <typename T>
+bool ediEqual(const T &value1, const T &value2, T eps = std::numeric_limits<T>::epsilon()) {
+    return fabs(value1 - value2) < eps;
+}
+
 
 
 

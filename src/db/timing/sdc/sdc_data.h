@@ -61,18 +61,21 @@ using SdcHierarchySeparatorContainerPtr = std::shared_ptr<SdcHierarchySeparatorC
 
 class SdcUnitsContainer {
   public:
-    SdcUnitsContainer() { units_ = std::make_shared<SetUnits>(); }
+    SdcUnitsContainer() { data_ = std::make_shared<SetUnits>(); }
+    void setData(const SetUnitsPtr &data) { data_ = data; }
+    const SetUnitsPtr getData() const { return data_; }
+    SetUnitsPtr getData() { return data_; }
 
-    const float &getSdcCapacitanceUnits() const { return units_->getCapacitanceUnit(); };
-    const float &getSdcResistanceUnits() const { return units_->getResistanceUnit(); };
-    const float &getSdcTimeUnits() const { return units_->getTimeUnit(); };
-    const float &getSdcVoltageUnits() const { return units_->getVoltageUnit(); };
-    const float &getSdcCurrentUnits() const { return units_->getCurrentUnit(); };
-    const float &getSdcPowerUnits() const { return units_->getPowerUnit(); };
+    const float &getSdcCapacitanceUnits() const { return data_->getCapacitanceUnit(); };
+    const float &getSdcResistanceUnits() const { return data_->getResistanceUnit(); };
+    const float &getSdcTimeUnits() const { return data_->getTimeUnit(); };
+    const float &getSdcVoltageUnits() const { return data_->getVoltageUnit(); };
+    const float &getSdcCurrentUnits() const { return data_->getCurrentUnit(); };
+    const float &getSdcPowerUnits() const { return data_->getPowerUnit(); };
     friend std::ostream &operator<<(std::ostream &os, SdcUnitsContainer &rhs);
 
   private:
-    SetUnitsPtr units_;
+    SetUnitsPtr data_;
 };
 using SdcUnitsContainerPtr = std::shared_ptr<SdcUnitsContainer>;
 

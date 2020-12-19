@@ -68,9 +68,9 @@ int parseSdcCurrentInstance(ClientData cld, Tcl_Interp *itp, int argc, const cha
         }
         bool success = inst->cd(dir);
         if (!success) {
-            //TODO messages;
-            //Don't return error and things continue to go on
-            return TCL_ERROR;
+            //Not use TCL_ERROR to avoid program exit
+            //TODO error messages;
+            return TCL_OK;
         }
         message->info("%s\n", (container->getInstName()).c_str());
     } else {
@@ -87,68 +87,63 @@ int parseSdcCurrentInstance(ClientData cld, Tcl_Interp *itp, int argc, const cha
 int parseSdcSetUnits(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
     Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
+    SdcPtr sdc = getSdc();
+    auto container = sdc->getUnitsContainer();
+    auto units = container->getData();
     if (cmd->isOptionSet("-capacitance")) {
-        std::string capacitance="";
+        std::string capacitance = "";
         bool res = cmd->getOptionValue("-capacitance", capacitance);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        //case_analysis_ptr->setValue(value);
-        message->info("get first value %s \n", capacitance.c_str());
+        units->setAndCheckCapacitance(capacitance);
     }
-   
     if (cmd->isOptionSet("-resistance")) {
-        std::string resistance="";
+        std::string resistance = "";
         bool res = cmd->getOptionValue("-resistance", resistance);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        //case_analysis_ptr->setValue(value);
-        message->info("get first value %s \n", resistance.c_str());
+        units->setAndCheckResistance(resistance);
     }
     if (cmd->isOptionSet("-time")) {
-        std::string time="";
+        std::string time = "";
         bool res = cmd->getOptionValue("-time", time);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        //case_analysis_ptr->setValue(value);
-        message->info("get first value %s \n", time.c_str());
+        units->setAndCheckTime(time);
     }
     if (cmd->isOptionSet("-voltage")) {
-        std::string voltage="";
+        std::string voltage = "";
         bool res = cmd->getOptionValue("-voltage", voltage);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        //case_analysis_ptr->setValue(value);
-        message->info("get first value %s \n", voltage.c_str());
+        units->setAndCheckVoltage(voltage);
     }
     if (cmd->isOptionSet("-current")) {
-        std::string current="";
+        std::string current = "";
         bool res = cmd->getOptionValue("-current", current);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        //case_analysis_ptr->setValue(value);
-        message->info("get first value %s \n", current.c_str());
+        units->setAndCheckCurrent(current);
     }
     if (cmd->isOptionSet("-power")) {
-        std::string power="";
+        std::string power = "";
         bool res = cmd->getOptionValue("-power", power);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        //case_analysis_ptr->setValue(value);
-        message->info("get first value %s \n", power.c_str());
+        units->setAndCheckPower(power);
     }
-
     return TCL_OK;
 }
 
@@ -442,7 +437,8 @@ int parseSdcCurrentDesign(ClientData cld, Tcl_Interp *itp, int argc, const char 
     bool success = design->switchToCell(""); // sdc2.1 not support
     if (!success) {
         //error messages
-        return TCL_ERROR;
+        //Not use TCL_ERROR to avoid program exit
+        return TCL_OK;
     }
     message->info("%s\n", (container->getDesignName()).c_str());
     return TCL_OK;
