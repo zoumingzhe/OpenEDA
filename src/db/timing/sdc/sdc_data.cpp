@@ -631,15 +631,6 @@ const SetOutputDelayPtr SdcOutputDelayContainer::getPinOutputDelay(const ObjectI
     return found->second;
 }
 
-bool SdcPropagatedClockContainer::isPropagatedClock(const ClockId &clock_id) const {
-    const auto &clocks = data_->getClocks();
-    const auto &found = clocks.find(clock_id);
-    if (found != clocks.end()) {
-        return true;
-    }
-    return false;
-}
-
 bool SdcPropagatedClockContainer::isPropagatedPin(const ObjectId &pin_id) const {
     const auto &pins = data_->getPins();
     const auto &found = pins.find(pin_id);

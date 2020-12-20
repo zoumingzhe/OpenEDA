@@ -105,15 +105,14 @@ class SdcClockContainer {
 };
 using SdcClockContainerPtr = std::shared_ptr<SdcClockContainer>;
 
-
 class SdcGroupPathContainer {
   public:
     SdcGroupPathContainer() { data_ = std::make_shared<GroupPathContainerData>(); }
 
-  public:
-    void add(const GroupPathContainerDataPtr &data) { data_ = data; }
+    void setData(const GroupPathContainerDataPtr &data) { data_ = data; };
+    const GroupPathContainerDataPtr getData() const { return data_; };
+    GroupPathContainerDataPtr getData() { return data_; };
     const std::vector<GroupPathPtr> &get() const { return data_->getGroupPaths(); }
-
     friend std::ostream &operator<<(std::ostream &os, SdcGroupPathContainer &rhs);
 
   private:
@@ -425,11 +424,11 @@ class SdcPropagatedClockContainer {
   public:
     SdcPropagatedClockContainer() { data_ = std::make_shared<SetPropagatedClock>(); }
 
-  public:
-    void add(const SetPropagatedClockPtr &data) { data_ = data; }
-    bool isPropagatedClock(const ClockId &clock_id) const;
+    void setData(const SetPropagatedClockPtr &data) { data_ = data; };
+    const SetPropagatedClockPtr getData() const { return data_; };
+    SetPropagatedClockPtr getData() { return data_; };
+    bool isPropagatedClock(const ClockPtr &clock) const { return clock->isPropagated(); };
     bool isPropagatedPin(const ObjectId &object_id) const;
-
     friend std::ostream &operator<<(std::ostream &os, SdcPropagatedClockContainer &rhs);
 
   private:

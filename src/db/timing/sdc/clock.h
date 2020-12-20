@@ -33,7 +33,7 @@ class Clock {
     Clock(Clock &&rhs) noexcept;
     Clock &operator=(const Clock &rhs);
     Clock &operator=(Clock &&rhs) noexcept;
-    ~Clock() {};
+    ~Clock()=default;
 
     bool operator==(const Clock &rhs) const;
 
@@ -47,6 +47,7 @@ class Clock {
     void setGenerated() { is_generated_ = true; }
     void setVirtual() { is_virtual_ = true; }
     void setAdd() { is_add_ = true; }
+    void setPropagated() { is_propagated_ = true; }
 
     const std::string &getName() const { return name_; }
     const std::vector<float> &getWaveform() const { return waveform_; }
@@ -55,6 +56,7 @@ class Clock {
     bool isGenerated() const { return is_generated_; }
     bool isVirtual() const { return is_virtual_; }
     bool isAdd() const { return is_add_; }
+    bool isPropagated() const { return is_propagated_; }
 
     friend std::ostream &operator<<(std::ostream &os, Clock &rhs);
     //TODO hash function
@@ -69,6 +71,7 @@ class Clock {
     bool is_generated_ : 1;
     bool is_virtual_ : 1;
     bool is_add_ : 1;
+    bool is_propagated_ : 1;
 };
 using ClockPtr = std::shared_ptr<Clock>;
 

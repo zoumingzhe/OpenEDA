@@ -24,6 +24,9 @@ class Sdc {
   public:
     Sdc();
     Sdc(ObjectId mode_id);
+    Sdc(const Sdc &rhs)=delete;
+    Sdc &operator=(const Sdc &rhs)=delete;
+    ~Sdc()=default;
 
     //init
     void initId();
@@ -42,7 +45,7 @@ class Sdc {
     SdcUnitsContainerPtr getUnitsContainer() { return units_container_; }
 
     SdcClockContainerPtr getClockContainer() { return clock_container_; }
-    SdcGroupPathContainerPtr getGroupPathContiner() { return group_path_container_; }
+    SdcGroupPathContainerPtr getGroupPathContainer() { return group_path_container_; }
     SdcClockGatingCheckContainerPtr getClockGatingCheckContainer() { return clock_gating_check_container_; }
     SdcClockGroupsContainerPtr getClockGroupsContainer() { return clock_groups_container_; }
     SdcClockLatencyContainerPtr getClockLatencyContainer() { return clock_latency_container_; }

@@ -1291,27 +1291,29 @@ int parseSdcCreateGeneratedClock(ClientData cld, Tcl_Interp *itp, int argc, cons
 }
 
 int parseSdcGroupPath(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
-	Command* cmd = CommandManager::parseCommand(argc, argv);
+    Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
+    if (!( (cmd->isOptionSet("-name") and (!cmd->isOptionSet("-default"))) or 
+        (cmd->isOptionSet("-default") and (!cmd->isOptionSet("-name"))) or 
+    	(!cmd->isOptionSet("-name")) and 
+    	(cmd->isOptionSet("-from") xor cmd->isOptionSet("-rise_from") xor cmd->isOptionSet("-fall_from")))) {
+    	return TCL_ERROR;
+    }
+    SdcPtr sdc = getSdc();
+    auto container = sdc->getGroupPathContainer();
+    auto container_data = container->getData();
+    GroupPathPtr group_path = std::make_shared<GroupPath>();
+    container_data->add(group_path);
+    const auto &clock_container = sdc->getClockContainer();
     
-	//constraint
-    // junliu changed
-	if (!(  (cmd->isOptionSet("-name") and (!cmd->isOptionSet("-default"))) or 
-			(cmd->isOptionSet("-default") and (!cmd->isOptionSet("-name"))) or 
-			(!cmd->isOptionSet("-name")) and 
-			(cmd->isOptionSet("-from") xor cmd->isOptionSet("-rise_from") xor cmd->isOptionSet("-fall_from")))) {
-		return TCL_ERROR;
-	}
-	
-	if (cmd->isOptionSet("-name")) {
+    if (cmd->isOptionSet("-name")) {
         std::string name = "";
         bool res = cmd->getOptionValue("-name", name);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-		//Assignment
-        message->info("get first value %s \n", name.c_str());
+        group_path->setName(name);
     }
     if (cmd->isOptionSet("-default")) {
         bool default_ = false;
@@ -1320,8 +1322,7 @@ int parseSdcGroupPath(ClientData cld, Tcl_Interp *itp, int argc, const char *arg
             //TODO messages
             return TCL_ERROR;
         }
-		//Assignment
-        message->info("get second value %d \n", default_);
+        group_path->setDefaultValue();
     }
     if (cmd->isOptionSet("-weight")) {
         double weight = 0.0;
@@ -1330,126 +1331,230 @@ int parseSdcGroupPath(ClientData cld, Tcl_Interp *itp, int argc, const char *arg
             //TODO messages
             return TCL_ERROR;
         }
-		//Assignment
-        message->info("get third value %f \n", weight);
+        group_path->setWeight(static_cast<float>(weight));
     }
-	if (cmd->isOptionSet("-from")) {
-		std::vector<std::string> from_list;
+    if (cmd->isOptionSet("-from")) {
+    	std::vector<std::string> from_list;
         bool res = cmd->getOptionValue("-from", from_list);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        for (const auto &from : from_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get fourth value %s \n", from.c_str());
+        for (const auto &from_object_name : from_list) {
+            //Priority
+            //Pin > Inst > Clock
+            group_path->setRiseFallFrom();
+            bool success = group_path->addFromPinNode(from_object_name);
+            if (success) {
+                continue;
+            } 
+            success = group_path->addFromInstNode(from_object_name);
+            if (success) {
+                continue;
+            }
+            ClockPtr clock = clock_container->getClock(from_object_name);
+            if (clock) {
+                group_path->addFromClockNode(clock->getId());
+            }
+            //TODO no object matched error messages
         }
-	}
-	if (cmd->isOptionSet("-rise_from")) {
-		std::vector<std::string> rise_from_list;
+    }
+    if (cmd->isOptionSet("-rise_from")) {
+    	std::vector<std::string> rise_from_list;
         bool res = cmd->getOptionValue("-rise_from", rise_from_list);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        for (const auto &rise_from : rise_from_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get fifth value %s \n", rise_from.c_str());
+        for (const auto &rise_from_object_name : rise_from_list) {
+            //Priority
+            //Pin > Inst > Clock
+            group_path->setRiseFrom();
+            bool success = group_path->addFromPinNode(rise_from_object_name);
+            if (success) {
+                continue;
+            } 
+            success = group_path->addFromInstNode(rise_from_object_name);
+            if (success) {
+                continue;
+            }
+            ClockPtr clock = clock_container->getClock(rise_from_object_name);
+            if (clock) {
+                group_path->addFromClockNode(clock->getId());
+            }
+            //TODO no object matched error messages
         }
-	}
-	if (cmd->isOptionSet("-fall_from")) {
-		std::vector<std::string> fall_from_list;
+    }
+    if (cmd->isOptionSet("-fall_from")) {
+    	std::vector<std::string> fall_from_list;
         bool res = cmd->getOptionValue("-fall_from", fall_from_list);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        for (const auto &fall_from : fall_from_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get sixth value %s \n", fall_from.c_str());
+        for (const auto &fall_from_object_name : fall_from_list) {
+            //Priority
+            //Pin > Inst > Clock
+            group_path->setFallFrom();
+            bool success = group_path->addFromPinNode(fall_from_object_name);
+            if (success) {
+                continue;
+            } 
+            success = group_path->addFromInstNode(fall_from_object_name);
+            if (success) {
+                continue;
+            }
+            ClockPtr clock = clock_container->getClock(fall_from_object_name);
+            if (clock) {
+                group_path->addFromClockNode(clock->getId());
+            }
+            //TODO no object matched error messages
         }
-	}
-	if (cmd->isOptionSet("-to")) {
-		std::vector<std::string> to_list;
+    }
+    if (cmd->isOptionSet("-to")) {
+    	std::vector<std::string> to_list;
         bool res = cmd->getOptionValue("-to", to_list);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        for (const auto &to : to_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get seventh value %s \n", to.c_str());
+        for (const auto &to_object_name : to_list) {
+            group_path->setRiseFallTo();
+            bool success = group_path->addToPinNode(to_object_name);
+            if (success) {
+                continue;
+            } 
+            success = group_path->addToInstNode(to_object_name);
+            if (success) {
+                continue;
+            }
+            ClockPtr clock = clock_container->getClock(to_object_name);
+            if (clock) {
+                group_path->addToClockNode(clock->getId());
+            }
+            //TODO no object matched error messages
         }
-	}
-	if (cmd->isOptionSet("-rise_to")) {
-		std::vector<std::string> rise_to_list;
+    }
+    if (cmd->isOptionSet("-rise_to")) {
+    	std::vector<std::string> rise_to_list;
         bool res = cmd->getOptionValue("-rise_to", rise_to_list);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        for (const auto &rise_to : rise_to_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get eighth value %s \n", rise_to.c_str());
+        for (const auto &rise_to_object_name : rise_to_list) {
+            group_path->setRiseTo();
+            bool success = group_path->addToPinNode(rise_to_object_name);
+            if (success) {
+                continue;
+            } 
+            success = group_path->addToInstNode(rise_to_object_name);
+            if (success) {
+                continue;
+            }
+            ClockPtr clock = clock_container->getClock(rise_to_object_name);
+            if (clock) {
+                group_path->addToClockNode(clock->getId());
+            }
+            //TODO no object matched error messages
         }
-	}
-	if (cmd->isOptionSet("-fall_to")) {
-		std::vector<std::string> fall_to_list;
+    }
+    if (cmd->isOptionSet("-fall_to")) {
+    	std::vector<std::string> fall_to_list;
         bool res = cmd->getOptionValue("-fall_to", fall_to_list);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        for (const auto &fall_to : fall_to_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get ninth value %s \n", fall_to.c_str());
+        for (const auto &fall_to_object_name : fall_to_list) {
+            group_path->setFallTo();
+            bool success = group_path->addToPinNode(fall_to_object_name);
+            if (success) {
+                continue;
+            } 
+            success = group_path->addToInstNode(fall_to_object_name);
+            if (success) {
+                continue;
+            }
+            ClockPtr clock = clock_container->getClock(fall_to_object_name);
+            if (clock) {
+                group_path->addToClockNode(clock->getId());
+            }
+            //TODO no object matched error messages
         }
-	}
-	if (cmd->isOptionSet("-through")) {
-		std::vector<std::string> through_list;
+    }
+    if (cmd->isOptionSet("-through")) {
+    	std::vector<std::string> through_list;
         bool res = cmd->getOptionValue("-through", through_list);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        for (const auto &through : through_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get tenth value %s \n", through.c_str());
+        for (const auto &through_object_name : through_list) {
+            group_path->setRiseFallThrough();
+            bool success = group_path->addThroughPinNode(through_object_name);
+            if (success) {
+                continue;
+            } 
+            success = group_path->addThroughInstNode(through_object_name);
+            if (success) {
+                continue;
+            }
+            ClockPtr clock = clock_container->getClock(through_object_name);
+            if (clock) {
+                group_path->addThroughClockNode(clock->getId());
+            }
+            //TODO no object matched error messages
         }
-	}
-	if (cmd->isOptionSet("-rise_through")) {
-		std::vector<std::string> rise_through_list;
+    }
+    if (cmd->isOptionSet("-rise_through")) {
+    	std::vector<std::string> rise_through_list;
         bool res = cmd->getOptionValue("-rise_through", rise_through_list);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        for (const auto &rise_through : rise_through_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get eleventh value %s \n", rise_through.c_str());
+        for (const auto &rise_through_object_name : rise_through_list) {
+            group_path->setRiseThrough();
+            bool success = group_path->addThroughPinNode(rise_through_object_name);
+            if (success) {
+                continue;
+            } 
+            success = group_path->addThroughInstNode(rise_through_object_name);
+            if (success) {
+                continue;
+            }
+            ClockPtr clock = clock_container->getClock(rise_through_object_name);
+            if (clock) {
+                group_path->addThroughClockNode(clock->getId());
+            }
+            //TODO no object matched error messages
         }
-	}
-	if (cmd->isOptionSet("-fall_through")) {
-		std::vector<std::string> fall_through_list;
+    }
+    if (cmd->isOptionSet("-fall_through")) {
+    	std::vector<std::string> fall_through_list;
         bool res = cmd->getOptionValue("-fall_through", fall_through_list);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        for (const auto &fall_through : fall_through_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get twelfth value %s \n", fall_through.c_str());
+        for (const auto &fall_through_object_name : fall_through_list) {
+            group_path->setFallThrough();
+            bool success = group_path->addThroughPinNode(fall_through_object_name);
+            if (success) {
+                continue;
+            } 
+            success = group_path->addThroughInstNode(fall_through_object_name);
+            if (success) {
+                continue;
+            }
+            ClockPtr clock = clock_container->getClock(fall_through_object_name);
+            if (clock) {
+                group_path->addThroughClockNode(clock->getId());
+            }
+            //TODO no object matched error messages
         }
-	}
+    }
     if (cmd->isOptionSet("-comment")) {
         std::string comment = "";
         bool res = cmd->getOptionValue("-comment", comment);
@@ -1457,13 +1562,11 @@ int parseSdcGroupPath(ClientData cld, Tcl_Interp *itp, int argc, const char *arg
             //TODO messages
             return TCL_ERROR;
         }
-		//Assignment
-        message->info("get thirteenth value %s \n", comment.c_str());
+        group_path->setComment(comment);
     }
-	
-	return TCL_OK;
+    return TCL_OK;
 }
-//04 set_clock_gating_check
+
 int parseSdcSetClockGatingCheck(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
 	Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
@@ -3685,32 +3788,37 @@ int parseSdcSetOutputDelay(ClientData cld, Tcl_Interp *itp, int argc, const char
 	
 	return TCL_OK;
 }
-//23 set_propagated_clock
+
 int parseSdcSetPropagatedClock(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
-	Command* cmd = CommandManager::parseCommand(argc, argv);
+    Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
-	
-	//constraint
-	if (!( cmd->isOptionSet("object_list")
-	)) {
-		return TCL_ERROR;
-	}
-	
-	if (cmd->isOptionSet("object_list")) {
-		std::vector<std::string> object_list;
-		bool res = cmd->getOptionValue("object_list", object_list);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		for (const auto &object : object_list) {
-			//TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-			message->info("get first value %s \n", object.c_str());
-		}
-	}
-	
-	return TCL_OK;
+    if (!( cmd->isOptionSet("object_list"))) {
+        return TCL_ERROR;
+    }
+    SdcPtr sdc = getSdc();
+    auto container = sdc->getPropagatedClockContainer();
+    auto container_data = container->getData();
+    auto clock_container = sdc->getClockContainer();
+    if (cmd->isOptionSet("object_list")) {
+        std::vector<std::string> object_list;
+        bool res = cmd->getOptionValue("object_list", object_list);
+        if (!res) {
+            //TODO messages
+            return TCL_ERROR;
+        }
+        for (const auto &object_name : object_list) {
+            ClockPtr clock = clock_container->getClock(object_name);
+            if (clock) {
+                container_data->addToClock(clock); 
+            } else {
+                bool success = container_data->addToPin(object_name);
+                if (!success) {
+                    //error messages
+                }
+            }
+        }
+    }
+    return TCL_OK;
 }
 
 // environment commands manager

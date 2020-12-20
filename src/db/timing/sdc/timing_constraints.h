@@ -100,24 +100,24 @@ using ClockContainerDataPtr = std::shared_ptr<ClockContainerData>;
 class PathNodes {
   public:
     void addPin(const ObjectId pin_id) { pins_.emplace_back(pin_id); }
-    void addInstance(const ObjectId instance_id) { instances_.emplace_back(instance_id); }
+    void addInst(const ObjectId inst_id) { insts_.emplace_back(inst_id); }
     void addClock(const ClockId clock_id) { clocks_.emplace_back(clock_id); }
 
   private:
     std::vector<ObjectId> pins_;
-    std::vector<ObjectId> instances_;
+    std::vector<ObjectId> insts_;
     std::vector<ClockId> clocks_;
 
   public:
     COMMAND_GET_SET_VAR(pins, Pins)
-    COMMAND_GET_SET_VAR(instances, Instances)
+    COMMAND_GET_SET_VAR(insts, Insts)
     COMMAND_GET_SET_VAR(clocks, Clocks)
     COMMAND_GET_SET_FLAG(rise_, Rise)
     COMMAND_GET_SET_FLAG(fall_, Fall)
 };
 using PathNodesPtr = std::shared_ptr<PathNodes>;
 
-class PathThroughNodes : PathNodes {
+class PathThroughNodes : public PathNodes {
   public:
     void addNet(const ObjectId net_id) { nets_.emplace_back(net_id); };
 
@@ -130,6 +130,9 @@ class PathThroughNodes : PathNodes {
 using PathThroughNodesPtr = std::shared_ptr<PathThroughNodes>;
 
 class ExceptionPath {
+  public:
+    ExceptionPath();
+
   private:
     PathNodesPtr from_;
     PathNodesPtr to_;
@@ -143,6 +146,30 @@ class ExceptionPath {
 using ExceptionPathPtr = std::shared_ptr<ExceptionPath>;
 
 class GroupPath {
+  public:
+    GroupPath();
+
+    bool addFromPinNode(const std::string &pin_name);
+    bool addFromInstNode(const std::string &inst_name);
+    void addFromClockNode(const ClockId &clock_id);
+    void setRiseFrom();
+    void setFallFrom();
+    void setRiseFallFrom();
+
+    bool addToPinNode(const std::string &pin_name);
+    bool addToInstNode(const std::string &inst_name);
+    void addToClockNode(const ClockId &clock_id);
+    void setRiseTo();
+    void setFallTo();
+    void setRiseFallTo();
+
+    bool addThroughPinNode(const std::string &pin_name);
+    bool addThroughInstNode(const std::string &inst_name);
+    void addThroughClockNode(const ClockId &clock_id);
+    void setRiseThrough();
+    void setFallThrough();
+    void setRiseFallThrough();
+
   private:
     std::string comment_ = "";
     std::string name_ = "";
@@ -755,16 +782,14 @@ using OutputDelayContainerDataPtr = std::shared_ptr<OutputDelayContainerData>;
 
 class SetPropagatedClock {
   public:
-    void addToPin(const ObjectId &pin_id) { pins_.emplace(pin_id); }
-    void addToClock(const ClockId &clock_id) { clocks_.emplace(clock_id); }
+    bool addToPin(const std::string &pin_name);
+    void addToClock(ClockPtr &clock) { clock->setPropagated(); }
 
   private:
     std::set<ObjectId> pins_;
-    std::set<ClockId> clocks_;
 
   public:
     COMMAND_GET_SET_VAR(pins, Pins)
-    COMMAND_GET_SET_VAR(clocks, Clocks)
 };
 using SetPropagatedClockPtr = std::shared_ptr<SetPropagatedClock>;
 

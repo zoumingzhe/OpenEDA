@@ -65,6 +65,154 @@ bool ClockContainerData::addClockPin(const std::string &pin_name, const ClockPtr
     return true;
 }
 
+ExceptionPath::ExceptionPath() {
+    from_ = std::make_shared<PathNodes>(); 
+    to_ = std::make_shared<PathNodes>();
+    through_ = std::make_shared<PathThroughNodes>();
+}
+
+GroupPath::GroupPath() {
+    from_ = std::make_shared<PathNodes>(); 
+    to_ = std::make_shared<PathNodes>();
+    through_ = std::make_shared<PathThroughNodes>();
+}
+
+bool GroupPath::addFromPinNode(const std::string &pin_name) {
+    const auto &pin = getPinByFullName(pin_name);
+    if (!pin) {
+        return false;
+    }
+    const auto &pin_id = pin->getId();
+    from_->addPin(pin_id);
+    return true;
+}
+
+bool GroupPath::addFromInstNode(const std::string &inst_name) {
+    const auto &top_cell = getTopCell();
+    const auto &inst = top_cell->getInstance(inst_name);
+    if (!inst) {
+        return false;
+    }
+    const auto &inst_id = inst->getId();
+    from_->addInst(inst_id);
+    return true;
+}
+
+void GroupPath::addFromClockNode(const ClockId &clock_id) {
+   from_->addClock(clock_id); 
+}
+
+void GroupPath::setRiseFrom() {
+    from_->setRise();
+}
+
+void GroupPath::setFallFrom() {
+    from_->setFall();
+}
+
+void GroupPath::setRiseFallFrom() {
+    from_->setRise();
+    from_->setFall();
+}
+
+bool GroupPath::addToPinNode(const std::string &pin_name) {
+    const auto &pin = getPinByFullName(pin_name);
+    if (!pin) {
+        return false;
+    }
+    const auto &pin_id = pin->getId();
+    to_->addPin(pin_id);
+    return true;
+}
+
+bool GroupPath::addToInstNode(const std::string &inst_name) {
+    const auto &top_cell = getTopCell();
+    const auto &inst = top_cell->getInstance(inst_name);
+    if (!inst) {
+        return false;
+    }
+    const auto &inst_id = inst->getId();
+    to_->addInst(inst_id);
+    return true;
+}
+
+void GroupPath::addToClockNode(const ClockId &clock_id) {
+   to_->addClock(clock_id); 
+}
+
+void GroupPath::setRiseTo() {
+    to_->setRise();
+}
+
+void GroupPath::setFallTo() {
+    to_->setFall();
+}
+
+void GroupPath::setRiseFallTo() {
+    to_->setRise();
+    to_->setFall();
+}
+
+bool GroupPath::addThroughPinNode(const std::string &pin_name) {
+    const auto &pin = getPinByFullName(pin_name);
+    if (!pin) {
+        return false;
+    }
+    const auto &pin_id = pin->getId();
+    through_->addPin(pin_id);
+    return true;
+}
+
+bool GroupPath::addThroughInstNode(const std::string &inst_name) {
+    const auto &top_cell = getTopCell();
+    const auto &inst = top_cell->getInstance(inst_name);
+    if (!inst) {
+        return false;
+    }
+    const auto &inst_id = inst->getId();
+    through_->addInst(inst_id);
+    return true;
+}
+
+void GroupPath::addThroughClockNode(const ClockId &clock_id) {
+   through_->addClock(clock_id); 
+}
+
+void GroupPath::setRiseThrough() {
+    through_->setRise();
+}
+
+void GroupPath::setFallThrough() {
+    through_->setFall();
+}
+
+void GroupPath::setRiseFallThrough() {
+    through_->setRise();
+    through_->setFall();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+bool SetPropagatedClock::addToPin(const std::string &pin_name) {
+    const auto &pin = getPinByFullName(pin_name);
+    if (!pin) {
+        return false;
+    }
+    const auto &pin_id = pin->getId();
+    pins_.emplace(pin_id);
+    return true;
+}
+
+
 
 }
 }
