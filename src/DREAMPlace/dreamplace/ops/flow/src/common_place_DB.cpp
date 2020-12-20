@@ -283,15 +283,15 @@ CommonDB::__init()
   }
 
   // collect row boxes for GP
-  int rowId = 0;
+  int rowIdx = 0;
   row_boxes_.resize(getNumOfRows());
   PlRow* row = nullptr;
   forEachRows(row) {
     PlBox box = getRowBox(row);
-    row_boxes_[rowId++] = box;
+    row_boxes_[rowIdx++] = box;
   } endForEachRows
 
-  dreamplacePrint(kINFO, "Total %d instance%c, %d moveable instance%c, %d cell%c, %d net%c, %d  pin%c, %d io pin%c, %d io pin instance%c, %d moveable pin%c, %d row%c\n",
+  dreamplacePrint(kINFO, "Place DB total %d instance%c, %d moveable instance%c, %d cell%c, %d net%c, %d  pin%c, %d io pin%c, %d io pin instance%c, %d moveable pin%c, %d row%c\n",
     num_nodes_, num_nodes_ > 1 ? 's' : ' ',
     num_movable_nodes_, num_movable_nodes_ > 1 ? 's' : ' ',
     getNumOfCells(), getNumOfCells() > 1 ? 's' : ' ',
