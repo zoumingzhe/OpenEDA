@@ -17,6 +17,16 @@
 namespace open_edi {
 namespace db {
 
+bool CreateGeneratedClock::addSourceMasterPin(const std::string &pin_name) {
+    const auto &pin = getPinByFullName(pin_name); 
+    if (!pin) {
+        return false;
+    }
+    const auto &pin_id = pin->getId();
+    source_master_pins_.emplace_back(pin_id);
+    return true;
+}
+
 void ClockContainerData::addClock(ClockPtr &clock, CreateClockPtr &create_clock) {
     const ClockId &clock_id = clock_ids_.size();
     clock->setId(clock_id);

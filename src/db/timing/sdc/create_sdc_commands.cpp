@@ -183,12 +183,7 @@ bool createSdcObjectAccessCommands() {
 
 // timing constraints
 bool createSdcTimingConstraints() {
-
-    //TODO command create success check
     CommandManager* cmd_manager = CommandManager::getCommandManager();
-
-	//chenqian
-	//01 create_clock
 	Command* cmd = cmd_manager->createCommand(
 		   "create_clock", "\n", 
 		   *(new Option("-period", OptionDataType::kDouble, true, "\n")) + 
@@ -200,23 +195,23 @@ bool createSdcTimingConstraints() {
 		   
 	);
     assert(cmd);
-	//02 create_generated_clock
+
 	cmd = cmd_manager->createCommand(
 		   "create_generated_clock", "\n", 
 		   *(new Option("-name", OptionDataType::kString, false, "\n")) + 
 		   *(new Option("-source", OptionDataType::kStringList, true, "\n")) + 
-		   *(new Option("-edges", OptionDataType::kDoubleList, false, "\n")) + 
+		   *(new Option("-edges", OptionDataType::kIntList, false, "\n")) + 
 		   *(new Option("-divide_by", OptionDataType::kInt, false, "\n")) + 
 		   *(new Option("-multiply_by", OptionDataType::kInt, false, "\n")) + 
-		   *(new Option("-edge_shift", OptionDataType::kStringList, false, "\n")) + 
+		   *(new Option("-edge_shift", OptionDataType::kDoubleList, false, "\n")) + 
 		   *(new Option("-duty_cycle", OptionDataType::kDouble, false, "\n")) + 
 		   *(new Option("-invert", OptionDataType::kBool, false, "\n")) + 
 		   *(new Option("port_pin_list", OptionDataType::kStringList, false, "\n")) + 
 		   *(new Option("-add", OptionDataType::kBool, false, "\n")) + 
 		   *(new Option("-comment", OptionDataType::kString, false, "\n")) + 
-		   *(new Option("-master_clock", OptionDataType::kStringList, false, "\n"))
+		   *(new Option("-master_clock", OptionDataType::kString, false, "\n"))
 		   
-	   );
+	);
     assert(cmd);
 	//03 group_path
 	cmd = cmd_manager->createCommand(

@@ -1125,7 +1125,7 @@ int parseSdcCreateClock(ClientData cld, Tcl_Interp *itp, int argc, const char *a
             //TODO messages
             return TCL_ERROR;
         }
-        if (clock->getName() == "" && port_pin_list.size()) {
+        if (clock->getName() == "" and port_pin_list.size()) {
             clock->setName(port_pin_list.front());
         }
     } else {
@@ -1142,17 +1142,18 @@ int parseSdcCreateClock(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 }
 
 int parseSdcCreateGeneratedClock(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
-	Command* cmd = CommandManager::parseCommand(argc, argv);
+    Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
-	
-	//constraint
-	if (!(	cmd->isOptionSet("-source") and 
-			cmd->isOptionSet("port_pin_list") and 
-			(!cmd->isOptionSet("-multiply_by")) and 
-			cmd->isOptionSet("-divide_by") )) {
-		return TCL_ERROR;
-	}
-	
+    if (!(cmd->isOptionSet("-source") and cmd->isOptionSet("port_pin_list") and
+        (!cmd->isOptionSet("-multiply_by")) and cmd->isOptionSet("-divide_by") )) {
+    	return TCL_ERROR;
+    }
+    SdcPtr sdc = getSdc();
+    auto container = sdc->getClockContainer();
+    auto container_data = container->getData();
+
+    CreateGeneratedClockPtr generated_clock = std::make_shared<CreateGeneratedClock>();
+    ClockPtr clock = std::make_shared<Clock>();
     if (cmd->isOptionSet("-name")) {
         std::string name = "";
         bool res = cmd->getOptionValue("-name", name);
@@ -1160,35 +1161,33 @@ int parseSdcCreateGeneratedClock(ClientData cld, Tcl_Interp *itp, int argc, cons
             //TODO messages
             return TCL_ERROR;
         }
-		//Assignment
-        message->info("get first value %s \n", name.c_str());
+        clock->setName(name);
     }
-	if (cmd->isOptionSet("-source")) {
-		std::vector<std::string> source_list;
+    if (cmd->isOptionSet("-source")) {
+    	std::vector<std::string> source_list;
         bool res = cmd->getOptionValue("-source", source_list);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
         for (const auto &source : source_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get second value %s \n", source.c_str());
+            bool success = generated_clock->addSourceMasterPin(source);
+            if (!success) {
+                //TODO error message
+            }
         }
-	}
-	if (cmd->isOptionSet("-edges")) {
-		std::vector<double> edges_list;
-        bool res = cmd->getOptionValue("-edges", edges_list);
+    }
+    if (cmd->isOptionSet("-edges")) {
+    	std::vector<int> edges;
+        bool res = cmd->getOptionValue("-edges", edges);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        for (const auto &edges : edges_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get third value %f \n", edges);
+        for (const auto &edge : edges) {
+            generated_clock->addEdge(static_cast<float>(edge));
         }
-	}
+    }
     if (cmd->isOptionSet("-divide_by")) {
         int divide_by = 0;
         bool res = cmd->getOptionValue("-divide_by", divide_by);
@@ -1196,8 +1195,7 @@ int parseSdcCreateGeneratedClock(ClientData cld, Tcl_Interp *itp, int argc, cons
             //TODO messages
             return TCL_ERROR;
         }
-		//Assignment
-        message->info("get fourth value %d \n", divide_by);
+        generated_clock->setDividedBy(divide_by);
     }
     if (cmd->isOptionSet("-multiply_by")) {
         int multiply_by = 0;
@@ -1206,22 +1204,19 @@ int parseSdcCreateGeneratedClock(ClientData cld, Tcl_Interp *itp, int argc, cons
             //TODO messages
             return TCL_ERROR;
         }
-		//Assignment
-        message->info("get fifth value %d \n", multiply_by);
+        generated_clock->setMultiplyBy(multiply_by);
     }
-	if (cmd->isOptionSet("-edge_shift")) {
-		std::vector<std::string> edge_shift_list;
+    if (cmd->isOptionSet("-edge_shift")) {
+    	std::vector<double> edge_shift_list;
         bool res = cmd->getOptionValue("-edge_shift", edge_shift_list);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
         for (const auto &edge_shift : edge_shift_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get sixth value %s \n", edge_shift.c_str());
+            generated_clock->addEdgeShift(static_cast<float>(edge_shift));
         }
-	}
+    }
     if (cmd->isOptionSet("-duty_cycle")) {
         double duty_cycle = 0.0;
         bool res = cmd->getOptionValue("-duty_cycle", duty_cycle);
@@ -1229,8 +1224,7 @@ int parseSdcCreateGeneratedClock(ClientData cld, Tcl_Interp *itp, int argc, cons
             //TODO messages
             return TCL_ERROR;
         }
-		//Assignment
-        message->info("get seventh value %f \n", duty_cycle);
+        generated_clock->setDutyCycle(static_cast<float>(duty_cycle));
     }
     if (cmd->isOptionSet("-invert")) {
         bool invert = false;
@@ -1239,22 +1233,8 @@ int parseSdcCreateGeneratedClock(ClientData cld, Tcl_Interp *itp, int argc, cons
             //TODO messages
             return TCL_ERROR;
         }
-		//Assignment
-        message->info("get eighth value %d \n", invert);
+        generated_clock->setInvert();
     }
-	if (cmd->isOptionSet("port_pin_list")) {
-		std::vector<std::string> port_pin_list;
-        bool res = cmd->getOptionValue("port_pin_list", port_pin_list);
-        if (!res) {
-            //TODO messages
-            return TCL_ERROR;
-        }
-        for (const auto &pin_name : port_pin_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get ninth value %s \n", pin_name.c_str());
-        }
-	}
     if (cmd->isOptionSet("-add")) {
         bool add = false;
         bool res = cmd->getOptionValue("-add", add);
@@ -1262,8 +1242,7 @@ int parseSdcCreateGeneratedClock(ClientData cld, Tcl_Interp *itp, int argc, cons
             //TODO messages
             return TCL_ERROR;
         }
-		//Assignment
-        message->info("get tenth value %d \n", add);
+        clock->setAdd();
     }
     if (cmd->isOptionSet("-comment")) {
         std::string comment = "";
@@ -1272,25 +1251,45 @@ int parseSdcCreateGeneratedClock(ClientData cld, Tcl_Interp *itp, int argc, cons
             //TODO messages
             return TCL_ERROR;
         }
-		//Assignment
-        message->info("get eleventh value %s \n", comment.c_str());
+        generated_clock->setComment(comment);
     }
-	if (cmd->isOptionSet("-master_clock")) {
-		std::vector<std::string> master_clock_list;
-        bool res = cmd->getOptionValue("-master_clock", master_clock_list);
+    std::vector<std::string> port_pin_list;
+    if (cmd->isOptionSet("port_pin_list")) { //sdc2.1 not support net object source
+        bool res = cmd->getOptionValue("port_pin_list", port_pin_list);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        for (const auto &master_clock : master_clock_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get twelfth value %s \n", master_clock.c_str());
+        if (clock->getName() == "" and port_pin_list.size()) {
+            clock->setName(port_pin_list.front());
         }
-	}
-	return TCL_OK;
+    } else {
+        clock->setVirtual();
+    }
+    container_data->addClock(clock, generated_clock);
+    for (const auto &pin_name : port_pin_list) {
+        bool success = container_data->addClockPin(pin_name, clock);
+        if (!success) {
+            //TODO messages
+        }
+    }
+    if (cmd->isOptionSet("-master_clock")) {
+    	std::string master_clock;
+        bool res = cmd->getOptionValue("-master_clock", master_clock);
+        if (!res) {
+            //TODO messages
+            return TCL_ERROR;
+        }
+        ClockId master_clock_id = container->getClockId(master_clock);
+        if (master_clock_id == kInvalidClockId) {
+            //TODO error messages
+            return TCL_OK;
+        }
+        generated_clock->setMasterClock(master_clock_id);
+    }
+    return TCL_OK;
 }
-//03 group_path
+
 int parseSdcGroupPath(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
 	Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);

@@ -43,8 +43,8 @@ using CreateClockPtr = std::shared_ptr<CreateClock>;
 class CreateGeneratedClock {
   public:
     void addEdgeShift(const float& edge_shift) { edge_shifts_.emplace_back(edge_shift); }
-    void addSourceMasterPin(const ObjectId id) { source_master_pins_.emplace_back(id); }
     void addEdge(const int edge) { edges_.emplace_back(edge); }
+    bool addSourceMasterPin(const std::string &pin_name);
 
   private:
     std::string comment_ = "";
