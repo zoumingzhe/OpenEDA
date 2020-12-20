@@ -84,18 +84,18 @@ class SdcClockContainer {
   public:
     SdcClockContainer() { data_ = std::make_shared<ClockContainerData>(); }
 
-  public:
+    void setData(const ClockContainerDataPtr &data) { data_ = data; };
+    const ClockContainerDataPtr getData() const { return data_; };
+    ClockContainerDataPtr getData() { return data_; };
     const std::vector<ClockPtr> &getClocks() { return data_->getClocks(); }
     const std::vector<ClockId> &getClockIds() { return data_->getClockIds(); } 
     const std::vector<std::string> &getClockNames() { return data_->getClockNames(); }
 
     const std::string getClockName(const ClockId &id);
     const ClockId getClockId(const std::string &name);
-
     const ClockPtr getClock(const ClockId &id);
     const ClockPtr getClock(const std::string &name);
-
-    const ClockPtr getClockOnPin(const ObjectId &pin_id);
+    bool getClockOnPin(std::vector<ClockPtr> &clocks, const ObjectId &pin_id);
     bool isClockPin(const ObjectId &pin_id);
 
     friend std::ostream &operator<<(std::ostream &os, SdcClockContainer &rhs);

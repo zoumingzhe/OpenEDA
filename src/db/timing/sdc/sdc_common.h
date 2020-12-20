@@ -30,17 +30,8 @@ bool ediEqual(const T &value1, const T &value2, T eps = std::numeric_limits<T>::
     return fabs(value1 - value2) < eps;
 }
 
-
-
-
-
-
-
-
-
-
-
-
+Pin* getPinByFullName(const std::string &full_name);
+std::string getPinFullName(const ObjectId &pin_id);
 
 
 

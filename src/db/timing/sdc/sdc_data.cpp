@@ -96,14 +96,15 @@ const ClockPtr SdcClockContainer::getClock(const std::string &name) {
     return clocks[id];
 }
 
-const ClockPtr SdcClockContainer::getClockOnPin(const ObjectId &pin_id) {
+bool SdcClockContainer::getClockOnPin(std::vector<ClockPtr> &clocks, const ObjectId &pin_id) {
     const auto &pin_clock_map = data_->getPinClockMap();
-    const auto &found = pin_clock_map.find(pin_id);
-    if (found == pin_clock_map.end()) {
-        //TODO error message
-        return nullptr;
+    const auto &range = pin_clock_map.equal_range(pin_id);
+    for (auto it = range.first; it != range.second; ++it) {
+        const auto &clock = it->second;
+        clocks.emplace_back(clock);
+        return true;
     }
-    return found->second;
+    return false;
 }
 
 bool SdcClockContainer::isClockPin(const ObjectId &pin_id) {
@@ -121,16 +122,16 @@ std::ostream &operator<<(std::ostream &os, SdcClockContainer &rhs) {
         const auto &create_clock = id_to_create_clock.second; 
         const auto &clock = rhs.getClock(clock_id);
         os  << "create_clock ";
-        os  << "-period " << clock->getPeriod()
-            << "-name " << clock->getName()
-            << "-comment " << create_clock->getComment();
+        os  << "-period " << clock->getPeriod();
+        os  << "-name " << clock->getName();
+        os  << "-comment " << create_clock->getComment();
         os  << "-waveform {";
         copy(clock->getWaveform().begin(), clock->getWaveform().end(), std::ostream_iterator<float>(os, " "));
         os  << " } ";
-        if (create_clock->isAdd()) {
+        if (clock->isAdd()) {
             os  << "-add ";
         }
-        for (const auto &clock_pin: rhs.data_->getPinClockMap()) {
+        for (const auto &clock_pin : rhs.data_->getPinClockMap()) {
             const auto &other_clock = clock_pin.second;
             if (!other_clock) {
                 // error messages
@@ -138,12 +139,11 @@ std::ostream &operator<<(std::ostream &os, SdcClockContainer &rhs) {
             }
             if (other_clock->getId() == clock_id) {
                 const ObjectId &pin_id = clock_pin.first; 
-                Pin* pin = Object::addr<Pin>(pin_id);
-                if (!pin) {
+                const auto &pin_name = getPinFullName(pin_id);
+                if (!pin_name.size()) {
                     // error messages
                     continue;
                 }
-                const auto &pin_name = pin->getName();
                 os << pin_name << " ";
             }
         }
@@ -180,7 +180,7 @@ std::ostream &operator<<(std::ostream &os, SdcClockContainer &rhs) {
         os  << "-edge_shift {";
         copy(generated_clock->getEdgeShifts().begin(), generated_clock->getEdgeShifts().end(), std::ostream_iterator<float>(os, " "));
         os  << " } ";
-        if (generated_clock->isAdd()) {
+        if (clock->isAdd()) {
             os  << "-add ";
         }
         const auto &master_clock = generated_clock->getMasterClock();
@@ -194,12 +194,11 @@ std::ostream &operator<<(std::ostream &os, SdcClockContainer &rhs) {
             }
             if (other_clock->getId() == clock_id) {
                 const ObjectId &pin_id = clock_pin.first; 
-                Pin* pin = Object::addr<Pin>(pin_id);
-                if (!pin) {
+                const auto &pin_name = getPinFullName(pin_id);
+                if (!pin_name.size()) {
                     // error messages
                     continue;
                 }
-                const auto &pin_name = pin->getName();
                 os << pin_name << " ";
             }
         }

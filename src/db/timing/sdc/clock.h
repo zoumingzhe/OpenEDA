@@ -33,25 +33,31 @@ class Clock {
     Clock(Clock &&rhs) noexcept;
     Clock &operator=(const Clock &rhs);
     Clock &operator=(Clock &&rhs) noexcept;
-    ~Clock();
+    ~Clock() {};
 
     bool operator==(const Clock &rhs) const;
 
   public:
+    void addWaveform(const float &edge) { waveform_.emplace_back(edge); }
+
     void setName(const std::string &name) { name_ = name; }
-    void setWaveform(const float &edge) { waveform_.emplace_back(edge); }
+    void setWaveform(const std::vector<float> &edge) { waveform_ = edge; }
     void setPeriod(const float &period) { period_ = period; }
-    void setClockId(const ClockId &id) { id_ = id; }
-    void SetGenerated() { is_generated_ = true; }
+    void setId(const ClockId &id) { id_ = id; }
+    void setGenerated() { is_generated_ = true; }
+    void setVirtual() { is_virtual_ = true; }
+    void setAdd() { is_add_ = true; }
 
     const std::string &getName() const { return name_; }
     const std::vector<float> &getWaveform() const { return waveform_; }
     const float &getPeriod() const { return period_; }
     const ClockId &getId() const { return id_; }
     bool isGenerated() const { return is_generated_; }
+    bool isVirtual() const { return is_virtual_; }
+    bool isAdd() const { return is_add_; }
 
     friend std::ostream &operator<<(std::ostream &os, Clock &rhs);
-    //TODO provide hash func
+    //TODO hash function
 
   private:
     void copy(const Clock &rhs);
@@ -61,6 +67,8 @@ class Clock {
     float period_ = 0.0;
     ClockId id_ = kInvalidClockId;
     bool is_generated_ : 1;
+    bool is_virtual_ : 1;
+    bool is_add_ : 1;
 };
 using ClockPtr = std::shared_ptr<Clock>;
 

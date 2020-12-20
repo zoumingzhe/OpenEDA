@@ -26,10 +26,6 @@ namespace db {
 using Command = open_edi::infra::Command;
 using CommandManager = open_edi::infra::CommandManager;
 
-using StringVector = std::vector<std::string>;
-using StringVectorPtr = std::shared_ptr<StringVector>;
-using DoubleVector = std::vector<double>;
-
 SdcPtr getSdc() {
     Timing *timing_lib = getTimingLib();
     if (!timing_lib) {
@@ -211,7 +207,7 @@ int parseSdcAllInputs(ClientData cld, Tcl_Interp *itp, int argc, const char *arg
     }
 
     if (cmd->isOptionSet("-clock")) {
-        StringVector clock;
+        std::vector<std::string> clock;
         //assert(clock);
         bool res = cmd->getOptionValue("-clock", clock);
         if (!res) {
@@ -255,7 +251,7 @@ int parseSdcAllOutputs(ClientData cld, Tcl_Interp *itp, int argc, const char *ar
     }
 
     if (cmd->isOptionSet("-clock")) {
-        StringVector clock;
+        std::vector<std::string> clock;
         //assert(clock);
         bool res = cmd->getOptionValue("-clock", clock);
         if (!res) {
@@ -384,7 +380,7 @@ int parseSdcAllRegisters(ClientData cld, Tcl_Interp *itp, int argc, const char *
         message->info("get first value %s \n", hsc.c_str());
     }
     if (cmd->isOptionSet("-clock")) {
-        StringVector clock;
+        std::vector<std::string> clock;
         //assert(clock);
         bool res = cmd->getOptionValue("-clock", clock);
         if (!res) {
@@ -398,7 +394,7 @@ int parseSdcAllRegisters(ClientData cld, Tcl_Interp *itp, int argc, const char *
     }
 
     if (cmd->isOptionSet("-rise_clock")) {
-        StringVector rise_clock;
+        std::vector<std::string> rise_clock;
         assert(clock);
         bool res = cmd->getOptionValue("-rise_clock", rise_clock);
         if (!res) {
@@ -411,7 +407,7 @@ int parseSdcAllRegisters(ClientData cld, Tcl_Interp *itp, int argc, const char *
         }
     }
     if (cmd->isOptionSet("-fall_clock")) {
-        StringVector fall_clock;
+        std::vector<std::string> fall_clock;
         assert(clock);
         bool res = cmd->getOptionValue("-fall_clock", fall_clock);
         if (!res) {
@@ -491,7 +487,7 @@ int parseSdcGetCells(ClientData cld, Tcl_Interp *itp, int argc, const char *argv
         message->info("get first value %d \n", regexp);
     }
 	if (cmd->isOptionSet("-of_objects")) {
-        StringVector of_objects;
+        std::vector<std::string> of_objects;
         //assert(of_objects);
         bool res = cmd->getOptionValue("-of_objects", of_objects);
         if (!res) {
@@ -504,7 +500,7 @@ int parseSdcGetCells(ClientData cld, Tcl_Interp *itp, int argc, const char *argv
         }
     }
     if (cmd->isOptionSet("-patterns")) {
-        StringVector patterns;
+        std::vector<std::string> patterns;
         //assert(patterns);
         bool res = cmd->getOptionValue("-patterns", patterns);
         if (!res) {
@@ -544,7 +540,7 @@ int parseSdcGetClocks(ClientData cld, Tcl_Interp *itp, int argc, const char *arg
         message->info("get first value %d \n", regexp);
     }
     if (cmd->isOptionSet("-patterns")) {
-        StringVector patterns;
+        std::vector<std::string> patterns;
         //assert(patterns);
         bool res = cmd->getOptionValue("-patterns", patterns);
         if (!res) {
@@ -598,7 +594,7 @@ int parseSdcGetLibCells(ClientData cld, Tcl_Interp *itp, int argc, const char *a
     }
 	
     if (cmd->isOptionSet("-patterns")) {
-        StringVector patterns;
+        std::vector<std::string> patterns;
         //assert(patterns);
         bool res = cmd->getOptionValue("-patterns", patterns);
         if (!res) {
@@ -643,7 +639,7 @@ int parseSdcGetLibPins(ClientData cld, Tcl_Interp *itp, int argc, const char *ar
     }
 	
     if (cmd->isOptionSet("-patterns")) {
-        StringVector patterns;
+        std::vector<std::string> patterns;
         //assert(patterns);
         bool res = cmd->getOptionValue("-patterns", patterns);
         if (!res) {
@@ -684,7 +680,7 @@ int parseSdcGetLibs(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[
     }
 	
     if (cmd->isOptionSet("-patterns")) {
-        StringVector patterns;
+        std::vector<std::string> patterns;
         //assert(patterns);
         bool res = cmd->getOptionValue("-patterns", patterns);
         if (!res) {
@@ -745,7 +741,7 @@ int parseSdcGetNets(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[
         message->info("get first value %d \n", regexp);
     }
 	if (cmd->isOptionSet("-of_objects")) {
-        StringVector of_objects;
+        std::vector<std::string> of_objects;
         //assert(of_objects);
         bool res = cmd->getOptionValue("-of_objects", of_objects);
         if (!res) {
@@ -758,7 +754,7 @@ int parseSdcGetNets(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[
         }
     }
     if (cmd->isOptionSet("-patterns")) {
-        StringVector patterns;
+        std::vector<std::string> patterns;
         //assert(patterns);
         bool res = cmd->getOptionValue("-patterns", patterns);
         if (!res) {
@@ -817,7 +813,7 @@ int parseSdcGetPins(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[
         message->info("get first value %d \n", regexp);
     }
 	if (cmd->isOptionSet("-of_objects")) {
-        StringVector of_objects;
+        std::vector<std::string> of_objects;
         //assert(of_objects);
         bool res = cmd->getOptionValue("-of_objects", of_objects);
         if (!res) {
@@ -830,7 +826,7 @@ int parseSdcGetPins(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[
         }
     }
     if (cmd->isOptionSet("-patterns")) {
-        StringVector patterns;
+        std::vector<std::string> patterns;
         //assert(patterns);
         bool res = cmd->getOptionValue("-patterns", patterns);
         if (!res) {
@@ -870,7 +866,7 @@ int parseSdcGetPorts(ClientData cld, Tcl_Interp *itp, int argc, const char *argv
     }
 	
     if (cmd->isOptionSet("-patterns")) {
-        StringVector patterns;
+        std::vector<std::string> patterns;
         //assert(patterns);
         bool res = cmd->getOptionValue("-patterns", patterns);
         if (!res) {
@@ -904,7 +900,7 @@ int parseSdcCreateVoltageArea(ClientData cld, Tcl_Interp *itp, int argc, const c
         message->info("get first value %s \n", name.c_str());
     }
     if (cmd->isOptionSet("-coordinate")) {
-        StringVector coordinate;
+        std::vector<std::string> coordinate;
         //assert(coordinate);
         bool res = cmd->getOptionValue("-coordinate", coordinate);
         if (!res) {
@@ -917,7 +913,7 @@ int parseSdcCreateVoltageArea(ClientData cld, Tcl_Interp *itp, int argc, const c
         }
     }
     if (cmd->isOptionSet("-guard_band_x")) {
-        DoubleVector guard_band_x;
+        std::vector<double> guard_band_x;
         //assert(guard_band_x);
         bool res = cmd->getOptionValue("-guard_band_x", guard_band_x);
         if (!res) {
@@ -930,7 +926,7 @@ int parseSdcCreateVoltageArea(ClientData cld, Tcl_Interp *itp, int argc, const c
         }
     }
     if (cmd->isOptionSet("-guard_band_y")) {
-        DoubleVector guard_band_y;
+        std::vector<double> guard_band_y;
         //assert(guard_band_y);
         bool res = cmd->getOptionValue("-guard_band_y", guard_band_y);
         if (!res) {
@@ -943,7 +939,7 @@ int parseSdcCreateVoltageArea(ClientData cld, Tcl_Interp *itp, int argc, const c
         }
     }
     if (cmd->isOptionSet("cell_list")) {
-        StringVector cell_list;
+        std::vector<std::string> cell_list;
         //assert(cell_list);
         bool res = cmd->getOptionValue("cell_list", cell_list);
         if (!res) {
@@ -1034,47 +1030,47 @@ int parseSdcSetMaxDynamicPower(ClientData cld, Tcl_Interp *itp, int argc, const 
     return TCL_OK;
 }
 int parseSdcSetMaxLeakagePower(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
-      Command* cmd = CommandManager::parseCommand(argc, argv);
-      assert(cmd);
-      if (!(cmd->isOptionSet("power"))) {                         //´Ë´¦Óësdc2.1.tclÇø±ðÒ»¸övalue
-          return TCL_ERROR;
-      }
-      if (cmd->isOptionSet("power")) {
-          double power=0;
-          bool res = cmd->getOptionValue("power", power);
-          if (!res) {
-              //TODO messages
-              return TCL_ERROR;
-          }
-          //case_analysis_ptr->setValue(value);
-          message->info("get first value %f \n", power);
-      }
-      if (cmd->isOptionSet("-unit")) {
-          std::string unit="";
-          bool res = cmd->getOptionValue("-unit", unit);
-          if (!res) {
-              //TODO messages
-              return TCL_ERROR;
-          }
-          //case_analysis_ptr->setValue(value);
-          message->info("get first value %s \n", unit.c_str());
-      }
- 
-      return TCL_OK;
-  }
-// timing constraints manager
-//chenqian
-//01 create_clock
-int parseSdcCreateClock(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
-	
-	Command* cmd = CommandManager::parseCommand(argc, argv);
+    Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
-	
-	//constraint
-	if (!(cmd->isOptionSet("-period") and (cmd->isOptionSet("-name") or cmd->isOptionSet("port_pin_list")))) {
-		return TCL_ERROR;
-	}
-	
+    if (!(cmd->isOptionSet("power"))) {
+        return TCL_ERROR;
+    }
+    if (cmd->isOptionSet("power")) {
+        double power=0;
+        bool res = cmd->getOptionValue("power", power);
+        if (!res) {
+            //TODO messages
+            return TCL_ERROR;
+        }
+        //case_analysis_ptr->setValue(value);
+        message->info("get first value %f \n", power);
+    }
+    if (cmd->isOptionSet("-unit")) {
+        std::string unit="";
+        bool res = cmd->getOptionValue("-unit", unit);
+        if (!res) {
+            //TODO messages
+            return TCL_ERROR;
+        }
+        //case_analysis_ptr->setValue(value);
+        message->info("get first value %s \n", unit.c_str());
+    }
+    return TCL_OK;
+}
+
+// timing constraints commands
+int parseSdcCreateClock(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
+    Command* cmd = CommandManager::parseCommand(argc, argv);
+    assert(cmd);
+    if (!(cmd->isOptionSet("-period") and (cmd->isOptionSet("-name") or cmd->isOptionSet("port_pin_list")))) {
+        return TCL_ERROR;
+    }
+    SdcPtr sdc = getSdc();
+    auto container = sdc->getClockContainer();
+    auto container_data = container->getData();
+
+    CreateClockPtr create_clock = std::make_shared<CreateClock>();
+    ClockPtr clock = std::make_shared<Clock>();
     if (cmd->isOptionSet("-period")) {
         double period = 0.0;
         bool res = cmd->getOptionValue("-period", period);
@@ -1082,69 +1078,69 @@ int parseSdcCreateClock(ClientData cld, Tcl_Interp *itp, int argc, const char *a
             //TODO messages
             return TCL_ERROR;
         }
-		//Assignment
-        message->info("get first value %f \n", period);
+        clock->setPeriod(period);
     }
-	if (cmd->isOptionSet("-name")) {
-		std::string name = "";
+    if (cmd->isOptionSet("-name")) {
+        std::string name = "";
         bool res = cmd->getOptionValue("-name", name);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        //Assignment
-        message->info("get second value %s \n", name.c_str());
-	}
-	if (cmd->isOptionSet("-comment")) {
-		std::string comment = "";
+        clock->setName(name);
+    }
+    if (cmd->isOptionSet("-comment")) {
+        std::string comment = "";
         bool res = cmd->getOptionValue("-comment", comment);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-        //Assignment
-        message->info("get third value %s \n", comment.c_str());
-	}
-	if (cmd->isOptionSet("-waveform")) {
-		DoubleVector waveform_list;
+        create_clock->setComment(comment);
+    }
+    if (cmd->isOptionSet("-waveform")) {
+    	std::vector<double> waveform_list;
         bool res = cmd->getOptionValue("-waveform", waveform_list);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
         for (const auto &waveform : waveform_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get fourth value %f \n", waveform);
+            clock->addWaveform(static_cast<float>(waveform));
         }
-	}
-	if (cmd->isOptionSet("port_pin_list")) {
-		StringVector port_pin_list;
-        bool res = cmd->getOptionValue("port_pin_list", port_pin_list);
-        if (!res) {
-            //TODO messages
-            return TCL_ERROR;
-        }
-        for (const auto &pin_name : port_pin_list) {
-            //TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-            message->info("get fifth value %s \n", pin_name.c_str());
-        }
-	}
-	if (cmd->isOptionSet("-add")) {
-		bool add = false;
+    }
+    if (cmd->isOptionSet("-add")) {
+    	bool add = false;
         bool res = cmd->getOptionValue("-add", add);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
         }
-		//Assignment
-        message->info("get sixth value %d \n", add);
-	}
-	
+        clock->setAdd();
+    }
+    std::vector<std::string> port_pin_list;
+    if (cmd->isOptionSet("port_pin_list")) { //sdc2.1 not support net object source
+        bool res = cmd->getOptionValue("port_pin_list", port_pin_list);
+        if (!res) {
+            //TODO messages
+            return TCL_ERROR;
+        }
+        if (clock->getName() == "" && port_pin_list.size()) {
+            clock->setName(port_pin_list.front());
+        }
+    } else {
+        clock->setVirtual();
+    }
+    container_data->addClock(clock, create_clock);
+    for (const auto &pin_name : port_pin_list) {
+        bool success = container_data->addClockPin(pin_name, clock);
+        if (!success) {
+            //TODO messages
+        }
+    }
     return TCL_OK;
 }
-//02 create_generated_clock
+
 int parseSdcCreateGeneratedClock(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
 	Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
@@ -1168,7 +1164,7 @@ int parseSdcCreateGeneratedClock(ClientData cld, Tcl_Interp *itp, int argc, cons
         message->info("get first value %s \n", name.c_str());
     }
 	if (cmd->isOptionSet("-source")) {
-		StringVector source_list;
+		std::vector<std::string> source_list;
         bool res = cmd->getOptionValue("-source", source_list);
         if (!res) {
             //TODO messages
@@ -1181,7 +1177,7 @@ int parseSdcCreateGeneratedClock(ClientData cld, Tcl_Interp *itp, int argc, cons
         }
 	}
 	if (cmd->isOptionSet("-edges")) {
-		DoubleVector edges_list;
+		std::vector<double> edges_list;
         bool res = cmd->getOptionValue("-edges", edges_list);
         if (!res) {
             //TODO messages
@@ -1214,7 +1210,7 @@ int parseSdcCreateGeneratedClock(ClientData cld, Tcl_Interp *itp, int argc, cons
         message->info("get fifth value %d \n", multiply_by);
     }
 	if (cmd->isOptionSet("-edge_shift")) {
-		StringVector edge_shift_list;
+		std::vector<std::string> edge_shift_list;
         bool res = cmd->getOptionValue("-edge_shift", edge_shift_list);
         if (!res) {
             //TODO messages
@@ -1247,7 +1243,7 @@ int parseSdcCreateGeneratedClock(ClientData cld, Tcl_Interp *itp, int argc, cons
         message->info("get eighth value %d \n", invert);
     }
 	if (cmd->isOptionSet("port_pin_list")) {
-		StringVector port_pin_list;
+		std::vector<std::string> port_pin_list;
         bool res = cmd->getOptionValue("port_pin_list", port_pin_list);
         if (!res) {
             //TODO messages
@@ -1280,7 +1276,7 @@ int parseSdcCreateGeneratedClock(ClientData cld, Tcl_Interp *itp, int argc, cons
         message->info("get eleventh value %s \n", comment.c_str());
     }
 	if (cmd->isOptionSet("-master_clock")) {
-		StringVector master_clock_list;
+		std::vector<std::string> master_clock_list;
         bool res = cmd->getOptionValue("-master_clock", master_clock_list);
         if (!res) {
             //TODO messages
@@ -1339,7 +1335,7 @@ int parseSdcGroupPath(ClientData cld, Tcl_Interp *itp, int argc, const char *arg
         message->info("get third value %f \n", weight);
     }
 	if (cmd->isOptionSet("-from")) {
-		StringVector from_list;
+		std::vector<std::string> from_list;
         bool res = cmd->getOptionValue("-from", from_list);
         if (!res) {
             //TODO messages
@@ -1352,7 +1348,7 @@ int parseSdcGroupPath(ClientData cld, Tcl_Interp *itp, int argc, const char *arg
         }
 	}
 	if (cmd->isOptionSet("-rise_from")) {
-		StringVector rise_from_list;
+		std::vector<std::string> rise_from_list;
         bool res = cmd->getOptionValue("-rise_from", rise_from_list);
         if (!res) {
             //TODO messages
@@ -1365,7 +1361,7 @@ int parseSdcGroupPath(ClientData cld, Tcl_Interp *itp, int argc, const char *arg
         }
 	}
 	if (cmd->isOptionSet("-fall_from")) {
-		StringVector fall_from_list;
+		std::vector<std::string> fall_from_list;
         bool res = cmd->getOptionValue("-fall_from", fall_from_list);
         if (!res) {
             //TODO messages
@@ -1378,7 +1374,7 @@ int parseSdcGroupPath(ClientData cld, Tcl_Interp *itp, int argc, const char *arg
         }
 	}
 	if (cmd->isOptionSet("-to")) {
-		StringVector to_list;
+		std::vector<std::string> to_list;
         bool res = cmd->getOptionValue("-to", to_list);
         if (!res) {
             //TODO messages
@@ -1391,7 +1387,7 @@ int parseSdcGroupPath(ClientData cld, Tcl_Interp *itp, int argc, const char *arg
         }
 	}
 	if (cmd->isOptionSet("-rise_to")) {
-		StringVector rise_to_list;
+		std::vector<std::string> rise_to_list;
         bool res = cmd->getOptionValue("-rise_to", rise_to_list);
         if (!res) {
             //TODO messages
@@ -1404,7 +1400,7 @@ int parseSdcGroupPath(ClientData cld, Tcl_Interp *itp, int argc, const char *arg
         }
 	}
 	if (cmd->isOptionSet("-fall_to")) {
-		StringVector fall_to_list;
+		std::vector<std::string> fall_to_list;
         bool res = cmd->getOptionValue("-fall_to", fall_to_list);
         if (!res) {
             //TODO messages
@@ -1417,7 +1413,7 @@ int parseSdcGroupPath(ClientData cld, Tcl_Interp *itp, int argc, const char *arg
         }
 	}
 	if (cmd->isOptionSet("-through")) {
-		StringVector through_list;
+		std::vector<std::string> through_list;
         bool res = cmd->getOptionValue("-through", through_list);
         if (!res) {
             //TODO messages
@@ -1430,7 +1426,7 @@ int parseSdcGroupPath(ClientData cld, Tcl_Interp *itp, int argc, const char *arg
         }
 	}
 	if (cmd->isOptionSet("-rise_through")) {
-		StringVector rise_through_list;
+		std::vector<std::string> rise_through_list;
         bool res = cmd->getOptionValue("-rise_through", rise_through_list);
         if (!res) {
             //TODO messages
@@ -1443,7 +1439,7 @@ int parseSdcGroupPath(ClientData cld, Tcl_Interp *itp, int argc, const char *arg
         }
 	}
 	if (cmd->isOptionSet("-fall_through")) {
-		StringVector fall_through_list;
+		std::vector<std::string> fall_through_list;
         bool res = cmd->getOptionValue("-fall_through", fall_through_list);
         if (!res) {
             //TODO messages
@@ -1541,7 +1537,7 @@ int parseSdcSetClockGatingCheck(ClientData cld, Tcl_Interp *itp, int argc, const
 		message->info("get sixth value %d \n", low);
 	}
 	if (cmd->isOptionSet("object_list")) {
-		StringVector object_list;
+		std::vector<std::string> object_list;
 		bool res = cmd->getOptionValue("object_list", object_list);
 		if (!res) {
 			//TODO messages
@@ -1620,7 +1616,7 @@ int parseSdcSetClockGroups(ClientData cld, Tcl_Interp *itp, int argc, const char
 		message->info("get fifth value %d \n", allow_paths);
 	}
 	if (cmd->isOptionSet("-group")) {
-		StringVector group_list;
+		std::vector<std::string> group_list;
 		bool res = cmd->getOptionValue("-group", group_list);
 		if (!res) {
 			//TODO messages
@@ -1667,7 +1663,7 @@ int parseSdcSetClockLatency(ClientData cld, Tcl_Interp *itp, int argc, const cha
 		message->info("get first value %f \n", delay);
 	}
 	if (cmd->isOptionSet("object_list")) {
-		StringVector object_list;
+		std::vector<std::string> object_list;
 		bool res = cmd->getOptionValue("object_list", object_list);
 		if (!res) {
 			//TODO messages
@@ -1760,7 +1756,7 @@ int parseSdcSetClockLatency(ClientData cld, Tcl_Interp *itp, int argc, const cha
 		message->info("get tenth value %d \n", late);
 	}
 	if (cmd->isOptionSet("-clock")) {
-		StringVector clock_list;
+		std::vector<std::string> clock_list;
 		bool res = cmd->getOptionValue("-clock", clock_list);
 		if (!res) {
 			//TODO messages
@@ -1792,7 +1788,7 @@ int parseSdcSetSense(ClientData cld, Tcl_Interp *itp, int argc, const char *argv
 	}
 	
 	if (cmd->isOptionSet("-type")) {
-		StringVector type_list;
+		std::vector<std::string> type_list;
 		bool res = cmd->getOptionValue("-type", type_list);
 		if (!res) {
 			//TODO messages
@@ -1815,7 +1811,7 @@ int parseSdcSetSense(ClientData cld, Tcl_Interp *itp, int argc, const char *argv
 		message->info("get second value %d \n", non_unate);
 	}
 	if (cmd->isOptionSet("-clocks")) {
-		StringVector clocks_list;
+		std::vector<std::string> clocks_list;
 		bool res = cmd->getOptionValue("-clocks", clocks_list);
 		if (!res) {
 			//TODO messages
@@ -1868,7 +1864,7 @@ int parseSdcSetSense(ClientData cld, Tcl_Interp *itp, int argc, const char *argv
 		message->info("get seventh value %d \n", stop_propagation);
 	}
 	if (cmd->isOptionSet("-pulse")) {
-		StringVector pulse_list;
+		std::vector<std::string> pulse_list;
 		bool res = cmd->getOptionValue("-pulse", pulse_list);
 		if (!res) {
 			//TODO messages
@@ -1881,7 +1877,7 @@ int parseSdcSetSense(ClientData cld, Tcl_Interp *itp, int argc, const char *argv
 		}
 	}
 	if (cmd->isOptionSet("object_list")) {
-		StringVector object_list;
+		std::vector<std::string> object_list;
 		bool res = cmd->getOptionValue("object_list", object_list);
 		if (!res) {
 			//TODO messages
@@ -1919,7 +1915,7 @@ int parseSdcSetClockTransition(ClientData cld, Tcl_Interp *itp, int argc, const 
 		message->info("get first value %f \n", transition);
 	}
 	if (cmd->isOptionSet("clock_list")) {
-		StringVector clock_list;
+		std::vector<std::string> clock_list;
 		bool res = cmd->getOptionValue("clock_list", clock_list);
 		if (!res) {
 			//TODO messages
@@ -1998,7 +1994,7 @@ int parseSdcSetClockUncertainty(ClientData cld, Tcl_Interp *itp, int argc, const
 		message->info("get first value %f \n", uncertainty);
 	}
 	if (cmd->isOptionSet("-from")) {
-		StringVector from_list;
+		std::vector<std::string> from_list;
 		bool res = cmd->getOptionValue("-from", from_list);
 		if (!res) {
 			//TODO messages
@@ -2011,7 +2007,7 @@ int parseSdcSetClockUncertainty(ClientData cld, Tcl_Interp *itp, int argc, const
 		}
 	}
 	if (cmd->isOptionSet("-to")) {
-		StringVector to_list;
+		std::vector<std::string> to_list;
 		bool res = cmd->getOptionValue("-to", to_list);
 		if (!res) {
 			//TODO messages
@@ -2024,7 +2020,7 @@ int parseSdcSetClockUncertainty(ClientData cld, Tcl_Interp *itp, int argc, const
 		}
 	}
 	if (cmd->isOptionSet("-rise_to")) {
-		StringVector rise_to_list;
+		std::vector<std::string> rise_to_list;
 		bool res = cmd->getOptionValue("-rise_to", rise_to_list);
 		if (!res) {
 			//TODO messages
@@ -2037,7 +2033,7 @@ int parseSdcSetClockUncertainty(ClientData cld, Tcl_Interp *itp, int argc, const
 		}
 	}
 	if (cmd->isOptionSet("-fall_to")) {
-		StringVector fall_to_list;
+		std::vector<std::string> fall_to_list;
 		bool res = cmd->getOptionValue("-fall_to", fall_to_list);
 		if (!res) {
 			//TODO messages
@@ -2050,7 +2046,7 @@ int parseSdcSetClockUncertainty(ClientData cld, Tcl_Interp *itp, int argc, const
 		}
 	}
 	if (cmd->isOptionSet("-rise_from")) {
-		StringVector rise_from_list;
+		std::vector<std::string> rise_from_list;
 		bool res = cmd->getOptionValue("-rise_from", rise_from_list);
 		if (!res) {
 			//TODO messages
@@ -2063,7 +2059,7 @@ int parseSdcSetClockUncertainty(ClientData cld, Tcl_Interp *itp, int argc, const
 		}
 	}
 	if (cmd->isOptionSet("-fall_from")) {
-		StringVector fall_from_list;
+		std::vector<std::string> fall_from_list;
 		bool res = cmd->getOptionValue("-fall_from", fall_from_list);
 		if (!res) {
 			//TODO messages
@@ -2116,7 +2112,7 @@ int parseSdcSetClockUncertainty(ClientData cld, Tcl_Interp *itp, int argc, const
 		message->info("get eleventh value %d \n", hold);
 	}
 	if (cmd->isOptionSet("object_list")) {
-		StringVector object_list;
+		std::vector<std::string> object_list;
 		bool res = cmd->getOptionValue("object_list", object_list);
 		if (!res) {
 			//TODO messages
@@ -2144,7 +2140,7 @@ int parseSdcSetDataCheck(ClientData cld, Tcl_Interp *itp, int argc, const char *
 	}
 	
 	if (cmd->isOptionSet("-from")) {
-		StringVector from_list;
+		std::vector<std::string> from_list;
 		bool res = cmd->getOptionValue("-from", from_list);
 		if (!res) {
 			//TODO messages
@@ -2157,7 +2153,7 @@ int parseSdcSetDataCheck(ClientData cld, Tcl_Interp *itp, int argc, const char *
 		}
 	}
 	if (cmd->isOptionSet("-rise_from")) {
-		StringVector rise_from_list;
+		std::vector<std::string> rise_from_list;
 		bool res = cmd->getOptionValue("-rise_from", rise_from_list);
 		if (!res) {
 			//TODO messages
@@ -2170,7 +2166,7 @@ int parseSdcSetDataCheck(ClientData cld, Tcl_Interp *itp, int argc, const char *
 		}
 	}
 	if (cmd->isOptionSet("-fall_from")) {
-		StringVector fall_from_list;
+		std::vector<std::string> fall_from_list;
 		bool res = cmd->getOptionValue("-fall_from", fall_from_list);
 		if (!res) {
 			//TODO messages
@@ -2183,7 +2179,7 @@ int parseSdcSetDataCheck(ClientData cld, Tcl_Interp *itp, int argc, const char *
 		}
 	}
 	if (cmd->isOptionSet("-to")) {
-		StringVector to_list;
+		std::vector<std::string> to_list;
 		bool res = cmd->getOptionValue("-to", to_list);
 		if (!res) {
 			//TODO messages
@@ -2196,7 +2192,7 @@ int parseSdcSetDataCheck(ClientData cld, Tcl_Interp *itp, int argc, const char *
 		}
 	}
 	if (cmd->isOptionSet("-rise_to")) {
-		StringVector rise_to_list;
+		std::vector<std::string> rise_to_list;
 		bool res = cmd->getOptionValue("-rise_to", rise_to_list);
 		if (!res) {
 			//TODO messages
@@ -2209,7 +2205,7 @@ int parseSdcSetDataCheck(ClientData cld, Tcl_Interp *itp, int argc, const char *
 		}
 	}
 	if (cmd->isOptionSet("-fall_to")) {
-		StringVector fall_to_list;
+		std::vector<std::string> fall_to_list;
 		bool res = cmd->getOptionValue("-fall_to", fall_to_list);
 		if (!res) {
 			//TODO messages
@@ -2262,7 +2258,7 @@ int parseSdcSetDataCheck(ClientData cld, Tcl_Interp *itp, int argc, const char *
 		message->info("get tenth value %d \n", hold);
 	}
 	if (cmd->isOptionSet("-clock")) {
-		StringVector clock_list;
+		std::vector<std::string> clock_list;
 		bool res = cmd->getOptionValue("-clock", clock_list);
 		if (!res) {
 			//TODO messages
@@ -2301,7 +2297,7 @@ int parseSdcSetDisableTiming(ClientData cld, Tcl_Interp *itp, int argc, const ch
 	}
 	
 	if (cmd->isOptionSet("object_list")) {
-		StringVector object_list;
+		std::vector<std::string> object_list;
 		bool res = cmd->getOptionValue("object_list", object_list);
 		if (!res) {
 			//TODO messages
@@ -2389,7 +2385,7 @@ int parseSdcSetFalsePath(ClientData cld, Tcl_Interp *itp, int argc, const char *
 		message->info("get fourth value %d \n", fall);
 	}
 	if (cmd->isOptionSet("-from")) {
-		StringVector from_list;
+		std::vector<std::string> from_list;
 		bool res = cmd->getOptionValue("-from", from_list);
 		if (!res) {
 			//TODO messages
@@ -2402,7 +2398,7 @@ int parseSdcSetFalsePath(ClientData cld, Tcl_Interp *itp, int argc, const char *
 		}
 	}
 	if (cmd->isOptionSet("-rise_from")) {
-		StringVector rise_from_list;
+		std::vector<std::string> rise_from_list;
 		bool res = cmd->getOptionValue("-rise_from", rise_from_list);
 		if (!res) {
 			//TODO messages
@@ -2415,7 +2411,7 @@ int parseSdcSetFalsePath(ClientData cld, Tcl_Interp *itp, int argc, const char *
 		}
 	}
 	if (cmd->isOptionSet("-fall_from")) {
-		StringVector fall_from_list;
+		std::vector<std::string> fall_from_list;
 		bool res = cmd->getOptionValue("-fall_from", fall_from_list);
 		if (!res) {
 			//TODO messages
@@ -2428,7 +2424,7 @@ int parseSdcSetFalsePath(ClientData cld, Tcl_Interp *itp, int argc, const char *
 		}
 	}
 	if (cmd->isOptionSet("-to")) {
-		StringVector to_list;
+		std::vector<std::string> to_list;
 		bool res = cmd->getOptionValue("-to", to_list);
 		if (!res) {
 			//TODO messages
@@ -2441,7 +2437,7 @@ int parseSdcSetFalsePath(ClientData cld, Tcl_Interp *itp, int argc, const char *
 		}
 	}
 	if (cmd->isOptionSet("-rise_to")) {
-		StringVector rise_to_list;
+		std::vector<std::string> rise_to_list;
 		bool res = cmd->getOptionValue("-rise_to", rise_to_list);
 		if (!res) {
 			//TODO messages
@@ -2454,7 +2450,7 @@ int parseSdcSetFalsePath(ClientData cld, Tcl_Interp *itp, int argc, const char *
 		}
 	}
 	if (cmd->isOptionSet("-fall_to")) {
-		StringVector fall_to_list;
+		std::vector<std::string> fall_to_list;
 		bool res = cmd->getOptionValue("-fall_to", fall_to_list);
 		if (!res) {
 			//TODO messages
@@ -2467,7 +2463,7 @@ int parseSdcSetFalsePath(ClientData cld, Tcl_Interp *itp, int argc, const char *
 		}
 	}
 	if (cmd->isOptionSet("-through")) {
-		StringVector through_list;
+		std::vector<std::string> through_list;
 		bool res = cmd->getOptionValue("-through", through_list);
 		if (!res) {
 			//TODO messages
@@ -2480,7 +2476,7 @@ int parseSdcSetFalsePath(ClientData cld, Tcl_Interp *itp, int argc, const char *
 		}
 	}
 	if (cmd->isOptionSet("-fall_throough")) {
-		StringVector fall_throough_list;
+		std::vector<std::string> fall_throough_list;
 		bool res = cmd->getOptionValue("-fall_throough", fall_throough_list);
 		if (!res) {
 			//TODO messages
@@ -2493,7 +2489,7 @@ int parseSdcSetFalsePath(ClientData cld, Tcl_Interp *itp, int argc, const char *
 		}
 	}
 	if (cmd->isOptionSet("-rise_throough")) {
-		StringVector rise_throough_list;
+		std::vector<std::string> rise_throough_list;
 		bool res = cmd->getOptionValue("-rise_throough", rise_throough_list);
 		if (!res) {
 			//TODO messages
@@ -2540,7 +2536,7 @@ int parseSdcSetIdealLatency(ClientData cld, Tcl_Interp *itp, int argc, const cha
 		message->info("get first value %f \n", value);
 	}
 	if (cmd->isOptionSet("object_list")) {
-		StringVector object_list;
+		std::vector<std::string> object_list;
 		bool res = cmd->getOptionValue("object_list", object_list);
 		if (!res) {
 			//TODO messages
@@ -2606,7 +2602,7 @@ int parseSdcSetIdealNetwork(ClientData cld, Tcl_Interp *itp, int argc, const cha
 	}
 	
 	if (cmd->isOptionSet("object_list")) {
-		StringVector object_list;
+		std::vector<std::string> object_list;
 		bool res = cmd->getOptionValue("object_list", object_list);
 		if (!res) {
 			//TODO messages
@@ -2652,7 +2648,7 @@ int parseSdcSetIdealTransition(ClientData cld, Tcl_Interp *itp, int argc, const 
 		message->info("get first value %f \n", value);
 	}
 	if (cmd->isOptionSet("object_list")) {
-		StringVector object_list;
+		std::vector<std::string> object_list;
 		bool res = cmd->getOptionValue("object_list", object_list);
 		if (!res) {
 			//TODO messages
@@ -2724,7 +2720,7 @@ int parseSdcSetInputDelay(ClientData cld, Tcl_Interp *itp, int argc, const char 
 	}
 	
 	if (cmd->isOptionSet("-clock")) {
-		StringVector clock_list;
+		std::vector<std::string> clock_list;
 		bool res = cmd->getOptionValue("-clock", clock_list);
 		if (!res) {
 			//TODO messages
@@ -2817,7 +2813,7 @@ int parseSdcSetInputDelay(ClientData cld, Tcl_Interp *itp, int argc, const char 
 		message->info("get ninth value %f \n", delay_value);
 	}
 	if (cmd->isOptionSet("-reference_pin")) {
-		StringVector reference_pin_list;
+		std::vector<std::string> reference_pin_list;
 		bool res = cmd->getOptionValue("-reference_pin", reference_pin_list);
 		if (!res) {
 			//TODO messages
@@ -2830,7 +2826,7 @@ int parseSdcSetInputDelay(ClientData cld, Tcl_Interp *itp, int argc, const char 
 		}
 	}
 	if (cmd->isOptionSet("port_pin_list")) {
-		StringVector port_pin_list;
+		std::vector<std::string> port_pin_list;
 		bool res = cmd->getOptionValue("port_pin_list", port_pin_list);
 		if (!res) {
 			//TODO messages
@@ -2907,7 +2903,7 @@ int parseSdcSetMaxDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		message->info("get third value %d \n", fall);
 	}
 	if (cmd->isOptionSet("-from")) {
-		StringVector from_list;
+		std::vector<std::string> from_list;
 		bool res = cmd->getOptionValue("-from", from_list);
 		if (!res) {
 			//TODO messages
@@ -2920,7 +2916,7 @@ int parseSdcSetMaxDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-rise_from")) {
-		StringVector rise_from_list;
+		std::vector<std::string> rise_from_list;
 		bool res = cmd->getOptionValue("-rise_from", rise_from_list);
 		if (!res) {
 			//TODO messages
@@ -2933,7 +2929,7 @@ int parseSdcSetMaxDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-fall_from")) {
-		StringVector fall_from_list;
+		std::vector<std::string> fall_from_list;
 		bool res = cmd->getOptionValue("-fall_from", fall_from_list);
 		if (!res) {
 			//TODO messages
@@ -2946,7 +2942,7 @@ int parseSdcSetMaxDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-to")) {
-		StringVector to_list;
+		std::vector<std::string> to_list;
 		bool res = cmd->getOptionValue("-to", to_list);
 		if (!res) {
 			//TODO messages
@@ -2959,7 +2955,7 @@ int parseSdcSetMaxDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-rise_to")) {
-		StringVector rise_to_list;
+		std::vector<std::string> rise_to_list;
 		bool res = cmd->getOptionValue("-rise_to", rise_to_list);
 		if (!res) {
 			//TODO messages
@@ -2972,7 +2968,7 @@ int parseSdcSetMaxDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-fall_to")) {
-		StringVector fall_to_list;
+		std::vector<std::string> fall_to_list;
 		bool res = cmd->getOptionValue("-fall_to", fall_to_list);
 		if (!res) {
 			//TODO messages
@@ -2985,7 +2981,7 @@ int parseSdcSetMaxDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-through")) {
-		StringVector through_list;
+		std::vector<std::string> through_list;
 		bool res = cmd->getOptionValue("-through", through_list);
 		if (!res) {
 			//TODO messages
@@ -2998,7 +2994,7 @@ int parseSdcSetMaxDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-fall_through")) {
-		StringVector fall_through_list;
+		std::vector<std::string> fall_through_list;
 		bool res = cmd->getOptionValue("-fall_through", fall_through_list);
 		if (!res) {
 			//TODO messages
@@ -3011,7 +3007,7 @@ int parseSdcSetMaxDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-rise_through")) {
-		StringVector rise_through_list;
+		std::vector<std::string> rise_through_list;
 		bool res = cmd->getOptionValue("-rise_through", rise_through_list);
 		if (!res) {
 			//TODO messages
@@ -3069,7 +3065,7 @@ int parseSdcSetMaxTimeBorrow(ClientData cld, Tcl_Interp *itp, int argc, const ch
 		message->info("get first value %f \n", delay_value);
 	}
 	if (cmd->isOptionSet("object_list")) {
-		StringVector object_list;
+		std::vector<std::string> object_list;
 		bool res = cmd->getOptionValue("object_list", object_list);
 		if (!res) {
 			//TODO messages
@@ -3126,7 +3122,7 @@ int parseSdcSetMinDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		message->info("get third value %d \n", fall);
 	}
 	if (cmd->isOptionSet("-from")) {
-		StringVector from_list;
+		std::vector<std::string> from_list;
 		bool res = cmd->getOptionValue("-from", from_list);
 		if (!res) {
 			//TODO messages
@@ -3139,7 +3135,7 @@ int parseSdcSetMinDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-rise_from")) {
-		StringVector rise_from_list;
+		std::vector<std::string> rise_from_list;
 		bool res = cmd->getOptionValue("-rise_from", rise_from_list);
 		if (!res) {
 			//TODO messages
@@ -3152,7 +3148,7 @@ int parseSdcSetMinDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-fall_from")) {
-		StringVector fall_from_list;
+		std::vector<std::string> fall_from_list;
 		bool res = cmd->getOptionValue("-fall_from", fall_from_list);
 		if (!res) {
 			//TODO messages
@@ -3165,7 +3161,7 @@ int parseSdcSetMinDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-to")) {
-		StringVector to_list;
+		std::vector<std::string> to_list;
 		bool res = cmd->getOptionValue("-to", to_list);
 		if (!res) {
 			//TODO messages
@@ -3178,7 +3174,7 @@ int parseSdcSetMinDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-rise_to")) {
-		StringVector rise_to_list;
+		std::vector<std::string> rise_to_list;
 		bool res = cmd->getOptionValue("-rise_to", rise_to_list);
 		if (!res) {
 			//TODO messages
@@ -3191,7 +3187,7 @@ int parseSdcSetMinDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-fall_to")) {
-		StringVector fall_to_list;
+		std::vector<std::string> fall_to_list;
 		bool res = cmd->getOptionValue("-fall_to", fall_to_list);
 		if (!res) {
 			//TODO messages
@@ -3204,7 +3200,7 @@ int parseSdcSetMinDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-through")) {
-		StringVector through_list;
+		std::vector<std::string> through_list;
 		bool res = cmd->getOptionValue("-through", through_list);
 		if (!res) {
 			//TODO messages
@@ -3217,7 +3213,7 @@ int parseSdcSetMinDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-fall_through")) {
-		StringVector fall_through_list;
+		std::vector<std::string> fall_through_list;
 		bool res = cmd->getOptionValue("-fall_through", fall_through_list);
 		if (!res) {
 			//TODO messages
@@ -3230,7 +3226,7 @@ int parseSdcSetMinDelay(ClientData cld, Tcl_Interp *itp, int argc, const char *a
 		}
 	}
 	if (cmd->isOptionSet("-rise_through")) {
-		StringVector rise_through_list;
+		std::vector<std::string> rise_through_list;
 		bool res = cmd->getOptionValue("-rise_through", rise_through_list);
 		if (!res) {
 			//TODO messages
@@ -3286,7 +3282,7 @@ int parseSdcSetMinPulseWidth(ClientData cld, Tcl_Interp *itp, int argc, const ch
 		message->info("get first value %f \n", value);
 	}
 	if (cmd->isOptionSet("object_list")) {
-		StringVector object_list;
+		std::vector<std::string> object_list;
 		bool res = cmd->getOptionValue("object_list", object_list);
 		if (!res) {
 			//TODO messages
@@ -3402,7 +3398,7 @@ int parseSdcSetMulticyclePath(ClientData cld, Tcl_Interp *itp, int argc, const c
 		message->info("get seventh value %d \n", end);
 	}
 	if (cmd->isOptionSet("-from")) {
-		StringVector from_list;
+		std::vector<std::string> from_list;
 		bool res = cmd->getOptionValue("-from", from_list);
 		if (!res) {
 			//TODO messages
@@ -3415,7 +3411,7 @@ int parseSdcSetMulticyclePath(ClientData cld, Tcl_Interp *itp, int argc, const c
 		}
 	}
 	if (cmd->isOptionSet("-to")) {
-		StringVector to_list;
+		std::vector<std::string> to_list;
 		bool res = cmd->getOptionValue("-to", to_list);
 		if (!res) {
 			//TODO messages
@@ -3428,7 +3424,7 @@ int parseSdcSetMulticyclePath(ClientData cld, Tcl_Interp *itp, int argc, const c
 		}
 	}
 	if (cmd->isOptionSet("-rise_to")) {
-		StringVector rise_to_list;
+		std::vector<std::string> rise_to_list;
 		bool res = cmd->getOptionValue("-rise_to", rise_to_list);
 		if (!res) {
 			//TODO messages
@@ -3441,7 +3437,7 @@ int parseSdcSetMulticyclePath(ClientData cld, Tcl_Interp *itp, int argc, const c
 		}
 	}
 	if (cmd->isOptionSet("-fall_to")) {
-		StringVector fall_to_list;
+		std::vector<std::string> fall_to_list;
 		bool res = cmd->getOptionValue("-fall_to", fall_to_list);
 		if (!res) {
 			//TODO messages
@@ -3454,7 +3450,7 @@ int parseSdcSetMulticyclePath(ClientData cld, Tcl_Interp *itp, int argc, const c
 		}
 	}
 	if (cmd->isOptionSet("-rise_from")) {
-		StringVector rise_from_list;
+		std::vector<std::string> rise_from_list;
 		bool res = cmd->getOptionValue("-rise_from", rise_from_list);
 		if (!res) {
 			//TODO messages
@@ -3467,7 +3463,7 @@ int parseSdcSetMulticyclePath(ClientData cld, Tcl_Interp *itp, int argc, const c
 		}
 	}
 	if (cmd->isOptionSet("-fall_from")) {
-		StringVector fall_from_list;
+		std::vector<std::string> fall_from_list;
 		bool res = cmd->getOptionValue("-fall_from", fall_from_list);
 		if (!res) {
 			//TODO messages
@@ -3480,7 +3476,7 @@ int parseSdcSetMulticyclePath(ClientData cld, Tcl_Interp *itp, int argc, const c
 		}
 	}
 	if (cmd->isOptionSet("-rise_through")) {
-		StringVector rise_through_list;
+		std::vector<std::string> rise_through_list;
 		bool res = cmd->getOptionValue("-rise_through", rise_through_list);
 		if (!res) {
 			//TODO messages
@@ -3493,7 +3489,7 @@ int parseSdcSetMulticyclePath(ClientData cld, Tcl_Interp *itp, int argc, const c
 		}
 	}
 	if (cmd->isOptionSet("-fall_through")) {
-		StringVector fall_through_list;
+		std::vector<std::string> fall_through_list;
 		bool res = cmd->getOptionValue("-fall_through", fall_through_list);
 		if (!res) {
 			//TODO messages
@@ -3506,7 +3502,7 @@ int parseSdcSetMulticyclePath(ClientData cld, Tcl_Interp *itp, int argc, const c
 		}
 	}
 	if (cmd->isOptionSet("-through")) {
-		StringVector through_list;
+		std::vector<std::string> through_list;
 		bool res = cmd->getOptionValue("-through", through_list);
 		if (!res) {
 			//TODO messages
@@ -3549,7 +3545,7 @@ int parseSdcSetOutputDelay(ClientData cld, Tcl_Interp *itp, int argc, const char
 	}
 	
 	if (cmd->isOptionSet("-clock")) {
-		StringVector clock_list;
+		std::vector<std::string> clock_list;
 		bool res = cmd->getOptionValue("-clock", clock_list);
 		if (!res) {
 			//TODO messages
@@ -3642,7 +3638,7 @@ int parseSdcSetOutputDelay(ClientData cld, Tcl_Interp *itp, int argc, const char
 		message->info("get ninth value %f \n", delay_value);
 	}
 	if (cmd->isOptionSet("-reference_pin")) {
-		StringVector reference_pin_list;
+		std::vector<std::string> reference_pin_list;
 		bool res = cmd->getOptionValue("-reference_pin", reference_pin_list);
 		if (!res) {
 			//TODO messages
@@ -3655,7 +3651,7 @@ int parseSdcSetOutputDelay(ClientData cld, Tcl_Interp *itp, int argc, const char
 		}
 	}
 	if (cmd->isOptionSet("port_pin_list")) {
-		StringVector port_pin_list;
+		std::vector<std::string> port_pin_list;
 		bool res = cmd->getOptionValue("port_pin_list", port_pin_list);
 		if (!res) {
 			//TODO messages
@@ -3702,7 +3698,7 @@ int parseSdcSetPropagatedClock(ClientData cld, Tcl_Interp *itp, int argc, const 
 	}
 	
 	if (cmd->isOptionSet("object_list")) {
-		StringVector object_list;
+		std::vector<std::string> object_list;
 		bool res = cmd->getOptionValue("object_list", object_list);
 		if (!res) {
 			//TODO messages
@@ -3745,9 +3741,8 @@ int parseSdcSetCaseAnalysis(ClientData cld, Tcl_Interp *itp, int argc, const cha
         message->info("get first value %s \n", value.c_str());
     }
     if (cmd->isOptionSet("port_or_pin_list")) {
-        StringVectorPtr port_or_pin_list = std::make_shared<StringVector>();
-        assert(port_or_pin_list);
-        bool res = cmd->getOptionValue("port_or_pin_list", (StringVector**)(&port_or_pin_list));
+        std::vector<std::string> port_or_pin_list;
+        bool res = cmd->getOptionValue("port_or_pin_list", port_or_pin_list);
         if (!res) {
             //TODO messages
             return TCL_ERROR;
@@ -3758,7 +3753,7 @@ int parseSdcSetCaseAnalysis(ClientData cld, Tcl_Interp *itp, int argc, const cha
             //TODO messages
             return TCL_ERROR;
         }
-        for (const auto& pin_name : *port_or_pin_list) {
+        for (const auto& pin_name : port_or_pin_list) {
             ObjectId pin_id = 1; 
             //Pin *pin = topCell->getPin(pin_name); 
             //if (pin == nullptr) {
@@ -3790,7 +3785,7 @@ int parseSdcSetDrive(ClientData cld, Tcl_Interp* itp, int argc, const char* argv
         message->info("get first value %f \n", resistance);
     }
     if (cmd->isOptionSet("port_list")) {
-        StringVector port_list;
+        std::vector<std::string> port_list;
         bool res = cmd->getOptionValue("port_list", port_list);
         if (!res) {
             //TODO messages
@@ -3951,7 +3946,7 @@ int parseSdcSetDrivingCell(ClientData cld, Tcl_Interp* itp, int argc, const char
         message->info("get tenth value %f \n", input_transition_fall);
     }
     if (cmd->isOptionSet("port_list")) {
-        StringVector port_list;
+        std::vector<std::string> port_list;
         bool res = cmd->getOptionValue("port_list", port_list);
         if (!res) {
             //TODO messages
@@ -3984,7 +3979,7 @@ int parseSdcSetDrivingCell(ClientData cld, Tcl_Interp* itp, int argc, const char
         message->info("get thirteenth value %d \n", max);
     }
     if (cmd->isOptionSet("-clock")) {
-        StringVector clock_list;
+        std::vector<std::string> clock_list;
         bool res = cmd->getOptionValue("-clock", clock_list);
         if (!res) {
             //TODO messages
@@ -4025,7 +4020,7 @@ int parseSdcSetFanoutLoad(ClientData cld, Tcl_Interp* itp, int argc, const char*
         message->info("get first value %f \n", value);
     }
     if (cmd->isOptionSet("port_list")) {
-        StringVector port_list;
+        std::vector<std::string> port_list;
         bool res = cmd->getOptionValue("port_list", port_list);
         if (!res) {
             //TODO messages
@@ -4096,7 +4091,7 @@ int parseSdcSetInputTransition(ClientData cld, Tcl_Interp* itp, int argc, const 
         message->info("get fifth value %f \n", transition);
     }
     if (cmd->isOptionSet("port_list")) {
-        StringVector port_list;
+        std::vector<std::string> port_list;
         bool res = cmd->getOptionValue("port_list", port_list);
         if (!res) {
             //TODO messages
@@ -4109,7 +4104,7 @@ int parseSdcSetInputTransition(ClientData cld, Tcl_Interp* itp, int argc, const 
         }
     }
     if (cmd->isOptionSet("-clock")) {
-        StringVector clock_list;
+        std::vector<std::string> clock_list;
         bool res = cmd->getOptionValue("-clock", clock_list);
         if (!res) {
             //TODO messages
@@ -4200,7 +4195,7 @@ int parseSdcSetLoad(ClientData cld, Tcl_Interp* itp, int argc, const char* argv[
         message->info("get sixth value %f \n", value);
     }
     if (cmd->isOptionSet("objects")) {
-        StringVector objects_list;
+        std::vector<std::string> objects_list;
         bool res = cmd->getOptionValue("objects", objects_list);
         if (!res) {
             //TODO messages
@@ -4221,7 +4216,7 @@ int parseSdcSetLogicDc(ClientData cld, Tcl_Interp* itp, int argc, const char* ar
         return TCL_ERROR;
     }
     if (cmd->isOptionSet("port_list")) {
-        StringVector port_list;
+        std::vector<std::string> port_list;
         bool res = cmd->getOptionValue("port_list", port_list);
         if (!res) {
             //TODO messages
@@ -4243,7 +4238,7 @@ int parseSdcSetLogicOne(ClientData cld, Tcl_Interp* itp, int argc, const char* a
         return TCL_ERROR;
     }
     if (cmd->isOptionSet("port_list")) {
-        StringVector port_list;
+        std::vector<std::string> port_list;
         bool res = cmd->getOptionValue("port_list", port_list);
         if (!res) {
             //TODO messages
@@ -4265,7 +4260,7 @@ int parseSdcSetLogicZero(ClientData cld, Tcl_Interp* itp, int argc, const char* 
         return TCL_ERROR;
     }
     if (cmd->isOptionSet("port_list")) {
-        StringVector port_list;
+        std::vector<std::string> port_list;
         bool res = cmd->getOptionValue("port_list", port_list);
         if (!res) {
             //TODO messages
@@ -4316,7 +4311,7 @@ int parseSdcSetMaxCapacitance(ClientData cld, Tcl_Interp* itp, int argc, const c
         message->info("get first value %f \n", capacitance_value);
     }
     if (cmd->isOptionSet("object_list")) {
-        StringVector object_list;
+        std::vector<std::string> object_list;
         bool res = cmd->getOptionValue("object_list", object_list);
         if (!res) {
             //TODO messages
@@ -4347,7 +4342,7 @@ int parseSdcSetMaxFanout(ClientData cld, Tcl_Interp* itp, int argc, const char* 
         message->info("get first value %f \n", fanout_value);
     }
     if (cmd->isOptionSet("object_list")) {
-        StringVector object_list;
+        std::vector<std::string> object_list;
         bool res = cmd->getOptionValue("object_list", object_list);
         if (!res) {
             //TODO messages
@@ -4408,7 +4403,7 @@ int parseSdcSetMaxTransition(ClientData cld, Tcl_Interp* itp, int argc, const ch
         message->info("get fourth value %d \n", rise);
     }
     if (cmd->isOptionSet("object_list")) {
-        StringVector object_list;
+        std::vector<std::string> object_list;
         bool res = cmd->getOptionValue("object_list", object_list);
         if (!res) {
             //TODO messages
@@ -4439,7 +4434,7 @@ int parseSdcSetMinCapacitance(ClientData cld, Tcl_Interp* itp, int argc, const c
         message->info("get first value %f \n", capacitance_value);
     }
     if (cmd->isOptionSet("object_list")) {
-        StringVector object_list;
+        std::vector<std::string> object_list;
         bool res = cmd->getOptionValue("object_list", object_list);
         if (!res) {
             //TODO messages
@@ -4467,7 +4462,7 @@ int parseSdcSetOperatingConditions(ClientData cld, Tcl_Interp* itp, int argc, co
         message->info("get first value %s \n", analysis_type.c_str());
     }
     if (cmd->isOptionSet("library")) {
-        StringVector library_list;
+        std::vector<std::string> library_list;
         bool res = cmd->getOptionValue("library", library_list);
         if (!res) {
             //TODO messages
@@ -4500,7 +4495,7 @@ int parseSdcSetOperatingConditions(ClientData cld, Tcl_Interp* itp, int argc, co
         message->info("get fourth value %s \n", min.c_str());
     }
     if (cmd->isOptionSet("-max_library")) {
-        StringVector max_library_list;
+        std::vector<std::string> max_library_list;
         bool res = cmd->getOptionValue("-max_library", max_library_list);
         if (!res) {
             //TODO messages
@@ -4513,7 +4508,7 @@ int parseSdcSetOperatingConditions(ClientData cld, Tcl_Interp* itp, int argc, co
         }
     }
     if (cmd->isOptionSet("-object_list")) {
-        StringVector object_list;
+        std::vector<std::string> object_list;
         bool res = cmd->getOptionValue("-object_list", object_list);
         if (!res) {
             //TODO messages
@@ -4526,7 +4521,7 @@ int parseSdcSetOperatingConditions(ClientData cld, Tcl_Interp* itp, int argc, co
         }
     }
     if (cmd->isOptionSet("-min_library")) {
-        StringVector min_library_list;
+        std::vector<std::string> min_library_list;
         bool res = cmd->getOptionValue("-min_library", min_library_list);
         if (!res) {
             //TODO messages
@@ -4568,7 +4563,7 @@ int parseSdcSetPortFanoutNumber(ClientData cld, Tcl_Interp* itp, int argc, const
         message->info("get first value %d \n", fanout_number);
     }
     if (cmd->isOptionSet("port_list")) {
-        StringVector port_list;
+        std::vector<std::string> port_list;
         bool res = cmd->getOptionValue("port_list", port_list);
         if (!res) {
             //TODO messages
@@ -4599,7 +4594,7 @@ int parseSdcSetResistance(ClientData cld, Tcl_Interp* itp, int argc, const char*
         message->info("get first value %f \n", value);
     }
     if (cmd->isOptionSet("net_list")) {
-        StringVector net_list;
+        std::vector<std::string> net_list;
         bool res = cmd->getOptionValue("net_list", net_list);
         if (!res) {
             //TODO messages
@@ -4653,7 +4648,7 @@ int parseSdcSetTimingDerate(ClientData cld, Tcl_Interp* itp, int argc, const cha
         message->info("get first value %f \n", derate_value);
     }
     if (cmd->isOptionSet("object_list")) {
-        StringVector object_list;
+        std::vector<std::string> object_list;
         bool res = cmd->getOptionValue("object_list", object_list);
         if (!res) {
             //TODO messages
@@ -4824,7 +4819,7 @@ int parseSdcSetVoltage(ClientData cld, Tcl_Interp* itp, int argc, const char* ar
         message->info("get first value %f \n", value);
     }
     if (cmd->isOptionSet("-object_list")) {
-        StringVector object_list;
+        std::vector<std::string> object_list;
         bool res = cmd->getOptionValue("-object_list", object_list);
         if (!res) {
             //TODO messages
@@ -4902,7 +4897,7 @@ int parseSdcSetWireLoadModel(ClientData cld, Tcl_Interp* itp, int argc, const ch
         message->info("get first value %s \n", name.c_str());
     }
     if (cmd->isOptionSet("-library")) {
-        StringVector library_list;
+        std::vector<std::string> library_list;
         bool res = cmd->getOptionValue("-library", library_list);
         if (!res) {
             //TODO messages
@@ -4935,7 +4930,7 @@ int parseSdcSetWireLoadModel(ClientData cld, Tcl_Interp* itp, int argc, const ch
         message->info("get fourth value %d \n", max);
     }
     if (cmd->isOptionSet("object_list")) {
-        StringVector object_list;
+        std::vector<std::string> object_list;
         bool res = cmd->getOptionValue("object_list", object_list);
         if (!res) {
             //TODO messages
@@ -4966,7 +4961,7 @@ int parseSdcSetWireLoadSelectionGroup(ClientData cld, Tcl_Interp* itp, int argc,
         message->info("get first value %s \n", group_name.c_str());
     }
     if (cmd->isOptionSet("-library")) {
-        StringVector library_list;
+        std::vector<std::string> library_list;
         bool res = cmd->getOptionValue("-library", library_list);
         if (!res) {
             //TODO messages
@@ -4999,7 +4994,7 @@ int parseSdcSetWireLoadSelectionGroup(ClientData cld, Tcl_Interp* itp, int argc,
         message->info("get fourth value %d \n", max);
     }
     if (cmd->isOptionSet("object_list")) {
-        StringVector object_list;
+        std::vector<std::string> object_list;
         bool res = cmd->getOptionValue("object_list", object_list);
         if (!res) {
             //TODO messages

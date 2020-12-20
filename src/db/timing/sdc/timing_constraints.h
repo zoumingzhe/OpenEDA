@@ -26,6 +26,7 @@
 #include "db/timing/sdc/command_get_set_property.h"
 #include "util/data_traits.h"
 #include <boost/functional/hash.hpp>
+#include "db/timing/sdc/sdc_common.h"
 
 namespace open_edi {
 namespace db {
@@ -36,7 +37,6 @@ class CreateClock {
 
   public:
     COMMAND_GET_SET_VAR(comment, Comment)
-    COMMAND_GET_SET_FLAG(add_, Add)
 };
 using CreateClockPtr = std::shared_ptr<CreateClock>;
 
@@ -66,7 +66,6 @@ class CreateGeneratedClock {
     COMMAND_GET_SET_VAR(divided_by, DividedBy)
     COMMAND_GET_SET_VAR(multiply_by, MultiplyBy)
     COMMAND_GET_SET_FLAG(invert_, Invert)
-    COMMAND_GET_SET_FLAG(add_, Add)
     COMMAND_GET_SET_FLAG(combinational_, Combinational)
 };
 using CreateGeneratedClockPtr = std::shared_ptr<CreateGeneratedClock>;
@@ -74,11 +73,9 @@ using CreateGeneratedClockPtr = std::shared_ptr<CreateGeneratedClock>;
 class ClockContainerData {
   public:
     const size_t getClockNum() const { return clock_ids_.size(); }
-    void addClockId(const ClockId &id) { return clock_ids_.emplace_back(id); }
-
     void addClock(ClockPtr &clock, CreateClockPtr &create_clock);
     void addClock(ClockPtr &clock, CreateGeneratedClockPtr &create_generated_clock);
-    void addClockPin(ObjectId &pin_id, ClockPtr &clock) { pin_clock_map_.emplace(pin_id, clock); }
+    bool addClockPin(const std::string &pin_name, const ClockPtr &clock);
 
   private:
     std::vector<ClockId> clock_ids_;
@@ -87,7 +84,7 @@ class ClockContainerData {
     std::unordered_map<std::string, ClockId> name_to_id_;
     std::unordered_map<ClockId, CreateClockPtr> create_clocks_;
     std::unordered_map<ClockId, CreateGeneratedClockPtr> create_generated_clocks_;
-    std::unordered_map<ObjectId, ClockPtr> pin_clock_map_;
+    std::unordered_multimap<ObjectId, ClockPtr> pin_clock_map_;
 
   public:
     COMMAND_GET_SET_VAR(clock_ids, ClockIds)
