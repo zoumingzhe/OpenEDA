@@ -897,10 +897,10 @@ static bool writePins(FILE *fp) {
                                     if (p->getIsReal()) {
                                         // more indents if there is PORT
                                         fprintf(fp, "        + VIA %s",
-                                                via->getName().c_str());
+                                                via->getViaMaster()->getName().c_str());
                                     } else {
                                         fprintf(fp, "      + VIA %s",
-                                                via->getName().c_str());
+                                                via->getViaMaster()->getName().c_str());
                                     }
                                     if (via->getTopMaskNum() ||
                                         via->getCutMaskNum() ||
@@ -929,10 +929,10 @@ static bool writePins(FILE *fp) {
                                             if (p->getIsReal()) {
                                                 fprintf(fp,
                                                         "        + LAYER %s",
-                                                        lg->getName().c_str());
+                                                        lg->getLayer()->getName());
                                             } else {
                                                 fprintf(fp, "      + LAYER %s",
-                                                        lg->getName().c_str());
+                                                        lg->getLayer()->getName());
                                             }
                                             if (geo->getNumMask() > 0) {
                                                 fprintf(fp, " MASK %d",
@@ -958,11 +958,11 @@ static bool writePins(FILE *fp) {
                                             if (p->getIsReal()) {
                                                 fprintf(fp,
                                                         "        + POLYGON %s",
-                                                        lg->getName().c_str());
+                                                        lg->getLayer()->getName());
                                             } else {
                                                 fprintf(fp,
                                                         "      + POLYGON %s",
-                                                        lg->getName().c_str());
+                                                        lg->getLayer()->getName());
                                             }
                                             if (geo->getNumMask() > 0) {
                                                 fprintf(fp, " MASK %d",

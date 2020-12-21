@@ -20,6 +20,8 @@
 namespace open_edi {
 namespace infra {
 
+typedef int(*commandCallback)(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]);
+
 class CommandManager {
  public:
     ~CommandManager() {}
@@ -30,8 +32,15 @@ class CommandManager {
     Command* getCommandByName(const char* name);
     const std::map<std::string, Command*>* getAllCommands() const { return &commands_;}
 
-    Command* createCommand(const char* cmd_name, const char* description, Option& opt_head);
-    Command* createCommand(const char* cmd_name, const char* description, Option& opt_head, OptionGroup& group_head);
+    Command* createCommand(Tcl_Interp *itp, commandCallback cb, const char* cmd_name, const char* description, Option& opt_head);
+    Command* createCommand(Tcl_Interp *itp, commandCallback cb, const char* cmd_name, const char* description, Option& opt_head, OptionGroup& group_head);
+    Option& createOption(const char* name, OptionDataType type, bool is_required, const char* description);
+    Option& createOption(const char* name, OptionDataType type, bool is_required, std::vector<std::string>* v, const char* description);
+    Option& createOption(const char* name, OptionDataType type, bool is_required, const char* v, const char* description);
+    Option& createOption(const char* name, OptionDataType type, bool is_required, bool v, const char* description);
+    Option& createOption(const char* name, OptionDataType type, bool is_required, int v, const char* description, int min = 0, int max = 0);
+    Option& createOption(const char* name, OptionDataType type, bool is_required, double v, const char* description, double min = 0, double max = 0);
+    OptionGroup& createOptionGroup(const char* name1, const char* name2, OptionRelation r);
 
  private:
     CommandManager() { }

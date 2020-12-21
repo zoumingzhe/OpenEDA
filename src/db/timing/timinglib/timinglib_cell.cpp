@@ -153,8 +153,8 @@ TTerm *TCell::getOrCreateTerm(const std::string &name) {
             } else {
                 auto term = __addTermImpl();
                 if (term) {
-                    setName(name);
-                    term_map_[getNameIndex()] = term->getId();
+                    term->setName(name);
+                    term_map_[term->getNameIndex()] = term->getId();
                 }
                 return term;
             }

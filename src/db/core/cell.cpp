@@ -1181,7 +1181,8 @@ Pin *Cell::getIOPin(const std::string &name) {
     for (auto iter = object_vector.begin(); iter != object_vector.end();
          iter++) {
         Pin *target = addr<Pin>(*iter);
-        if (target && (target->getObjectType() == kObjectTypePin))
+        if (target && (target->getObjectType() == kObjectTypePin)
+            && (target->getInst() == nullptr))
             return target;
     }
     return nullptr;
