@@ -16,18 +16,16 @@ namespace opt {
 class OptimizeNet {
   public:
     OptimizeNet();
-    OptimizeNet(std::string output_dir);
     ~OptimizeNet();
 
     int optimize_net (int argc, char **argv);
-    int optimize_net (double r0, double c0, int id,
+    void optimize_net (double r0, double c0,
                 const std::vector<Node *> &nodes_array,
                 const std::vector<Buffer> &buffers,
                 const std::vector<Buffer> &drivers,
-                uint64_t used_id);
+                std::vector<VanSizing *> &solutions);
   private:
     IOFILE *io_;
-    std::string output_dir_;
     Van *van_;
 
     void printBufferSolution(BufferNode *root,uint64_t id_upBound, std::ofstream &fout);
