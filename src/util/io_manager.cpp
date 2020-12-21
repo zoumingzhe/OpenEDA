@@ -178,8 +178,7 @@ bool IOManager::open(const char *file_name, const char *mode,
         return false;
     }
     if (compress_type_ == kCompressNull) {
-        message->issueMsg("UTIL", 7, kError, file_name, mode, level);
-        return false;
+        message->issueMsg("UTIL", 7, kWarn, file_name, mode, level);
     }
     return true;
 }
