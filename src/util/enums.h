@@ -26,36 +26,28 @@ namespace util {
 inline void toLower(char *s) {
     int len = strlen(s);
     for (int i = 0; i < len; i++) {
-        if (s[i] >= 'A' && s[i] <= 'Z') {
-            s[i] += 32;  //+32 to lower case
-        }
+        s[i] = tolower(s[i]);
     }
 }
 
 inline void toLower(std::string &s) {
     int len = s.size();
     for (int i = 0; i < len; i++) {
-        if (s[i] >= 'A' && s[i] <= 'Z') {
-            s[i] += 32;  //+32 to lower case
-        }
+        s[i] = tolower(s[i]);
     }
 }
 
 inline void toUpper(std::string &s) {
     int len = s.size();
     for (int i = 0; i < len; i++) {
-        if (s[i] >= 'a' && s[i] <= 'z') {
-            s[i] -= 32;  //-32 to upper case
-        }
+        s[i] = toupper(s[i]);
     }
 }
 
 inline void toUpper(char *s) {
     int len = strlen(s);
     for (int i = 0; i < len; i++) {
-        if (s[i] >= 'a' && s[i] <= 'z') {
-            s[i] -= 32;  //-32 to upper case
-        }
+        s[i] = toupper(s[i]);
     }
 }
 /// @brief Types of models.
