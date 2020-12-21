@@ -25,8 +25,8 @@ namespace db {
 using Version = open_edi::util::Version;
 
 const char kDBFilePostFix[] = ".db";
-const char kSymFilePostFix[] = ".sym.gz";
-const char kPolyFilePostFix[] = ".poly.gz";
+const char kSymFilePostFix[] = ".sym.lz4";
+const char kPolyFilePostFix[] = ".poly.lz4";
 const char kPropFilePostFix[] = ".prop";
 const char kLibSubDirName[] = "/Libs";
 const char kTechLibName[] =  "lef";
