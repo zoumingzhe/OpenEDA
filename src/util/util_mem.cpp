@@ -536,11 +536,11 @@ MemPagePool *MemPool::newPagePool() {
 
     if (!initialized_) {
         message->issueMsg(kError, "Cannot new Page pool when Memory pool"
-                                  "is not initialized.\n");
+                                  " is not initialized.\n");
         return nullptr;
     }
     if (pool_no_ == MEM_POOL_MAX) {
-        message->issueMsg(kError, "page pool is full. %d\n", pool_no_);
+        message->issueMsg(kError, "Page pool is full. %d\n", pool_no_);
         return nullptr;
     }
 
@@ -562,11 +562,11 @@ MemPagePool *MemPool::newPagePool(uint64_t cell_id) {
 
     if (!initialized_) {
         message->issueMsg(kError, "Cannot new Page pool when Memory pool"
-                                  "is not initialized.\n");
+                                  " is not initialized.\n");
         return nullptr;
     }
     if (pool_no_ == MEM_POOL_MAX) {
-        message->issueMsg(kError, "page pool is full. %d\n", pool_no_);
+        message->issueMsg(kError, "Page pool is full. %d\n", pool_no_);
         return nullptr;
     }
 

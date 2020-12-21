@@ -99,9 +99,7 @@ static int readDBCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *
     ReadDesign read_design(cell_name);
     read_design.setTop();
     read_design.setDebug(debug);
-    //ProfilerStart("read_design.prof");
     int result = read_design.run();
-    //ProfilerStop();
 
     outputMonitor(monitor_id, kElapsedTime, "read_design ");
     destroyMonitor(monitor_id);
@@ -145,9 +143,7 @@ static int writeDBCommand(ClientData cld, Tcl_Interp *itp, int argc, const char 
     }
     WriteDesign write_design(cell_name);
     write_design.setDebug(debug);
-    //ProfilerStart("write_design.prof");
     write_design.run();
-    //ProfilerStop();
 
     outputMonitor(monitor_id, kElapsedTime, "write_design ");
     destroyMonitor(monitor_id);
