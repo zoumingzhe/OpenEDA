@@ -125,14 +125,17 @@ class SdcClockGatingCheckContainer {
     SdcClockGatingCheckContainer() { data_ = std::make_shared<ClockGatingCheckContainerData>(); }
 
   public:
-    void add(const ClockGatingCheckContainerDataPtr &data) { data_ = data; }
-    const SetClockGatingCheckPtr getClockGatingCheckOnPin(const ObjectId &pin_id) const;
-    const SetClockGatingCheckPtr getClockGatingCheckOnCell(const ObjectId &cell_id) const;
-    const SetClockGatingCheckPtr getClockGatingCheckOnClock(const ClockId &clock_id) const;
-    const float getPinCheckTime(bool is_rise, bool is_high, bool is_setup, const ObjectId &pin_id) const;
-    const float getCellCheckTime(bool is_rise, bool is_high, bool is_setup, const ObjectId &cell_id) const;
-    const float getClockCheckTime(bool is_rise, bool is_high, bool is_setup, const ClockId &clock_id) const;
+    void setData(const ClockGatingCheckContainerDataPtr &data) { data_ = data; };
+    const ClockGatingCheckContainerDataPtr getData() const { return data_; };
+    ClockGatingCheckContainerDataPtr getData() { return data_; };
 
+    const SetClockGatingCheckPtr getCurrentDesignCheckTime() const;
+    const std::pair<float, float> getPinCheckTime(bool is_rise, bool is_high, const ObjectId &pin_id) const;
+    const std::pair<float, float> getInstCheckTime(bool is_rise, bool is_high, const ObjectId &inst_id) const;
+    const std::pair<float, float> getClockCheckTime(bool is_rise, bool is_high, const ClockId &clock_id) const;
+    const float getPinCheckTime(bool is_rise, bool is_high, bool is_setup, const ObjectId &pin_id) const;
+    const float getInstCheckTime(bool is_rise, bool is_high, bool is_setup, const ObjectId &inst_id) const;
+    const float getClockCheckTime(bool is_rise, bool is_high, bool is_setup, const ClockId &clock_id) const;
     friend std::ostream &operator<<(std::ostream &os, SdcClockGatingCheckContainer &rhs);
 
   private:

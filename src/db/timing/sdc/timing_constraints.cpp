@@ -191,12 +191,33 @@ void GroupPath::setRiseFallThrough() {
     through_->setFall();
 }
 
+void SetClockGatingCheck::checkFlags() {
+    if (!isRise() && !isFall()) {
+        setRise();
+        setFall();
+    }
+}
 
+bool ClockGatingCheckContainerData::addToPin(const std::string &pin_name, const SetClockGatingCheckPtr &check) {
+    const auto &pin = getPinByFullName(pin_name);
+    if (!pin) {
+        return false;
+    }
+    const auto &pin_id = pin->getId();
+    pin_to_check_.emplace(pin_id, check);
+    return true;
+}
 
-
-
-
-
+bool ClockGatingCheckContainerData::addToInst(const std::string &inst_name, const SetClockGatingCheckPtr &check) {
+    const auto &top_cell = getTopCell(); 
+    const auto &inst = top_cell->getInstance(inst_name); 
+    if (!inst) {
+        return false;
+    }
+    const auto &inst_id = inst->getId();
+    inst_to_check_.emplace(inst_id, check);
+    return true;
+}
 
 
 

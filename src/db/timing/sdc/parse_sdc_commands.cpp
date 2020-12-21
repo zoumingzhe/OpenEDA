@@ -1568,93 +1568,107 @@ int parseSdcGroupPath(ClientData cld, Tcl_Interp *itp, int argc, const char *arg
 }
 
 int parseSdcSetClockGatingCheck(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
-	Command* cmd = CommandManager::parseCommand(argc, argv);
+    Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
-	
-	//constraint
-	if (!(	(cmd->isOptionSet("-setup") or cmd->isOptionSet("-hold") or cmd->isOptionSet("-high") or cmd->isOptionSet("-low")) and
-			(!(cmd->isOptionSet("-high") and cmd->isOptionSet("-low")))
-	)) {
-		return TCL_ERROR;
-	}
-	
-	if (cmd->isOptionSet("-setup")) {
-		double setup = 0.0;
-		bool res = cmd->getOptionValue("-setup", setup);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		//Assignment
-		message->info("get first value %f \n", setup);
-	}
-	if (cmd->isOptionSet("-hold")) {
-		double hold = 0.0;
-		bool res = cmd->getOptionValue("-hold", hold);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		//Assignment
-		message->info("get second value %f \n", hold);
-	}
-	if (cmd->isOptionSet("-rise")) {
-		bool rise = false;
-		bool res = cmd->getOptionValue("-rise", rise);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		//Assignment
-		message->info("get third value %d \n", rise);
-	}
-	if (cmd->isOptionSet("-fall")) {
-		bool fall = false;
-		bool res = cmd->getOptionValue("-fall", fall);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		//Assignment
-		message->info("get fourth value %d \n", fall);
-	}
-	if (cmd->isOptionSet("-high")) {
-		bool high = false;
-		bool res = cmd->getOptionValue("-high", high);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		//Assignment
-		message->info("get fifth value %d \n", high);
-	}
-	if (cmd->isOptionSet("-low")) {
-		bool low = false;
-		bool res = cmd->getOptionValue("-low", low);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		//Assignment
-		message->info("get sixth value %d \n", low);
-	}
-	if (cmd->isOptionSet("object_list")) {
-		std::vector<std::string> object_list;
-		bool res = cmd->getOptionValue("object_list", object_list);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		for (const auto &object : object_list) {
-			//TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-			message->info("get seventh value %s \n", object.c_str());
-		}
-	}
-	
-	return TCL_OK;
+    if (!(	(cmd->isOptionSet("-setup") or cmd->isOptionSet("-hold") or cmd->isOptionSet("-high") or cmd->isOptionSet("-low")) and
+    		(!(cmd->isOptionSet("-high") and cmd->isOptionSet("-low")))
+    )) {
+    	return TCL_ERROR;
+    }
+    SdcPtr sdc = getSdc();
+    auto container = sdc->getClockGatingCheckContainer();
+    auto container_data = container->getData();
+    SetClockGatingCheckPtr clock_gating_check = std::make_shared<SetClockGatingCheck>();
+    if (cmd->isOptionSet("-setup")) {
+    	double setup = 0.0;
+    	bool res = cmd->getOptionValue("-setup", setup);
+    	if (!res) {
+            //TODO messages
+            return TCL_ERROR;
+    	}
+        clock_gating_check->setSetup(setup);
+    }
+    if (cmd->isOptionSet("-hold")) {
+    	double hold = 0.0;
+    	bool res = cmd->getOptionValue("-hold", hold);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+        clock_gating_check->setHold(hold);
+    }
+    if (cmd->isOptionSet("-rise")) {
+    	bool rise = false;
+    	bool res = cmd->getOptionValue("-rise", rise);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+        clock_gating_check->setRise();
+    }
+    if (cmd->isOptionSet("-fall")) {
+    	bool fall = false;
+    	bool res = cmd->getOptionValue("-fall", fall);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+        clock_gating_check->setFall();
+    }
+    if (cmd->isOptionSet("-high")) {
+    	bool high = false;
+    	bool res = cmd->getOptionValue("-high", high);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+        clock_gating_check->setHigh();
+    }
+    if (cmd->isOptionSet("-low")) {
+    	bool low = false;
+    	bool res = cmd->getOptionValue("-low", low);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+        clock_gating_check->setLow();
+    }
+    clock_gating_check->checkFlags();
+    if (cmd->isOptionSet("object_list")) {
+    	std::vector<std::string> object_list;
+    	bool res = cmd->getOptionValue("object_list", object_list);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+        const auto &clock_container = sdc->getClockContainer();
+    	for (const auto &object_name : object_list) {
+            //Priority
+            // Pin > Inst > Clock
+            bool success = container_data->addToPin(object_name, clock_gating_check);
+            if (success) {
+                continue;
+            }
+            success = container_data->addToInst(object_name, clock_gating_check);
+            if (success) {
+                continue;
+            }
+            const auto &clock = clock_container->getClock(object_name);
+            if (clock) {
+                const auto &clock_id = clock->getId();
+                container_data->addToClock(clock_id, clock_gating_check);
+                continue;
+            }
+            //TODO not match any object error messages
+    	}
+    } else {
+        const auto &design_container = sdc->getCurrentDesignContainer();
+        const auto &design_cell_id = design_container->getDesignId();
+        container_data->addToCurrentDesign(design_cell_id, clock_gating_check);
+    }
+    return TCL_OK;
 }
-//05 set_clock_groups
+
 int parseSdcSetClockGroups(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
 	Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);

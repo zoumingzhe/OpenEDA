@@ -207,67 +207,94 @@ std::ostream &operator<<(std::ostream &os, SdcClockContainer &rhs) {
     return os;
 }
 
-const SetClockGatingCheckPtr SdcClockGatingCheckContainer::getClockGatingCheckOnPin(const ObjectId &pin_id) const {
+const SetClockGatingCheckPtr SdcClockGatingCheckContainer::getCurrentDesignCheckTime() const {
+    const auto &cell = getTopCell();
+    const auto &cell_id = cell->getId();
+    const auto &design_to_check = data_->getDesignToCheck();
+    const auto &found = design_to_check.find(cell_id); 
+    if (found == design_to_check.end()) {
+        return nullptr;
+    }
+    return found->second;
+}
+
+const std::pair<float, float> SdcClockGatingCheckContainer::getPinCheckTime(bool is_rise, bool is_high, const ObjectId &pin_id) const {
+    const auto &design_check = getCurrentDesignCheckTime();
+    if (design_check) {
+        return std::pair<float, float>(design_check->getSetup(), design_check->getHold());
+    }
+    //TODO need to consider the instance check?
     const auto &pin_to_check = data_->getPinToCheck();
-    const auto &found = pin_to_check.find(pin_id); 
-    if (found == pin_to_check.end()) {
-        return nullptr;
+    const auto &range = pin_to_check.equal_range(pin_id);
+    for(auto it = range.first; it != range.second; ++it) {
+        const auto &check = it->second;
+        if (!check) {
+            // error messages
+            continue;
+        }
+        if (check->getRise()!=is_rise or check->getHigh()!=is_high) {
+            continue;
+        }
+        return std::pair<float, float>(check->getSetup(), check->getHold());
     }
-    return found->second;
+    return std::pair<float, float>(0, 0);
 }
 
-const SetClockGatingCheckPtr  SdcClockGatingCheckContainer::getClockGatingCheckOnCell(const ObjectId &cell_id) const {
-    const auto &cell_to_check = data_->getCellToCheck();
-    const auto &found = cell_to_check.find(cell_id);
-    if (found == cell_to_check.end()) {
-        return nullptr;
+const std::pair<float, float> SdcClockGatingCheckContainer::getInstCheckTime(bool is_rise, bool is_high, const ObjectId &inst_id) const {
+    const auto &design_check = getCurrentDesignCheckTime();
+    if (design_check) {
+        return std::pair<float, float>(design_check->getSetup(), design_check->getHold());
     }
-    return found->second;
+    const auto &inst_to_check = data_->getInstToCheck();
+    const auto &range = inst_to_check.equal_range(inst_id);
+    for(auto it = range.first; it != range.second; ++it) {
+        const auto &check = it->second;
+        if (!check) {
+            // error messages
+            continue;
+        }
+        if (check->getRise()!=is_rise or check->getHigh()!=is_high) {
+            continue;
+        }
+        return std::pair<float, float>(check->getSetup(), check->getHold());
+    }
+    return std::pair<float, float>(0, 0);
 }
 
-const SetClockGatingCheckPtr SdcClockGatingCheckContainer::getClockGatingCheckOnClock(const ClockId &clock_id) const {
+const std::pair<float, float> SdcClockGatingCheckContainer::getClockCheckTime(bool is_rise, bool is_high, const ClockId &clock_id) const {
+    const auto &design_check = getCurrentDesignCheckTime();
+    if (design_check) {
+        return std::pair<float, float>(design_check->getSetup(), design_check->getHold());
+    }
     const auto &clock_to_check = data_->getClockToCheck();
-    const auto &found = clock_to_check.find(clock_id);
-    if (found == clock_to_check.end()) {
-        return nullptr;
+    const auto &range = clock_to_check.equal_range(clock_id);
+    for(auto it = range.first; it != range.second; ++it) {
+        const auto &check = it->second;
+        if (!check) {
+            // error messages
+            continue;
+        }
+        if (check->getRise()!=is_rise or check->getHigh()!=is_high) {
+            continue;
+        }
+        return std::pair<float, float>(check->getSetup(), check->getHold());
     }
-    return found->second;
+    return std::pair<float, float>(0, 0);
 }
 
 const float SdcClockGatingCheckContainer::getPinCheckTime(bool is_rise, bool is_high, bool is_setup, const ObjectId &pin_id) const {
-    const auto &check = getClockGatingCheckOnPin(pin_id);
-    if (!check) {
-        // error messages
-        return 0.0;
-    }
-    if (check->getRise()!=is_rise or check->getHigh()!=is_high) {
-        return 0.0;
-    }
-    return is_setup ? check->getSetup() : check->getHold();
+   const std::pair<float, float>& setup_hold = getPinCheckTime(is_rise, is_high, pin_id); 
+   return is_setup ? setup_hold.first : setup_hold.second;
 }
 
-const float SdcClockGatingCheckContainer::getCellCheckTime(bool is_rise, bool is_high, bool is_setup, const ObjectId &cell_id) const {
-    const auto &check = getClockGatingCheckOnCell(cell_id);
-    if (!check) {
-        // error messages
-        return 0.0;
-    }
-    if (check->getRise()!=is_rise or check->getHigh()!=is_high) {
-        return 0.0;
-    }
-    return is_setup ? check->getSetup() : check->getHold();
+const float SdcClockGatingCheckContainer::getInstCheckTime(bool is_rise, bool is_high, bool is_setup, const ObjectId &inst_id) const {
+   const std::pair<float, float>& setup_hold = getInstCheckTime(is_rise, is_high, inst_id); 
+   return is_setup ? setup_hold.first : setup_hold.second;
 }
 
 const float SdcClockGatingCheckContainer::getClockCheckTime(bool is_rise, bool is_high, bool is_setup, const ClockId &clock_id) const {
-    const auto &check = getClockGatingCheckOnClock(clock_id);
-    if (!check) {
-        // error messages
-        return 0.0;
-    }
-    if (check->getRise()!=is_rise or check->getHigh()!=is_high) {
-        return 0.0;
-    }
-    return is_setup ? check->getSetup() : check->getHold();
+   const std::pair<float, float>& setup_hold = getClockCheckTime(is_rise, is_high, clock_id); 
+   return is_setup ? setup_hold.first : setup_hold.second;
 }
 
 void SdcClockGroupsContainer::findClocks(std::vector<ClockId> &clocks, const ClockId &clock_id, const GroupRelationshipType &type) const {

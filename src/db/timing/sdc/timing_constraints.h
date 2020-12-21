@@ -202,6 +202,9 @@ class GroupPathContainerData {
 using GroupPathContainerDataPtr = std::shared_ptr<GroupPathContainerData>;
 
 class SetClockGatingCheck {
+  public:
+    void checkFlags();
+
   private:
     float setup_ = 0.0;
     float hold_ = 0.0;
@@ -218,19 +221,22 @@ using SetClockGatingCheckPtr = std::shared_ptr<SetClockGatingCheck>;
 
 class ClockGatingCheckContainerData {
   public:
-    void addToPin(const ObjectId pin_id, const SetClockGatingCheckPtr &check) { pin_to_check_.emplace(pin_id, check); }
-    void addToCell(const ObjectId cell_id, const SetClockGatingCheckPtr &check) { cell_to_check_.emplace(cell_id, check); }
-    void addToClock(const ClockId clock_id, const SetClockGatingCheckPtr &check) { clock_to_check_.emplace(clock_id, check); }
+    bool addToPin(const std::string &pin_name, const SetClockGatingCheckPtr &check);
+    bool addToInst(const std::string &inst_name, const SetClockGatingCheckPtr &check); 
+    void addToClock(const ClockId &clock_id, const SetClockGatingCheckPtr &check) { clock_to_check_.emplace(clock_id, check); }
+    void addToCurrentDesign(const ObjectId &cell_id, const SetClockGatingCheckPtr &check) { design_to_check_.emplace(cell_id, check); }
 
   private:
-    std::unordered_map<ObjectId, SetClockGatingCheckPtr> pin_to_check_;
-    std::unordered_map<ObjectId, SetClockGatingCheckPtr> cell_to_check_;
-    std::unordered_map<ClockId, SetClockGatingCheckPtr> clock_to_check_; 
+    std::unordered_multimap<ObjectId, SetClockGatingCheckPtr> pin_to_check_;
+    std::unordered_multimap<ObjectId, SetClockGatingCheckPtr> inst_to_check_;
+    std::unordered_multimap<ClockId, SetClockGatingCheckPtr> clock_to_check_; 
+    std::unordered_map<ObjectId, SetClockGatingCheckPtr> design_to_check_;
 
   public:
     COMMAND_GET_SET_VAR(pin_to_check, PinToCheck)
-    COMMAND_GET_SET_VAR(cell_to_check, CellToCheck)
+    COMMAND_GET_SET_VAR(inst_to_check, InstToCheck)
     COMMAND_GET_SET_VAR(clock_to_check, ClockToCheck)
+    COMMAND_GET_SET_VAR(design_to_check, DesignToCheck)
 };
 using ClockGatingCheckContainerDataPtr = std::shared_ptr<ClockGatingCheckContainerData>;
 
