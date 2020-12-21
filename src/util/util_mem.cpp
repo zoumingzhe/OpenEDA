@@ -394,11 +394,7 @@ void MemPagePool::__writeChunks(IOManager &io_manager, bool debug) {
     compress_block.setMaxBufferSize(chunk_size_);
 
     CompressManager cm(kCompressZip, &io_manager);
-
-    MonitorId monitor_id = createMonitor();
     cm.compress(compress_block);
-    outputMonitor(monitor_id, kElapsedTime, "writeChunks", true);
-    destroyMonitor(monitor_id);
 
     for (auto io_buffer : io_buffers) {
         delete io_buffer;
@@ -431,10 +427,7 @@ void MemPagePool::__readChunks(IOManager &io_manager, bool debug) {
 
     CompressManager cm(kCompressLz4, &io_manager);
 
-    MonitorId monitor_id = createMonitor();
     cm.decompress(compress_block);
-    outputMonitor(monitor_id, kElapsedTime, "readChunks", true);
-    destroyMonitor(monitor_id);
 
     for (int i = 0; i < num_chunks_; ++i) {
         io_buffer = io_buffers[i];
