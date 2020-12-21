@@ -210,9 +210,9 @@ uint64_t Row::getNumProperties() const {
     return addr<IdArray>(properties_id_)->getSize();
 }
 
-void Row::addProperty(ObjectId obj_id) {
+ObjectId Row::addProperty(ObjectId obj_id) {
     IdArray *id_array_ptr = nullptr;
-    if (obj_id == 0) return;
+    if (obj_id == 0) return 0;
 
     if (properties_id_ == 0) {
         properties_id_ = __createObjectIdArray(16);
@@ -221,6 +221,8 @@ void Row::addProperty(ObjectId obj_id) {
     id_array_ptr = addr<IdArray>(properties_id_);
     ediAssert(id_array_ptr != nullptr);
     id_array_ptr->pushBack(obj_id);
+
+    return properties_id_;
 }
 
 ObjectId Row::getPropertiesId() const { return properties_id_; }
@@ -1289,9 +1291,9 @@ uint64_t Constraint::getNumProperties() const {
     return addr<IdArray>(properties_id_)->getSize();
 }
 
-void Constraint::addProperty(ObjectId obj_id) {
+ObjectId Constraint::addProperty(ObjectId obj_id) {
     IdArray *id_array_ptr = nullptr;
-    if (obj_id == 0) return;
+    if (obj_id == 0) return 0;
 
     if (properties_id_ == 0) {
         properties_id_ = __createObjectIdArray(16);
@@ -1300,6 +1302,7 @@ void Constraint::addProperty(ObjectId obj_id) {
     id_array_ptr = addr<IdArray>(properties_id_);
     ediAssert(id_array_ptr != nullptr);
     id_array_ptr->pushBack(obj_id);
+    return properties_id_;
 }
 
 ObjectId Constraint::getPropertiesId() const { return properties_id_; }

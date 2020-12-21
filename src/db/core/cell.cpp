@@ -703,7 +703,6 @@ Net *Cell::createNet(std::string &name) {
         message->issueMsg(kError, "create net %s failed.\n", name.c_str());
         return nullptr;
     }
-    net->setCell(getId());
     net->setName(name);
     addNet(net->getId());
     return net;

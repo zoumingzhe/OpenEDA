@@ -18,7 +18,6 @@
 #include "db/core/net.h"
 #include "db/core/scan_chain.h"
 #include "db/core/special_net.h"
-#include "db/core/special_wire.h"
 #include "db/core/via.h"
 #include "db/core/wire.h"
 #include "db/tech/tech.h"
@@ -38,8 +37,6 @@ int readDieArea(defiBox* io_die_area);
 // Net
 int readNet(defiNet* io_net);
 int readSpecialNet(defiNet* io_net);
-// Wire
-int readWire(defiWire* io_wire, Net* net);
 
 // Special Wire
 int readSpecialWire(defiWire* io_wire, SpecialNet* net);

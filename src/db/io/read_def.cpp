@@ -53,7 +53,8 @@ static void saveGroupMember(char* name);
 static void clearGroupMember();
 
 template <class from_t, class to_t>
-static void readProperties(PropType prop_type, void* from, void* to) {
+static ObjectId readProperties(PropType prop_type, void* from, void* to) {
+    ObjectId property_array = 0;
     from_t* from_object = reinterpret_cast<from_t*>(from);
     to_t* to_object = reinterpret_cast<to_t*>(to);
 
@@ -75,8 +76,10 @@ static void readProperties(PropType prop_type, void* from, void* to) {
         if (from_object->propIsString(i)) {
             property->setStringValue(from_object->propValue(i));
         }
-        to_object->addProperty(property->getId());
+        property_array = to_object->addProperty(property->getId());
     }
+
+    return property_array;
 }
 
 void myLogFunction(const char* errMsg) {
@@ -1205,6 +1208,7 @@ int getRegularWireRouteStatus(const char* status) {
     return 0;
 }
 
+/*
 int readSubNet(defiNet* io_net, Net* net) {
     defiSubnet* io_sub_net;
     Net* sub_net;
@@ -1217,7 +1221,6 @@ int readSubNet(defiNet* io_net, Net* net) {
             std::string sub_net_name = io_sub_net->name();
             sub_net = net->createSubNet(sub_net_name);
             sub_net->setIsSubNet(1);
-            sub_net->setCell(top_cell->getId());
 
             if (io_sub_net->hasNonDefaultRule()) {
                 std::string rule_name = io_sub_net->nonDefaultRule();
@@ -1243,56 +1246,75 @@ int readSubNet(defiNet* io_net, Net* net) {
             if (io_sub_net->numWires()) {
                 for (int k = 0; k < io_sub_net->numWires(); k++) {
                     defiWire* wire = io_sub_net->wire(k);
-                    readWire(wire, sub_net);
+                    // readWire(wire, sub_net);
                 }
             }
             net->addSubNet(sub_net);
         }
     }
     return 0;
+}*/
+
+int getWireWidth(NonDefaultRule* ndr_rule, const char* layer_name) {
+    Tech* lib = getTopCell()->getTechLib();
+    int width = 0;
+    if (ndr_rule) {
+        NonDefaultRuleLayer* rule_layer =
+            ndr_rule->getNonDefaultRuleLayerByName(layer_name);
+        if (rule_layer) {  // get width by NDR
+            width = rule_layer->getWidth();
+        } else {  // get width by layer
+            Layer* layer = lib->getLayerByName(layer_name);
+            width = layer->getWidth();
+        }
+    } else {  // get width by layer
+        Layer* layer = lib->getLayerByName(layer_name);
+        width = layer->getWidth();
+    }
+
+    return width;
 }
 
-int readWire(defiWire* io_wire, Net* net) {
+int readWire(defiWire* io_wire, Net* net, NonDefaultRule* ndr_rule,
+             ObjectId& patches) {
     int status = getRegularWireRouteStatus(io_wire->wireType());
     Tech* lib = getTopCell()->getTechLib();
-    std::string layername;
+    std::string layer_name;
+    bool first_wire = true;
     int new_layer = 0;
     int next_path_type = 0;
     int node_num = 0, mask_num = 0, via_mask_num = 0;
     int w = 0, x = 0, y = 0, z = 0, ext = 0;
+    int x_prev = 0, y_prev = 0, ext_prv = 0;
     int layer_num = 0;
     int width = 0;
-    int new_section_start_flag = 0;
     int via_upper_mask = 0, via_cut_mask = 0, via_lower_mask = 0;
-    bool hash_mask = false;
+    bool has_mask = false;
     bool hash_via_mask = false;
     int hash_taper = 0;
     int style = 0;
-    int is_start_node = 0;
     std::string taperRule = "";
-
     WirePatch* patch = nullptr;
-    WireNode *wire_node_prev = nullptr, *wire_node_current = nullptr;
-    WireGraph* wire_graph = nullptr;
-    Wire* edge = nullptr;
-
-    wire_graph = net->creatGraph();
-    net->addGraph(wire_graph);
-    wire_graph->setStatus(status);
+    Wire* wire = nullptr;
+    ViaMaster* via_master = nullptr;
+    Via* via = nullptr;
 
     for (int j = 0; j < io_wire->numPaths(); j++) {
         defiPath* p = io_wire->path(j);
         p->initTraverse();
         while ((next_path_type = static_cast<int>(p->next())) !=
                DEFIPATH_DONE) {
+            std::string via_master_name = "";
             switch (next_path_type) {
                 case DEFIPATH_LAYER:
-                    layername = p->getLayer();
-                    is_start_node = 1;
-                    if (new_layer == 0 && node_num != 0) {
+                    layer_name = p->getLayer();
+                    node_num = 0;
+                    if (new_layer == 0) {
                         new_layer = 1;
                     }
-                    layer_num = lib->getLayerLEFIndexByName(layername.c_str());
+                    // get width
+                    width = getWireWidth(ndr_rule, layer_name.c_str());
+                    layer_num = lib->getLayerLEFIndexByName(layer_name.c_str());
                     break;
                 case DEFIPATH_TAPER:
                     hash_taper = 1;
@@ -1305,98 +1327,84 @@ int readWire(defiWire* io_wire, Net* net) {
                     break;
                 case DEFIPATH_POINT:
                     p->getPoint(&x, &y);
-                    if (node_num == 0) {
-                        wire_node_current =
-                            wire_graph->creatWireNode(x, y, layer_num);
-                        wire_graph->addWireNode(wire_node_current);
-                    } else {
-                        wire_node_current =
-                            wire_graph->creatWireNode(x, y, layer_num);
-                        wire_graph->addWireNode(wire_node_current);
-                        if (!new_layer) {
-                            edge = wire_graph->creatWireEdge(wire_node_prev,
-                                                             wire_node_current);
-                            if (edge) {
-                                wire_node_prev->addOutEdgeList(edge);
-                                edge->setNet(net);
-                            }
-                        }
-                    }
-
-                    if (hash_mask) {  // set mask
-                        wire_node_current->setMask(mask_num);
-                        hash_mask = false;
-                    }
-
-                    if (is_start_node) {
-                        wire_node_current->setIsStartNode(1);
-                        wire_node_current->setIsNewLayer(new_layer);
-                        wire_node_current->setStyle(style);
-                        if (hash_taper) wire_node_current->setHasTaper(1);
-                        if (taperRule.size() != 0) {
-                            wire_node_current->setTaperRule(taperRule.c_str());
-                            wire_node_current->setHasTaperRule(1);
-                        }
-                        is_start_node = 0;
-                        new_layer = 0;
-                        hash_taper = 0;
-                        taperRule = "";
-                        style = 0;
-                    }
-
-                    wire_node_prev = wire_node_current;
                     node_num++;
+                    if (x == x_prev && y == y_prev)
+                        break;  // skip the same point
+
+                    if (node_num % 2 == 0) {
+                        // create and save the wire
+                        wire = net->createWire(x_prev, y_prev, x, y, width);
+                        if (wire) {
+                            wire->setLayerNum(layer_num);
+                            if (x_prev == x) {
+                                wire->setOrient(1);  // vertical
+                            } else {
+                                wire->setOrient(0);  // horizental
+                            }
+                            // record first wire for status out put
+                            if (first_wire) {
+                                extern std::map<ObjectId, int> wire_status_map;
+                                wire_status_map.insert(std::pair<ObjectId, int>(
+                                    wire->getId(), status));
+
+                                first_wire = false;
+                            }
+
+                            // record mask info
+                            if (has_mask) {
+                                extern std::map<ObjectId, int> wire_mask_map;
+                                wire_mask_map.insert(std::pair<ObjectId, int>(
+                                    wire->getId(), mask_num));
+                                has_mask = false;
+                            }
+                            net->addWire(wire);
+                        }
+                    }
+
+                    x_prev = x;
+                    y_prev = y;
                     break;
                 case DEFIPATH_FLUSHPOINT:
                     p->getFlushPoint(&x, &y, &ext);
-
-                    if (node_num == 0) {
-                        wire_node_current =
-                            wire_graph->creatWireNode(x, y, layer_num);
-                        wire_graph->addWireNode(wire_node_current);
-                    } else {
-                        wire_node_current =
-                            wire_graph->creatWireNode(x, y, layer_num);
-                        wire_graph->addWireNode(wire_node_current);
-                        if (!new_layer) {
-                            edge = wire_graph->creatWireEdge(wire_node_prev,
-                                                             wire_node_current);
-                            if (edge) {
-                                edge->setNet(net);
-                                wire_node_prev->addOutEdgeList(edge);
-                            }
-                        }
-                    }
-
-                    if (hash_mask) {  // set mask
-                        wire_node_current->setMask(mask_num);
-                        hash_mask = false;
-                    }
-
-                    if (is_start_node) {
-                        wire_node_current->setStyle(style);
-                        wire_node_current->setIsStartNode(1);
-                        wire_node_current->setIsNewLayer(new_layer);
-                        if (hash_taper) wire_node_current->setHasTaper(1);
-                        if (taperRule.size() != 0) {
-                            wire_node_current->setTaperRule(taperRule.c_str());
-                            wire_node_current->setHasTaperRule(1);
-                        }
-                        is_start_node = 0;
-                        new_layer = 0;
-                        style = 0;
-                        hash_taper = 0;
-                        taperRule = "";
-                    }
-
-                    wire_node_current->setExtension(ext);
-
-                    wire_node_prev = wire_node_current;
                     node_num++;
+                    if (x == x_prev && y == y_prev)
+                        break;  // skip the same point
+
+                    if (node_num % 2 == 0) {
+                        // create and save the wire
+                        wire = net->createWire(x_prev, y_prev, x, y, width);
+                        if (wire) {
+                            wire->setLayerNum(layer_num);
+                            if (x_prev == x) {
+                                wire->setOrient(1);  // vertical
+                            } else {
+                                wire->setOrient(0);  // horizental
+                            }
+                            // record first wire for status out put
+                            if (first_wire) {
+                                extern std::map<ObjectId, int> wire_status_map;
+                                wire_status_map.insert(std::pair<ObjectId, int>(
+                                    wire->getId(), status));
+
+                                first_wire = false;
+                            }
+
+                            // record mask info
+                            if (has_mask) {
+                                extern std::map<ObjectId, int> wire_mask_map;
+                                wire_mask_map.insert(std::pair<ObjectId, int>(
+                                    wire->getId(), mask_num));
+                                has_mask = false;
+                            }
+                            net->addWire(wire);
+                        }
+                    }
+                    x_prev = x;
+                    y_prev = y;
                     break;
                 case DEFIPATH_MASK:
                     mask_num = p->getMask();
-                    hash_mask = true;
+                    has_mask = true;
                     break;
                 case DEFIPATH_VIAMASK:
                     hash_via_mask = true;
@@ -1405,29 +1413,67 @@ int readWire(defiWire* io_wire, Net* net) {
                     via_lower_mask = p->getViaBottomMask();
                     break;
                 case DEFIPATH_VIA:
-                    wire_node_prev->setIsVia(1);
-                    wire_node_prev->setViaName(const_cast<char*>(p->getVia()));
+                    via_master_name = p->getVia();
+                    via_master = lib->getViaMaster(via_master_name);
+                    if (via_master) {
+                        Via* via = net->createVia(x_prev, y_prev, via_master);
+                        net->addVia(via);
+                    } else {
+                        message->info("ERROR: cannot find the via: %s\n",
+                                      p->getVia());
+                    }
                     break;
                 case DEFIPATH_VIAROTATION:
                     fprintf(fout, "% ", orientStr(p->getViaRotation()));
                     break;
                 case DEFIPATH_RECT:
                     p->getViaRect(&w, &x, &y, &z);
-                    patch = wire_node_current->creatPatch(w, x, y, z);
+                    patch =
+                        net->creatPatch(x_prev, y_prev, w, x, y, z, layer_num);
+                    patches = net->addPatch(patch, patches);
                     break;
                 case DEFIPATH_VIRTUALPOINT:
                     p->getVirtualPoint(&x, &y);
-                    wire_node_current =
-                        wire_graph->creatWireNode(x, y, layer_num);
-                    wire_node_current->setIsVirtul(1);
-                    wire_graph->addWireNode(wire_node_current);
-                    edge = wire_graph->creatWireEdge(wire_node_prev,
-                                                     wire_node_current);
-                    if (edge) {
-                        edge->setNet(net);
-                        wire_node_prev->addOutEdgeList(edge);
+                    p->getFlushPoint(&x, &y, &ext);
+                    node_num++;
+                    if (x == x_prev && y == y_prev)
+                        break;  // skip the same point
+
+                    if (node_num % 2 == 0) {
+                        // create and save the wire
+                        wire = net->createWire(x_prev, y_prev, x, y, width);
+                        if (wire) {
+                            wire->setLayerNum(layer_num);
+                            if (x_prev == x) {
+                                wire->setOrient(1);  // vertical
+                            } else {
+                                wire->setOrient(0);  // horizental
+                            }
+                            // record first wire for status out put
+                            if (first_wire) {
+                                extern std::map<ObjectId, int> wire_status_map;
+                                wire_status_map.insert(std::pair<ObjectId, int>(
+                                    wire->getId(), status));
+
+                                first_wire = false;
+                            }
+
+                            // record mask info
+                            if (has_mask) {
+                                extern std::map<ObjectId, int> wire_mask_map;
+                                wire_mask_map.insert(std::pair<ObjectId, int>(
+                                    wire->getId(), mask_num));
+                                has_mask = false;
+                            }
+                            extern std::map<ObjectId, bool> wire_virtual_map;
+                            wire_virtual_map.insert(
+                                std::pair<ObjectId, bool>(wire->getId(), 1));
+
+                            net->addWire(wire);
+                        }
                     }
-                    wire_node_prev = wire_node_current;
+                    x_prev = x;
+                    y_prev = y;
                     break;
                 case DEFIPATH_WIDTH:
                     width = p->getWidth();
@@ -1495,14 +1541,19 @@ NetType getNetType(const char* type) {
 }
 
 SpecialNetType getSpecialNetType(const char* type) {
-    if (strcmp(type, "ANALOG") == 0) return SpecialNetType::kSpecialNetTypeAnalog;
+    if (strcmp(type, "ANALOG") == 0)
+        return SpecialNetType::kSpecialNetTypeAnalog;
     if (strcmp(type, "CLOCK") == 0) return SpecialNetType::kSpecialNetTypeClock;
-    if (strcmp(type, "GROUND") == 0) return SpecialNetType::kSpecialNetTypeGround;
+    if (strcmp(type, "GROUND") == 0)
+        return SpecialNetType::kSpecialNetTypeGround;
     if (strcmp(type, "POWER") == 0) return SpecialNetType::kSpecialNetTypePower;
-    if (strcmp(type, "RESET") == 0) return SpecialNetType::kSpecialNetTypeReset;
+    if (strcmp(type, "RESET") == 0)
+        return SpecialNetType::kSpecialNetTypeReset;
     if (strcmp(type, "SCAN") == 0) return SpecialNetType::kSpecialNetTypeScan;
-    if (strcmp(type, "SIGNAL") == 0) return SpecialNetType::kSpecialNetTypeSignal;
-    if (strcmp(type, "TIEOFF") == 0) return SpecialNetType::kSpecialNetTypeTieOff;
+    if (strcmp(type, "SIGNAL") == 0)
+        return SpecialNetType::kSpecialNetTypeSignal;
+    if (strcmp(type, "TIEOFF") == 0)
+        return SpecialNetType::kSpecialNetTypeTieOff;
     return SpecialNetType::kSpecialNetTypeUnknown;
 }
 
@@ -1514,37 +1565,36 @@ int getNetPattern(const char* pattern) {
     return 0;
 }
 
-int readRectSpecialWire(defiNet* net) {
+int readRectSpecialWire(defiNet* io_net, SpecialNet* net) {
     Tech* lib = getTopCell()->getTechLib();
-    SpecialWire* wire = nullptr;
+    Wire* wire = nullptr;
     Via* via = nullptr;
-    if (net->numRectangles()) {
-        for (int i = 0; i < net->numRectangles(); i++) {
-            wire = new SpecialWire();
-            int status = getSpecialWireRouteStatus(net->rectRouteStatus(i));
-            wire->setStatus(status);
+    if (io_net->numRectangles()) {
+        for (int i = 0; i < io_net->numRectangles(); i++) {
+            wire = net->createWire(io_net->xl(i), io_net->yl(i), io_net->xh(i),
+                                   io_net->yh(i));
+            net->addWire(wire);
 
-            if (strcmp(net->rectShapeType(i), "") != 0) {
-                wire->setShapeName(const_cast<char*>(net->rectShapeType(i)));
-            }
+            // int status =
+            // getSpecialWireRouteStatus(io_net->rectRouteStatus(i));
+            // wire->setStatus(status);
 
-            wire->setMask(net->rectMask(i));
-            Box box = Box(net->xl(i), net->yl(i), net->xh(i), net->yh(i));
-            wire->setBox(box);
+            // if (strcmp(io_net->rectShapeType(i), "") != 0) {
+            //    wire->setShapeName(const_cast<char*>(io_net->rectShapeType(i)));
         }
     }
 
-    if (net->numViaSpecs()) {
-        for (int i = 0; i < net->numViaSpecs(); i++) {
-            ViaMaster* via_master = lib->getViaMaster(net->viaName(i));
+    if (io_net->numViaSpecs()) {
+        for (int i = 0; i < io_net->numViaSpecs(); i++) {
+            ViaMaster* via_master = lib->getViaMaster(io_net->viaName(i));
             if (via_master) {
-                // via_master->getViaLayer(0)->addMask(net->topMaskNum(i));
-                // via_master->getViaLayer(1)->addMask(net->cutMaskNum(i));
-                // via_master->getViaLayer(2)->addMask(net->bottomMaskNum(i));
+                // via_master->getViaLayer(0)->addMask(io_net->topMaskNum(i));
+                // via_master->getViaLayer(1)->addMask(io_net->cutMaskNum(i));
+                // via_master->getViaLayer(2)->addMask(io_net->bottomMaskNum(i));
             }
-            int status = getSpecialWireRouteStatus(net->rectRouteStatus(i));
-            int orient = getOrientStatus(net->viaOrientStr(i));
-            defiPoints points = net->getViaPts(i);
+            int status = getSpecialWireRouteStatus(io_net->rectRouteStatus(i));
+            int orient = getOrientStatus(io_net->viaOrientStr(i));
+            defiPoints points = io_net->getViaPts(i);
             for (int jj = 0; jj < points.numPoints; jj++) {
                 via = new Via();
                 if (via_master) via->setMaster(via_master);
@@ -1577,7 +1627,8 @@ int readBlockage(defiBlockage* io_blockage) {
     }
 
     if (io_blockage->hasLayer()) {
-        Int32 layer_id = tech_lib->getLayerLEFIndexByName(io_blockage->layerName());
+        Int32 layer_id =
+            tech_lib->getLayerLEFIndexByName(io_blockage->layerName());
         if (layer_id < 0) {
             message->issueMsg(kError, "Cannot find layer %s in LEF.\n",
                               io_blockage->layerName());
@@ -1666,22 +1717,16 @@ int readSpecialWire(defiWire* io_wire, SpecialNet* net) {
     int layer_num = 0;
     int new_section_start_flag = 0;
     int via_upper_mask = 0, via_cut_mask = 0, via_lower_mask = 0;
-    bool hash_mask = false;
+    int x_prev = 0, y_prev = 0, ext_prv = 0;
+    bool has_mask = false;
     bool hash_via_mask = false;
     int shape = 0;
     int width = 0;
 
+    Wire* wire = nullptr;
     Via* via = nullptr;
     ViaMaster* via_master = nullptr;
-    SpecialWireNode *wire_node_prev = nullptr, *wire_node_current = nullptr;
-    SpecialWireGraph* wire_graph = nullptr;
-    SpecialWireEdge* edge = nullptr;
-    SpecialWireSection* wire_section;
-    wire_section = net->createWireSection();
-    wire_section->setStatus(getSpecialWireRouteStatus(io_wire->wireType()));
-    if (4 == wire_section->getStatus()) {
-        wire_section->setShieldNetName(io_wire->wireShieldNetName());
-    }
+
     for (int j = 0; j < io_wire->numPaths(); j++) {
         defiPath* p = io_wire->path(j);
         p->initTraverse();
@@ -1690,74 +1735,45 @@ int readSpecialWire(defiWire* io_wire, SpecialNet* net) {
             switch (next_path_type) {
                 case DEFIPATH_LAYER:
                     layername = p->getLayer();
-                    wire_graph = wire_section->creatGraph();
                     node_num = 0;
-                    wire_section->addGraph(wire_graph);
                     if (new_layer == 0) {
-                        wire_graph->setIsNewLayer(0);
                         new_layer = 1;
-                    } else {
-                        wire_graph->setIsNewLayer(1);
                     }
                     layer_num = lib->getLayerLEFIndexByName(layername.c_str());
                     break;
                 case DEFIPATH_SHAPE:
                     shape = getShapeStatus(p->getShape());
-                    wire_graph->setShape(shape);
                     break;
                 case DEFIPATH_STYLE:
-                    wire_graph->setStyle(p->getStyle());
                     break;
                 case DEFIPATH_POINT:
                     p->getPoint(&x, &y);
-                    wire_node_current =
-                        wire_graph->createSpecialWireNode(x, y, layer_num);
-                    wire_graph->addWireNode(wire_node_current);
-                    if (hash_mask) {  // set mask
-                        wire_node_current->setMask(mask_num);
-                        hash_mask = false;
-                    }
-
-                    if (width != 0 && node_num == 0) {
-                        wire_graph->setWidth(width);
-                        width = 0;
-                    }
-
-                    if (node_num != 0) {
-                        edge = new SpecialWireEdge(wire_node_prev,
-                                                   wire_node_current);
-                        wire_node_prev->addOutEdgeList(edge);
-                    }
-                    wire_node_prev = wire_node_current;
                     node_num++;
+                    if (node_num % 2 == 1) {
+                        x_prev = x;
+                        y_prev = y;
+                    } else {
+                        // create and save the wire
+                        wire = net->createWire(x_prev, y_prev, x, y, width);
+                        net->addWire(wire);
+                    }
                     break;
                 case DEFIPATH_FLUSHPOINT:
                     p->getFlushPoint(&x, &y, &ext);
-                    wire_node_current =
-                        wire_graph->createSpecialWireNode(x, y, layer_num);
-                    wire_graph->addWireNode(wire_node_current);
-                    wire_node_current->setExtension(ext);
-                    if (hash_mask) {  // set mask
-                        wire_node_current->setMask(mask_num);
-                        hash_mask = false;
-                    }
-
-                    if (width != 0 && node_num == 0) {
-                        wire_graph->setWidth(width);
-                        width = 0;
-                    }
-
-                    if (node_num != 0) {
-                        edge = new SpecialWireEdge(wire_node_prev,
-                                                   wire_node_current);
-                        wire_node_prev->addOutEdgeList(edge);
-                    }
-                    wire_node_prev = wire_node_current;
                     node_num++;
+                    if (node_num % 2 == 1) {
+                        x_prev = x;
+                        y_prev = y;
+                    } else {
+                        // create and save the wire
+                        wire = net->createWire(x_prev, y_prev, x, y, width);
+                        net->addWire(wire);
+                    }
+
                     break;
                 case DEFIPATH_MASK:
                     mask_num = p->getMask();
-                    hash_mask = true;
+                    has_mask = true;
                     break;
                 case DEFIPATH_VIAMASK:
                     hash_via_mask = true;
@@ -1768,9 +1784,7 @@ int readSpecialWire(defiWire* io_wire, SpecialNet* net) {
                 case DEFIPATH_VIA:
                     via_master = lib->getViaMaster(p->getVia());
                     if (via_master) {
-                        wire_node_current->setIsVia(1);
-                        via = new Via(via_master);
-                        wire_node_current->setVia(via);
+                        Via* via = net->createVia(x_prev, y_prev, via_master);
                     } else {
                         message->info("ERROR: cannot find the via: %s\n",
                                       p->getVia());
@@ -1784,21 +1798,23 @@ int readSpecialWire(defiWire* io_wire, SpecialNet* net) {
                     break;
                 case DEFIPATH_VIADATA:
                     p->getViaData(&numX, &numY, &stepX, &stepY);
-                    if (via) {
-                        via->setIsArray(1);
-                        via->setCol(numX);
-                        via->setRow(numY);
-                        via->setSpaceX(stepX);
-                        via->setSpaceY(stepY);
+                    if (via_master) {
+                        for (int i = 0; i < numX; i++) {
+                            for (int j = 0; j < numY; j++) {
+                                int x = 0, y = 0;
+                                x = x_prev + i * stepX;
+                                y = y_prev + j * stepY;
+                                Via* via = net->createVia(x, y, via_master);
+                            }
+                        }
                     }
                     break;
             }
         }
     }
 
-    net->addWireSection(wire_section);
     return 0;
-}
+}  // namespace db
 
 int readSpecialNet(defiNet* io_net) {
     int i, j, k, w, x, y, z, count, newLayer;
@@ -1840,7 +1856,7 @@ int readSpecialNet(defiNet* io_net) {
 
     // RECT
 
-    readRectSpecialWire(io_net);
+    readRectSpecialWire(io_net, net);
 
     // NDR
 
@@ -1861,7 +1877,7 @@ int readSpecialNet(defiNet* io_net) {
 
     if (io_net->hasOriginal()) {
         SpecialNet* origin_net = top_cell->getSpecialNet(io_net->original());
-        if (net) net->setOriginNet(origin_net);
+        // if (net) net->setOriginNet(origin_net);
     }
 
     if (io_net->hasVoltage()) net->setVoltage(io_net->voltage());
@@ -1881,7 +1897,7 @@ int readSpecialNet(defiNet* io_net) {
 }
 
 int readNet(defiNet* io_net) {
-    int i, j, k, w, x, y, z, count, newLayer;
+    int i, j, k, w, x, y, z, count, newLayer, width;
     defiPath* p;
     defiSubnet* s;
     int path;
@@ -1898,7 +1914,6 @@ int readNet(defiNet* io_net) {
     if (net == 0) {
         return -1;
     }
-    net->setCell(top_cell->getId());
 
     if (io_net->pinIsMustJoin(0)) net->setMustJoin(1);
 
@@ -1924,25 +1939,32 @@ int readNet(defiNet* io_net) {
         }
     }
 
+    // sub net
+    // readSubNet(io_net, net);
+
+    // NDR
+    NonDefaultRule* ndr_rule = nullptr;
+
+    if (io_net->hasNonDefaultRule()) {
+        std::string rule_name = io_net->nonDefaultRule();
+        ndr_rule = lib->getNonDefaultRule(rule_name.c_str());
+        net->setNonDefaultRule(ndr_rule);
+    }
+
     // regularWiring
+    ObjectId patches = 0;
     if (io_net->numWires()) {
         for (i = 0; i < io_net->numWires(); i++) {
             wire = io_net->wire(i);
-            readWire(wire, net);
+            readWire(wire, net, ndr_rule, patches);
         }
     }
-
-    // sub net
-    readSubNet(io_net, net);
-
-    // NDR
-    if (io_net->hasNonDefaultRule()) {
-        std::string rule_name = io_net->nonDefaultRule();
-        net->setNonDefaultRule(
-            lib->getNonDefaultRuleIdByName(rule_name.c_str()));
-    }
+    extern std::map<ObjectId, ObjectId> patch_map;
+    if (patches)  // insert patches
+        patch_map.insert(std::pair<ObjectId, ObjectId>(net->getId(), patches));
 
     // VPin
+    ObjectId vpins = 0;
     for (i = 0; i < io_net->numVpins(); i++) {
         io_vpin = io_net->vpin(i);
         std::string io_vpin_name = io_vpin->name();
@@ -1964,9 +1986,11 @@ int readNet(defiNet* io_net) {
                 v_pin->setOrientation(io_vpin->orient() + 1);
             }
         }
-
-        net->addVPin(v_pin);
+        vpins = net->addVPin(v_pin);
     }
+    extern std::map<ObjectId, ObjectId> Vpin_map;
+    Vpin_map.insert(std::pair<ObjectId, ObjectId>(net->getId(), vpins));
+    vpins = 0;  // reset the vpins object id
 
     if (io_net->hasUse()) {
         NetType type = getNetType(io_net->use());
@@ -1982,14 +2006,18 @@ int readNet(defiNet* io_net) {
     if (io_net->hasFrequency()) {
         net->setFrequency(static_cast<int>(io_net->frequency()));
     }
-    if (io_net->hasOriginal()) net->setOriginNet(io_net->original());
+    // if (io_net->hasOriginal()) net->setOriginNet(io_net->original());
     if (io_net->hasPattern()) net->setPattern(getNetPattern(io_net->pattern()));
     if (io_net->hasCap()) net->setCapacitance(io_net->cap());
     if (io_net->hasWeight()) net->setWeight(io_net->weight());
 
-    readProperties<defiNet, Net>(PropType::kNet,
-                                 reinterpret_cast<void*>(io_net),
-                                 reinterpret_cast<void*>(net));
+    ObjectId properties = 0;
+    properties = readProperties<defiNet, Net>(PropType::kNet,
+                                              reinterpret_cast<void*>(io_net),
+                                              reinterpret_cast<void*>(net));
+    extern std::map<ObjectId, ObjectId> property_map;
+    property_map.insert(
+        std::pair<ObjectId, ObjectId>(net->getId(), properties));
 
     return 0;
 }
@@ -2404,7 +2432,8 @@ int readCompMaskShift(defiComponentMaskShiftLayer* co) {
         return ERROR;
     }
     for (int i = 0; i < co->numMaskShiftLayers(); ++i) {
-        Int32 layer_id = tech_lib->getLayerLEFIndexByName(co->maskShiftLayer(i));
+        Int32 layer_id =
+            tech_lib->getLayerLEFIndexByName(co->maskShiftLayer(i));
         if (layer_id < 0) {
             message->issueMsg(kError, "Cannot find layer %s in LEF.\n",
                               co->maskShiftLayer(i));
@@ -2413,7 +2442,8 @@ int readCompMaskShift(defiComponentMaskShiftLayer* co) {
     }
 
     for (int i = 0; i < co->numMaskShiftLayers(); ++i) {
-        Int32 layer_id = tech_lib->getLayerLEFIndexByName(co->maskShiftLayer(i));
+        Int32 layer_id =
+            tech_lib->getLayerLEFIndexByName(co->maskShiftLayer(i));
         top_cell->addMaskShiftLayer(layer_id);
     }
 
@@ -3051,7 +3081,7 @@ int readPin(defiPin* def_pin) {
                     lg->setdesignRuleWidth(port->layerDesignRuleWidth(i));
                 }
                 lg->setType(GeometryType::kRect);
-                Geometry* geo = 
+                Geometry* geo =
                     top_cell->createObject<Geometry>(kObjectTypeGeometry);
                 int xl, yl, xh, yh;
                 port->bounds(i, &xl, &yl, &xh, &yh);

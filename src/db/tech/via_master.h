@@ -148,7 +148,7 @@ class ViaMaster : public Object {
     ViaLayer* creatViaLayer(std::string& name);
 
     int addViaLayer(ViaLayer* via_layer);
-    void addProperty(ObjectId obj_id);
+    ObjectId addProperty(ObjectId obj_id);
 
     void print();
     void printLEF(std::ofstream& ofs, uint32_t num_spaces = 0);

@@ -123,9 +123,9 @@ void ViaRule::setPropertySize(uint64_t v) {
  *
  * @param obj_id
  */
-void ViaRule::addProperty(ObjectId obj_id) {
+ObjectId ViaRule::addProperty(ObjectId obj_id) {
     IdArray *vobj = nullptr;
-    if (obj_id == 0) return;
+    if (obj_id == 0) return 0;
 
     if (properties_ == 0) {
         properties_ = __createObjectIdArray(16);
@@ -135,6 +135,7 @@ void ViaRule::addProperty(ObjectId obj_id) {
     }
     ediAssert(vobj != nullptr);
     vobj->pushBack(obj_id);
+    return properties_;
 }
 
 ObjectId ViaRule::getPropertiesId() const { return properties_; }

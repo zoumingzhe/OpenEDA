@@ -521,6 +521,22 @@ ObjectId NonDefaultRule::getUseViaRulesId() const { return use_via_rules_; }
 
 ObjectId NonDefaultRule::getPropertiesId() const { return properties_; }
 
+NonDefaultRuleLayer *NonDefaultRule::getNonDefaultRuleLayerByName(
+    const char *layer_name) const {
+    if (layers_ == 0) return nullptr;
+
+    ArrayObject<ObjectId> *ndr_layer_vec = addr<ArrayObject<ObjectId>>(layers_);
+    for (auto iter = ndr_layer_vec->begin(); iter != ndr_layer_vec->end();
+         iter++) {
+        NonDefaultRuleLayer *ndr_layer = addr<NonDefaultRuleLayer>(*iter);
+        if (ndr_layer && !strcmp(ndr_layer->getName(), layer_name)) {
+            return ndr_layer;
+        }
+    }
+
+    return nullptr;
+}
+
 // Set:
 void NonDefaultRule::setName(const char *v) {
     SymbolIndex index = getTechLib()->getOrCreateSymbol(v);
@@ -657,8 +673,8 @@ void NonDefaultRule::addUseViaRule(ObjectId obj_id) {
     vobj->pushBack(obj_id);
 }
 
-void NonDefaultRule::addProperty(ObjectId obj_id) {
-    if (obj_id == 0) return;
+ObjectId NonDefaultRule::addProperty(ObjectId obj_id) {
+    if (obj_id == 0) return 0;
     ArrayObject<ObjectId> *vobj = nullptr;
     if (properties_ == 0) {
         properties_ = __createObjectIdArray(16);
@@ -666,6 +682,7 @@ void NonDefaultRule::addProperty(ObjectId obj_id) {
     vobj = addr< ArrayObject<ObjectId> >(properties_);
     ediAssert(vobj != nullptr);
     vobj->pushBack(obj_id);
+    return properties_;
 }
 
 void NonDefaultRule::setHardSpacing(bool v) { hard_spacing_ = v; }
