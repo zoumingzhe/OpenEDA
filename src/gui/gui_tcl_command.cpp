@@ -13,7 +13,7 @@ namespace gui {
 #define GUI_OFF_MODE                 "-no_gui"
 
 //set the default startup mode for gui
-#define DEFUALT_GUI_DISPLAY          true
+#define DEFUALT_GUI_DISPLAY          false
 
 #if (DEFUALT_GUI_DISPLAY==false)
 #define DEFUALT_GUI_STARTUP_MOD      GUI_ON_MODE 
