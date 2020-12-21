@@ -148,10 +148,10 @@ bool ReadDesign::__postWork() {
 }
 
 bool ReadDesign::__readCell() {
-    std::string dirname = cell_name_;
+    std::string dirname = read_dir_name_;
     std::string filename(dirname);
     filename.append("/");
-    filename.append(cell_name_);
+    filename.append(read_cell_name_);
 
     StorageUtil *storage_util = new StorageUtil(0);
     if (!__readSymFile(storage_util->getSymbolTable(), filename) ||
@@ -181,7 +181,7 @@ bool ReadDesign::__readTechLib() {
     if (!is_top_) {
         return true;
     }
-    std::string dirname = cell_name_;
+    std::string dirname = read_dir_name_;
     dirname.append(kLibSubDirName);
     std::string filename(dirname);
     filename.append("/");
@@ -211,7 +211,7 @@ bool ReadDesign::__readTimingLib() {
     if (!is_top_) {
         return true;
     }
-    std::string dirname = cell_name_;
+    std::string dirname = read_dir_name_;
     dirname.append(kLibSubDirName);
     std::string filename(dirname);
     filename.append("/");
@@ -248,8 +248,7 @@ int ReadDesign::run() {
         return ERROR;
     }
     util::message->issueMsg(kMsgCategoryDB, 
-        ReadDesignOk, kInfo, cell_name_.c_str());
-    //std::cout << "INFO: Successfully read design " << cell_name_ << ".\n";
+        ReadDesignOk, kInfo, read_dir_name_.c_str());
     return OK;
 }
 
@@ -261,7 +260,7 @@ bool WriteDesign::__createDir(const char *dir_name) {
             util::message->issueMsg(kMsgCategoryDB, 
                 CreateDirError, kError, dir_name);            
             //std::cout << "ERROR: Failed to create dir " 
-              //<< dir_name << " for save_design.\n";
+              //<< dir_name << " for write_design.\n";
             return false;
         }
     }
@@ -273,19 +272,19 @@ bool WriteDesign::__preWork() {
     // TODO Need renaming?
     write_cell_ = getTopCell();
     original_cell_name_ = write_cell_->getName();
-    if (original_cell_name_.compare(saved_name_) != 0) {
+    if (original_cell_name_.compare(write_cell_name_) != 0) {
         if (getDebug()) {
             util::message->issueMsg(kMsgCategoryDB, 
                 RenameCellVerbose, kDebug, 
                 original_cell_name_.c_str(),
-                saved_name_.c_str());          
+                write_cell_name_.c_str());          
             //std::cout << "DEBUGINFO: rename top cell name " 
                       //<< original_cell_name_
-                      //<< " to " << saved_name_ << std::endl;
+                      //<< " to " << write_cell_name_ << std::endl;
         }
-        write_cell_->setName(saved_name_);
+        write_cell_->setName(write_cell_name_);
     }
-    std::string dirname = getTopCell()->getName();
+    std::string dirname = write_dir_name_;
     if (!__createDir(dirname.c_str())) {
         return false;
     }
@@ -386,17 +385,17 @@ bool WriteDesign::__writeSymFile(
 }
 
 bool WriteDesign::__postWork() {
-    if (original_cell_name_.compare(saved_name_) != 0) {
+    if (original_cell_name_.compare(write_cell_name_) != 0) {
         write_cell_->setName(original_cell_name_);
     }
     return true;
 }
 
 bool WriteDesign::__writeCell() {
-    std::string dirname = getTopCell()->getName();
+    std::string dirname = write_dir_name_;
     std::string filename(dirname);
     filename.append("/");
-    filename.append(saved_name_);
+    filename.append(write_cell_name_);
 
     current_id_ = write_cell_->getId();
     MemPagePool *pool = write_cell_->getPool();
@@ -427,7 +426,7 @@ bool WriteDesign::__writeCell() {
 }
 
 bool WriteDesign::__writeTechLib() {
-    std::string dirname = getTopCell()->getName();
+    std::string dirname = write_dir_name_;
     dirname.append(kLibSubDirName);
     std::string filename(dirname);
     filename.append("/");
@@ -456,7 +455,7 @@ bool WriteDesign::__writeTechLib() {
 }
 
 bool WriteDesign::__writeTimingLib() {
-    std::string dirname = getTopCell()->getName();
+    std::string dirname = write_dir_name_;
     dirname.append(kLibSubDirName);
     std::string filename(dirname);  
     filename.append("/");
@@ -504,8 +503,9 @@ int WriteDesign::run() {
         return ERROR;
     }
     util::message->issueMsg(kMsgCategoryDB, 
-        WriteDesignOk, kInfo, saved_name_.c_str());
-    //std::cout << "INFO: Successfully write design " << saved_name_ << ".\n";
+        WriteDesignOk, kInfo, write_cell_name_.c_str());
+    //std::cout << "INFO: Successfully write design " << write_cell_name_
+    //                                                               << ".\n";
     return OK;
 }
 

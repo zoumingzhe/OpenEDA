@@ -50,9 +50,18 @@ enum readWriteDesignMsgId {
 
 class ReadDesign {
  public:
-    explicit ReadDesign(const std::string &name)
-        : cell_name_(name), current_id_(0),
-          is_top_(false), debug_(false) {}
+    explicit ReadDesign(const std::string &name) {
+        current_id_ = 0;
+        is_top_ = false;
+        debug_ = false;
+        read_dir_name_ = name;
+        size_t find_pos = name.rfind('/');
+        if (std::string::npos != find_pos) {
+            read_cell_name_ = name.substr(find_pos + 1, std::string::npos);
+        } else {
+            read_cell_name_ = name;
+        }
+    }
 
     int run();
 
@@ -83,7 +92,8 @@ class ReadDesign {
     bool __preWork(void);
     bool __postWork(void);
     // DATA
-    std::string cell_name_;
+    std::string read_dir_name_;
+    std::string read_cell_name_;
     ObjectId current_id_;
     Version v_;
     bool is_top_;
@@ -94,10 +104,19 @@ class WriteDesign {
  public:
     /// @brief default constructor
     WriteDesign();
-    explicit WriteDesign(const std::string &name)
-        : original_cell_name_(""), saved_name_(name),
-          write_cell_(nullptr), current_id_(0),
-          debug_(false) {}
+    explicit WriteDesign(const std::string &name) {
+        original_cell_name_ = "";
+        write_cell_ = nullptr;
+        current_id_ = 0;
+        debug_ = false;
+        write_dir_name_ = name;
+        size_t find_pos = name.rfind('/');
+        if (std::string::npos != find_pos) {
+            write_cell_name_ = name.substr(find_pos + 1, std::string::npos);
+        } else {
+            write_cell_name_ = name;
+        }
+    }
 
     int run();
 
@@ -128,7 +147,8 @@ class WriteDesign {
 
     // DATA
     std::string original_cell_name_;
-    std::string saved_name_;
+    std::string write_dir_name_;
+    std::string write_cell_name_;
     Cell *write_cell_;
     ObjectId current_id_;
     bool debug_;
