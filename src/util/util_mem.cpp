@@ -377,7 +377,6 @@ void MemPagePool::__readFreeListInfo(IOManager &io_manager, bool debug) {
 /// @param io_manager
 /// @param debug
 void MemPagePool::__writeChunks(IOManager &io_manager, bool debug) {
-    message->info("haoqs-test: num_chunks: %d\n", num_chunks_);
     std::vector<IOBuffer*> io_buffers;
 
     IOBuffer *io_buffer = nullptr;
@@ -414,7 +413,6 @@ void MemPagePool::__writeChunks(IOManager &io_manager, bool debug) {
 /// @param io_manager
 /// @param debug
 void MemPagePool::__readChunks(IOManager &io_manager, bool debug) {
-    message->info("haoqs-test: num_chunks: %d\n", num_chunks_);
     std::vector<IOBuffer*> io_buffers;
 
     IOBuffer *io_buffer = nullptr;

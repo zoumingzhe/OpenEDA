@@ -496,27 +496,13 @@ bool CompressManager::compress(CompressBlock &compress_block) {
     Compressor compressor;
     compressor.setCompressType(kCompressLz4);
 
-    double duration;
-    clock_t start, finish;
-
-    // haoqs-test
-    //MonitorId monitor_id = createMonitor();
     for (i = 0; i + num_thread < total_number; i += num_thread) {
         for (int j = 0; j < num_thread; ++j) {
             copy_src_buffers.push_back((*src_buffers)[i + j]);
         }
         CompressInput input(&copy_src_buffers, &dst_buffers, &compressed_sizes);
         compressor.setInput(&input);
-        //resetMonitor(monitor_id);
-        start = clock();
         compressor.run(1, num_thread, 1);
-        finish = clock();
-        duration = (double)(finish - start) / CLOCKS_PER_SEC;
-        printf( "compress %f \n", duration );
-        //outputMonitor(monitor_id, kElapsedTime, "compress", true);
-
-        //resetMonitor(monitor_id);
-        start = clock();
         for (int k = 0; k < num_thread; ++k) {
             if (compressed_sizes[k] > 0) {
                 io_manager_->write(reinterpret_cast<void*>(
@@ -530,10 +516,6 @@ bool CompressManager::compress(CompressBlock &compress_block) {
                 return false;
             }
         }
-//        outputMonitor(monitor_id, kElapsedTime, "write file", true);
-        finish = clock();
-        duration = (double)(finish - start) / CLOCKS_PER_SEC;
-        printf( "write file %f \n", duration );
         copy_src_buffers.clear();
         compressed_sizes.resize(num_thread, 0);
     }
@@ -543,15 +525,7 @@ bool CompressManager::compress(CompressBlock &compress_block) {
     }
     CompressInput input(&copy_src_buffers, &dst_buffers, &compressed_sizes);
     compressor.setInput(&input);
-    //resetMonitor(monitor_id);
-    start = clock();
     compressor.run(1, num_last_buffers, 1);
-    finish = clock();
-    duration = (double)(finish - start) / CLOCKS_PER_SEC;
-    printf( "compress %f \n", duration );
-    //outputMonitor(monitor_id, kElapsedTime, "compress", true);
-    //resetMonitor(monitor_id);
-    start = clock();
     for (int k = 0; k < num_last_buffers; ++k) {
         if (compressed_sizes[k] > 0) {
             io_manager_->write(reinterpret_cast<void*>(&compressed_sizes[k]),
@@ -565,12 +539,6 @@ bool CompressManager::compress(CompressBlock &compress_block) {
             return false;
         }
     }
-    //outputMonitor(monitor_id, kElapsedTime, "write file", true);
-    //destroyMonitor(monitor_id);
-    finish = clock();
-    duration = (double)(finish - start) / CLOCKS_PER_SEC;
-    printf( "write file %f \n", duration );
-
     freeIOBuffers(dst_buffers);
     dst_buffers.clear();
     return true;
