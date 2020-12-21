@@ -9,8 +9,8 @@
 #include "db/util/array.h"
 #include "db/util/property_definition.h"
 #include "db/util/vector_object_var.h"
-#include "graphics_scene.h"
-#include "lgi_instances.h"
+#include "../graphics_scene.h"
+#include "../graphicitems/lgi_instances.h"
 #include "li_base.h"
 #include "util/util.h"
 
@@ -26,6 +26,9 @@ class LI_Instances : public LI_Base {
     virtual void   preDraw() override;
     LGI_Instances* getGraphicItem();
     void           update();
+
+  protected:
+    virtual void draw(QPainter* painter);
 
   private:
     LGI_Instances* item_;

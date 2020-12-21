@@ -13,10 +13,8 @@
 #include "db/util/property_definition.h"
 #include "db/util/vector_object_var.h"
 #include "graphics_scene.h"
-#include "li_die_area.h"
-#include "li_instances.h"
-#include "li_pins.h"
 #include "util/util.h"
+#include "items/li_manager.h"
 
 namespace open_edi {
 namespace gui {
@@ -30,6 +28,7 @@ class GraphicsView : public QGraphicsView {
     LI_DieArea*   li_die_area;
     LI_Instances* li_instances;
     LI_Pins*      li_pins;
+    LI_Manager*   li_manager;
     void          readData();
 
   signals:

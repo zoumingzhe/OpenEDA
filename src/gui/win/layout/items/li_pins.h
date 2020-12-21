@@ -9,8 +9,8 @@
 #include "db/util/array.h"
 #include "db/util/property_definition.h"
 #include "db/util/vector_object_var.h"
-#include "graphics_scene.h"
-#include "lgi_pins.h"
+#include "../graphics_scene.h"
+#include "../graphicitems/lgi_pins.h"
 #include "li_base.h"
 #include "util/util.h"
 
@@ -27,9 +27,13 @@ class LI_Pins : public LI_Base {
     LGI_Pins*    getGraphicItem();
     void         update();
 
+  protected:
+    virtual void draw(QPainter* painter);
+
   private:
     LGI_Pins* item_;
     QPen      pen_;
+    QBrush    brush_;
     void      __drawPins(open_edi::db::Inst& ins);
 };
 } // namespace gui
