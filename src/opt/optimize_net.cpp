@@ -1,5 +1,4 @@
 #include "optimize_net.h"
-#include "segmentation.h"
 
 using namespace std;
 
@@ -9,12 +8,6 @@ namespace opt {
 OptimizeNet::OptimizeNet() {
     io_ = NULL;
     van_ = NULL;
-}
-
-OptimizeNet::OptimizeNet(string output_dir) {
-    io_ = NULL;
-    van_ = NULL;
-    output_dir_ = output_dir+"/result";
 }
 
 OptimizeNet::~OptimizeNet() {
@@ -109,37 +102,34 @@ int OptimizeNet::optimize_net (int argc, char **argv) {
     }
     double r0 = io_->getR0();
     double c0 = io_->getC0();
-    Segmentation *seg = new Segmentation();
+    //Segmentation *seg = new Segmentation();
     chrono::steady_clock::time_point seg_begin = chrono::steady_clock::now();
-    int seg_ret = seg->computeWireSegmentation(io_->nodes_array, io_->used_id_, buffers, drivers);
+    //int seg_ret = seg->computeWireSegmentation(io_->nodes_array, io_->used_id_, buffers, drivers);
     chrono::steady_clock::time_point seg_end = chrono::steady_clock::now();
     std::chrono::duration<double, std::milli> seg_elapsed = seg_end - seg_begin;
     cout << "Wire-Segmentation elapsed time: " << seg_elapsed.count() << " [ms]" << endl;
     van_ = new Van(r0,c0);
     chrono::steady_clock::time_point begin = chrono::steady_clock::now();
-    van_->optimization(seg->getWireSegmentationRet() ,buffers, drivers, io_->used_id_);
+    //van_->optimization(seg->getWireSegmentationRet() ,buffers, drivers, io_->used_id_);
     chrono::steady_clock::time_point end = chrono::steady_clock::now();
     chrono::duration<double, std::milli> elapsed = end - begin;
     cout << "elapsed time: " << elapsed.count() << " [ms]" << endl;
     vector<VanSizing *> solutions;
     van_->getSolutions(solutions);
     outputSolution(output_file,solutions,buffers.size(),outputAllResults);
-    seg->cleanData();
-    delete seg;
+    //seg->cleanData();
+    //delete seg;
     return 0;
 }
 
-int OptimizeNet::optimize_net (double r0, double c0, int id,
-                            const std::vector<Node *> &nodes_array,
-                            const std::vector<Buffer> &buffers,
-                            const std::vector<Buffer> &drivers,
-                            uint64_t used_id) {
+void OptimizeNet::optimize_net (double r0, double c0,
+                            const vector<Node *> &nodes_array,
+                            const vector<Buffer> &buffers,
+                            const vector<Buffer> &drivers,
+                            vector<VanSizing *> &solutions) {
     van_ = new Van(r0,c0);
-    van_->optimization(nodes_array,buffers,drivers,used_id);
-    vector<VanSizing *> solutions;
+    van_->optimization(nodes_array,buffers,drivers,0);
     van_->getSolutions(solutions);
-    outputSolution(output_dir_+to_string(id)+".out",solutions,buffers.size(),false);
-    return id+1;
 }
 
 

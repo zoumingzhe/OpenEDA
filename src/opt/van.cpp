@@ -182,7 +182,7 @@ void Van::mergeNonRedundantVanNode(VanNode *node, BufferNode *location, VanNode 
     if(p->right){
         p->right->count++;
     }
-    p->bufferType = buffers_.size();//no buffer, ignore direction
+    p->bufferType = (uint32_t)-1;//no buffer, ignore direction
     node->buffer_location = p;
     if (curr == nullptr) {//insert last
         pred->next = node;
@@ -532,7 +532,7 @@ void Van::printBuffer(BufferNode *root) {
     if ( root == nullptr) {
         return;
     }
-    if ( root->bufferType > -1 ) {
+    if ( root->bufferType != (uint32_t)-1 ) {
         cout << "buffer " << root->bufferType << " at id:from " << root->id_at << " to " << root->id_to << endl;
     }
     printBuffer(root->left);
