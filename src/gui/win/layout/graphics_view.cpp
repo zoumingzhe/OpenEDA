@@ -1,6 +1,5 @@
-#include <QTime>
 #include "graphics_view.h"
-
+#include <QTime>
 
 namespace open_edi {
 namespace gui {
@@ -14,22 +13,13 @@ GraphicsView::GraphicsView(QWidget* parent) : QGraphicsView(parent) {
     setOptimizationFlags(QGraphicsView::DontSavePainterState);
     setMouseTracking(true);
 
-    // li_die_area  = new LI_DieArea(&scale_factor_);
-    // li_instances = new LI_Instances(&scale_factor_);
-    // li_pins      = new LI_Pins(&scale_factor_);
-
     li_manager = new LI_Manager(&scale_factor_);
 
     scene_ = new GraphicsScene;
 
-    for(auto item: li_manager->getLiList())
-    {
+    for (auto item : li_manager->getLiList()) {
         scene_->addItem(item->getGraphicItem());
     }
-
-    
-    // scene_->addItem(li_instances->getGraphicItem());
-    // scene_->addItem(li_pins->getGraphicItem());
 
     setScene(scene_);
 
@@ -66,8 +56,8 @@ void GraphicsView::slotZoomOut(bool) {
 
 void GraphicsView::slotReadData() {
 
-    QTime time;  
-    time.start();  
+    QTime time;
+    time.start();
 
     auto tc = open_edi::db::getTopCell();
 
@@ -89,16 +79,15 @@ void GraphicsView::slotReadData() {
             scale_factor_ = factor_x > factor_y ?
                               qCeil(factor_x) :
                               qCeil(factor_y);
-            die_area_x_ = qCeil((point_x) / scale_factor_);
-            die_area_y_ = qCeil((point_y) / scale_factor_);
+            die_area_w_ = qCeil((point_x) / scale_factor_);
+            die_area_h_ = qCeil((point_y) / scale_factor_);
         }
     }
 
-    scene_->setSceneRect((-die_area_x_) / 2,
-                         (-die_area_y_) / 2,
-                         die_area_x_,
-                         die_area_y_);
-
+    scene_->setSceneRect((-die_area_w_) / 2,
+                         (-die_area_h_) / 2,
+                         die_area_w_,
+                         die_area_h_);
 
     li_manager->preDrawAllItems();
 

@@ -46,8 +46,8 @@ class GraphicsView : public QGraphicsView {
 
   private:
     void           zoomBy_(qreal factor);
-    int            die_area_x_;
-    int            die_area_y_;
+    int            die_area_w_;
+    int            die_area_h_;
     int            view_width_;
     int            view_height_;
     int            scale_factor_{1};
