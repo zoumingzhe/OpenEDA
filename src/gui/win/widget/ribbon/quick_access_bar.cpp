@@ -2,6 +2,7 @@
 #include "quick_access_bar.h"
 #include "ribbon_button.h"
 #include <QMouseEvent>
+#include "util/util.h"
 
 namespace open_edi {
 namespace gui {
@@ -21,11 +22,13 @@ QuickAccessBar::~QuickAccessBar()
 
 void QuickAccessBar::init()
 {
+    QString icon_path = QString::fromStdString(open_edi::util::getInstallPath())
+            + "/share/etc/res/tool/redo.svg";
     RibbonButton *arrowButton = new RibbonButton();
-    arrowButton->setIcon(QIcon(":/res/tool/redo.svg"));
+    arrowButton->setIcon(QIcon(icon_path));
     arrowButton->setToolTip(tr("Quick Access"));
-    connect(arrowButton, SIGNAL(menuActionClicked(QMouseEvent*)),
-            this, SLOT(quickMenuriggered(QMouseEvent*)));
+//    connect(arrowButton, SIGNAL(menuActionClicked(QMouseEvent*)),
+//            this, SLOT(quickMenuriggered(QMouseEvent*)));
 
     arrow_action_ = addWidget(arrowButton);
     menu_ = new QMenu(arrowButton);
