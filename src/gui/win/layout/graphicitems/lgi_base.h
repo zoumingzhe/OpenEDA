@@ -2,15 +2,17 @@
 #define LGI_BASE_H
 
 #include <QGraphicsItem>
+#include <QGraphicsScene>
 #include <QPainterPath>
 #include <QPen>
-#include <QGraphicsScene>
 
-
+#include "../items/li_base.h"
 #define VIEW_SPACE 2
 
 namespace open_edi {
 namespace gui {
+
+class LI_Base;
 
 class LGI_Base : public QGraphicsItem {
   public:
@@ -19,9 +21,9 @@ class LGI_Base : public QGraphicsItem {
 
     void setItemSize(int w, int h);
     void setMap(QPixmap* img);
+    void setLiBase(LI_Base* li_base);
 
   protected:
-
     int      w{1};
     int      h{1};
     QPixmap* img{nullptr};
@@ -32,8 +34,7 @@ class LGI_Base : public QGraphicsItem {
                        const QStyleOptionGraphicsItem* option,
                        QWidget*                        widget = nullptr) override;
 
-
-
+    LI_Base* li_base;
 };
 } // namespace gui
 } // namespace open_edi

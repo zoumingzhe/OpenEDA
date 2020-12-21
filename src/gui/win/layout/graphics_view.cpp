@@ -1,4 +1,6 @@
+#include <QTime>
 #include "graphics_view.h"
+
 
 namespace open_edi {
 namespace gui {
@@ -12,15 +14,22 @@ GraphicsView::GraphicsView(QWidget* parent) : QGraphicsView(parent) {
     setOptimizationFlags(QGraphicsView::DontSavePainterState);
     setMouseTracking(true);
 
-    li_die_area  = new LI_DieArea(&scale_factor_);
-    li_instances = new LI_Instances(&scale_factor_);
-    li_pins      = new LI_Pins(&scale_factor_);
+    // li_die_area  = new LI_DieArea(&scale_factor_);
+    // li_instances = new LI_Instances(&scale_factor_);
+    // li_pins      = new LI_Pins(&scale_factor_);
+
+    li_manager = new LI_Manager(&scale_factor_);
 
     scene_ = new GraphicsScene;
 
-    scene_->addItem(li_die_area->getGraphicItem());
-    scene_->addItem(li_instances->getGraphicItem());
-    scene_->addItem(li_pins->getGraphicItem());
+    for(auto item: li_manager->getLiList())
+    {
+        scene_->addItem(item->getGraphicItem());
+    }
+
+    
+    // scene_->addItem(li_instances->getGraphicItem());
+    // scene_->addItem(li_pins->getGraphicItem());
 
     setScene(scene_);
 
@@ -57,6 +66,8 @@ void GraphicsView::slotZoomOut(bool) {
 
 void GraphicsView::slotReadData() {
 
+    QTime time;  
+    time.start();  
 
     auto tc = open_edi::db::getTopCell();
 
@@ -88,11 +99,13 @@ void GraphicsView::slotReadData() {
                          die_area_x_,
                          die_area_y_);
 
-    li_die_area->preDraw();
-    li_instances->preDraw();
-    li_pins->preDraw();
+
+    li_manager->preDrawAllItems();
 
     viewport()->update();
+
+    auto time_elapsed = time.elapsed();
+    printf("elapsed time %d (ms)\n", time_elapsed);
 }
 
 void GraphicsView::setPinsVisible(bool visible) {
@@ -101,7 +114,7 @@ void GraphicsView::setPinsVisible(bool visible) {
 }
 
 void GraphicsView::wheelEvent(QWheelEvent* event) {
-    qreal fatory = qPow(1.2, event->delta() / 240.0);
+    qreal fatory = qPow(1.1, event->delta() / 240.0);
     zoomBy_(fatory);
 }
 

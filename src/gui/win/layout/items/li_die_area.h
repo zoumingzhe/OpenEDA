@@ -10,8 +10,8 @@
 #include "db/util/array.h"
 #include "db/util/property_definition.h"
 #include "db/util/vector_object_var.h"
-#include "graphics_scene.h"
-#include "lgi_die_area.h"
+#include "../graphics_scene.h"
+#include "../graphicitems/lgi_die_area.h"
 #include "li_base.h"
 #include "util/util.h"
 
@@ -27,6 +27,9 @@ class LI_DieArea : public LI_Base {
     virtual void preDraw() override;
     LGI_DieArea* getGraphicItem();
     void         update();
+
+  protected:
+    virtual void draw(QPainter* painter);
 
   private:
     LGI_DieArea* item_{nullptr};

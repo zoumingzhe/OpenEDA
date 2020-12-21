@@ -3,12 +3,9 @@
 namespace open_edi {
 namespace gui {
 
-
-
-LI_Instances::LI_Instances(int* scale_factor):LI_Base(scale_factor) 
-{
+LI_Instances::LI_Instances(int* scale_factor) : LI_Base(scale_factor) {
     item_ = new LGI_Instances;
-
+    item_->setLiBase(this);
     pen_.setColor(QColor("#909090"));
 }
 
@@ -23,17 +20,25 @@ void LI_Instances::update() {
     item_->update();
 }
 
+void LI_Instances::draw(QPainter* painter) {
+    painter->setPen(pen_);
+    LI_Base::draw(painter);
+}
+
 void LI_Instances::preDraw() {
     refreshBoundSize();
 
+#if DRAW_MODE == 1
     img->fill(Qt::transparent);
-
     QPainter painter(img);
     painter.setPen(pen_);
     painter.setWindow(0,
                       bound_height,
                       bound_width + VIEW_SPACE,
                       -bound_height - VIEW_SPACE);
+#elif DRAW_MODE == 2
+    painter_path = QPainterPath();
+#endif
 
     auto     tc               = open_edi::db::getTopCell();
     uint64_t num_components   = tc->getNumOfInsts();
@@ -49,12 +54,27 @@ void LI_Instances::preDraw() {
         auto inslly   = insbox.getLLY();
         auto insurx   = insbox.getURX();
         auto insury   = insbox.getURY();
-
-        painter.drawRect(QRectF(
-          (insllx) / factor,
-          (inslly) / factor,
-          (insurx - insllx) / factor,
-          (insury - inslly) / factor));
+        auto width    = insurx - insllx;
+        auto height   = insury - inslly;
+#if DRAW_MODE == 1
+        if (width >= factor || height >= factor) {
+            painter.drawRect(QRectF(
+              (insllx) / factor,
+              (inslly) / factor,
+              width / factor,
+              height / factor));
+        } else {
+            painter.drawPoint(QPointF((insllx) / factor, (inslly) / factor));
+        }
+#elif DRAW_MODE == 2
+        if (width >= factor || height >= factor) {
+            painter_path.addRect(QRectF(
+              (insllx) / factor,
+              (inslly) / factor,
+              width / factor,
+              height / factor));
+        }
+#endif
     }
 
     item_->setMap(img);
