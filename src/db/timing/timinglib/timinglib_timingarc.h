@@ -18,6 +18,7 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include "db/core/object.h"
 #include "db/timing/timinglib/timinglib_commondef.h"
@@ -84,6 +85,7 @@ class TimingArc : public Object {
     TimingTable* getFallConstraint(void);
     TTerm* getRelatedPin(const std::string& name);
     TTerm* getRelatedPin(ObjectId id);
+    std::vector<TTerm*> getRelatedPins(void);
 
   protected:
     /// @brief copy object

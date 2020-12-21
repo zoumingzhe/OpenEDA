@@ -140,14 +140,14 @@ static int placeDesignMain(ClientData cld, Tcl_Interp *itp, int argc, const char
   return TCL_OK;
 } // end of place_design
 
-static void registerPlaceDesignManager()
+static void registerPlaceDesignManager(Tcl_Interp *itp)
 {
   CommandManager* cmd_manager = CommandManager::getCommandManager();
-  Command* command = cmd_manager->createCommand("place_design", "Placement full flow", 
-                        *(new Option("-detail_place", OptionDataType::kBool, false, "turn on detail place\n"))
-                      + *(new Option("-global_place", OptionDataType::kBool, false, "turn on global place\n"))
-                      + *(new Option("-json_file", OptionDataType::kString, false, "specify jason file\n"))
-                      + *(new Option("-enable_processor", OptionDataType::kEnum, false, "CPU GPU AUTO", "specify processor to run place\n"))
+  Command* command = cmd_manager->createCommand(itp, placeDesignCommand, "place_design", "Placement full flow", 
+                        cmd_manager->createOption("-detail_place", OptionDataType::kBool, false, "turn on detail place\n")
+                      + cmd_manager->createOption("-global_place", OptionDataType::kBool, false, "turn on global place\n")
+                      + cmd_manager->createOption("-json_file", OptionDataType::kString, false, "specify jason file\n")
+                      + cmd_manager->createOption("-enable_processor", OptionDataType::kEnum, false, "CPU GPU AUTO", "specify processor to run place\n")
                      );
 }
 
@@ -169,20 +169,20 @@ static int calcWLCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *
   return TCL_OK;
 }
 
-static void registerWLManager()
+static void registerWLManager(Tcl_Interp *itp)
 {
   CommandManager* cmd_manager = CommandManager::getCommandManager();
-  Command* command = cmd_manager->createCommand("report_wire_length", "report wire legth",
-                     *(new Option("-mode", OptionDataType::kEnum, false, "HPWL MST FLUTE ALL", "set mode of report_wire_length\n"))
+  Command* command = cmd_manager->createCommand(itp, calcWLCommand, "report_wire_length", "report wire legth",
+                     cmd_manager->createOption("-mode", OptionDataType::kEnum, false, "HPWL MST FLUTE ALL", "set mode of report_wire_length\n")
                      );
 }
 
 void registerPlaceTclCommands(Tcl_Interp *itp)
 {
-  registerPlaceDesignManager();
-  Tcl_CreateCommand(itp, "place_design", placeDesignCommand, NULL, NULL);
-  registerWLManager();
-  Tcl_CreateCommand(itp, "report_wire_length", calcWLCommand, NULL, NULL);
+  registerPlaceDesignManager(itp);
+  //Tcl_CreateCommand(itp, "place_design", placeDesignCommand, NULL, NULL);
+  registerWLManager(itp);
+  //Tcl_CreateCommand(itp, "report_wire_length", calcWLCommand, NULL, NULL);
 }
 
 DREAMPLACE_END_NAMESPACE

@@ -17,12 +17,14 @@
 #include "util/polygon_table.h"
 #include "db/util/symbol_table.h"
 #include "db/core/object.h"
+#include "db/tech/via_master.h"
+#include "db/tech/layer.h"
 // #include "db/util/vector_object_var.h"
 
 namespace open_edi {
 namespace db {
 
-enum GeometryType{
+enum GeometryType : int8_t{
     kNoGeomType = 0,
     kPath = 1,
     kRect = 2,
@@ -43,10 +45,13 @@ class Geometry: public Object{
     void setNumMask(int c) { color_mask_ = c; }
     void setPathID(int id) { path_id = id;}
     int getPathID() const {return path_id;}
+    Polygon* getPath() const;
+
     void setBox(Box* b) { box.setBox(b);}
     const Box& getBox() const { return box;}
     void setPolygonID(int id) { polygon_id = id;}
     int getPolygonID() const {return polygon_id;}
+    Polygon* getPolygon() const;
 
  private:
     GeometryType type_;
@@ -64,8 +69,8 @@ class GeometryVia: public Object{
     ~GeometryVia() {}
     SymbolTable* getSymbolTable();
     SymbolIndex getOrCreateSymbol(const char *name);
-    void setName(const char *value) { name_index_ = getOrCreateSymbol(value); }
-    std::string getName();
+    void setViaMaster(const char *value);
+    ViaMaster* getViaMaster();
     void setPoint(Point value) { p_ = value; }
     Point getPoint() const { return p_; }
     void setTopMaskNum(int value) { top_mask_num_ = value; }
@@ -76,7 +81,7 @@ class GeometryVia: public Object{
     int getBottomMaskNum() const { return bottom_mask_num_; }
 
  private:
-    int64_t name_index_;
+    ObjectId via_master_index_;
     Point p_;
     int top_mask_num_;
     int cut_mask_num_;
@@ -98,8 +103,8 @@ class LayerGeometry: public Object{
     Geometry* getGeometry(int i) const;
     // int getGeometryViaSize(){ return vct->totalSize()? type_ != kVia : 0;}
     GeometryVia* getGeometryVia(int i) const;
-    void setName(const char *value) { name_index_ = getOrCreateSymbol(value); }
-    std::string getName();
+    void setLayer(const char *value);
+    Layer* getLayer();
     void sethasEXCEPTPGNET(bool value) { has_EXCEPTPGNET_ = value; }
     bool hasEXCEPTPGNET() const { return has_EXCEPTPGNET_; }
     void setMinSpacing(int value) { min_spacing_ = value; }
@@ -119,14 +124,15 @@ class LayerGeometry: public Object{
 
  private:
     ObjectId geometrys_;
-    GeometryType type_;
-    SymbolIndex name_index_;
-    bool has_EXCEPTPGNET_;
-    bool has_spacing_;
     int min_spacing_;
-    bool has_drw_;
     int design_rule_width_;
     int width_;
+    uint8_t layer_index_;
+    GeometryType type_;
+    unsigned has_EXCEPTPGNET_ : 1;
+    unsigned has_spacing_ : 1;
+    unsigned has_drw_ : 1;
+
 };
 
 }  // namespace db

@@ -263,7 +263,22 @@ TTerm* TimingArc::getRelatedPin(ObjectId id) {
     else
         return nullptr;
 }
-
+std::vector<TTerm*> TimingArc::getRelatedPins(void) {
+    std::vector<TTerm*> relatedPins;
+    if (related_pins_ != UNINIT_OBJECT_ID) {
+        ArrayObject<ObjectId>* p = nullptr;
+        p = Object::addr<ArrayObject<ObjectId>>(related_pins_);
+        if (p != nullptr) {
+            int64_t count = p->getSize();
+            relatedPins.reserve(count);
+            for (int64_t i = 0; i < count; ++i) {
+                auto q = Object::addr<TTerm>((*p)[i]);
+                if (q != nullptr) relatedPins.emplace_back(q);
+            }
+        }
+    }
+    return relatedPins;
+}
 ObjectType getTimingtableObjectType(const std::string& str) {
     if (str == "kObjectTypeTimingTable")
         return kObjectTypeTimingTable;
