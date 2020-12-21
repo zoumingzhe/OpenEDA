@@ -23,11 +23,6 @@ Via::Via(ViaMaster* via_master) {
     is_array_ = 0;
     status_ = 0;
     orientation_ = 0;
-    col_ = 0;
-    row_ = 0;
-    space_x_ = 0;
-    space_y_ = 0;
-    ref_count_ = 0;
 }
 /**
  * @brief Construct a new Via:: Via object
@@ -38,11 +33,6 @@ Via::Via() {
     is_array_ = 0;
     status_ = 0;
     orientation_ = 0;
-    col_ = 0;
-    row_ = 0;
-    space_x_ = 0;
-    space_y_ = 0;
-    ref_count_ = 0;
 }
 
 /**
@@ -60,13 +50,21 @@ Point Via::getLoc() const { return loc_; }
 void Via::setLoc(Point loc) { loc_ = loc; }
 
 /**
+ * @brief Set the Location object
+ *
+ * @param loc
+ */
+void Via::setLoc(int x, int y) {
+    loc_.setX(x);
+    loc_.setY(y);
+}
+
+/**
  * @brief Get the ViaMaster* object
  *
  * @return ObjectId
  */
-ViaMaster* Via::getMaster() const {
-    return addr<ViaMaster>(master_);
-}
+ViaMaster* Via::getMaster() const { return addr<ViaMaster>(master_); }
 
 /**
  * @brief Set the Master object
@@ -167,93 +165,25 @@ Bits Via::getRouteStatus() const { return status_; }
  */
 void Via::setRouteStatus(Bits status) { status_ = status; }
 
-/**
- * @brief Get the Is Array object
- *
- * @return Bits
- */
-Bits Via::getIsArray() const { return is_array_; }
+void Via::printDEF(FILE* fp) {
+    Tech* lib = getTopCell()->getTechLib();
+    Layer* layer = nullptr;
+    ViaMaster* via_master = getMaster();
 
-/**
- * @brief Set the Is Array object
- *
- * @param is_array
- */
-void Via::setIsArray(Bits is_array) { is_array_ = is_array; }
+    std::string layer_name = via_master->getUperLayerIndex();
+    if (layer_name.size() == 0) {
+        ObjectId layer_v = via_master->getViaLayerVector();
+        ArrayObject<ObjectId>* layer_array =
+            Object::addr<ArrayObject<ObjectId>>(layer_v);
+        ViaLayer* via_layer =
+            Object::addr<ViaLayer>((*layer_array)[layer_array->getSize() - 1]);
+        if (via_layer) layer_name = via_layer->getName();
+    }
 
-/**
- * @brief Set the Col object
- *
- * @param col
- */
-void Via::setCol(int col) { col_ = col; }
-/**
- * @brief Get the Col object
- *
- * @return int
- */
-int Via::getCol() const { return col_; }
-
-/**
- * @brief Set the Row object
- *
- * @param Row
- */
-void Via::setRow(int row) { row_ = row; }
-
-/**
- * @brief Get the Row object
- *
- * @return int
- */
-int Via::getRow() const { return row_; }
-
-/**
- * @brief Set the Space X object
- *
- * @param space_x
- */
-void Via::setSpaceX(int space_x) { space_x_ = space_x; }
-
-/**
- * @brief Get the Space X object
- *
- * @return int
- */
-int Via::getSpaceX() const { return space_x_; }
-
-/**
- * @brief Set the Space Y object
- *
- * @param space_y
- */
-void Via::setSpaceY(int space_y) { space_y_ = space_y; }
-
-/**
- * @brief Get the Space Y object
- *
- * @return int
- */
-int Via::getSpaceY() const { return space_y_; }
-
-/**
- * @brief Get the Reference Count object
- *
- * @return int
- */
-int Via::getRefCount() const { return ref_count_; }
-
-/**
- * @brief increase the  Reference Count
- *
- */
-void Via::RefCountIncrease() { ref_count_++; }
-
-/**
- * @brief decrease the Reference Count
- *
- */
-void Via::RefCountDecrease() { ref_count_--; }
+    if (via_master)
+        fprintf(fp, "    NEW %s (%d %d) %s\n", layer_name.c_str(), loc_.getX(),
+                loc_.getY(), via_master->getName().c_str());
+}
 
 }  // namespace db
 }  // namespace open_edi

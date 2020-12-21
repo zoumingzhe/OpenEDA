@@ -56,6 +56,7 @@ class Via : public Object {
 
     Point getLoc() const;
     void setLoc(Point loc);
+    void setLoc(int x, int y);
 
     ViaMaster* getMaster() const;
     void setMaster(ViaMaster* master);
@@ -75,24 +76,7 @@ class Via : public Object {
     Bits getRouteStatus() const;
     void setRouteStatus(Bits status);
 
-    Bits getIsArray() const;
-    void setIsArray(Bits is_array);
-
-    int getRefCount() const;
-    void RefCountIncrease();
-    void RefCountDecrease();
-
-    void setCol(int col);
-    int getCol() const;
-
-    void setRow(int row);
-    int getRow() const;
-
-    void setSpaceX(int space_x);
-    int getSpaceX() const;
-
-    void setSpaceY(int space_y);
-    int getSpaceY() const;
+    void printDEF(FILE* fp);
 
   private:
     Point loc_;
@@ -100,13 +84,6 @@ class Via : public Object {
     Bits orientation_ : 4;
     Bits status_ : 4;
     Bits is_array_ : 1;
-
-    int col_;
-    int row_;
-    int space_x_;
-    int space_y_;
-
-    int ref_count_;
 };
 }  // namespace db
 }  // namespace open_edi

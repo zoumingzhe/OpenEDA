@@ -198,6 +198,12 @@ void Option::initPara(const char* name, OptionDataType type, bool is_required, c
     setType(type);
     setDescription(description);
     setIsRequired(is_required);
+    is_set_ = false;
+    value_int_max_ = 0;
+    value_int_min_ = 0;
+    value_double_max_ = 0;
+    value_double_min_ = 0;
+    next_ = nullptr;
 }
 
 
@@ -212,7 +218,7 @@ void Option::setName( const char * v) {
 int Option::checkRule() {
     // mandatory should be set
     if (isRequired()) {
-        if (isSet() == false) {
+        if (isSet() == false && tempIsSet() == false) {
             message->issueMsg("INFRA", kOptionMandatory, kError, getName().c_str());
         }
     }

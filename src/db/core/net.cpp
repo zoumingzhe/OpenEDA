@@ -10,6 +10,8 @@
  */
 #include "db/core/net.h"
 
+#include <algorithm>
+
 #include "db/core/cell.h"
 #include "db/core/db.h"
 #include "db/core/pin.h"
@@ -19,6 +21,13 @@
 namespace open_edi {
 namespace db {
 using IdArray = ArrayObject<ObjectId>;
+
+// TODO: replace by sparce property
+ObjectId vpins = 0;
+ObjectId properties = 0;
+std::map<ObjectId, ObjectId> Vpin_map;
+std::map<ObjectId, ObjectId> property_map;
+std::map<ObjectId, ObjectId> patch_map;
 
 /**
  * @brief Construct a new VPin::VPin object
@@ -161,11 +170,11 @@ Net::Net() {
     frequency_ = 0;
     cap_ = 0;
     weight_ = 0;
-    origin_net_ = "";
+    // origin_net_ = "";
     assign_net_ = 0;
     assign_type_ = kAssignTypeUnknown;
-    v_pins_ = 0;
-    properties_id_ = 0;
+    vpins = 0;
+    properties = 0;
 }
 
 /**
@@ -202,7 +211,7 @@ Bits Net::getIsSubNet() const { return is_sub_net_; }
  * @return true
  * @return false
  */
-bool Net::isAnalog() {return getType()==kNetTypeAnalog;}
+bool Net::isAnalog() { return getType() == kNetTypeAnalog; }
 
 /**
  * @brief is clock net
@@ -210,7 +219,7 @@ bool Net::isAnalog() {return getType()==kNetTypeAnalog;}
  * @return true
  * @return false
  */
-bool Net::isClock() {return getType()==kNetTypeClock;}
+bool Net::isClock() { return getType() == kNetTypeClock; }
 
 /**
  * @brief is ground net
@@ -218,7 +227,7 @@ bool Net::isClock() {return getType()==kNetTypeClock;}
  * @return true
  * @return false
  */
-bool Net::isGround(){return getType()== kNetTypeGround;}
+bool Net::isGround() { return getType() == kNetTypeGround; }
 
 /**
  * @brief is power net
@@ -226,7 +235,7 @@ bool Net::isGround(){return getType()== kNetTypeGround;}
  * @return true
  * @return false
  */
-bool Net::isPower(){return getType()==kNetTypePower;}
+bool Net::isPower() { return getType() == kNetTypePower; }
 
 /**
  * @brief is reset net
@@ -234,7 +243,7 @@ bool Net::isPower(){return getType()==kNetTypePower;}
  * @return true
  * @return false
  */
-bool Net::isReset(){return getType()==kNetTypeReset;}
+bool Net::isReset() { return getType() == kNetTypeReset; }
 
 /**
  * @brief is scan net
@@ -242,7 +251,7 @@ bool Net::isReset(){return getType()==kNetTypeReset;}
  * @return true
  * @return false
  */
-bool Net::isScan() {return getType()==kNetTypeScan;}
+bool Net::isScan() { return getType() == kNetTypeScan; }
 
 /**
  * @brief is signal net
@@ -250,7 +259,7 @@ bool Net::isScan() {return getType()==kNetTypeScan;}
  * @return true
  * @return false
  */
-bool Net::isSignal(){return getType()==kNetTypeSignal;}
+bool Net::isSignal() { return getType() == kNetTypeSignal; }
 
 /**
  * @brief is tie off net
@@ -258,7 +267,7 @@ bool Net::isSignal(){return getType()==kNetTypeSignal;}
  * @return true
  * @return false
  */
-bool Net::isTieOff(){return getType()==kNetTypeTieOff;}
+bool Net::isTieOff() { return getType() == kNetTypeTieOff; }
 
 /**
  * @brief Get the assign type
@@ -327,7 +336,7 @@ double Net::getCapacitance() const { return cap_; }
  *
  * @return const char*
  */
-const char* Net::getOriginNet() const { return origin_net_.c_str(); }
+// const char* Net::getOriginNet() const { return origin_net_.c_str(); }
 
 /**
  * @brief Set the Fix Bump object
@@ -390,7 +399,7 @@ void Net::setWeight(double weight) { weight_ = weight; }
  *
  * @param name
  */
-void Net::setOriginNet(const char* name) { origin_net_ = name; }
+// void Net::setOriginNet(const char* name) { origin_net_ = name; }
 /**
  * @brief Set the Is bus Net
  *
@@ -401,7 +410,7 @@ void Net::setIsBusNet(bool is_bus_net) { is_bus_net_ = is_bus_net; }
 /**
  * @brief Get the Is bus flag
  *
- * @param 
+ * @param
  */
 bool Net::getIsBusNet() const { return is_bus_net_; }
 
@@ -415,7 +424,7 @@ void Net::setIsOfBus(bool is_of_bus) { is_of_bus_ = is_of_bus; }
 /**
  * @brief Get the Is Net belong to a bus flag
  *
- * @param 
+ * @param
  */
 bool Net::getIsOfBus() const { return is_of_bus_; }
 
@@ -429,7 +438,7 @@ void Net::setIsFromTerm(bool is_from_term) { is_from_term_ = is_from_term; }
 /**
  * @brief Get the Is Net from term flag
  *
- * @param 
+ * @param
  */
 bool Net::getIsFromTerm() const { return is_from_term_; }
 
@@ -471,20 +480,6 @@ bool Net::setName(std::string const& name) {
 }
 
 /**
- * @brief set cell
- *
- * @param cell
- */
-
-void Net::setCell(ObjectId cell) { cell_ = cell; }
-/**
- * @brief get cell
- *
- * @return Cell*
- */
-Cell* Net::getCell() { return addr<Cell>(cell_); }
-
-/**
  * @brief Get the Type object
  *
  * @return Bits
@@ -516,19 +511,11 @@ const char* Net::getNonDefaultRule() const {
 void Net::setNonDefaultRule(ObjectId rule) { rule_ = rule; }
 
 /**
- * @brief add wire to the net's wirelist
+ * @brief Set the Rule object
  *
- * @param wire
+ * @param rule
  */
-void Net::addWire(Wire* wire) {
-    ArrayObject<ObjectId>* wire_vector = nullptr;
-    if (wires_ == 0) {
-        wires_ = __createObjectIdArray(64);
-    }
-    if (wires_)
-        wire_vector = addr<ArrayObject<ObjectId>>(wires_);
-    if (wire_vector) wire_vector->pushBack(wire->getId());
-}
+void Net::setNonDefaultRule(NonDefaultRule* rule) { rule_ = rule->getId(); }
 
 /**
  * @brief delete a specific wire in net
@@ -586,30 +573,63 @@ VPin* Net::createVpin(std::string& name) {
     return v_pin;
 }
 
-/**
- * @brief create a wire graph in section
- *
- * @return WireGraph*
- */
-WireGraph* Net::creatGraph() {
-    WireGraph* graph = getOwnerCell()->createObject<WireGraph>(kObjectTypeWire);
+Via* Net::createVia(int x, int y, ViaMaster* via_master) {
+    Via* via = getOwnerCell()->createObject<Via>(kObjectTypeVia);
+    if (via) {
+        via->setLoc(x, y);
+        via->setMaster(via_master);
+    }
 
-    return graph;
+    return via;
 }
 
 /**
- * @brief add graph to net
+ * @brief create a wire in net
  *
- * @param graph
+ * @return Wire*
  */
-void Net::addGraph(WireGraph* graph) {
-    ArrayObject<ObjectId>* graph_vector = nullptr;
-    if (graphs_ == 0) {
-        graphs_ = __createObjectIdArray(256);
+Wire* Net::createWire(int x1, int y1, int x2, int y2, int width) {
+    if (x1 != x2 && y1 != y2) return nullptr;
+    Wire* wire = getOwnerCell()->createObject<Wire>(kObjectTypeWire);
+    int x = 0, y = 0, length = 0, height = 0;
+    // the wire is horizontal
+    if (y1 == y2) {
+        if (x1 > x2) std::swap(x1, x2);  // keep the x1 in left
+
+        x = x1;
+        y = y1 - width / 2;
+        length = x2 - x1;
+        height = width;
     }
-    if (graphs_)
-        graph_vector = addr<ArrayObject<ObjectId>>(graphs_);
-    if (graph_vector) graph_vector->pushBack(graph->getId());
+    // the wire is vertical
+    if (x1 == x2) {
+        if (y1 > y2) std::swap(y1, y2);  // keep the y1 in down
+        x = x1 - width / 2;
+        y = y1;
+        length = width;
+        height = y2 - y1;
+    }
+
+    wire->setX(x);
+    wire->setY(y);
+    wire->setHeight(height);
+    wire->setLength(length);
+
+    return wire;
+}
+
+/**
+ * @brief add wire to net
+ *
+ * @param wire
+ */
+void Net::addWire(Wire* wire) {
+    ArrayObject<ObjectId>* wire_vector = nullptr;
+    if (wires_ == 0) {
+        wires_ = __createObjectIdArray(256);
+    }
+    if (wires_) wire_vector = addr<ArrayObject<ObjectId>>(wires_);
+    if (wire_vector) wire_vector->pushBack(wire->getId());
 }
 
 /**
@@ -635,16 +655,15 @@ int Net::addPin(Pin* pin) {
  * @param v_pin
  * @return int
  */
-int Net::addVPin(VPin* v_pin) {
-     ArrayObject<ObjectId>* v_pin_vector = nullptr;
-    if (v_pins_ == 0) {
-        v_pins_ = __createObjectIdArray(64);
+ObjectId Net::addVPin(VPin* v_pin) {
+    ArrayObject<ObjectId>* v_pin_vector = nullptr;
+    if (vpins == 0) {
+        vpins = __createObjectIdArray(64);
     }
-    if (v_pins_)
-        v_pin_vector = addr<ArrayObject<ObjectId>>(v_pins_);
+    if (vpins) v_pin_vector = addr<ArrayObject<ObjectId>>(vpins);
     if (v_pin) v_pin_vector->pushBack(v_pin->getId());
 
-    return 0;
+    return vpins;
 }
 
 /**
@@ -666,16 +685,16 @@ ArrayObject<ObjectId>* Net::getPinArray() const {
  *
  * @param sub_net
  */
+/*
 void Net::addSubNet(Net* sub_net) {
     ArrayObject<ObjectId>* sub_net_vector = nullptr;
     if (sub_nets_ == 0) {
         sub_nets_ = __createObjectIdArray(64);
     }
-    if (sub_nets_)
-        sub_net_vector =
-            addr<ArrayObject<ObjectId>>(sub_nets_);
+    if (sub_nets_) sub_net_vector = addr<ArrayObject<ObjectId>>(sub_nets_);
     if (sub_net_vector) sub_net_vector->pushBack(sub_net->getId());
 }
+
 /**
  * @brief add assign net to net
  *
@@ -706,10 +725,40 @@ void Net::addAssignConstant(double assign_constant) {
     assign_type_ = kAssignTypeReal;
 }
 
+WirePatch* Net::creatPatch(int loc_x, int loc_y, int x1, int y1, int x2, int y2,
+                           int layer) {
+    WirePatch* patch = getTopCell()->createObject<WirePatch>(kObjectTypeWire);
+    patch->setX1(x1);
+    patch->setX2(x2);
+    patch->setY1(y1);
+    patch->setY2(y2);
+    patch->setLocX(loc_x);
+    patch->setLocY(loc_y);
+    patch->setLayerNum(layer);
+
+    return patch;
+}
+
+ObjectId Net::addPatch(WirePatch* patch, ObjectId patches) {
+    if (patches == 0) {
+        ArrayObject<ObjectId>* patch_vector =
+            getTopCell()->createObject<ArrayObject<ObjectId>>(kObjectTypeArray);
+        patch_vector->setPool(getTopCell()->getPool());
+        patch_vector->reserve(256);
+        patches = patch_vector->getId();
+    }
+    ArrayObject<ObjectId>* patch_vector =
+        Object::addr<ArrayObject<ObjectId>>(patches);
+    patch_vector->pushBack(patch->getId());
+    return patches;
+}
+
 /**
  * @brief print function for Net
  *
  */
+
+/*
 void Net::print() {
     if (!is_sub_net_) {
         message->info("\n\n- %s ", getName().c_str());
@@ -719,9 +768,9 @@ void Net::print() {
 
     if (must_jion_) message->info("MUSTJOIN ");
 
-    if (v_pins_) {
+    if (vpins) {
         ArrayObject<ObjectId>* v_pin_vector =
-            addr<ArrayObject<ObjectId>>(v_pins_);
+            addr<ArrayObject<ObjectId>>(vpins);
         for (ArrayObject<ObjectId>::iterator iter = v_pin_vector->begin();
              iter != v_pin_vector->end(); ++iter) {
             VPin* v_pin = nullptr;
@@ -798,17 +847,17 @@ void Net::print() {
             if (sub_net) sub_net->print();
         }
     }
+
     // wire
-    // wire
-    if (graphs_) {
-        ArrayObject<ObjectId>* graph_vector =
-            addr<ArrayObject<ObjectId>>(graphs_);
-        for (ArrayObject<ObjectId>::iterator iter = graph_vector->begin();
-             iter != graph_vector->end(); ++iter) {
-            WireGraph* graph = nullptr;
+    if (wires_) {
+        ArrayObject<ObjectId>* wire_vector =
+            addr<ArrayObject<ObjectId>>(wires_);
+        for (ArrayObject<ObjectId>::iterator iter = wire_vector->begin();
+             iter != wire_vector->end(); ++iter) {
+            Wire* wire = nullptr;
             ObjectId id = (*iter);
-            if (id) graph = addr<WireGraph>(id);
-            if (graph) graph->print();
+            if (id) wire = addr<Wire>(id);
+            if (wire) wire->print();
         }
     }
 
@@ -904,16 +953,15 @@ void Net::print() {
  * @brief print file function for Net
  *
  */
+
 void Net::printDEF(FILE* fp) {
     if (!is_sub_net_) {
         fprintf(fp, "\n- %s ", getName().c_str());
     } else {
         fprintf(fp, "\n  + SUBNET %s ", getName().c_str());
     }
-
     if (pins_) {
-        ArrayObject<ObjectId>* pin_vector =
-            addr<ArrayObject<ObjectId>>(pins_);
+        ArrayObject<ObjectId>* pin_vector = addr<ArrayObject<ObjectId>>(pins_);
         for (ArrayObject<ObjectId>::iterator iter = pin_vector->begin();
              iter != pin_vector->end(); ++iter) {
             Pin* pin = nullptr;
@@ -927,90 +975,91 @@ void Net::printDEF(FILE* fp) {
                     fprintf(fp, "\n  ( PIN ");
                 }
 
-                fprintf(fp, "%s ) ", pin->getName().c_str());
+                fprintf(fp, "%s ) \n", pin->getName().c_str());
             }
         }
     }
 
     if (must_jion_) fprintf(fp, "MUSTJOIN ");
-
-    if (xtalk_) fprintf(fp, "\n  + XTALK %d", xtalk_);
+    if (xtalk_) fprintf(fp, "  + XTALK %d\n", xtalk_);
     if (rule_) {
         if (is_sub_net_) {
-            fprintf(fp, "\n    NONDEFAULTRULE %s", getNonDefaultRule());
+            fprintf(fp, "    NONDEFAULTRULE %s\n", getNonDefaultRule());
         } else {
-            fprintf(fp, "\n  + NONDEFAULTRULE %s", getNonDefaultRule());
+            fprintf(fp, "  + NONDEFAULTRULE %s\n", getNonDefaultRule());
         }
     }
-    if (source_) {
-        switch (source_) {
-            case 1:
-                fprintf(fp, "\n  + SOURCE DIST");
-                break;
-            case 2:
-                fprintf(fp, "\n  + SOURCE NETLIST");
-                break;
-            case 3:
-                fprintf(fp, "\n  + SOURCE TEST");
-                break;
-            case 4:
-                fprintf(fp, "\n  + SOURCE TIMING");
-                break;
-            case 5:
-                fprintf(fp, "\n  + SOURCE USER");
-                break;
-            default:
-                break;
-        }
-    }
-
-    if (fix_bump_) fprintf(fp, "\n  + FIXEDBUMP");
-    if (frequency_) fprintf(fp, "\n  + FREQUENCY %d ", frequency_);
-    if (origin_net_.size())
-        fprintf(fp, "\n  + ORIGINAL %s ", origin_net_.c_str());
+    if (fix_bump_) fprintf(fp, "  + FIXEDBUMP\n");
+    if (frequency_) fprintf(fp, "  + FREQUENCY %d \n", frequency_);
     if (net_type_) {
-        if (isAnalog()) fprintf(fp, "\n  + USE ANALOG");
-        if (isClock()) fprintf(fp, "\n  + USE CLOCK");
-        if (isGround()) fprintf(fp, "\n  + USE GROUND");
-        if (isPower()) fprintf(fp, "\n  + USE POWER");
-        if (isReset()) fprintf(fp, "\n  + USE RESET");
-        if (isScan()) fprintf(fp, "\n  + USE SCAN");
-        if (isSignal()) fprintf(fp, "\n  + USE SIGNAL");
-        if (isTieOff()) fprintf(fp, "\n  + USE TIEOFF");
+        if (isAnalog()) fprintf(fp, "  + USE ANALOG \n");
+        if (isClock()) fprintf(fp, "  + USE CLOCK \n");
+        if (isGround()) fprintf(fp, "  + USE GROUND \n");
+        if (isPower()) fprintf(fp, "  + USE POWER \n");
+        if (isReset()) fprintf(fp, "  + USE RESET \n");
+        if (isScan()) fprintf(fp, "  + USE SCAN \n");
+        if (isSignal()) fprintf(fp, "  + USE SIGNAL\n");
+        if (isTieOff()) fprintf(fp, "  + USE TIEOFF\n");
     }
 
-    if (pattern_) {
-        switch (pattern_) {
-            case 1:
-                fprintf(fp, "\n  + PATTERN BALANCED");
-                break;
-            case 2:
-                fprintf(fp, "\n  + PATTERN STEINER");
-                break;
-            case 3:
-                fprintf(fp, "\n  + PATTERN TRUNK");
-                break;
-            case 4:
-                fprintf(fp, "\n  + PATTERN WIREDLOGIC");
-                break;
-            default:
-                break;
+    // wire
+    if (wires_) {
+        ArrayObject<ObjectId>* wire_vector =
+            addr<ArrayObject<ObjectId>>(wires_);
+        for (ArrayObject<ObjectId>::iterator iter = wire_vector->begin();
+             iter != wire_vector->end(); ++iter) {
+            Wire* wire = nullptr;
+            ObjectId id = (*iter);
+            if (id) wire = addr<Wire>(id);
+            if (wire) wire->printDEF(fp);
+        }
+    }
+    // via
+    if (vias_) {
+        ArrayObject<ObjectId>* via_vector = addr<ArrayObject<ObjectId>>(vias_);
+        for (ArrayObject<ObjectId>::iterator iter = via_vector->begin();
+             iter != via_vector->end(); ++iter) {
+            Via* via = nullptr;
+            ObjectId id = (*iter);
+            if (id) via = addr<Via>(id);
+            if (via) via->printDEF(fp);
+        }
+    }
+    // patch
+    ObjectId patches = 0;
+    auto search = patch_map.find(getId());
+    if (search != patch_map.end()) {
+        patches = search->second;
+    }
+    if (patches) {
+        ArrayObject<ObjectId>* patch_vector =
+            addr<ArrayObject<ObjectId>>(patches);
+        for (ArrayObject<ObjectId>::iterator iter = patch_vector->begin();
+             iter != patch_vector->end(); ++iter) {
+            WirePatch* patch = nullptr;
+            ObjectId id = (*iter);
+            if (id) patch = addr<WirePatch>(id);
+            if (patch) patch->printDEF(fp);
         }
     }
 
-    if (cap_) fprintf(fp, "\n  + ESTCAP %f ", cap_);
-    if (weight_) fprintf(fp, "\n  + WEIGHT %d", weight_);
+    // Vpin
+    ObjectId vpins = 0;
+    search = Vpin_map.find(getId());
+    if (search != Vpin_map.end()) {
+        vpins = search->second;
+    }
 
-    if (v_pins_) {
+    if (vpins) {
         ArrayObject<ObjectId>* v_pin_vector =
-            addr<ArrayObject<ObjectId>>(v_pins_);
+            addr<ArrayObject<ObjectId>>(vpins);
         for (ArrayObject<ObjectId>::iterator iter = v_pin_vector->begin();
              iter != v_pin_vector->end(); ++iter) {
             VPin* v_pin = nullptr;
             ObjectId id = (*iter);
             if (id) v_pin = addr<VPin>(id);
             if (v_pin) {
-                fprintf(fp, "\n  + VPIN %s ", v_pin->getName().c_str());
+                fprintf(fp, "  + VPIN %s ", v_pin->getName().c_str());
                 if (strlen(v_pin->getLayer()) > 0)
                     fprintf(fp, "LAYER %s ", v_pin->getLayer());
                 fprintf(fp, "( %d %d ) ( %d %d ) ", v_pin->getBox().getLLX(),
@@ -1064,73 +1113,212 @@ void Net::printDEF(FILE* fp) {
                     }
                 }
             }
-        }
-    }
-    // wire
-    if (graphs_) {
-        ArrayObject<ObjectId>* graph_vector =
-            addr<ArrayObject<ObjectId>>(graphs_);
-        for (ArrayObject<ObjectId>::iterator iter = graph_vector->begin();
-             iter != graph_vector->end(); ++iter) {
-            WireGraph* graph = nullptr;
-            ObjectId id = (*iter);
-            if (id) graph = addr<WireGraph>(id);
-            if (graph) graph->printDEF(fp);
+            fprintf(fp, "\n");
         }
     }
 
-    // sub net
-    if (sub_nets_) {
-        ArrayObject<ObjectId>* sub_net_vector =
-            addr<ArrayObject<ObjectId>>(sub_nets_);
-        for (ArrayObject<ObjectId>::iterator iter = sub_net_vector->begin();
-             iter != sub_net_vector->end(); ++iter) {
-            Net* sub_net = nullptr;
-            ObjectId id = (*iter);
-            if (id) sub_net = addr<Net>(id);
-            if (sub_net) sub_net->printDEF(fp);
+    ObjectId properties = 0;
+    search = property_map.find(getId());
+    if (search != property_map.end()) {
+        properties = search->second;
+    }
+    if (properties) {
+        ArrayObject<ObjectId>* id_array_ptr =
+            Object::addr<ArrayObject<ObjectId>>(properties);
+        for (int i = 0; i < id_array_ptr->getSize(); i++) {
+            ObjectId obj_id = (*id_array_ptr)[i];
+            if (!obj_id) continue;
+            Property* property = Object::addr<Property>(obj_id);
+            if (property == nullptr) continue;
+            property->printDEF(fp);
         }
     }
+    fprintf(fp, "  ;\n");
+}
 
-    writeDEFProperty<Net>((void*)this, fp);
+/*
+if (!is_sub_net_) {
+    fprintf(fp, "\n- %s ", getName().c_str());
+} else {
+    fprintf(fp, "\n  + SUBNET %s ", getName().c_str());
+}
 
-    if (!is_sub_net_) {
-        fprintf(fp, "\n  ;\n");
+
+
+
+
+if (rule_) {
+    if (is_sub_net_) {
+        fprintf(fp, "\n    NONDEFAULTRULE %s", getNonDefaultRule());
+    } else {
+        fprintf(fp, "\n  + NONDEFAULTRULE %s", getNonDefaultRule());
+    }
+}
+if (source_) {
+    switch (source_) {
+        case 1:
+            fprintf(fp, "\n  + SOURCE DIST");
+            break;
+        case 2:
+            fprintf(fp, "\n  + SOURCE NETLIST");
+            break;
+        case 3:
+            fprintf(fp, "\n  + SOURCE TEST");
+            break;
+        case 4:
+            fprintf(fp, "\n  + SOURCE TIMING");
+            break;
+        case 5:
+            fprintf(fp, "\n  + SOURCE USER");
+            break;
+        default:
+            break;
     }
 }
 
+
+if (pattern_) {
+    switch (pattern_) {
+        case 1:
+            fprintf(fp, "\n  + PATTERN BALANCED");
+            break;
+        case 2:
+            fprintf(fp, "\n  + PATTERN STEINER");
+            break;
+        case 3:
+            fprintf(fp, "\n  + PATTERN TRUNK");
+            break;
+        case 4:
+            fprintf(fp, "\n  + PATTERN WIREDLOGIC");
+            break;
+        default:
+            break;
+    }
+}
+
+if (cap_) fprintf(fp, "\n  + ESTCAP %f ", cap_);
+if (weight_) fprintf(fp, "\n  + WEIGHT %d", weight_);
+
+if (vpins) {
+    ArrayObject<ObjectId>* v_pin_vector =
+        addr<ArrayObject<ObjectId>>(vpins);
+    for (ArrayObject<ObjectId>::iterator iter = v_pin_vector->begin();
+         iter != v_pin_vector->end(); ++iter) {
+        VPin* v_pin = nullptr;
+        ObjectId id = (*iter);
+        if (id) v_pin = addr<VPin>(id);
+        if (v_pin) {
+            fprintf(fp, "\n  + VPIN %s ", v_pin->getName().c_str());
+            if (strlen(v_pin->getLayer()) > 0)
+                fprintf(fp, "LAYER %s ", v_pin->getLayer());
+            fprintf(fp, "( %d %d ) ( %d %d ) ", v_pin->getBox().getLLX(),
+                    v_pin->getBox().getLLY(), v_pin->getBox().getURX(),
+                    v_pin->getBox().getURY());
+            if (v_pin->getStatus()) {
+                switch (v_pin->getStatus()) {
+                    case 1:
+                        fprintf(fp, "PLACED ");
+                        break;
+                    case 2:
+                        fprintf(fp, "FIXED ");
+                        break;
+                    case 3:
+                        fprintf(fp, "COVER ");
+                        break;
+
+                    default:
+                        break;
+                }
+                fprintf(fp, "( %d ", v_pin->getLoc().getX());
+                fprintf(fp, "%d ) ", v_pin->getLoc().getY());
+
+                switch (v_pin->getOrientation()) {
+                    case 1:
+                        fprintf(fp, "N ");
+                        break;
+                    case 2:
+                        fprintf(fp, "S ");
+                        break;
+                    case 3:
+                        fprintf(fp, "E ");
+                        break;
+                    case 4:
+                        fprintf(fp, "W ");
+                        break;
+                    case 5:
+                        fprintf(fp, "FN ");
+                        break;
+                    case 6:
+                        fprintf(fp, "FS ");
+                        break;
+                    case 7:
+                        fprintf(fp, "FE ");
+                        break;
+                    case 8:
+                        fprintf(fp, "FW ");
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+}
+
+
+// sub net
+if (sub_nets_) {
+    ArrayObject<ObjectId>* sub_net_vector =
+        addr<ArrayObject<ObjectId>>(sub_nets_);
+    for (ArrayObject<ObjectId>::iterator iter = sub_net_vector->begin();
+         iter != sub_net_vector->end(); ++iter) {
+        Net* sub_net = nullptr;
+        ObjectId id = (*iter);
+        if (id) sub_net = addr<Net>(id);
+        if (sub_net) sub_net->printDEF(fp);
+    }
+}
+
+writeDEFProperty<Net>((void*)this, fp);
+
+if (!is_sub_net_) {
+    fprintf(fp, "\n  ;\n");
+}
+}
+*/
 void Net::setPropertySize(uint64_t v) {
     if (v == 0) {
-        if (properties_id_) {
-            __deleteObjectIdArray(properties_id_);
+        if (properties) {
+            __deleteObjectIdArray(properties);
         }
         return;
     }
-    if (!properties_id_) {
-        properties_id_ = __createObjectIdArray(16);
-    }  
+    if (!properties) {
+        properties = __createObjectIdArray(16);
+    }
 }
 
 uint64_t Net::getNumProperties() const {
-    if (!properties_id_) return 0;
+    if (!properties) return 0;
 
-    return addr<IdArray>(properties_id_)->getSize();  
+    return addr<IdArray>(properties)->getSize();
 }
 
-void Net::addProperty(ObjectId obj_id) {
-    IdArray *id_array_ptr = nullptr;
-    if (obj_id == 0) return;
+ObjectId Net::addProperty(ObjectId obj_id) {
+    IdArray* id_array_ptr = nullptr;
+    if (obj_id == 0) return 0;
 
-    if (properties_id_ == 0) {
-        properties_id_ = __createObjectIdArray(16);
+    if (properties == 0) {
+        properties = __createObjectIdArray(16);
     }
-    ediAssert(properties_id_ != 0);
-    id_array_ptr = addr<IdArray>(properties_id_);
+    ediAssert(properties != 0);
+    id_array_ptr = addr<IdArray>(properties);
     ediAssert(id_array_ptr != nullptr);
-    id_array_ptr->pushBack(obj_id);  
+    id_array_ptr->pushBack(obj_id);
+    return properties;
 }
 
-ObjectId Net::getPropertiesId() const { return properties_id_; }
+ObjectId Net::getPropertiesId() const { return properties; }
 
 }  // namespace db
 }  // namespace open_edi

@@ -158,11 +158,129 @@ bool readBookshelf(PlaceDB& db)
 }
 
 #ifdef _CMAKE_PLACE
-void PyPlaceDB::set() 
+void 
+PyPlaceDB::set(unsigned long db_ptr)
 {
-    CommonPlaceDB* db = CommonPlaceDB::getPlaceDBInstance();
-    //setup from common db.
-    //to be implemented.
+    /* new set function for place_design flow */
+    namespace gtl = boost::polygon; 
+    using namespace gtl::operators;
+    typedef gtl::polygon_90_set_data<PlaceDB::coordinate_type> PolygonSet; 
+
+    dreamplacePrint(kINFO, "Preparing python DB.\n");
+    CommonPlaceDB *db = (CommonPlaceDB*)db_ptr;
+    if (nullptr == db) {
+      dreamplacePrint(kERROR, "Not find place common DB.\n");
+      return;
+    }
+
+    // record original node to new node mapping 
+    std::vector<std::vector<PlaceDB::index_type> > mNode2NewNodes (db->getNumNodes()); 
+
+    num_nodes = db->getNumNodes();
+    num_terminal_NIs = db->getNumIOPins();
+    num_terminals = num_nodes - num_terminal_NIs - db->getNumMoveableNodes();
+    int realNodeNum = db->getNumNodes() - num_terminal_NIs;
+    for (int i = 0; i < realNodeNum; ++i) 
+    {
+      //pybind11::dict node_name2id_map; ///< node name to id map, cell name 
+      node_name2id_map[pybind11::str(db->getInstNameById(i))] = i; 
+      //pybind11::list node_orient; ///< 1D array, cell orientation 
+      node_orient.append(pybind11::str(toString(db->getInstOriById(i)))); 
+    }
+    //pybind11::list node_names; ///< 1D array, cell name
+    node_names = pybind11::list(pybind11::cast(db->getInstNames())); 
+    //node_orient = pybind11::list(pybind11::cast(db->getInstOrients())); 
+
+    node_x = pybind11::list(pybind11::cast(db->getInitXV()));
+    node_y = pybind11::list(pybind11::cast(db->getInitYV()));
+    node_size_x = pybind11::list(pybind11::cast(db->getNodeSizeXV()));
+    node_size_y = pybind11::list(pybind11::cast(db->getNodeSizeYV()));
+
+    //pybind11::list node2orig_node_map?
+    for (int i = 0; i < db->getNumPins(); ++i) {
+      //pybind11::list pin_direct; ///< 1D array, pin direction IO 
+      pin_direct.append(toString(db->getPinDirById(i))); 
+    }
+    pin_offset_x = pybind11::list(pybind11::cast(db->getPinOffsetXV()));
+    pin_offset_y = pybind11::list(pybind11::cast(db->getPinOffsetYV()));
+
+    //pybind11::list net2pin_map; ///< array of 1D array, each row stores pin id? 
+    flat_net2pin_map = pybind11::list(pybind11::cast(db->getFlatNet2PinMapV()));
+    flat_net2pin_start_map = pybind11::list(pybind11::cast(db->getFlatNet2PinStartMapV()));
+    //pybind11::list net_weights; ///< net weight 
+    if (db->getNumNets() > 0) {
+      //pybind11::list net_names; ///< net name 
+      net_names = pybind11::list(pybind11::cast(db->getNetNames()));
+      net_weights = pybind11::list(pybind11::cast(db->getNetWeights()));
+      for (int i = 0; i < db->getNumNets(); ++i)
+      {
+        //pybind11::dict net_name2id_map; ///< net name to id map
+        net_name2id_map[pybind11::str(db->getNetNameById(i))] = i; 
+      }
+    }
+    //pybind11::list node2pin_map; ///< array of 1D array, contains pin id of each node?
+    flat_node2pin_map = pybind11::list(pybind11::cast(db->getFlatNode2PinMapV()));
+    flat_node2pin_start_map = pybind11::list(pybind11::cast(db->getFlatNode2PinStartMapV()));
+    pin2node_map = pybind11::list(pybind11::cast(db->getFlatPin2NodeMapV()));
+    pin2net_map = pybind11::list(pybind11::cast(db->getPin2NetMapV()));
+
+    // collect all row boxes
+    double rowBoxArea = 0;
+    for (auto box : db->getRowBoxes()) 
+    {
+      rowBoxArea += getBoxArea(box);
+      pybind11::tuple row = pybind11::make_tuple(getBoxLLX(box), getBoxLLY(box), getBoxURX(box), getBoxURY(box)); 
+      rows.append(row); 
+    }
+
+    //pybind11::list regions; ///< array of 1D array, each region contains rectangles? 
+    flat_region_boxes = pybind11::list(pybind11::cast(db->getFlatFenceBoxesV()));
+    flat_region_boxes_start = pybind11::list(pybind11::cast(db->getFlatFenceBoxesStartV()));
+    node2fence_region_map = pybind11::list(pybind11::cast(db->getNode2FenceMapV()));
+
+    //TODO for routing info
+    //unsigned int num_routing_grids_x; ///< number of routing grids in x 
+    //unsigned int num_routing_grids_y; ///< number of routing grids in y 
+    //int routing_grid_xl; ///< routing grid region may be different from placement region 
+    //int routing_grid_yl; 
+    //int routing_grid_xh; 
+    //int routing_grid_yh;
+    //pybind11::list unit_horizontal_capacities; ///< number of horizontal tracks of layers per unit distance 
+    //pybind11::list unit_vertical_capacities; /// number of vertical tracks of layers per unit distance 
+    //pybind11::list initial_horizontal_demand_map; ///< initial routing demand from fixed cells, indexed by (layer, grid x, grid y) 
+    //pybind11::list initial_vertical_demand_map; ///< initial routing demand from fixed cells, indexed by (layer, grid x, grid y)   
+    //
+    xl = db->getAreaLLX();
+    yl = db->getAreaLLY();
+    xh = db->getAreaURX();
+    yh = db->getAreaURY();
+    row_height = db->getRowHight();
+    site_width = db->getSiteWidth();
+
+    // collect boxes for fixed cells and put in a polygon set to remove overlap later 
+    std::vector<gtl::rectangle_data<PlaceDB::coordinate_type>> fixed_boxes; 
+    double total_fixed_node_area = 0; // compute total area of fixed cells, which is an upper bound  
+    if (db->getNumNodes() > 0 && 
+        db->getNumNodes() > db->getNumMoveableNodes()) {
+      for (int i = db->getNumMoveableNodes(); i < realNodeNum; ++i)
+      {
+        total_fixed_node_area += (db->getNodeSizeXV().at(i) * db->getNodeSizeYV().at(i));
+        fixed_boxes.emplace_back(db->getInitXV().at(i),
+                                 db->getInitYV().at(i),
+                                 db->getInitXV().at(i) + db->getNodeSizeXV().at(i),
+                                 db->getInitYV().at(i) + db->getNodeSizeYV().at(i));
+      }
+    }
+
+    PolygonSet ps (gtl::HORIZONTAL, fixed_boxes.begin(), fixed_boxes.end());
+    // critical to make sure only overlap with the die area is computed 
+    ps &= gtl::rectangle_data<PlaceDB::coordinate_type>(xl, yl, xh, yh);
+    double total_fixed_node_overlap_area = gtl::area(ps);
+    total_space_area = rowBoxArea - 
+                       std::min(total_fixed_node_overlap_area, total_fixed_node_area); 
+    num_movable_pins = db->getNumMoveablePins(); 
+    dreamplacePrint(kINFO, "Completed python DB.\n");
+    
 }
 #endif
 

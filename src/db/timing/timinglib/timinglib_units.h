@@ -73,7 +73,7 @@ class TUnits : public Object {
     /// Access APIs:
     TUnit &getTimeUnit(void);
     TUnit &getCapacitanceUnit(void);
-    TUnit &getVolatgeUnit(void);
+    TUnit &getVoltageUnit(void);
     TUnit &getResistanceUnit(void);
     TUnit &getPullingResistanceUnit(void);
     TUnit &getCurrentUnit(void);
@@ -105,7 +105,7 @@ class TUnits : public Object {
 
     TUnit time_unit_;
     TUnit capacitance_unit_;
-    TUnit volatge_unit_;
+    TUnit voltage_unit_;
     TUnit resistance_unit_;
     TUnit pulling_resistance_unit_;
     TUnit current_unit_;

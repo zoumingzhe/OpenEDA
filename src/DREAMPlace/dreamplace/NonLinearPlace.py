@@ -211,6 +211,9 @@ class NonLinearPlace (BasicPlace.BasicPlace):
         logging.info("full step %.3f ms" % ((time.time()-t0)*1000))
         return #alpha_k #,wirelength_grad_norm, density_grad_norm
 
+    def report_rsmt_wirelength(self, params, placedb):
+        logging.info('reporting rsmt wire length:');
+        return
 
     def global_place_electric_potential(self, params, placedb,all_metrics):
         """
@@ -317,6 +320,8 @@ class NonLinearPlace (BasicPlace.BasicPlace):
                     num_area_adjust = 0
 
                 Llambda_flat_iteration = 0
+                
+                
                 for Lgamma_step in range(self.model.Lgamma_iteration):
                     Lgamma_metrics.append([])
                     Llambda_metrics = Lgamma_metrics[-1]
@@ -359,6 +364,9 @@ class NonLinearPlace (BasicPlace.BasicPlace):
                         if 'learning_rate_decay' in global_place_params: 
                             for param_group in self.optimizer.param_groups:
                                 param_group['lr'] *= global_place_params['learning_rate_decay']
+
+                if "rsmt_wirelength_info" in global_place_params:
+                    self.report_rsmt_wirelength(params, placedb)
 
                 logging.info("optimizer %s takes %.3f seconds" % (optimizer_name, time.time()-tt))
             # recover node size and pin offset for legalization, since node size is adjusted in global placement

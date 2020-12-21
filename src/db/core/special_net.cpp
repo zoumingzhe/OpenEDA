@@ -272,14 +272,14 @@ void SpecialNet::setNonDefaultRule(ObjectId rule) { rule_ = rule; }
  *
  * @param wire
  */
-void SpecialNet::addWire(SpecialWire* wire) { wire_rects_.push_back(wire); }
-
-/**
- * @brief delete a specific wire in net
- *
- * @param wire
- */
-void SpecialNet::deleteWire(SpecialWire* wire) {}
+void SpecialNet::addWire(Wire* wire) {
+    ArrayObject<ObjectId>* wire_vector = nullptr;
+    if (wires_ == 0) {
+        wires_ = __createObjectIdArray(256);
+    }
+    if (wires_) wire_vector = addr<ArrayObject<ObjectId>>(wires_);
+    if (wire_vector) wire_vector->pushBack(wire->getId());
+}
 
 void SpecialNet::setOriginNet(SpecialNet* net) {
     if (net) origin_net_ = net->getId();
@@ -297,23 +297,48 @@ const char* SpecialNet::getOriginNet() {
     }
 }
 
-SpecialWireSection* SpecialNet::createWireSection() {
-    SpecialWireSection* section =
-        getTopCell()->createObject<SpecialWireSection>(kObjectTypeWire);
+/**
+ * @brief create a wire in net
+ *
+ * @return Wire*
+ */
+Wire* SpecialNet::createWire(int x1, int y1, int x2, int y2, int width) {
+    Wire* wire = getOwnerCell()->createObject<Wire>(kObjectTypeWire);
+    int x = 0, y = 0, length = 0, height = 0;
 
-    return section;
+    // the wire is horizontal
+    if (y1 == y2) {
+        if (x1 < x2) std::swap(x1, x2);  // keep the x1 in left
+
+        x = x1 - width / 2;
+        y = y1 - width / 2;
+        length = x2 - x1 + width;
+        height = width;
+    }
+    // the wire is vertical
+    if (x1 = x2) {
+        if (y1 > y2) std::swap(y1, y2);  // keep the y1 in down
+        x = x1 - width / 2;
+        y = y1 - width / 2;
+        length = width;
+        height = y2 - y1 + width;
+    }
+
+    wire->setX(x);
+    wire->setY(y);
+    wire->setHeight(height);
+    wire->setLength(length);
+
+    return wire;
 }
 
-int SpecialNet::addWireSection(SpecialWireSection* section) {
-    VectorObject64* section_vector = nullptr;
-    if (wire_sections_ == 0) {
-        wire_sections_ =
-            getTopCell()->createVectorObject<VectorObject64>()->getId();
-    }
-    if (wire_sections_) section_vector = addr<VectorObject64>(wire_sections_);
-    if (section_vector) section_vector->push_back(section->getId());
-
-    return 0;
+Wire* SpecialNet::createWire(int x1, int y1, int x2, int y2) {
+    Wire* wire = getOwnerCell()->createObject<Wire>(kObjectTypeWire);
+    wire->setX(x1);
+    wire->setY(y1);
+    wire->setHeight(y2 - y1);
+    wire->setLength(x2 - x1);
+    return wire;
 }
 
 /**
@@ -331,6 +356,12 @@ int SpecialNet::addPin(Pin* pin) {
     if (pin) pin_vector->push_back(pin->getId());
 
     return 0;
+}
+
+Via* SpecialNet::createVia(int x, int y, ViaMaster* via_master) {
+    Via* via = getOwnerCell()->createObject<Via>(kObjectTypeVia);
+    if (via) via->setLoc(x, y);
+    return via;
 }
 
 /**
@@ -353,6 +384,8 @@ int SpecialNet::addVia(Via* via) {
  * @brief print function for SpecialNet
  *
  */
+
+/*
 void SpecialNet::print() {
     message->info("\n - %s ", getName().c_str());
 
@@ -467,6 +500,41 @@ void SpecialNet::print() {
  *
  */
 void SpecialNet::printDEF(FILE* fp) {
+    fprintf(fp, " - %s \n", getName().c_str());
+    // pin
+    if (pins_) {
+        VectorObject64* pin_vector = addr<VectorObject64>(pins_);
+        for (VectorObject64::iterator iter = pin_vector->begin();
+             iter != pin_vector->end(); ++iter) {
+            Pin* pin = nullptr;
+            ObjectId id = (*iter);
+            if (id) pin = addr<Pin>(id);
+            if (pin) {
+                Inst* inst = pin->getInst();
+                if (inst) {
+                    fprintf(fp, "\n  ( %s ", inst->getName().c_str());
+                } else {
+                    fprintf(fp, "\n  ( PIN ");
+                }
+
+                fprintf(fp, "%s ) ", pin->getName().c_str());
+            }
+        }
+    }
+
+    if (net_type_) {
+        if (isAnalog()) fprintf(fp, " + USE ANALOG ;\n");
+        if (isClock()) fprintf(fp, " + USE CLOCK ;\n");
+        if (isGround()) fprintf(fp, " + USE GROUND ;\n");
+        if (isPower()) fprintf(fp, " + USE POWER ;\n");
+        if (isReset()) fprintf(fp, " + USE RESET ;\n");
+        if (isScan()) fprintf(fp, " + USE SCAN ;\n");
+        if (isSignal()) fprintf(fp, " + USE SIGNAL ;\n");
+        if (isTieOff()) fprintf(fp, " + USE TIEOFF ;\n");
+    }
+    
+}
+/*
     fprintf(fp, " - %s ", getName().c_str());
     // pin
     if (pins_) {
@@ -566,7 +634,7 @@ void SpecialNet::printDEF(FILE* fp) {
     }
 
     fprintf(fp, " ;\n");
-}
+}*/
 
 void SpecialNet::setPropertySize(uint64_t v) {
     if (v == 0) {
@@ -591,9 +659,9 @@ uint64_t SpecialNet::getNumProperties() const {
     return addr<VectorObject16>(properties_id_)->totalSize();
 }
 
-void SpecialNet::addProperty(ObjectId obj_id) {
+ObjectId SpecialNet::addProperty(ObjectId obj_id) {
     VectorObject16* vobj = nullptr;
-    if (obj_id == 0) return;
+    if (obj_id == 0) return 0;
 
     if (properties_id_ == 0) {
         vobj = VectorObject16::createDBVectorObjectVar(true /*is_header*/);
@@ -603,6 +671,7 @@ void SpecialNet::addProperty(ObjectId obj_id) {
     }
     ediAssert(vobj != nullptr);
     vobj->push_back(obj_id);
+    return properties_id_;
 }
 
 ObjectId SpecialNet::getPropertiesId() const { return properties_id_; }

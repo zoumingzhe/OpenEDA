@@ -42,7 +42,7 @@ class Group : public Object {
 
     void setPropertySize(uint64_t v);
     uint64_t getNumProperties() const;
-    void addProperty(ObjectId prop_id);
+    ObjectId addProperty(ObjectId prop_id);
     ObjectId getPropertiesId() const;
 
     void print();

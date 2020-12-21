@@ -121,8 +121,8 @@ uint64_t Group::getNumProperties() const {
     return addr<IdArray>(properties_id_)->getSize();
 }
 
-void Group::addProperty(ObjectId obj_id) {
-    if (obj_id == 0) return;
+ObjectId Group::addProperty(ObjectId obj_id) {
+    if (obj_id == 0) return 0;
     if (properties_id_ == 0) {
         properties_id_ = __createObjectIdArray(16);
     } 
@@ -131,6 +131,8 @@ void Group::addProperty(ObjectId obj_id) {
     IdArray *id_array_ptr = addr<IdArray>(properties_id_);
     ediAssert(id_array_ptr != nullptr);
     id_array_ptr->pushBack(obj_id);
+
+    return properties_id_;
 }
 
 ObjectId Group::getPropertiesId() const { return properties_id_; }

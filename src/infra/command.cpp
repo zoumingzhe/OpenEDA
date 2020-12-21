@@ -201,6 +201,7 @@ bool Command::getOptionValue(const char * name, db::Box** value) {
             message->issueMsg("INFRA", kOptionDataTypeError, kError, name);
             return false;
         }
+        (*value) = new db::Box;
         (*value)->setLLX(((db::Box *)op->getData())->getLLX());
         (*value)->setLLY(((db::Box *)op->getData())->getLLY());
         (*value)->setURX(((db::Box *)op->getData())->getURX());
@@ -461,7 +462,6 @@ int Command::parser(int argc, const char** argv) {
             if (res == false)
                 return kUserLogicError;
         }
-        message->info("will set data\n");
         setData();
     }
 

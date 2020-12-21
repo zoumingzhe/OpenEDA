@@ -9,6 +9,16 @@ string(TOLOWER ${PROJECT_NAME} PROJECT_NAME_LOWERCASE)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(CMAKE_CXX_ABI "Whether turn on CCXX_ABI" 1)
+if(NOT CMAKE_CXX_ABI)
+    set(CMAKE_CXX_ABI 0 CACHE STRING
+        "Choose the value for _GLIBCXX_USE_CXX11_ABI, options are: 0|1."
+        FORCE)
+endif(NOT CMAKE_CXX_ABI)
+# openEDI need new lib
+message(STATUS "CMAKE_CXX_ABI: _GLIBCXX_USE_CXX11_ABI=${CMAKE_CXX_ABI}")
+add_definitions(-D_GLIBCXX_USE_CXX11_ABI=${CMAKE_CXX_ABI})
+
 # dev tool path
 if (DEFINED ENV{DEV_TOOL})   #find env
     MESSAGE(STATUS "Found DEV_TOOL env = " $ENV{DEV_TOOL})
@@ -68,7 +78,7 @@ find_package(Doxygen)
 #  set(EDI_BIND_TCL OFF)
 #endif(TCL_FOUND)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wreturn-type  -Wno-attributes")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wreturn-type  -Wno-attributes -O3")
 
 message(STATUS "CMAKE_HOST_SYSTEM: ${CMAKE_HOST_SYSTEM}")
 message(STATUS "CMAKE_CXX_COMPILER_VERSION: ${CMAKE_CXX_COMPILER_VERSION}")

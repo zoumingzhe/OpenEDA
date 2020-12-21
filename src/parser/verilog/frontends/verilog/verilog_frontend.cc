@@ -32,7 +32,7 @@
 #include "libs/sha1/sha1.h"
 #include <stdarg.h>
 
-#include "../../db/io/read_verilog.h"
+#include "db/io/read_verilog.h"
 
 YOSYS_NAMESPACE_BEGIN
 using namespace VERILOG_FRONTEND;
