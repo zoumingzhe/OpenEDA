@@ -39,6 +39,9 @@ class MainWindow : public QMainWindow {
     void addActions();
     void createCentralWindow();
 
+signals:
+    void windowChanged(bool);
+
   private:
     static MainWindow* instance_;
     QGraphicsView*     view_;

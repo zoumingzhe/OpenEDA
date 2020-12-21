@@ -41,7 +41,7 @@ ActionGroupManager::ActionGroupManager(QObject* parent)
     {
         group->setExclusive(false);
         if(group->objectName() != tr("File")){
-            connect(parent, SIGNAL(windowChanged(bool)), group, SLOT(setEnable(bool)));
+ //           connect(parent, SIGNAL(windowChanged(bool)), group, SLOT(setEnable(bool)));
         }
     }
 }
