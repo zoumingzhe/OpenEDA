@@ -92,7 +92,7 @@ int IODB::readInputTree(string file_name, vector<Buffer> &drivers) {
         if(what == "level"){
             fin_ >> level;
             if(level>0){
-                nets_level_.emplace_back(nets);
+                nets_level_.push_back(nets);
             }
             nets.clear();
         }else{
@@ -143,8 +143,11 @@ int IODB::readInputTree(string file_name, vector<Buffer> &drivers) {
                     solution->polarity = false;
                     solution->time = 0;
                     node->solutions[0] = solution;
-                    nets.insert(net);
-                    net_nodes_[net].emplace_back(node);
+                    if(net_level_.find(net)==net_level_.end()){
+                        nets.insert(net);
+                        net_level_[net] = level;
+                    }
+                    net_nodes_[net].push_back(node);
                 }else{
                     continue;
                 }
@@ -153,7 +156,9 @@ int IODB::readInputTree(string file_name, vector<Buffer> &drivers) {
             }
         }
     }
-    nets_level_.emplace_back(nets);
+    if(nets.size()>0){
+        nets_level_.push_back(nets);
+    }
     fin_.close();
 
     // connect parent
@@ -165,6 +170,8 @@ int IODB::readInputTree(string file_name, vector<Buffer> &drivers) {
         }
         p->parent = NULL;
         p->type = SOURCE;
+        delete p->solutions[0];
+        p->solutions[0] = NULL;
     }
     return 0;
 }
@@ -207,7 +214,118 @@ void IODB::getNodesByLevel(uint32_t level, vector<vector<Node *>> &nodes_array) 
     }
     set<db::Net *> nets = nets_level_[level];
     for(auto &net : nets){
-        nodes_array.emplace_back(net_nodes_[net]);
+        nodes_array.push_back(net_nodes_[net]);
+    }
+}
+
+void IODB::createInstNodes(unordered_map<uint64_t,InstNode *> &inst_nodes,uint32_t level) {
+    set<Net *> nets = nets_level_[level];
+    for(auto &net : nets){
+        for(auto &node : net_nodes_[net]){
+            if(node->type == CANDIDATE) {//SINK
+                Pin *pin = Object::addr<Pin>(node->id);
+                if(pin==NULL){
+                    cout << "error pin:" << node->id << endl;
+                }
+                uint64_t inst_id = pin->getInst()->getId();
+                InstNode *inst_node = inst_nodes[inst_id];
+                if(!inst_node){
+                    inst_node = new InstNode();
+                    inst_node->delay = 0;
+                    inst_nodes[inst_id] = inst_node;
+                }
+                PinNode *pin_node = inst_node->in_pins[node->id];
+                if(!pin_node){
+                    pin_node = new PinNode();
+                    inst_node->in_pins[node->id] = pin_node;
+                }
+            }else if(node->type == SOURCE) {
+                Pin *pin = Object::addr<Pin>(node->id);
+                uint64_t inst_id = pin->getInst()->getId();
+                InstNode *inst_node = inst_nodes[inst_id];
+                if(!inst_node){
+                    inst_node = new InstNode();
+                    inst_node->delay = 0;
+                    inst_nodes[inst_id] = inst_node;
+                }
+                PinNode *pin_node = inst_node->out_pins[node->id];
+                if(!pin_node){
+                    pin_node = new PinNode();
+                    inst_node->out_pins[node->id] = pin_node;
+                }
+            }
+        }
+    }
+}
+
+void IODB::printBufferSolution(BufferNode *root, ofstream &fout) {
+    queue<BufferNode *> nodes;
+    if(root)
+        nodes.push(root);
+    while(nodes.size()>0){
+        BufferNode *tmp = nodes.front();
+        nodes.pop();
+        if (tmp->bufferType != (uint32_t)-1) {
+            fout << "start " << tmp->id_at << " end " << tmp->id_to << " buffertype " << tmp->bufferType << endl;
+        }
+        if(tmp->left){
+            nodes.push(tmp->left);
+        }
+        if(tmp->right){
+            nodes.push(tmp->right);
+        }
+    }
+}
+
+void IODB::writeResult(string output_file,unordered_map<uint64_t,InstNode *> &inst_nodes) {
+    ofstream fout(output_file,fstream::out);
+    if ( !fout ) {
+        cout << "open file '" << output_file << "' failed!" << endl;
+        return;
+    }
+    fout << "final result:" << endl;
+    set<db::Net *> nets = nets_level_.back();
+    for(auto &net : nets){
+        vector<Node *> nodes = net_nodes_[net];
+        Node *node = nodes.back();
+        Pin *pin = Object::addr<Pin>(node->id);
+        uint64_t inst_id = pin->getInst()->getId();
+        InstNode *inst_node = inst_nodes[inst_id];
+        PinNode *pin_node = inst_node->out_pins[node->id];
+        size_t num_solutions = 0;
+        VanResult *solution = pin_node->solutions;
+        while(solution){
+            num_solutions++;
+            solution = solution->next;
+        }
+        fout << "net " << net->getName() << " has " << num_solutions << " solutions." << endl;
+        if(num_solutions>0){
+            fout << "best solution:" << endl;
+            printBufferSolution(pin_node->solutions->buffer_location,fout);
+        }
+    }
+    for(int64_t i=0;i<nets_level_.size()-1;i++){
+        set<db::Net *> nets = nets_level_[i];
+        for(auto &net : nets){
+            vector<Node *> nodes = net_nodes_[net];
+            Node *node = nodes.back();
+            Pin *pin = Object::addr<Pin>(node->id);
+            uint64_t inst_id = pin->getInst()->getId();
+            InstNode *inst_node = inst_nodes[inst_id];
+            PinNode *pin_node = inst_node->out_pins[node->id];
+            VanResult *s = pin_node->best_solution;
+            if(s){
+                fout << "net " << net->getName() << " has best solution:" << endl;
+                printBufferSolution(s->buffer_location,fout);
+            }
+        }
+    }
+    fout.close();
+    
+    for(auto &nodes : net_nodes_){
+        for(auto &node : nodes.second){
+            delete node;
+        }
     }
 }
 

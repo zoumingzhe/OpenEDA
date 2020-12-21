@@ -33,16 +33,21 @@ class IODB {
     double getC0();
     size_t getTotalLevel();
     void getNodesByLevel(uint32_t level, std::vector<std::vector<Node *>> &nodes_array);
+    void createInstNodes(std::unordered_map<uint64_t,InstNode *> &insts,uint32_t level);
+    void writeResult(std::string output_file,std::unordered_map<uint64_t,InstNode *> &inst_nodes);
+
   private:
     std::ifstream fin_;
     std::ofstream fout_;
     std::unordered_map<std::string,db::Inst *> insts_;
     std::unordered_map<db::Net *,std::vector<Node *>> net_nodes_;
+    std::unordered_map<db::Net *,uint64_t> net_level_;
     std::vector<std::set<db::Net *>> nets_level_;
 
     double r0_;     //wire unit resistance
     double c0_;     //wire unit capacitance
     
+    void printBufferSolution(BufferNode *root, std::ofstream &fout);
     void destroyTree();
 };
 
