@@ -21,6 +21,8 @@
 #include "util/stream.h"
 #include "util/util_mem.h"
 
+extern uint32_t net_with_bid_;
+
 namespace open_edi {
 namespace db {
 
@@ -205,6 +207,9 @@ void DNetParasitics::addRoot(ParasiticPinNode *node) {
         roots_ = new std::vector<ParasiticPinNode*>();
     }
     roots_->push_back(node);
+    if (roots_->size() == 2) {
+        ++net_with_bid_;
+    }
 }
 
 }  // namespace db

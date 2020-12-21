@@ -95,6 +95,7 @@ class SpefReader {
     void __spef_parse_end(FILE *fp);
     int  __spef_parse();
 
+    //std::map<std::string, ObjectId> net_node_map_; //use to check if node created for net
     std::unordered_map<std::string, ObjectId> net_node_map_; //use to check if node created for net
     DesignParasitics *design_parasitics_;
     NetsParasitics *nets_parasitics_;

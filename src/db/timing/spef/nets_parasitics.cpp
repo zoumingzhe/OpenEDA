@@ -14,12 +14,17 @@
 
 #include "db/timing/spef/nets_parasitics.h"
 
+#include <unordered_set>
 #include <stdio.h>
 #include <time.h>
 #include "stdlib.h"
 #include "db/core/db.h"
 #include "db/core/timing.h"
 #include "util/stream.h"
+
+extern uint32_t net_with_loop_;
+extern uint32_t net_with_bid_;
+extern uint32_t valid_net_;
 
 namespace open_edi {
 namespace db {
@@ -381,6 +386,10 @@ ObjectId  NetsParasitics::createParaNode(DNetParasitics *netParasitics, const ch
 	    pin = findPin(nodeName);
             if (pin != nullptr) {
 		ObjectId pinNodeId = netParasitics->createPinNode(pin->getId());
+                if (pin->getDirection() == SignalDirection::kOutput || pin->getDirection() == SignalDirection::kInout) {
+                    auto pin_addr = Object::addr<ParasiticPinNode>(pinNodeId);
+                    netParasitics->addRoot(pin_addr);
+                }
                 /*if (pin->getNet()->getId() == netParasitics->getNetId()) { //Add internal pin node
                     netParasitics->addPinNode(pinNodeId);
                 }*/
@@ -735,20 +744,35 @@ std::ofstream& operator<<(std::ofstream& os, NetsParasitics &rhs) {
 void DNetParasitics::buildParasiticForest() {
     assert(adjacent_map_);
     auto size = adjacent_map_->size();
+    bool has_loop = false;
+    if (!roots_) return;
+    ++valid_net_;
     for (auto root : *roots_) {
+        std::unordered_set<ParasiticNode*> visited;
+        std::unordered_set<ParasiticResistor*> visited_r;
         std::vector<OptParaNode> tree;
         tree.reserve(size);
         size_t index = 0;
         tree.push_back({root->getId(), UNINIT_OBJECT_ID, 0, 0});
+        visited.insert(Object::addr<ParasiticNode>(root->getId()));
         for (int i = 0; i < size; ++i) {
             // To reduce runtime memory, using pre-reversed vector to do queueing.
             OptParaNode cur_node = tree[i];
             auto node_addr = Object::addr<ParasiticNode>(cur_node.node);
             auto resistances = (*adjacent_map_)[node_addr];
             for (auto res : resistances) {
+                if (visited_r.count(res)) {
+                    continue;
+                }
+                visited_r.insert(res);
                 auto next_addr = node_addr->getId() == res->getNode1Id() ?
-                                   Object::addr<ParasiticNode>(res->getNode2Id()) :
-                                   Object::addr<ParasiticNode>(res->getNode1Id());
+                                 Object::addr<ParasiticNode>(res->getNode2Id()) :
+                                 Object::addr<ParasiticNode>(res->getNode1Id());
+                if (visited.count(next_addr)) {
+                    has_loop = true;
+                    continue;
+                }
+                visited.insert(next_addr);
                 tree.push_back({next_addr->getId(), /* node */
                                            cur_node.node,                            /* parent_node */
                                            res->getResistance(),       /* resistance */
@@ -757,6 +781,10 @@ void DNetParasitics::buildParasiticForest() {
             }
         }
         parasitic_forest_.push_back(std::move(tree));
+    }
+    if (has_loop) {
+        std::cout << "HAS LOOP!!!" << std::endl;
+        ++net_with_loop_;
     }
 }
 
@@ -801,7 +829,7 @@ void DNetParasitics::clearGraphData() {
 }
 
 std::vector<std::vector<OptParaNode>> DNetParasitics::getParasiticForest() {
-    if (!hasParasiticForest()) {
+    if (!hasParasiticForest() && gcap_vec_id_ && res_vec_id_) {
         prepareGraphData();
         buildParasiticForest();
         clearGraphData();
@@ -810,11 +838,7 @@ std::vector<std::vector<OptParaNode>> DNetParasitics::getParasiticForest() {
 }
 
 void DNetParasitics::checkLoop() {
-    auto gcaps = Object::addr<ArrayObject<ObjectId>>(gcap_vec_id_);
-    auto res = Object::addr<ArrayObject<ObjectId>>(res_vec_id_);
-    if (gcaps->getSize() != res->getSize() - 1) {
-        printf("C size: %lld R size %lld\n", (long long)gcaps->getSize(), (long long)res->getSize());
-    }
+    getParasiticForest();
 }
 
 }  // namespace db

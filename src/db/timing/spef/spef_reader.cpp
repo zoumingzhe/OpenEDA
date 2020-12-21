@@ -22,6 +22,13 @@
 
 #include "db/timing/spef/spef_reader.h"
 
+uint32_t total_net_count_ = 0;
+uint32_t net_with_bid_ = 0;
+uint32_t net_with_loop_ = 0;
+uint32_t valid_net_ = 0;
+uint32_t node_without_cap_ = 0;
+uint32_t total_node_ = 0;
+
 namespace SpefReader {
 
 SpefReader::SpefReader(std::string fileName, DesignParasitics *designParasitics)
@@ -42,6 +49,10 @@ SpefReader::SpefReader(std::string fileName, DesignParasitics *designParasitics)
 }
 
 SpefReader::~SpefReader() {
+    std::cout << "SPEF totals net count: " << total_net_count_ << std::endl;
+    std::cout << "SPEF valid net: " << valid_net_ << std::endl;
+    std::cout << "SPEF net with bid: " << net_with_bid_ << std::endl;
+    std::cout << "SPEF net with loop: " << net_with_loop_ << std::endl;
 }
 
 void SpefReader::stringDelete(const char *str) {
@@ -232,8 +243,9 @@ void SpefReader::addDNetBegin(Net *net) {
 
 void SpefReader::addDNetEnd() { 
     if (dnet_parasitics_) {
-        printf("Net %s\n", net_->getName().c_str());
-        dnet_parasitics_->checkLoop();
+        // printf("Net %s\n", net_->getName().c_str());
+        // dnet_parasitics_->checkLoop();
+        ++total_net_count_;
     }
     net_ = nullptr; 
     dnet_parasitics_ = nullptr;

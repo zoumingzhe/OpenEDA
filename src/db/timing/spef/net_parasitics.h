@@ -50,12 +50,6 @@ class NetParasitics : public Object {
 
 class DNetParasitics : public NetParasitics {
   public:
-    // using AdjNode = std::tuple<ParasiticNode, float, float>;
-    // enum class AdjaNodeIndex {
-    //     NEXT_NODE = 0,
-    //     RES,
-    //     CAPS
-    // }
     DNetParasitics();
     ~DNetParasitics();
     //ObjectId getPinNodeVecId() const { return pin_node_vec_id_; }

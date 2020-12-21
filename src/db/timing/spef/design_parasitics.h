@@ -29,7 +29,6 @@
 namespace open_edi {
 namespace db {
 
-
 class DesignParasitics : public Object {
   public:
     using BaseType = Object;
@@ -92,7 +91,7 @@ class DesignParasitics : public Object {
     ObjectId netsparasitics_vec_id_;
     /// The value to determine which value to read in from triplet value in SPEF
     uint8_t spef_field_;
-    /// Cell indexed Net to DNetParasitics map
+    ///Net to DNetParasitics map
     mutable CellNetParaMap *net_detailed_para_map_;
 };
 

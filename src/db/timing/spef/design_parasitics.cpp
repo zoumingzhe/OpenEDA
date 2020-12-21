@@ -178,7 +178,7 @@ DesignParasitics::getOptNetParasiticNodes(ObjectId net_id) {
     }
     auto iter = net_detailed_para_map_->find(net_id);
     if (iter != net_detailed_para_map_->end()) {
-        return dynamic_cast<DNetParasitics*>(Object::addr<DNetParasitics>(iter->second))->getParasiticForest();
+        return Object::addr<DNetParasitics>(iter->second)->getParasiticForest();
     } else {
         return {};
     }
