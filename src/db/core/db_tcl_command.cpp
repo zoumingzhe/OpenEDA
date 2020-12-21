@@ -50,9 +50,7 @@ static int writeLefCommand(ClientData cld, Tcl_Interp *itp, int argc, const char
 
 // read DEF file
 static int readDefCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
-    //ProfilerStart("read_def.prof");
     int result = util::runCommandWithProcessBar(readDef, argc, argv);
-    //ProfilerStop();
     return result;
 }
 
