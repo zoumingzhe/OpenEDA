@@ -21,6 +21,7 @@
 #include "util/util.h"
 #include <cmath>
 #include <limits>
+#include <boost/functional/hash.hpp>
 
 namespace open_edi {
 namespace db {
@@ -30,11 +31,42 @@ bool ediEqual(const T &value1, const T &value2, T eps = std::numeric_limits<T>::
     return fabs(value1 - value2) < eps;
 }
 
+template<typename T, typename U>
+class UnorderedPair {
+  public:
+    UnorderedPair() {}
+    UnorderedPair(T first_value, U second_value) : first(first_value), second(second_value) {}
+    bool operator==(const UnorderedPair<T, U> &rhs) const;
+    template<T, U>
+    friend std::size_t hash_value(const UnorderedPair<T, U> &p);
+
+    //keep the same usage as std::pair
+    T first;
+    U second;
+};
+
+template<typename T, typename U>
+bool UnorderedPair<T,U>::operator==(const UnorderedPair<T, U> &rhs) const {
+    if ((this->first == rhs.first) and (this->second == rhs.second)) {
+        return true;
+    }
+    if ((this->first == rhs.second) and (this->second == rhs.first )) {
+        return true;
+    }
+    return false;
+}
+
+template<typename T, typename U>
+std::size_t hash_value(const UnorderedPair<T, U> &p) {
+    std::size_t seed1 = 0;
+    boost::hash_combine(seed1, p.first);
+    std::size_t seed2 = 0;
+    boost::hash_combine(seed2, p.second);
+    return seed1 xor seed2;
+}
+
 Pin* getPinByFullName(const std::string &full_name);
 std::string getPinFullName(const ObjectId &pin_id);
-
-
-
 
 
 

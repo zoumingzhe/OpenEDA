@@ -219,6 +219,68 @@ bool ClockGatingCheckContainerData::addToInst(const std::string &inst_name, cons
     return true;
 }
 
+std::string to_string(const RelationshipType &value) {
+    switch (value) {
+        case RelationshipType::kPhysicallyExclusive :
+            return "physically_exclusive";
+        case RelationshipType::kAsynchronousAllowPaths :
+            return "asynchronous_and_allow_paths";
+        case RelationshipType::kAsynchronous :
+            return "asynchronous";
+        case RelationshipType::kLogicallyExclusive :
+            return "logically_exclusive";
+        defalut:
+            return "unknown";
+    }
+    return "unknown";
+}
+
+void ClockGroupsContainerData::addClockRelationship(const UnorderedClockPair &clock_pair, const RelationshipType &relation) {
+    //Priority from highest to lowest: 
+    //Physically exclusive (kPhysicallyExclusive=0)
+    //Asynchronous allow paths (kAsynchronousAllowPaths=1)
+    //Asynchronous (kAsynchronous=2)
+    //Logically exclusive (kLogicallyExclusive=3)
+    auto found = clock_relationship_.find(clock_pair);
+    if (found != clock_relationship_.end()) {
+        const RelationshipType &exist_relation = found->second;
+        if (exist_relation < relation) {
+            found->second = relation;
+        }
+    }
+    clock_relationship_.emplace(clock_pair, relation);
+}
+
+void ClockGroupsContainerData::setRelationBetweenClockGroups(const std::vector<ClockId> &lhs, const std::vector<ClockId> &rhs, const RelationshipType &relation) {
+    for (const auto &clock_id : lhs) {
+        for (const auto &other_clock_id : rhs) {
+            UnorderedClockPair clock_pair(clock_id, other_clock_id);
+            addClockRelationship(clock_pair, relation);
+        }
+    }
+}
+
+void ClockGroupsContainerData::buildClockRelationship(const std::vector<ClockId> &all_clocks) {
+    for (const auto &set_clock_groups : all_groups_) {
+        const auto &groups = set_clock_groups->getGroups();
+        const auto &group_num = groups.size();
+        assert(!group_num);
+        const RelationshipType &relation = set_clock_groups->getRelationType();
+        if (group_num == 1) { //clocks in the group has relationship with all other clocks in the current design
+            setRelationBetweenClockGroups(groups[0], all_clocks, relation);
+        }
+        if (group_num > 1) {
+            size_t i = 0;
+            for (; i < group_num-1; ++i) {
+                size_t j = i+1;
+                for (; j < group_num; ++j) {
+                    setRelationBetweenClockGroups(groups[i], groups[j], relation);
+                }
+            }
+        }
+    }
+}
+
 
 
 

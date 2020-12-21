@@ -1672,15 +1672,14 @@ int parseSdcSetClockGatingCheck(ClientData cld, Tcl_Interp *itp, int argc, const
 int parseSdcSetClockGroups(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
 	Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
-	
-	//constraint
-	if (!(	cmd->isOptionSet("-physically_exclusive") xor 
-			cmd->isOptionSet("-logically_exclusive") xor 
-			cmd->isOptionSet("-asynchronous")
-	)) {
+	if (!(	cmd->isOptionSet("-physically_exclusive") xor cmd->isOptionSet("-logically_exclusive") xor 
+			cmd->isOptionSet("-asynchronous") )) {
 		return TCL_ERROR;
 	}
-	
+    SdcPtr sdc = getSdc();
+    auto container = sdc->getClockGroupsContainer();
+    auto container_data = container->getData();
+    SetClockGroupsPtr clock_groups = std::make_shared<SetClockGroups>();
 	if (cmd->isOptionSet("-name")) {
 		std::string name = "";
 		bool res = cmd->getOptionValue("-name", name);
@@ -1688,8 +1687,7 @@ int parseSdcSetClockGroups(ClientData cld, Tcl_Interp *itp, int argc, const char
 			//TODO messages
 			return TCL_ERROR;
 		}
-		//Assignment
-		message->info("get first value %s \n", name.c_str());
+        clock_groups->setName(name);
 	}
 	if (cmd->isOptionSet("-physically_exclusive")) {
 		bool physically_exclusive = false;
@@ -1698,8 +1696,7 @@ int parseSdcSetClockGroups(ClientData cld, Tcl_Interp *itp, int argc, const char
 			//TODO messages
 			return TCL_ERROR;
 		}
-		//Assignment
-		message->info("get second value %d \n", physically_exclusive);
+        clock_groups->setRelationType(RelationshipType::kPhysicallyExclusive);
 	}
 	if (cmd->isOptionSet("-logically_exclusive")) {
 		bool logically_exclusive = false;
@@ -1708,8 +1705,7 @@ int parseSdcSetClockGroups(ClientData cld, Tcl_Interp *itp, int argc, const char
 			//TODO messages
 			return TCL_ERROR;
 		}
-		//Assignment
-		message->info("get third value %d \n", logically_exclusive);
+        clock_groups->setRelationType(RelationshipType::kLogicallyExclusive);
 	}
 	if (cmd->isOptionSet("-asynchronous")) {
 		bool asynchronous = false;
@@ -1718,8 +1714,7 @@ int parseSdcSetClockGroups(ClientData cld, Tcl_Interp *itp, int argc, const char
 			//TODO messages
 			return TCL_ERROR;
 		}
-		//Assignment
-		message->info("get fourth value %d \n", asynchronous);
+        clock_groups->setRelationType(RelationshipType::kLogicallyExclusive);
 	}
 	if (cmd->isOptionSet("-allow_paths")) {
 		bool allow_paths = false;
@@ -1728,21 +1723,23 @@ int parseSdcSetClockGroups(ClientData cld, Tcl_Interp *itp, int argc, const char
 			//TODO messages
 			return TCL_ERROR;
 		}
-		//Assignment
-		message->info("get fifth value %d \n", allow_paths);
+        clock_groups->setRelationType(RelationshipType::kAsynchronousAllowPaths);
 	}
+    const auto &clock_container = sdc->getClockContainer();
 	if (cmd->isOptionSet("-group")) {
-		std::vector<std::string> group_list;
-		bool res = cmd->getOptionValue("-group", group_list);
+		std::vector<std::string> clock_names;
+		bool res = cmd->getOptionValue("-group", clock_names);
 		if (!res) {
 			//TODO messages
 			return TCL_ERROR;
 		}
-		for (const auto &group : group_list) {
-			//TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-			message->info("get sixth value %s \n", group.c_str());
+        //TODO need to be fixed
+        std::vector<ClockId> clock_ids;
+		for (const auto &clock_name : clock_names) {
+            const ClockId &clock_id = clock_container->getClockId(clock_name);
+            clock_ids.emplace_back(clock_id);
 		}
+        clock_groups->addToGroups(std::move(clock_ids));
 	}
 	if (cmd->isOptionSet("-comment")) {
 		std::string comment = "";
@@ -1751,12 +1748,13 @@ int parseSdcSetClockGroups(ClientData cld, Tcl_Interp *itp, int argc, const char
 			//TODO messages
 			return TCL_ERROR;
 		}
-		//Assignment
-		message->info("get seventh value %s \n", comment.c_str());
+        clock_groups->setComment(comment);
 	}
+    container_data->addGroup(clock_groups);
+    container_data->buildClockRelationship(clock_container->getClockIds());
 	return TCL_OK;
 }
-//06 set_clock_latency
+
 int parseSdcSetClockLatency(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
 	Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);

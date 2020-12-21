@@ -240,58 +240,41 @@ class ClockGatingCheckContainerData {
 };
 using ClockGatingCheckContainerDataPtr = std::shared_ptr<ClockGatingCheckContainerData>;
 
-using ClockGroupId = open_edi::util::UInt32;
-static const ClockGroupId kInvalidClockGroupId = -1;
-enum class GroupRelationshipType : Bits8 {kAsynchronous=0, kLogicallyExclusive, kPhysicallyExclusive, kUnknown};
-class ClockGroup {
-  public:
-    void addClock(const ClockId& clock_id) { clock_ids_.emplace_back(clock_id); }
-    void sort() { std::sort(clock_ids_.begin(), clock_ids_.end()); }
-
-  private:
-    std::vector<ClockId> clock_ids_; //need to sort after setup
-    ClockGroupId id_ = kInvalidClockGroupId;
-    GroupRelationshipType type_ = GroupRelationshipType::kUnknown;
-
-  public:
-    COMMAND_GET_SET_VAR(clock_ids, ClockIds)
-    COMMAND_GET_SET_VAR(id, Id)
-    COMMAND_GET_SET_VAR(type, Type)
-    COMMAND_GET_SET_FLAG(allow_paths_, AllowPaths)
-    COMMAND_GET_SET_FLAG(link_to_right_, LinkToRight)
-    COMMAND_GET_SET_FLAG(link_to_left_, LinkToLeft)
-};
-using ClockGroupPtr = std::shared_ptr<ClockGroup>;
-
+enum class RelationshipType : Bits8 {kPhysicallyExclusive=0, kAsynchronousAllowPaths, kAsynchronous, kLogicallyExclusive, kUnknown};
+std::string to_string(const RelationshipType &value);
 class SetClockGroups {
+  public:
+    void addToGroups(std::vector<ClockId> &&clock_ids) { groups_.emplace_back(std::move(clock_ids)); };
+
   private:
     std::string name_ = "";
     std::string comment_ = "";
-    std::vector<ClockGroupPtr> groups_;
+    std::vector<std::vector<ClockId> > groups_;
+    RelationshipType relation_type_ = RelationshipType::kUnknown;
 
   public:
     COMMAND_GET_SET_VAR(name, Name)
     COMMAND_GET_SET_VAR(comment, Comment)
     COMMAND_GET_SET_VAR(groups, Groups)
+    COMMAND_GET_SET_VAR(relation_type, RelationType)
 };
 using SetClockGroupsPtr = std::shared_ptr<SetClockGroups>;
 
+using UnorderedClockPair = UnorderedPair<ClockId, ClockId>; 
 class ClockGroupsContainerData {
   public:
-    void add(const ClockId &clock_id, const ClockGroupPtr &group) { clock_to_group_.emplace(clock_id, group); } 
-    size_t getClockGroupNum() const { return group_ids_.size(); } 
+    void addGroup(const SetClockGroupsPtr &group) { all_groups_.emplace_back(group); };
+    void addClockRelationship(const UnorderedClockPair &clock_pair, const RelationshipType &relation);
+    void setRelationBetweenClockGroups(const std::vector<ClockId> &lhs, const std::vector<ClockId> &rhs, const RelationshipType &relation);
+    void buildClockRelationship(const std::vector<ClockId> &all_clocks); 
 
   private:
-    std::unordered_multimap<ClockId, ClockGroupPtr> clock_to_group_;
-    std::unordered_map<ClockGroupId, SetClockGroupsPtr> set_clock_groups_;
-    std::vector<ClockGroupId> group_ids_;
-    std::vector<ClockGroupPtr> groups_;
- 
-   public:
-    COMMAND_GET_SET_VAR(clock_to_group, ClockToGroup)
-    COMMAND_GET_SET_VAR(set_clock_groups, SetClockGroups)
-    COMMAND_GET_SET_VAR(group_ids, GroupIds)
-    COMMAND_GET_SET_VAR(groups, Groups)
+    std::vector<SetClockGroupsPtr> all_groups_;
+    std::unordered_map<UnorderedClockPair, RelationshipType, boost::hash<UnorderedClockPair> > clock_relationship_;
+
+  public:
+    COMMAND_GET_SET_VAR(all_groups, AllGroups)
+    COMMAND_GET_SET_VAR(clock_relationship, ClockRelationship)
 };
 using ClockGroupsContainerDataPtr = std::shared_ptr<ClockGroupsContainerData>;
 

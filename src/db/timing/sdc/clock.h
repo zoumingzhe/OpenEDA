@@ -75,58 +75,6 @@ class Clock {
 };
 using ClockPtr = std::shared_ptr<Clock>;
 
-class ClockPinPair {
-  public:
-    ClockPinPair(ClockId clock_id, ObjectId pin_id) : clock_id_(clock_id), pin_id_(pin_id) {}
-    //deconstructor
-    //operator ==
-    void SetClockId(const ClockId &id) { clock_id_ = id; } 
-    void SetPinId(const ObjectId &id) { pin_id_ = id; } 
-
-    const ClockId &getClockId() const { return clock_id_; }
-    const ObjectId &getPinId() const { return pin_id_; }
-
-  private:
-    ClockId clock_id_ = kInvalidClockId;
-    ObjectId pin_id_ = UNINIT_OBJECT_ID;
-};
-using ClockPinPairPtr = std::shared_ptr<ClockPinPair>;
-
-class ClockPair {
-  public:
-    ClockPair(ClockId first = kInvalidClockId, ClockId second = kInvalidClockId) : first_id_(first), second_id_(second) {}
-    //deconstructor
-    //operator ==
-    void SetFirstId(const ClockId &id) { first_id_ = id; } 
-    void setSecondId(const ClockId &id) { second_id_ = id; }
-
-    const ClockId &getFirstId() { return first_id_; }
-    const ClockId &getSecondId() { return second_id_; }
-
-  private:
-    ClockId first_id_ = kInvalidClockId;
-    ClockId second_id_ = kInvalidClockId;
-};
-using ClockPairPtr = std::shared_ptr<ClockPair>;
-
-//TODO invalied object id?
-class PinPair {
-  public:
-    PinPair(ObjectId first, ObjectId second) : first_id_(first), second_id_(second) {} 
-    void SetFirstId(const ObjectId &id) { first_id_ = id; }
-    void SetSecondId(const ObjectId &id) { second_id_ = id; }
-
-    const ObjectId &getFirstId() { return first_id_; }
-    const ObjectId &getSecondId() { return second_id_; }
-
-  private:
-    ObjectId first_id_;
-    ObjectId second_id_;
-};
-using PinPairPtr = std::shared_ptr<PinPair>;
-
-
-
 }
 }
 

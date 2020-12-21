@@ -147,11 +147,11 @@ class SdcClockGroupsContainer {
   public:
     SdcClockGroupsContainer() { data_ = std::make_shared<ClockGroupsContainerData>(); }
 
-  public:
-    void add(const ClockGroupsContainerDataPtr &data) { data_ = data; };
-    void findClocks(std::vector<ClockId> &clocks, const ClockId &clock_id, const GroupRelationshipType &type) const;
-    void getClocksRelationshipType(std::vector<GroupRelationshipType> &types, const ClockId &clock_id, const ClockId &other_clock_id) const;
+    void setData(const ClockGroupsContainerDataPtr &data) { data_ = data; };
+    const ClockGroupsContainerDataPtr getData() const { return data_; };
+    ClockGroupsContainerDataPtr getData() { return data_; };
 
+    RelationshipType getClocksRelationshipType(const ClockId &clock_id, const ClockId &other_clock_id) const;
     friend std::ostream &operator<<(std::ostream &os, SdcClockGatingCheckContainer &rhs);
 
   private:

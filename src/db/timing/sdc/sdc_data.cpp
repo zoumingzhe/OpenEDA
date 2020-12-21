@@ -297,97 +297,15 @@ const float SdcClockGatingCheckContainer::getClockCheckTime(bool is_rise, bool i
    return is_setup ? setup_hold.first : setup_hold.second;
 }
 
-void SdcClockGroupsContainer::findClocks(std::vector<ClockId> &clocks, const ClockId &clock_id, const GroupRelationshipType &type) const {
-    clocks.clear();
-    const auto &clock_to_groups = data_->getClockToGroup();
-    const auto &groups = data_->getGroups();
-    const auto &group_num = data_->getClockGroupNum();
-    const auto &range = clock_to_groups.equal_range(clock_id);
-    for (auto it = range.first; it != range.second; ++it) {
-        const auto &group = it->second;
-        if (group->getType() != type) {
-            continue;
-        }
-        const auto &group_id = group->getId();
-        bool search_right_group = group->isLinkToRight();
-        auto right_group_id=group_id+1;
-        for (; search_right_group; ++right_group_id) {
-           if (right_group_id >= group_num) {
-               //error message
-               continue;
-           }
-           const auto &right_group = groups[right_group_id];
-           const auto &right_clocks = right_group->getClockIds();
-           clocks.insert(clocks.end(), right_clocks.begin(), right_clocks.end());
-           search_right_group = right_group->isLinkToRight(); 
-        }
-        bool search_left_group = group->isLinkToLeft();
-        auto left_group_id=group_id-1;
-        for (; search_left_group; --left_group_id) {
-           if (left_group_id < 0) {
-               //error message
-               continue;
-           }
-           const auto &left_group = groups[left_group_id];
-           const auto &left_clocks = left_group->getClockIds();
-           clocks.insert(clocks.end(), left_clocks.begin(), left_clocks.end());
-           search_left_group = left_group->isLinkToLeft(); 
-        }
+RelationshipType SdcClockGroupsContainer::getClocksRelationshipType(const ClockId &clock_id, const ClockId &other_clock_id) const {
+    UnorderedPair<ClockId, ClockId> clock_pair(clock_id, other_clock_id);
+    const auto &clock_relationship = data_->getClockRelationship(); 
+    const auto &found = clock_relationship.find(clock_pair); 
+    if (found == clock_relationship.end()) {
+        return RelationshipType::kUnknown;
     }
+    return found->second;
 }
-
-void SdcClockGroupsContainer::getClocksRelationshipType(std::vector<GroupRelationshipType> &types, const ClockId &clock_id, const ClockId &other_clock_id) const {
-    //Multiple relationship types can exist between two clocks. When this happens, the relationships obey the following precedence. In this function,  return the relationship vector.
-    //Physically exclusive
-    //Asynchronous
-    //Logically exclusive
-    const auto &clock_to_groups = data_->getClockToGroup();
-    const auto &groups = data_->getGroups();
-    const auto &group_num = data_->getClockGroupNum();
-    const auto &range = clock_to_groups.equal_range(clock_id);
-    for (auto it = range.first; it != range.second; ++it) {
-        const auto &group = it->second;
-        const auto &type = group->getType();
-        const auto &group_id = group->getId();
-        bool search_right_group = group->isLinkToRight();
-        auto right_group_id=group_id+1;
-        bool found = false;
-        for (; search_right_group; ++right_group_id) {
-           if (right_group_id >= group_num) {
-               //error message
-               continue;
-           }
-           const auto &right_group = groups[right_group_id];
-           const auto &right_clocks = right_group->getClockIds();
-           found = std::binary_search(right_clocks.begin(), right_clocks.end(), other_clock_id);
-           if (found) {
-               types.emplace_back(type);
-               break;
-           }
-           search_right_group = right_group->isLinkToRight(); 
-        }
-        if (found) {
-            continue;
-        }
-        bool search_left_group = group->isLinkToLeft();
-        auto left_group_id=group_id-1;
-        for (; search_left_group; --left_group_id) {
-           if (left_group_id < 0) {
-               //error message
-               continue;
-           }
-           const auto &left_group = groups[left_group_id];
-           const auto &left_clocks = left_group->getClockIds();
-           const bool found = std::binary_search(left_clocks.begin(), left_clocks.end(), other_clock_id);
-           if (found) {
-               types.emplace_back(type);
-               break;
-           }
-           search_left_group = left_group->isLinkToLeft(); 
-        }
-    }
-}
-
 
 void SdcClockLatencyContainer::getClockLatencyOnPin(std::vector<ClockLatencyOnPinPtr> &latencys, const ObjectId &pin_id) const {
     const auto &pin_to_latency = data_->getPinToLatency();
