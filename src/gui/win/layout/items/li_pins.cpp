@@ -7,6 +7,7 @@ LI_Pins::LI_Pins(int* scale_factor) : LI_Base(scale_factor) {
     item_->setLiBase(this);
     pen_.setColor(QColor(0, 0, 0xff, 0xff));
     brush_ = QBrush(QColor(0, 0, 0xff, 0xff), Qt::Dense5Pattern);
+    type = kPin;
 }
 
 LI_Pins::~LI_Pins() {
@@ -26,7 +27,7 @@ void LI_Pins::draw(QPainter* painter) {
     LI_Base::draw(painter);
 }
 
-void LI_Pins::__drawPins(open_edi::db::Inst& ins) {
+void LI_Pins::drawPins(open_edi::db::Inst& ins) {
     if (ins.numPins()) {
         // printf("instance number of pins %d\n", ins.numPins());
 
@@ -91,8 +92,6 @@ void LI_Pins::__drawPins(open_edi::db::Inst& ins) {
                             //bottom
                             painter.drawLine(QPointF(pin_llx, pin_lly), QPointF(pin_urx, pin_lly));
 
-                        } else {
-                            painter.drawPoint(QPointF(pin_llx, pin_lly));
                         }
 
 #elif DRAW_MODE == 2
@@ -126,6 +125,11 @@ void LI_Pins::__drawPins(open_edi::db::Inst& ins) {
     }
 }
 
+void LI_Pins::fillImage() 
+{
+    img->fill(Qt::transparent);
+}
+
 void LI_Pins::preDraw() {
 
     refreshBoundSize();
@@ -136,7 +140,6 @@ void LI_Pins::preDraw() {
 
     //     return;
     // }
-
 #if DRAW_MODE == 1
     img->fill(Qt::transparent);
 #elif DRAW_MODE == 2
@@ -150,7 +153,7 @@ void LI_Pins::preDraw() {
     // printf("COMPONENTS %d ;\n", num_components);
     for (auto iter = component_vector->begin(); iter != component_vector->end(); ++iter) {
         auto instance = open_edi::db::Object::addr<open_edi::db::Inst>(*iter);
-        __drawPins(*instance);
+        drawPins(*instance);
     }
 
     item_->setMap(img);

@@ -3,14 +3,14 @@
 
 #include <QPainter>
 #include <qmath.h>
+#include "../graphicitems/lgi_pins.h"
+#include "../graphics_scene.h"
 #include "db/core/cell.h"
 #include "db/core/db.h"
 #include "db/io/write_def.h"
 #include "db/util/array.h"
 #include "db/util/property_definition.h"
 #include "db/util/vector_object_var.h"
-#include "../graphics_scene.h"
-#include "../graphicitems/lgi_pins.h"
 #include "li_base.h"
 #include "util/util.h"
 
@@ -26,6 +26,8 @@ class LI_Pins : public LI_Base {
     virtual void preDraw() override;
     LGI_Pins*    getGraphicItem();
     void         update();
+    void         drawPins(open_edi::db::Inst& ins);
+    void         fillImage();
 
   protected:
     virtual void draw(QPainter* painter);
@@ -34,7 +36,6 @@ class LI_Pins : public LI_Base {
     LGI_Pins* item_;
     QPen      pen_;
     QBrush    brush_;
-    void      __drawPins(open_edi::db::Inst& ins);
 };
 } // namespace gui
 } // namespace open_edi

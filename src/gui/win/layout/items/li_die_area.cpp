@@ -8,6 +8,8 @@ LI_DieArea::LI_DieArea(int* scale_factor) : LI_Base(scale_factor) {
     item_ = new LGI_DieArea;
     item_->setLiBase(this);
     pen_.setColor(QColor("#909090"));
+
+    type = kDieArea;
 }
 
 LI_DieArea::~LI_DieArea() {

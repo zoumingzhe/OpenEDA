@@ -7,6 +7,8 @@ LI_Instances::LI_Instances(int* scale_factor) : LI_Base(scale_factor) {
     item_ = new LGI_Instances;
     item_->setLiBase(this);
     pen_.setColor(QColor("#909090"));
+    type    = kInstance;
+    li_pins = new LI_Pins(scale_factor);
 }
 
 LI_Instances::~LI_Instances() {
@@ -27,6 +29,8 @@ void LI_Instances::draw(QPainter* painter) {
 
 void LI_Instances::preDraw() {
     refreshBoundSize();
+    li_pins->refreshBoundSize();
+    li_pins->fillImage();
 
 #if DRAW_MODE == 1
     img->fill(Qt::transparent);
@@ -57,14 +61,15 @@ void LI_Instances::preDraw() {
         auto width    = insurx - insllx;
         auto height   = insury - inslly;
 #if DRAW_MODE == 1
-        if (width >= factor || height >= factor) {
+        if (width >= factor >> 2 || height >= factor >> 2) {
             painter.drawRect(QRectF(
               (insllx) / factor,
               (inslly) / factor,
               width / factor,
               height / factor));
-        } else {
-            painter.drawPoint(QPointF((insllx) / factor, (inslly) / factor));
+            if (width > factor * 4 && height > factor * 4) {
+                li_pins->drawPins(*instance);
+            }
         }
 #elif DRAW_MODE == 2
         if (width >= factor || height >= factor) {
@@ -79,6 +84,9 @@ void LI_Instances::preDraw() {
 
     item_->setMap(img);
     item_->setItemSize(bound_width, bound_height);
+
+    li_pins->getGraphicItem()->setMap(img);
+    li_pins->getGraphicItem()->setItemSize(bound_width, bound_height);
 }
 
 } // namespace gui
