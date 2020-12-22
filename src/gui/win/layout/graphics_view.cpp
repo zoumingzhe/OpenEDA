@@ -19,6 +19,9 @@ GraphicsView::GraphicsView(QWidget* parent) : QGraphicsView(parent) {
 
     for (auto item : li_manager->getLiList()) {
         scene_->addItem(item->getGraphicItem());
+        if(item->type == LI_Base::kInstance){
+            scene_->addItem(((LI_Instances*)item)->li_pins->getGraphicItem());
+        }
     }
 
     setScene(scene_);

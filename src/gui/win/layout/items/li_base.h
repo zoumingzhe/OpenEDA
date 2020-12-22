@@ -30,6 +30,13 @@ class LI_Base {
     virtual QGraphicsItem* getGraphicItem() = 0;
     virtual void           draw(QPainter* painter);
 
+    enum ObjType {
+        kDieArea,
+        kInstance,
+        kPin
+    };
+    ObjType type;
+
   protected:
     int          bound_width{1};
     int          bound_height{1};

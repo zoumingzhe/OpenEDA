@@ -5,7 +5,7 @@ namespace gui {
 LI_Manager::LI_Manager(int* scale_factor) {
     addLi<LI_DieArea>(scale_factor);
     addLi<LI_Instances>(scale_factor);
-    addLi<LI_Pins>(scale_factor);
+    // addLi<LI_Pins>(scale_factor);
 }
 
 LI_Manager::~LI_Manager() {
