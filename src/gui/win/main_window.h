@@ -1,51 +1,62 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QAction>
+#include <QGraphicsView>
 #include <QMainWindow>
-#include <QToolBar>
-#include <QLabel>
-#include <QStackedWidget>
-#include "graphic_view.h"
-#include "control_panel_widget.h"
-#include "graphic_scene.h"
-#include "log_widget.h"
-#include "tool_bar.h"
+#include <QMap>
+#include <QMdiArea>
 
-class ToolBar;
-class GraphicView;
-class GraphicScene;
+#include "./layout/graphics_view.h"
 
 namespace open_edi {
 namespace gui {
 
-class MainWindow : public QMainWindow
-{
+#define MAINWINDOW MainWindow::getInstance()
+
+class ActionHandler;
+class MDIWindow;
+class RibbonMenuBar;
+class ActionGroupManager;
+
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
-public:
-    MainWindow(QWidget *parent = nullptr);
+  public:
+    MainWindow(QWidget* parent = nullptr);
     ~MainWindow();
 
-private:
-    void initMenus();
-    void initTools();
-    void initControlPanel();
-    void initDockWidgets();
-    void initStatusBar();
-    void initCentralWidget();
-    virtual void closeEvent(QCloseEvent *e) override;
-private:
+  public:
+    static MainWindow* getInstance() {
+        if (!instance_) {
+            instance_ = new MainWindow;
+        }
+        return instance_;
+    }
 
-    QStackedWidget           *main_stacked_wgt_;
-    ToolBar             *h_tool_bar_;
-    ToolBar             *v_tool_bar_;
-    ControlPanelWidget   *control_panel_wgt_;
-    GraphicScene         *layout_graphic_scene;
-    GraphicView          *layout_graphic_view;
-    LogWidget            *log_wgt_;
+  private:
+    void init();
+    void addActions();
+    void createCentralWindow();
+
+signals:
+    void windowChanged(bool);
+
+  private:
+    static MainWindow* instance_;
+    QGraphicsView*     view_;
+    QMdiArea*          mdi_area_;
+    MDIWindow*         current_subwindow_;
+    QList<MDIWindow*>  window_list_;
+    RibbonMenuBar*     ribbon_;
+
+    ActionHandler*          action_handler_;
+    QMap<QString, QAction*> action_map_;
+    ActionGroupManager*     action_manager_;
+    GraphicsView*           graphics_view_;
+    QAction*                import_design_;
 };
 
-
-}
-}
+} // namespace gui
+} // namespace open_edi
 #endif // MAINWINDOW_H

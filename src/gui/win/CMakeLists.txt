@@ -43,6 +43,13 @@ install(TARGETS ${_SUBLIBNAME}
 file(GLOB HEADERS *.h)
 install(FILES ${HEADERS} DESTINATION include/src/gui/win/${_SUBDIRNAME})
 
+file(GLOB RESOURCES res/tool/*.svg)
+
+add_custom_target(CopyIconFiles  ALL
+  VERBATIM
+  COMMAND ${CMAKE_COMMAND} -E make_directory   "${PROJECT_SOURCE_DIR}/share/etc/res/tool"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${RESOURCES} "${PROJECT_SOURCE_DIR}/share/etc/res/tool"
+)
 
 unset(_SUBDIRNAME)
 unset(_SUBLIBNAME)

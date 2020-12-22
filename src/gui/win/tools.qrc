@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>res/tool/redo.svg</file>
+        <file>res/tool/select.svg</file>
+        <file>res/tool/undo.svg</file>
+    </qresource>
+</RCC>
