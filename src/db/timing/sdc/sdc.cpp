@@ -80,7 +80,7 @@ void Sdc::initPtr() {
     clock_gating_check_container_ = std::make_shared<SdcClockGatingCheckContainer>();
     clock_groups_container_ = std::make_shared<SdcClockGroupsContainer>();
     clock_latency_container_ = std::make_shared<SdcClockLatencyContainer>();
-    sence_container_ = std::make_shared<SdcSenceContainer>();
+    sense_container_ = std::make_shared<SdcSenseContainer>();
     clock_transition_container_ = std::make_shared<SdcClockTransitionContainer>();
     clock_uncertainty_container_ = std::make_shared<SdcClockUncertaintyContainer>();
     data_check_container_ = std::make_shared<SdcDataCheckContainer>();

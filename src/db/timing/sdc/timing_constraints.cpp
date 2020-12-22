@@ -348,7 +348,74 @@ bool DisableTimingContainerData::addToPin(const std::string &pin_name, const std
     return true;
 }
 
+std::string to_string(const DataType &value) {
+    switch (value) {
+        case DataType::kClock :
+            return "clock";
+        case DataType::kData:
+            return "data";
+        defalut:
+            return "unknown";
+    }
+    return "unknown";
+}
 
+std::string to_string(const PulseType &value) {
+    switch (value) {
+        case PulseType::kRiseTriggeredHighPulse :
+            return "rise_triggered_high_pulse";
+        case PulseType::kRiseTriggeredLowPulse :
+            return "rise_triggered_low_pulse";
+        case PulseType::kFallTriggeredHighPulse :
+            return "fall_triggered_high_pulse";
+        case PulseType::kFallTriggeredLowPulse :
+            return "fall_triggered_low_pulse";
+        default:
+            return "unknown";
+    }
+    return "unknown";
+}
+
+bool SetSense::setType(const std::string &type_name) {
+    if (type_name == "clock") {
+        type_ = DataType::kClock;
+        return true;
+    }
+    if (type_name == "data") {
+        type_ = DataType::kData;
+        return true;
+    }
+    return false;
+}
+
+bool SetSense::setPulse(const std::string &pulse_name) {
+    if (pulse_name == "rise_triggered_high_pulse") {
+        pulse_ = PulseType::kRiseTriggeredHighPulse; 
+        return true;
+    }
+    if (pulse_name == "rise_triggered_low_pulse") {
+        pulse_ = PulseType::kRiseTriggeredLowPulse; 
+        return true;
+    }
+    if (pulse_name == "fall_triggered_high_pulse") {
+        pulse_ = PulseType::kFallTriggeredHighPulse; 
+        return true;
+    }
+    if (pulse_name == "fall_triggered_low_pulse") {
+        pulse_ = PulseType::kFallTriggeredLowPulse;
+        return true;
+    }
+    return false;
+}
+
+bool SenseContainerData::addToPin(const std::string &pin_name, const SetSensePtr &sense) {
+    const auto &pin = getPinByFullName(pin_name);
+    if (!pin) {
+        return false;
+    }
+    pin_sense_.emplace(pin->getId(), sense);
+    return true;
+}
 
 
 

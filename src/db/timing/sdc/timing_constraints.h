@@ -322,9 +322,15 @@ using ClockLatencyContainerDataPtr = std::shared_ptr<ClockLatencyContainerData>;
 enum class DataType : Bits8 { kClock=0, kData, kUnknown };
 enum class PulseType : Bits8 { kRiseTriggeredHighPulse=0, kRiseTriggeredLowPulse, kFallTriggeredHighPulse, kFallTriggeredLowPulse, kUnknown }; 
 class SetSense {
+  public:
+    bool setType(const std::string &type_name);
+    bool setPulse(const std::string &pulse_name);
+    void addClock(const ClockId &clock_id) { clocks_.emplace_back(clock_id); } 
+
   private:
-    DataType type_ = DataType::kUnknown;
+    DataType type_ = DataType::kClock;
     PulseType pulse_ = PulseType::kUnknown;  
+    //If clocks is empty, all clocks passing through the given pin need to be considered.
     std::vector<ClockId> clocks_;
 
   public:
@@ -341,10 +347,11 @@ using SetSensePtr = std::shared_ptr<SetSense>;
 
 class SenseContainerData {
   public:
-    void add(const ObjectId &pin_id, const SetSensePtr &sense) { pin_sense_.emplace(pin_id, sense); }
+    bool addToPin(const std::string &pin_name, const SetSensePtr &sense);
 
   private:
-    std::unordered_map<ObjectId, SetSensePtr> pin_sense_; 
+    //Not support arc to sense yet
+    std::unordered_multimap<ObjectId, SetSensePtr> pin_sense_; 
 
   public:
     COMMAND_GET_SET_VAR(pin_sense, PinSense)
@@ -470,8 +477,8 @@ class DisableTimingContainerData {
     bool addToPin(const std::string &pin_name, const std::string &from, const std::string &to);
 
   private:
-    std::unordered_map<ObjectId, SetDisableTimingPtr> cell_disable_timing_;
-    std::unordered_map<ObjectId, SetDisableTimingPtr> inst_disable_timing_;
+    std::unordered_multimap<ObjectId, SetDisableTimingPtr> cell_disable_timing_;
+    std::unordered_multimap<ObjectId, SetDisableTimingPtr> inst_disable_timing_;
     std::set<ObjectId> pin_disable_timing_;
 
   public:

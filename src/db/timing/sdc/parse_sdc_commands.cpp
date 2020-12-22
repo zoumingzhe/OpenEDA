@@ -1737,6 +1737,9 @@ int parseSdcSetClockGroups(ClientData cld, Tcl_Interp *itp, int argc, const char
         std::vector<ClockId> clock_ids;
 		for (const auto &clock_name : clock_names) {
             const ClockId &clock_id = clock_container->getClockId(clock_name);
+            if (clock_id == kInvalidClockId) {
+                //error messages
+            }
             clock_ids.emplace_back(clock_id);
 		}
         clock_groups->addToGroups(std::move(clock_ids));
@@ -1885,127 +1888,123 @@ int parseSdcSetClockLatency(ClientData cld, Tcl_Interp *itp, int argc, const cha
 	
 	return TCL_OK;
 }
-//07 set_sense
+
 int parseSdcSetSense(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
-	Command* cmd = CommandManager::parseCommand(argc, argv);
+    Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
-	
-	//constraint
-	if (!(	cmd->isOptionSet("object_list") and 
-			(cmd->isOptionSet("-positive") xor 
-			 cmd->isOptionSet("-negative") xor 
-			 cmd->isOptionSet("-pulse") xor 
-			 cmd->isOptionSet("-stop_propagation") xor 
-			 (cmd->isOptionSet("-non_unate") and cmd->isOptionSet("-clocks")))
-	)) {
-		return TCL_ERROR;
-	}
-	
-	if (cmd->isOptionSet("-type")) {
-		std::vector<std::string> type_list;
-		bool res = cmd->getOptionValue("-type", type_list);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		for (const auto &type : type_list) {
-			//TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-			message->info("get first value %s \n", type.c_str());
-		}
-	}
-	if (cmd->isOptionSet("-non_unate")) {
-		bool non_unate = false;
-		bool res = cmd->getOptionValue("-non_unate", non_unate);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		//Assignment
-		message->info("get second value %d \n", non_unate);
-	}
-	if (cmd->isOptionSet("-clocks")) {
-		std::vector<std::string> clocks_list;
-		bool res = cmd->getOptionValue("-clocks", clocks_list);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		for (const auto &clocks : clocks_list) {
-			//TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-			message->info("get third value %s \n", clocks.c_str());
-		}
-	}
-	if (cmd->isOptionSet("-positive")) {
-		bool positive = false;
-		bool res = cmd->getOptionValue("-positive", positive);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		//Assignment
-		message->info("get fourth value %d \n", positive);
-	}
-	if (cmd->isOptionSet("-negative")) {
-		bool negative = false;
-		bool res = cmd->getOptionValue("-negative", negative);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		//Assignment
-		message->info("get fifth value %d \n", negative);
-	}
-	if (cmd->isOptionSet("-clock_leaf")) {
-		bool clock_leaf = false;
-		bool res = cmd->getOptionValue("-clock_leaf", clock_leaf);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		//Assignment
-		message->info("get sixth value %d \n", clock_leaf);
-	}
-	if (cmd->isOptionSet("-stop_propagation")) {
-		bool stop_propagation = false;
-		bool res = cmd->getOptionValue("-stop_propagation", stop_propagation);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		//Assignment
-		message->info("get seventh value %d \n", stop_propagation);
-	}
-	if (cmd->isOptionSet("-pulse")) {
-		std::vector<std::string> pulse_list;
-		bool res = cmd->getOptionValue("-pulse", pulse_list);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		for (const auto &pulse : pulse_list) {
-			//TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-			message->info("get eighth value %s \n", pulse.c_str());
-		}
-	}
-	if (cmd->isOptionSet("object_list")) {
-		std::vector<std::string> object_list;
-		bool res = cmd->getOptionValue("object_list", object_list);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		for (const auto &object : object_list) {
-			//TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-			message->info("get ninth value %s \n", object.c_str());
-		}
-	}
-	return TCL_OK;
+    if (!( cmd->isOptionSet("object_list") and (cmd->isOptionSet("-positive") xor 
+    	cmd->isOptionSet("-negative") xor cmd->isOptionSet("-pulse") xor 
+    	cmd->isOptionSet("-stop_propagation") xor 
+    	(cmd->isOptionSet("-non_unate") and cmd->isOptionSet("-clocks")) ) )) {
+    	return TCL_ERROR;
+    }
+    SdcPtr sdc = getSdc();
+    auto container = sdc->getSenseContainer();
+    auto container_data = container->getData();
+    SetSensePtr sense = std::make_shared<SetSense>();
+
+    if (cmd->isOptionSet("-type")) {
+    	std::string type;
+    	bool res = cmd->getOptionValue("-type", type);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+        bool success = sense->setType(type);
+        if (!success) {
+            //error messages
+        }
+    }
+    if (cmd->isOptionSet("-non_unate")) {
+    	bool non_unate = false;
+    	bool res = cmd->getOptionValue("-non_unate", non_unate);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+        sense->setNonUnate();
+    }
+    if (cmd->isOptionSet("-clocks")) {
+    	std::vector<std::string> clocks_list;
+    	bool res = cmd->getOptionValue("-clocks", clocks_list);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+        const auto &clock_container = sdc->getClockContainer();
+    	for (const auto &clock_name : clocks_list) {
+            const auto &clock_id = clock_container->getClockId(clock_name);
+            if (clock_id == kInvalidClockId) {
+                //error messages
+            }
+            sense->addClock(clock_id);
+    	}
+    }
+    if (cmd->isOptionSet("-positive")) {
+    	bool positive = false;
+    	bool res = cmd->getOptionValue("-positive", positive);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+        sense->setPositive();
+    }
+    if (cmd->isOptionSet("-negative")) {
+    	bool negative = false;
+    	bool res = cmd->getOptionValue("-negative", negative);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+        sense->setNegative();
+    }
+    if (cmd->isOptionSet("-clock_leaf")) {
+    	bool clock_leaf = false;
+    	bool res = cmd->getOptionValue("-clock_leaf", clock_leaf);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+        sense->setClockLeaf();
+    }
+    if (cmd->isOptionSet("-stop_propagation")) {
+    	bool stop_propagation = false;
+    	bool res = cmd->getOptionValue("-stop_propagation", stop_propagation);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+        sense->setStopPropation();
+    }
+    if (cmd->isOptionSet("-pulse")) {
+    	std::string pulse;
+    	bool res = cmd->getOptionValue("-pulse", pulse);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+        bool success = sense->setPulse(pulse);
+        if (!success) {
+            //error messages
+        }
+    }
+    if (cmd->isOptionSet("object_list")) {
+    	std::vector<std::string> object_list;
+    	bool res = cmd->getOptionValue("object_list", object_list);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+    	for (const auto &object_name : object_list) {
+            bool success = container_data->addToPin(object_name, sense);
+            if (!success) {
+                // error messages
+            }
+    	}
+    }
+    return TCL_OK;
 }
-//08 set_clock_transition
+
 int parseSdcSetClockTransition(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
 	Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);

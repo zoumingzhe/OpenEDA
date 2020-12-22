@@ -325,13 +325,13 @@ void SdcClockLatencyContainer::getClockLatencyOnClock(std::vector<SetClockLatenc
     }
 }
 
-const SetSensePtr SdcSenceContainer::getSense(const ObjectId &pin_id) const {
+void SdcSenseContainer::getPinSense(std::vector<SetSensePtr> &senses, const ObjectId &pin_id) const {
     const auto &pin_sense = data_->getPinSense();
-    const auto &found = pin_sense.find(pin_id);
-    if (found == pin_sense.end()) {
-        return nullptr;
+    const auto &range = pin_sense.equal_range(pin_id);
+    for (auto it = range.first; it != range.second; ++it) {
+        const auto &sense = it->second;
+        senses.emplace_back(sense);
     }
-    return found->second;
 }
 
 const SetClockTransitionPtr SdcClockTransitionContainer::getTransition(const ClockId &clock_id) const {

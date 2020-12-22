@@ -49,7 +49,7 @@ class Sdc {
     SdcClockGatingCheckContainerPtr getClockGatingCheckContainer() { return clock_gating_check_container_; }
     SdcClockGroupsContainerPtr getClockGroupsContainer() { return clock_groups_container_; }
     SdcClockLatencyContainerPtr getClockLatencyContainer() { return clock_latency_container_; }
-    SdcSenceContainerPtr getSenceContainer() { return sence_container_; }
+    SdcSenseContainerPtr getSenseContainer() { return sense_container_; }
     SdcClockTransitionContainerPtr getClockTransitionContainer() { return clock_transition_container_; }
     SdcClockUncertaintyContainerPtr getClockUncertaintyContainer() { return clock_uncertainty_container_; }
     SdcDataCheckContainerPtr getDataCheckContainer() { return data_check_container_; }
@@ -116,7 +116,7 @@ class Sdc {
     SdcClockGatingCheckContainerPtr clock_gating_check_container_;
     SdcClockGroupsContainerPtr clock_groups_container_;
     SdcClockLatencyContainerPtr clock_latency_container_;
-    SdcSenceContainerPtr sence_container_;
+    SdcSenseContainerPtr sense_container_;
     SdcClockTransitionContainerPtr clock_transition_container_;
     SdcClockUncertaintyContainerPtr clock_uncertainty_container_;
     SdcDataCheckContainerPtr data_check_container_;

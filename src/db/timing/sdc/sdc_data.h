@@ -124,7 +124,6 @@ class SdcClockGatingCheckContainer {
   public:
     SdcClockGatingCheckContainer() { data_ = std::make_shared<ClockGatingCheckContainerData>(); }
 
-  public:
     void setData(const ClockGatingCheckContainerDataPtr &data) { data_ = data; };
     const ClockGatingCheckContainerDataPtr getData() const { return data_; };
     ClockGatingCheckContainerDataPtr getData() { return data_; };
@@ -175,20 +174,20 @@ class SdcClockLatencyContainer {
 };
 using SdcClockLatencyContainerPtr = std::shared_ptr<SdcClockLatencyContainer>;
 
-class SdcSenceContainer {
+class SdcSenseContainer {
   public:
-    SdcSenceContainer() { data_ = std::make_shared<SenseContainerData>(); }
+    SdcSenseContainer() { data_ = std::make_shared<SenseContainerData>(); }
 
-  public:
-    void add(const SenseContainerDataPtr& data) { data_ = data; }
-    const SetSensePtr getSense(const ObjectId &pin_id) const;
-
-    friend std::ostream &operator<<(std::ostream &os, SdcSenceContainer &rhs);
+    void setData(const SenseContainerDataPtr &data) { data_ = data; };
+    const SenseContainerDataPtr getData() const { return data_; };
+    SenseContainerDataPtr getData() { return data_; };
+    void getPinSense(std::vector<SetSensePtr> &senses, const ObjectId &pin_id) const;
+    friend std::ostream &operator<<(std::ostream &os, SdcSenseContainer &rhs);
 
   private:
     SenseContainerDataPtr data_;
 };
-using SdcSenceContainerPtr = std::shared_ptr<SdcSenceContainer>;
+using SdcSenseContainerPtr = std::shared_ptr<SdcSenseContainer>;
 
 class SdcClockTransitionContainer {
   public:
