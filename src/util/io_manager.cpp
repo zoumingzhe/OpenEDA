@@ -243,13 +243,12 @@ IOBuffer *IOManager::read(uint32_t size) {
 /// the compress blocks must be written by IOManager.
 ///
 /// @return
-CompressBlock *IOManager::readCompressBlock() {
-    uint32_t total_number = 0;
-    uint32_t max_decompressed_size = 0;
-    int read_result = kReadFail;
-
-    CompressManager *cm = new CompressManager(compress_type_, this);
-    return cm->decompress();
+bool IOManager::readCompressBlock(CompressType compress_type,
+                                  std::vector<void*> &buffers,
+                                  std::vector<uint32_t> &sizes) {
+    CompressManager *cm = new CompressManager(compress_type, this);
+    CompressBlock compress_block(buffers, sizes);
+    return cm->decompress(compress_block);
 }
 
 /// @brief write Write data in buffer to file.
@@ -302,7 +301,7 @@ int IOManager::write(IOBuffer *io_buffer) {
         message->issueMsg("UTIL", 10, kError);
         return kWriteFail;
     }
-    write_result = write(buffer, io_buffer->getSize());
+    write_result = write(static_cast<void*>(buffer), io_buffer->getSize());
 
     return write_result;
 }
@@ -313,13 +312,7 @@ int IOManager::write(IOBuffer *io_buffer) {
 ///
 /// @return
 int IOManager::write(std::string str) {
-    uint32_t size = str.length();
-    IOBuffer *io_buffer = new IOBuffer(size);
-    memcpy(io_buffer->getBuffer(), str.c_str(), size);
-    int write_result = write(io_buffer);
-    delete io_buffer;
-
-    return write_result;
+    return write(const_cast<char*>(str.c_str()), str.size());
 }
 
 /// @brief writeCompressBlock Write compress blocks with compress manager
@@ -327,10 +320,12 @@ int IOManager::write(std::string str) {
 /// @param compress_block
 ///
 /// @return
-int IOManager::writeCompressBlock(CompressBlock &compress_block) {
-    CompressManager *cm = new CompressManager(compress_type_, this);
-    int write_result = cm->compress(compress_block);
-    return write_result;
+bool IOManager::writeCompressBlock(CompressType compress_type,
+                                   std::vector<void*> &buffers,
+                                   std::vector<uint32_t> &sizes) {
+    CompressBlock compress_block(buffers, sizes);
+    CompressManager cm(compress_type, this);
+    return cm.compress(compress_block);
 }
 
 /// @brief seek Seek the position of offset from origin
@@ -447,6 +442,29 @@ void IOManager::close() {
     }
 }
 
+CompressBlock::CompressBlock(std::vector<void*> &buffers,
+                             std::vector<uint32_t> &sizes) {
+    total_number_ = buffers.size();
+    max_buffer_size_ = 0;
+    if (total_number_ != buffers.size()) {
+        message->issueMsg("UTIL", 33, kError);
+        return;
+    }
+    IOBuffer *io_buffer = nullptr;
+    for (int i = 0; i < total_number_; ++i) {
+        io_buffer = new IOBuffer();
+        io_buffer->setSize(sizes[i]);
+        io_buffer->setBuffer((char*)buffers[i]);
+
+        io_buffers_.push_back(io_buffer);
+
+        if (sizes[i] > max_buffer_size_) {
+            max_buffer_size_ = sizes[i];
+        }
+    }
+
+}
+
 /// @brief CompressManager Constuctor of CompressManager
 ///
 /// @param compress_type
@@ -476,7 +494,7 @@ bool CompressManager::compress(CompressBlock &compress_block) {
     uint32_t max_buffer_size = compress_block.getMaxBufferSize();
     uint32_t num_thread = calcThreadNumber(total_number);
     std::vector<IOBuffer*> copy_src_buffers;
-    std::vector<IOBuffer*> *src_buffers = compress_block.getIOBuffers();
+    std::vector<IOBuffer*> src_buffers = compress_block.getIOBuffers();
     std::vector<IOBuffer*> dst_buffers;
     size_t dst_size = LZ4F_compressFrameBound(max_buffer_size, NULL);
     for (int j = 0; j < num_thread; ++j) {
@@ -497,7 +515,7 @@ bool CompressManager::compress(CompressBlock &compress_block) {
 
     for (i = 0; i + num_thread < total_number; i += num_thread) {
         for (int j = 0; j < num_thread; ++j) {
-            copy_src_buffers.push_back((*src_buffers)[i + j]);
+            copy_src_buffers.push_back(src_buffers[i + j]);
         }
         CompressInput input(&copy_src_buffers, &dst_buffers, &compressed_sizes);
         compressor.setInput(&input);
@@ -520,7 +538,7 @@ bool CompressManager::compress(CompressBlock &compress_block) {
     }
     int num_last_buffers = total_number - i;
     for (int j = 0; j < num_last_buffers; ++j) {
-        copy_src_buffers.push_back((*src_buffers)[i + j]);
+        copy_src_buffers.push_back(src_buffers[i + j]);
     }
     CompressInput input(&copy_src_buffers, &dst_buffers, &compressed_sizes);
     compressor.setInput(&input);
@@ -549,11 +567,7 @@ bool CompressManager::compress(CompressBlock &compress_block) {
 ///
 /// @return
 bool CompressManager::decompress(CompressBlock & compress_block) {
-    std::vector<IOBuffer*> *io_buffers = compress_block.getIOBuffers();
-    if (nullptr == io_buffers) {
-        message->issueMsg("UTIL", 9, kError);
-        return false;
-    }
+    std::vector<IOBuffer*> io_buffers = compress_block.getIOBuffers();
     int read_result = 0;
     uint32_t total_number = 0;
     uint32_t max_buffer_size = 0;
@@ -596,7 +610,7 @@ bool CompressManager::decompress(CompressBlock & compress_block) {
                               size);
             io_buffer->setSize(size);
 
-            dst_buffers.push_back((*io_buffers)[i + j]);
+            dst_buffers.push_back(io_buffers[i + j]);
         }
         DecompressInput input(&src_buffers, &dst_buffers, &decompressed_sizes);
         decompressor.setInput(&input);
@@ -621,7 +635,7 @@ bool CompressManager::decompress(CompressBlock & compress_block) {
                           size);
         io_buffer->setSize(size);
 
-        dst_buffers.push_back((*io_buffers)[i + j]);
+        dst_buffers.push_back(io_buffers[i + j]);
     }
     DecompressInput input(&src_buffers, &dst_buffers, &decompressed_sizes);
     decompressor.setInput(&input);
@@ -662,21 +676,21 @@ CompressBlock *CompressManager::decompress() {
         return nullptr;
     }
 
-    std::vector<IOBuffer*> *io_buffers = new std::vector<IOBuffer*>;
+    std::vector<void*> *buffers = new std::vector<void*>;
+    std::vector<uint32_t> *sizes = new std::vector<uint32_t>;
 
+    sizes->resize(total_number, 0);
     for (uint32_t i = 0; i < total_number; ++i) {
-        IOBuffer *new_buffer = new IOBuffer(max_buffer_size);
-        io_buffers->push_back(new_buffer);
+        char *new_buffer = new char[max_buffer_size];
+        buffers->push_back(new_buffer);
     }
 
-    CompressBlock *compress_block = new CompressBlock(io_buffers);
+    CompressBlock *compress_block = new CompressBlock(*buffers, *sizes);
     compress_block->setTotalNumber(total_number);
     compress_block->setMaxBufferSize(max_buffer_size);
 
     if (decompress(*compress_block)) {
         delete compress_block;
-        freeIOBuffers(*io_buffers);
-        delete io_buffers;
         return nullptr;
     }
 

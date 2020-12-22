@@ -296,7 +296,6 @@ bool WriteDesign::__preWork() {
 }
 
 bool WriteDesign::__writeDBFile( MemPagePool *pool, std::string &filename) {
-    MonitorId monitor_id = createMonitor();
     IOBuffer *io_buffer = nullptr;
     ediAssert(pool != nullptr);
     std::string db_file = filename;
@@ -323,11 +322,7 @@ bool WriteDesign::__writeDBFile( MemPagePool *pool, std::string &filename) {
         message->issueMsg(kError, "Get file header size failed.\n");
         return false;
     }
-    outputMonitor(monitor_id, kElapsedTime, "before writeContentToFile", true);
-    resetMonitor(monitor_id);
     pool->writeContentToFile(io_manager, getDebug());
-    outputMonitor(monitor_id, kElapsedTime, "after writeContentToFile", true);
-    resetMonitor(monitor_id);
 
     // write checksum:
     CheckSum csum;
@@ -341,8 +336,6 @@ bool WriteDesign::__writeDBFile( MemPagePool *pool, std::string &filename) {
         pool->printUsage();
     }
     io_manager.close();
-    outputMonitor(monitor_id, kElapsedTime, "close", true);
-    destroyMonitor(monitor_id);
     return true;
 }
 

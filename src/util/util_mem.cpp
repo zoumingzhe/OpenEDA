@@ -377,29 +377,17 @@ void MemPagePool::__readFreeListInfo(IOManager &io_manager, bool debug) {
 /// @param io_manager
 /// @param debug
 void MemPagePool::__writeChunks(IOManager &io_manager, bool debug) {
-    std::vector<IOBuffer*> io_buffers;
+    std::vector<void*> buffers;
+    std::vector<uint32_t> sizes;
 
-    IOBuffer *io_buffer = nullptr;
     MemChunk *mem_chunk = nullptr;
     for (int i = 0; i < num_chunks_; ++i) {
         mem_chunk = chunks_[i];
-        io_buffer = new IOBuffer();
 
-        io_buffer->setSize(mem_chunk->getSize());
-        io_buffer->setBuffer((char*)mem_chunk->getChunk());
-        io_buffers.push_back(io_buffer);
+        sizes.push_back(mem_chunk->getSize());
+        buffers.push_back((char*)mem_chunk->getChunk());
     }
-    CompressBlock compress_block(&io_buffers);
-    compress_block.setTotalNumber(num_chunks_);
-    compress_block.setMaxBufferSize(chunk_size_);
-
-    CompressManager cm(kCompressZip, &io_manager);
-    cm.compress(compress_block);
-
-    for (auto io_buffer : io_buffers) {
-        delete io_buffer;
-    }
-    io_buffers.clear();
+    io_manager.writeCompressBlock(kCompressLz4, buffers, sizes);
 
     return;
 }
@@ -409,34 +397,22 @@ void MemPagePool::__writeChunks(IOManager &io_manager, bool debug) {
 /// @param io_manager
 /// @param debug
 void MemPagePool::__readChunks(IOManager &io_manager, bool debug) {
-    std::vector<IOBuffer*> io_buffers;
+    std::vector<void*> buffers;
+    std::vector<uint32_t> sizes;
 
-    IOBuffer *io_buffer = nullptr;
     MemChunk *mem_chunk = nullptr;
     for (int i = 0; i < num_chunks_; ++i) {
         mem_chunk = chunks_[i];
-        io_buffer = new IOBuffer();
 
-        io_buffer->setSize(mem_chunk->getSize());
-        io_buffer->setBuffer((char*)mem_chunk->getChunk());
-        io_buffers.push_back(io_buffer);
+        sizes.push_back(mem_chunk->getSize());
+        buffers.push_back((char*)mem_chunk->getChunk());
     }
-    CompressBlock compress_block(&io_buffers);
-    compress_block.setTotalNumber(num_chunks_);
-    compress_block.setMaxBufferSize(chunk_size_);
-
-    CompressManager cm(kCompressLz4, &io_manager);
-
-    cm.decompress(compress_block);
+    io_manager.readCompressBlock(kCompressLz4, buffers, sizes);
 
     for (int i = 0; i < num_chunks_; ++i) {
-        io_buffer = io_buffers[i];
         mem_chunk = chunks_[i];
-        mem_chunk->setSize(io_buffer->getSize());
-
-        delete io_buffer;
+        mem_chunk->setSize(sizes[i]);
     }
-    io_buffers.clear();
 
     return;
 }

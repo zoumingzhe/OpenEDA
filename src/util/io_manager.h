@@ -85,12 +85,16 @@ class IOManager {
     // The buffers should be freed by applications.
     CompressBlock *readCompressBlock();
     // comprees_block is allocated by caller
-    bool readCompressBlock(CompressBlock &compress_block);
+    bool readCompressBlock(CompressType compress_type,
+                           std::vector<void*> &buffers,
+                           std::vector<uint32_t> &sizes);
 
     int write(IOBuffer *buffer);
     int write(void *buffer, uint32_t size);
     int write(std::string);
-    int writeCompressBlock(CompressBlock &compress_block);
+    bool writeCompressBlock(CompressType compress_type,
+                            std::vector<void*> &buffers,
+                            std::vector<uint32_t> &sizes);
 
     int seek(int64_t offset, int origin);
     void flush();
@@ -142,11 +146,9 @@ class IOBuffer {
 /// @brief Blocks from compress and decompress.
 class CompressBlock {
   public:
-    explicit CompressBlock(std::vector<IOBuffer*> *io_buffers) {
-        io_buffers_ = io_buffers;
-    }
+    CompressBlock(std::vector<void*> &buffers, std::vector<uint32_t> &sizes);
     ~CompressBlock() {
-        for (auto io_buffer : *io_buffers_) {
+        for (auto io_buffer : io_buffers_) {
             delete io_buffer;
         }
     }
@@ -158,15 +160,15 @@ class CompressBlock {
     }
     uint32_t getMaxBufferSize() { return max_buffer_size_; }
 
-    void setIOBuffers(std::vector<IOBuffer*> *io_buffers) {
+    void setIOBuffers(std::vector<IOBuffer*> &io_buffers) {
         io_buffers_ = io_buffers;
     }
-    std::vector<IOBuffer*> *getIOBuffers() { return io_buffers_; }
+    std::vector<IOBuffer*> &getIOBuffers() { return io_buffers_; }
 
   private:
     uint32_t total_number_;
     uint32_t max_buffer_size_;
-    std::vector<IOBuffer*> *io_buffers_;
+    std::vector<IOBuffer*> io_buffers_;
 };
 
 /// @brief Compress or decompress blocks in parallel

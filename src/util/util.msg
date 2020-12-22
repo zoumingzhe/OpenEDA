@@ -98,3 +98,6 @@
 32 "Can't create LZ4 compress context : %s\n"
 	{}
 
+33 "Number of buffers is not equal to number of sizes.\n"
+	{}
+
