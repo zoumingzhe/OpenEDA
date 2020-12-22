@@ -244,7 +244,7 @@ void ClockGroupsContainerData::addClockRelationship(const UnorderedClockPair &cl
     auto found = clock_relationship_.find(clock_pair);
     if (found != clock_relationship_.end()) {
         const RelationshipType &exist_relation = found->second;
-        if (exist_relation < relation) {
+        if (exist_relation > relation) {
             found->second = relation;
         }
     }
@@ -284,6 +284,73 @@ void ClockGroupsContainerData::buildClockRelationship(const std::vector<ClockId>
         }
     }
 }
+
+bool DisableTimingContainerData::addToInst(const std::string &inst_name, const std::string &from, const std::string &to) {
+    const auto &top_cell = getTopCell();
+    const auto &inst = top_cell->getInstance(inst_name);
+    if (!inst) {
+        return false;
+    }
+    SetDisableTimingPtr disable_timing = std::make_shared<SetDisableTiming>();
+    inst_disable_timing_.emplace(inst->getId(), disable_timing);
+    if (from.size() && to.size()) {
+        const auto &from_pin = inst->getPin(from);
+        if (!from_pin) {
+            return false;
+        }
+        const auto &to_pin = inst->getPin(to);
+        if (!to_pin) {
+            return false;
+        }
+        disable_timing->setFromId(from_pin->getId());
+        disable_timing->setToId(to_pin->getId());
+    } else {
+        disable_timing->setAllArcs();
+    }
+    return true;
+}
+
+bool DisableTimingContainerData::addToCell(const std::string &cell_name, const std::string &from, const std::string &to) {
+    const auto &top_cell = getTopCell();
+    const auto &cell = top_cell->getCell(cell_name);
+    if (!cell) {
+        return false;
+    }
+    SetDisableTimingPtr disable_timing = std::make_shared<SetDisableTiming>();
+    cell_disable_timing_.emplace(cell->getId(), disable_timing);
+    if (from.size() && to.size()) {
+        const auto &from_term = cell->getTerm(from);
+        if (!from_term) {
+            return false;
+        }
+        const auto &to_term = cell->getTerm(to);
+        if (!to_term) {
+            return false;
+        }
+        disable_timing->setFromId(from_term->getId());
+        disable_timing->setToId(to_term->getId());
+    } else {
+        disable_timing->setAllArcs();
+    }
+    return true;
+}
+
+bool DisableTimingContainerData::addToPin(const std::string &pin_name, const std::string &from, const std::string &to) {
+    if (from.size() && to.size()) {
+        //error messages
+        return false;
+    }
+    const auto &pin = getPinByFullName(pin_name);
+    if (!pin) {
+        return false;
+    }
+    pin_disable_timing_.emplace(pin->getId());
+    return true;
+}
+
+
+
+
 
 
 

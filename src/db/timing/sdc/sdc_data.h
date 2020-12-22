@@ -241,11 +241,11 @@ class SdcDisableTimingContainer {
   public:
     SdcDisableTimingContainer() { data_ = std::make_shared<DisableTimingContainerData>(); }
 
-  public:
-    void add(const DisableTimingContainerDataPtr &data) { data_ = data; }
-    bool hasDisableTiming(const ObjectId &from_pin_id, const ObjectId &to_pin_id) const;
-    bool hasDisableTimingArcInInst(const ObjectId &inst_id) const;
-
+    void setData(const DisableTimingContainerDataPtr &data) { data_ = data; };
+    const DisableTimingContainerDataPtr getData() const { return data_; };
+    DisableTimingContainerDataPtr getData() { return data_; };
+    //bool hasDisableTiming(const ObjectId &from_pin_id, const ObjectId &to_pin_id) const;
+    //bool hasDisableTimingArcInInst(const ObjectId &inst_id) const;
     friend std::ostream &operator<<(std::ostream &os, SdcDisableTimingContainer &rhs);
 
   private:

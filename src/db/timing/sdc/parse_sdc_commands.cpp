@@ -2397,55 +2397,57 @@ int parseSdcSetDataCheck(ClientData cld, Tcl_Interp *itp, int argc, const char *
 	
 	return TCL_OK;
 }
-//11 set_disable_timing
+
 int parseSdcSetDisableTiming(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
-	Command* cmd = CommandManager::parseCommand(argc, argv);
+    Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
-	
-	//constraint
-	if (!( cmd->isOptionSet("object_list") and 
-		   (!(cmd->isOptionSet("-to") xor cmd->isOptionSet("-from")))
-	
-	)) {
-		return TCL_ERROR;
-	}
-	
-	if (cmd->isOptionSet("object_list")) {
-		std::vector<std::string> object_list;
-		bool res = cmd->getOptionValue("object_list", object_list);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		for (const auto &object : object_list) {
-			//TODO DB team did not implement the API to get pin/term from name
-			//Assignment
-			message->info("get first value %s \n", object.c_str());
-		}
-	}
-	if (cmd->isOptionSet("-from")) {
-		std::string from = "";
-		bool res = cmd->getOptionValue("-from", from);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		//Assignment
-		message->info("get second value %s \n", from.c_str());
-	}
-	if (cmd->isOptionSet("-to")) {
-		std::string to = "";
-		bool res = cmd->getOptionValue("-to", to);
-		if (!res) {
-			//TODO messages
-			return TCL_ERROR;
-		}
-		//Assignment
-		message->info("get third value %s \n", to.c_str());
-	}
-	return TCL_OK;
+    if (!( cmd->isOptionSet("object_list") and (!(cmd->isOptionSet("-to") xor cmd->isOptionSet("-from"))) )) {
+    	return TCL_ERROR;
+    }
+    SdcPtr sdc = getSdc();
+    auto container = sdc->getDisableTimingContainer();
+    auto container_data = container->getData();
+    std::string from = "";
+    if (cmd->isOptionSet("-from")) {
+    	bool res = cmd->getOptionValue("-from", from);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+    }
+    std::string to = "";
+    if (cmd->isOptionSet("-to")) {
+    	bool res = cmd->getOptionValue("-to", to);
+    	if (!res) {
+    		//TODO messages
+    		return TCL_ERROR;
+    	}
+    }
+    if (cmd->isOptionSet("object_list")) {
+        std::vector<std::string> object_list;
+        bool res = cmd->getOptionValue("object_list", object_list);
+        if (!res) {
+            //TODO messages
+            return TCL_ERROR;
+        }
+        for (const auto &object_name : object_list) {
+            bool success = container_data->addToInst(object_name, from, to);
+            if (success) {
+                continue;
+            }
+            success = container_data->addToCell(object_name, from, to);
+            if (success) {
+                continue;
+            }
+            success = container_data->addToPin(object_name, from, to);
+            if (!success) {
+                //error messages
+            }
+        }
+    }
+    return TCL_OK;
 }
-//12 set_false_path
+
 int parseSdcSetFalsePath(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
 	Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);

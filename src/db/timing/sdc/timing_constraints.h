@@ -451,32 +451,33 @@ class DataCheckContainerData {
 };
 using DataCheckContainerDataPtr = std::shared_ptr<DataCheckContainerData>;
 
-using CellArc = std::pair<ObjectId, ObjectId>;
-using CellArcPtr = std::shared_ptr<CellArc>;
 class SetDisableTiming {
   private:
-    ObjectId from_id_; //for cell_disable_arcs_, it is term; for inst_disable_arcs_, it is pin
-    ObjectId to_id_; // for cell_disable_arcs_, it is term; for inst_disable_arcs_, it is pin
+    ObjectId from_id_; 
+    ObjectId to_id_;
 
   public:
     COMMAND_GET_SET_VAR(from_id, FromId)
     COMMAND_GET_SET_VAR(to_id, ToId)
-    COMMAND_GET_SET_FLAG(set_all_arcs_, SetAllArcs)
+    COMMAND_GET_SET_FLAG(all_arcs_, AllArcs)
 };
 using SetDisableTimingPtr = std::shared_ptr<SetDisableTiming>;
 
 class DisableTimingContainerData {
   public:
-    void addToCell(const ObjectId &cell_id, const SetDisableTimingPtr &disable_arcs) { cell_disable_arcs_.emplace(cell_id, disable_arcs); }
-    void addToInst(const ObjectId &inst_id, const SetDisableTimingPtr &disable_arcs) { inst_disable_arcs_.emplace(inst_id, disable_arcs); }
+    bool addToInst(const std::string &inst_name, const std::string &from, const std::string &to);
+    bool addToCell(const std::string &cell_name, const std::string &from, const std::string &to);
+    bool addToPin(const std::string &pin_name, const std::string &from, const std::string &to);
 
   private:
-    std::unordered_map<ObjectId, SetDisableTimingPtr> cell_disable_arcs_;
-    std::unordered_map<ObjectId, SetDisableTimingPtr> inst_disable_arcs_;
+    std::unordered_map<ObjectId, SetDisableTimingPtr> cell_disable_timing_;
+    std::unordered_map<ObjectId, SetDisableTimingPtr> inst_disable_timing_;
+    std::set<ObjectId> pin_disable_timing_;
 
   public:
-    COMMAND_GET_SET_VAR(cell_disable_arcs, CellDisableArcs)
-    COMMAND_GET_SET_VAR(inst_disable_arcs, InstDisableArcs)
+    COMMAND_GET_SET_VAR(cell_disable_timing, CellDisableTiming)
+    COMMAND_GET_SET_VAR(inst_disable_timing, InstDisableTiming)
+    COMMAND_GET_SET_VAR(pin_disable_timing, PinDisableTiming)
 };
 using DisableTimingContainerDataPtr = std::shared_ptr<DisableTimingContainerData>;
 
