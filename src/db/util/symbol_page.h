@@ -13,14 +13,15 @@
 #ifndef _SYMBOLPAGE_H_
 #define _SYMBOLPAGE_H_
 
-#include <iostream>
 #include <string>
 #include <vector>
 #include <algorithm>
 #include <unordered_map>
 #include <array>
 
-#include "util/util.h"
+#include "util/io_manager.h"
+#include "util/namespace.h"
+#include "util/data_traits.h"
 
 namespace open_edi {
 namespace db {
@@ -50,8 +51,8 @@ public:
     int32_t getReferenceCount(int32_t index);
     std::vector<ObjectId> &getReferences(int32_t index);
 
-    void writeToFile(std::ofstream &outfile, bool debug = false);
-    void readFromFile(std::ifstream &infile, bool debug = false);
+    void writeToFile(util::IOManager &io_manager, bool debug = false);
+    void readFromFile(util::IOManager &io_manager, bool debug = false);
 
   private:
     std::array<std::string, SYMTBL_ARRAY_SIZE> symbols_;

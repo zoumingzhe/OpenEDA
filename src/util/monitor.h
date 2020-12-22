@@ -23,6 +23,9 @@ namespace util {
 using MonitorId = uint32_t;
 using ResourceTypes = uint32_t;
 
+const uint32_t kMaxNumMonitorId = UINT_MAX - 1;
+const uint32_t kInvalidMonitorId = 0;
+
 enum ResourceType : uint32_t {
     kElapsedTime    = 0x00000001,  // current time - start time
     kCpuTime        = 0x00000002,  //
@@ -32,7 +35,7 @@ enum ResourceType : uint32_t {
 };
 
 class MonitorInformation {
- public:
+  public:
     MonitorInformation() {}
     ~MonitorInformation() {}
 
@@ -49,17 +52,15 @@ class MonitorInformation {
     void setVmRss(uint64_t vmRss) { vmRss_ = vmRss; }
     uint64_t getVmRss() { return vmRss_; }
 
- private:
+  private:
     double elapsed_time_;  // μs, duration time
     double cpu_time_;      // μs, real cpu time
     uint64_t vmPeak_;  // kB, Peak virtual memory size.
-    uint64_t vmSize_;  // kB, Virtual memory size.
-    uint64_t vmHWM_;   // kB, Peak resident set size ("high water mark").
     uint64_t vmRss_;   // kB, Resident set size.
 };
 
 class Monitor {
- public:
+  public:
      Monitor();
 
      struct timeval getStartTime() {return start_time_;}
@@ -75,7 +76,7 @@ class Monitor {
          kUnknown
      };
 
- private:
+  private:
      MonitorState   state_;
      struct timeval start_time_;
      MonitorInformation start_info_;
@@ -83,27 +84,45 @@ class Monitor {
 };
 
 class MonitorManager {
- public:
+  public:
      MonitorManager();
+     ~MonitorManager();
      MonitorId createMonitor();
-     MonitorInformation queryMonitor(MonitorId monitor_id);
+     Monitor* queryMonitor(MonitorId monitor_id) {
+         return monitor_map_[monitor_id];
+     }
      bool outputMonitor(MonitorId monitor_id, ResourceTypes resource_types,
-             const char* prefix, const char* suffix);
+             const char* description, bool has_return = true);
      bool outputMonitor(MonitorId monitor_id, ResourceTypes resource_types,
-             FILE *fp, const char* prefix, const char* suffix) { return true;}
+             FILE *fp, const char* description, bool has_return = true)
+         { return true; }
      bool outputMonitor(MonitorId monitor_id, ResourceTypes resource_types,
-             std::ofstream *fp, const char* prefix, const char* suffix) {
-         return true;}
+             std::ofstream *fp, const char* description, bool has_return = true)
+         { return true; }
      bool pauseMonitor(MonitorId monitor_id);
+     bool resumeMonitor(MonitorId monitor_id) {return true;};
      bool resetMonitor(MonitorId monitor_id);
      bool destroyMonitor(MonitorId monitor_id);
 
- private:
+  private:
      MonitorId id_;
+     MonitorId unused_num_id_;
      std::unordered_map<MonitorId, Monitor*> monitor_map_;
 };
 
-extern MonitorManager kMonitorManager;
+
+extern MonitorId createMonitor();
+extern Monitor* queryMonitor(MonitorId monitor_id);
+extern bool outputMonitor(MonitorId monitor_id, ResourceTypes resource_types,
+        const char* description, bool has_return = true);
+extern bool outputMonitor(MonitorId monitor_id, ResourceTypes resource_types,
+        FILE *fp, const char* description, bool has_return = true);
+extern bool outputMonitor(MonitorId monitor_id, ResourceTypes resource_types,
+        std::ofstream *ofs, const char* description, bool has_return = true);
+extern bool pauseMonitor(MonitorId monitor_id);
+extern bool resumeMonitor(MonitorId monitor_id);
+extern bool resetMonitor(MonitorId monitor_id);
+extern bool destroyMonitor(MonitorId monitor_id);
 
 }  // namespace util
 }  // namespace open_edi

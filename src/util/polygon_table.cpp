@@ -39,18 +39,15 @@ void Polygon::addPoint(Point* value) {
 /// @brief
 ///
 /// @return
-void Polygon::writeToFile(std::ofstream &outfile, bool debug) {
-    if (!outfile) {
-        return;
-    }
+void Polygon::writeToFile(IOManager &io_manager, bool debug) {
     //  1. point count
     uint32_t size = getNumPoints();
-    outfile.write((char *) &(size), sizeof(uint32_t));
+    io_manager.write((char *) &(size), sizeof(uint32_t));
     if (debug) { std::cout << "RWDBGINFO: points count " << size << std::endl; }
 
     //  2. write points one by one:
     for (auto pt : pts_) {
-        outfile.write((char *)(pt), sizeof(Point));
+        io_manager.write((char *)(pt), sizeof(Point));
         if (debug) { std::cout << "RWDBGINFO: point {" << pt->getX() << " "<< pt->getY() << "}" << std::endl; }
     }
 }
@@ -58,17 +55,14 @@ void Polygon::writeToFile(std::ofstream &outfile, bool debug) {
 /// @brief  readFromFile
 ///
 /// @return
-void Polygon::readFromFile(std::ifstream &infile, bool debug) {
-    if (!infile) {
-        return;
-    }
+void Polygon::readFromFile(IOManager &io_manager, bool debug) {
     uint32_t num_pts = 0;
-    infile.read((char *)&(num_pts), sizeof(uint32_t));
+    io_manager.read((char *)&(num_pts), sizeof(uint32_t));
     if (debug) { std::cout << "RWDBGINFO: points count " << num_pts << std::endl; }
 
     for (uint32_t i = 0; i < num_pts; ++i) {
         Point *pt = new Point;
-        infile.read((char *)pt, sizeof(Point));
+        io_manager.read((char *)pt, sizeof(Point));
         addPoint(pt);
         if (debug) { std::cout << "RWDBGINFO: point {" << pt->getX() << " "<< pt->getY() << "}" << std::endl; }
     }
@@ -94,20 +88,17 @@ PolygonTable::~PolygonTable() {
 /// @brief  writeToFile
 ///
 /// @return
-void PolygonTable::writeToFile(std::ofstream &outfile, bool debug) {
-    if (!outfile) {
-        return;
-    }
+void PolygonTable::writeToFile(IOManager &io_manager, bool debug) {
     //  1. polygons count
     uint32_t size = getPolygonCount();
-    outfile.write((char *) &(size), sizeof(uint32_t));
+    io_manager.write((char *) &(size), sizeof(uint32_t));
     if (debug) { std::cout << "RWDBGINFO: polygons count " << size << std::endl; }
 
     //  2. write polygon one by one:
     uint32_t index = 0;
     for (auto &polygon : polygons_) {
-        //  outfile.write((char *) &(index), sizeof(uint32_t));
-        polygon->writeToFile(outfile, debug);
+        //  io_manager.write((char *) &(index), sizeof(uint32_t));
+        polygon->writeToFile(io_manager, debug);
         ++index;
     }
 }
@@ -115,16 +106,16 @@ void PolygonTable::writeToFile(std::ofstream &outfile, bool debug) {
 /// @brief  readFromFile
 ///
 /// @return
-void PolygonTable::readFromFile(std::ifstream &infile, bool debug) {
+void PolygonTable::readFromFile(IOManager &io_manager, bool debug) {
     //  1. polygons count
     uint32_t size = 0;
-    infile.read((char *) &(size), sizeof(uint32_t));
+    io_manager.read((char *) &(size), sizeof(uint32_t));
     if (debug) { std::cout << "RWDBGINFO: polygons count " << size << std::endl; }
 
     //  2. read polygon one by one:
     for (int i = 0; i < size; ++i) {
         Polygon *polygon = new Polygon;
-        polygon->readFromFile(infile, debug);
+        polygon->readFromFile(io_manager, debug);
         addPolygon(polygon);
     }
 }

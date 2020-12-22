@@ -51,8 +51,8 @@ class SymbolTable {
     SymbolTable(/* args */);
     ~SymbolTable();
 
-    void writeToFile(std::ofstream &outfile, bool debug = false);
-    void readFromFile(std::ifstream &infile, bool debug = false);
+    void writeToFile(IOManager &io_manager, bool debug = false);
+    void readFromFile(IOManager &io_manager, bool debug = false);
 
     template <typename T>
     class referenceIterator {

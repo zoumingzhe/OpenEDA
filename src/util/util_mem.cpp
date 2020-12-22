@@ -10,14 +10,18 @@
  * of the BSD license.  See the LICENSE file for details.
  */
 
-#include "string.h"
-
+#include <string.h>
+#include <sys/sysinfo.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <fstream>
 #include <iostream>
 
+#include "lz4.h"
+#include "util/util.h"
 #include "util/util_mem.h"
 #include "util/message.h"
+#include "util/io_manager.h"
 
 namespace open_edi {
 namespace util {
@@ -119,13 +123,18 @@ void MemPagePool::__release() {
     __reset();
 }
 
+/// @brief MemPagePool 
 MemPagePool::MemPagePool() { __reset(); }
 
+/// @brief ~MemPagePool 
 MemPagePool::~MemPagePool() {
     std::lock_guard<std::mutex> sg(mutex_);
     __release();
 }
 
+/// @brief __nextPage 
+///
+/// @return 
 MemPage *MemPagePool::__nextPage() {
     if (curr_page_id_ < (num_pages_ - 1)) {
         return pages_[++curr_page_id_];
@@ -202,40 +211,39 @@ void MemPagePool::printUsage() {
          << "Avg page utilize rate- " << ur / num_pages_ << endl;
 }
 
-void MemPagePool::__writeChunkSizeInfo(std::ofstream &outfile, bool debug) {
+/// @brief __writeChunkSizeInfo output chunks number and size
+/// @param io_manager
+/// @param debug
+void MemPagePool::__writeChunkSizeInfo(IOManager &io_manager, bool debug) {
     if (debug) cout << "RWDBGINFO: write size " << num_chunks_ << endl;
-    outfile.write((char *)&(num_chunks_), sizeof(uint64_t));
-    int i = 0;
-    for (auto &mem_chunk : chunks_) {
-        uint64_t size = mem_chunk->getSize();
-        if (debug) cout << "RWDBGINFO: write chunk_size " << size << endl;
-        outfile.write((char *)&size, sizeof(uint64_t));
-    }
+    io_manager.write((void *)&(num_chunks_), sizeof(num_chunks_));
+    io_manager.write((void *)&(chunk_size_), sizeof(chunk_size_));
 }
 
-void MemPagePool::__readChunkSizeInfo(std::ifstream &infile, bool debug) {
-    uint64_t size = 0;
-    infile.read((char *)(&size), sizeof(uint64_t));
-    if (debug) cout << "RWDBGINFO: read size " << size << endl;
+/// @brief __readChunkSizeInfo read chunk number and size, initialize all chunks
+/// @param io_manager
+/// @param debug
+void MemPagePool::__readChunkSizeInfo(IOManager &io_manager, bool debug) {
+    io_manager.read((void *)(&num_chunks_), sizeof(num_chunks_));
+    io_manager.read((void *)(&chunk_size_), sizeof(chunk_size_));
+    if (debug) cout << "RWDBGINFO: read num_chunks " << num_chunks_ << endl;
+    if (debug) cout << "RWDBGINFO: read chunk_size " << chunk_size_ << endl;
 
-    uint64_t *buffer = new uint64_t[size];
-
-    infile.read((char *)buffer, sizeof(uint64_t) * size);
-    num_chunks_ = size;
-    chunk_size_ = buffer[size - 1];
     chunks_.resize(num_chunks_, nullptr);
-    for (int i = 0; i < size; ++i) {
-        if (debug) cout << "RWDBGINFO: read chunk_size " << buffer[i] << endl;
-        MemChunk *mem_chunk = new MemChunk(buffer[i]);
+    for (int i = 0; i < num_chunks_; ++i) {
+        MemChunk *mem_chunk = new MemChunk(chunk_size_);
         chunks_[i] = mem_chunk;
     }
-    delete[] buffer;
 }
 
-void MemPagePool::__writePageInfo(std::ofstream &outfile, bool debug) {
-    outfile.write((char *)&(curr_page_id_), sizeof(size_t));
-    outfile.write((char *)&(page_size_), sizeof(size_t));
-    outfile.write((char *)&(num_pages_), sizeof(uint64_t));
+/// @brief __writePageInfo Output page size and number, and all pages
+///
+/// @param io_manager
+/// @param debug
+void MemPagePool::__writePageInfo(IOManager &io_manager, bool debug) {
+    io_manager.write((void *)&(curr_page_id_), sizeof(curr_page_id_));
+    io_manager.write((void *)&(page_size_), sizeof(page_size_));
+    io_manager.write((void *)&(num_pages_), sizeof(num_pages_));
     if (debug)
         cout << "RWDBGINFO: write page size " << sizeof(MemPage) << " * num "
              << num_pages_ << " current_page_id " << curr_page_id_ << endl;
@@ -244,14 +252,18 @@ void MemPagePool::__writePageInfo(std::ofstream &outfile, bool debug) {
         if (debug) {
             page->printPageUsage(true);
         }
-        outfile.write(reinterpret_cast<char *>(page), sizeof(MemPage));
+        io_manager.write(reinterpret_cast<void *>(page), sizeof(MemPage));
     }
 }
 
-void MemPagePool::__readPageInfo(std::ifstream &infile, bool debug) {
-    infile.read((char *)&(curr_page_id_), sizeof(size_t));
-    infile.read((char *)&(page_size_), sizeof(size_t));
-    infile.read((char *)&(num_pages_), sizeof(uint64_t));
+/// @brief __readPageInfo Read page information and set correct internal 
+/// information.
+/// @param io_manager
+/// @param debug
+void MemPagePool::__readPageInfo(IOManager &io_manager, bool debug) {
+    io_manager.read((void *)&(curr_page_id_), sizeof(curr_page_id_));
+    io_manager.read((void *)&(page_size_), sizeof(page_size_));
+    io_manager.read((void *)&(num_pages_), sizeof(num_pages_));
     if (debug)
         cout << "RWDBGINFO: read pagesize " << page_size_ << " pagenum "
              << num_pages_ << " current_page_id " << curr_page_id_ << endl;
@@ -263,7 +275,7 @@ void MemPagePool::__readPageInfo(std::ifstream &infile, bool debug) {
 
     for (uint64_t i = 0; i < num_pages_; ++i) {
         MemPage *mem_page = new MemPage(page_size_);
-        infile.read(reinterpret_cast<char *>(mem_page), sizeof(MemPage));
+        io_manager.read(reinterpret_cast<void *>(mem_page), sizeof(MemPage));
 
         char *chunk_data = (char *)(chunks_[chunk_index]->getChunk());
         size_t chunk_size = chunks_[chunk_index]->getSize();
@@ -284,25 +296,29 @@ void MemPagePool::__readPageInfo(std::ifstream &infile, bool debug) {
     }
 }
 
-void MemPagePool::__writeFreeListInfo(std::ofstream &outfile, bool debug) {
-    outfile.write((char *)&(mem_free_), sizeof(uint64_t));
+/// @brief __writeFreeListInfo Output free list
+///
+/// @param io_manager
+/// @param debug
+void MemPagePool::__writeFreeListInfo(IOManager &io_manager, bool debug) {
+    io_manager.write((void *)&(mem_free_), sizeof(mem_free_));
 
     size_t size = free_list_.size();
-    outfile.write((char *)&(size), sizeof(size_t));
+    io_manager.write((void *)&(size), sizeof(size));
     if (debug)
         cout << "RWDBGINFO: write freelist size " << size << " and mem_free "
              << mem_free_ << endl;
 
     for (auto &fl : free_list_) {
         int obj_type_id = fl.first;
-        outfile.write((char *)&(obj_type_id), sizeof(int));
+        io_manager.write((void *)&(obj_type_id), sizeof(obj_type_id));
 
         size_t freeobjs_size = 0;
         for (std::forward_list<void *>::iterator iter = fl.second->begin();
              iter != fl.second->end(); ++iter) {
             ++freeobjs_size;
         }
-        outfile.write((char *)&(freeobjs_size), sizeof(size_t));
+        io_manager.write((void *)&(freeobjs_size), sizeof(freeobjs_size));
 
         if (debug)
             cout << "RWDBGINFO: write freelist objtype_id " << obj_type_id
@@ -310,7 +326,7 @@ void MemPagePool::__writeFreeListInfo(std::ofstream &outfile, bool debug) {
         for (std::forward_list<void *>::iterator iter = fl.second->begin();
              iter != fl.second->end(); ++iter) {
             uint64_t freeobj_ptr = (long)(char *)(*iter);
-            outfile.write((char *)(&freeobj_ptr), sizeof(uint64_t));
+            io_manager.write((void *)(&freeobj_ptr), sizeof(freeobj_ptr));
             if (debug)
                 cout << "RWDBGINFO: write freelist obj_id " << freeobj_ptr
                      << endl;
@@ -318,25 +334,29 @@ void MemPagePool::__writeFreeListInfo(std::ofstream &outfile, bool debug) {
     }
 }
 
-void MemPagePool::__readFreeListInfo(std::ifstream &infile, bool debug) {
-    infile.read((char *)&(mem_free_), sizeof(uint64_t));
+/// @brief __readFreeListInfo Read free list
+///
+/// @param io_manager
+/// @param debug
+void MemPagePool::__readFreeListInfo(IOManager &io_manager, bool debug) {
+    io_manager.read((void *)&(mem_free_), sizeof(mem_free_));
 
     size_t size = 0;
-    infile.read((char *)&(size), sizeof(size_t));
+    io_manager.read((void *)&(size), sizeof(size));
     if (debug)
         cout << "RWDBGINFO: read freelist size " << size << " and mem_free "
              << mem_free_ << endl;
     for (int i = 0; i < size; ++i) {
         int obj_type_id = 0;
         size_t freeobjs_size = 0;
-        infile.read((char *)&(obj_type_id), sizeof(int));
-        infile.read((char *)&(freeobjs_size), sizeof(size_t));
+        io_manager.read((void *)&(obj_type_id), sizeof(obj_type_id));
+        io_manager.read((void *)&(freeobjs_size), sizeof(freeobjs_size));
         if (debug)
             cout << "RWDBGINFO: read freelist objtype_id " << obj_type_id
                  << " freeobjs_size " << freeobjs_size << endl;
         for (int j = 0; j < freeobjs_size; ++j) {
             uint64_t freeobj_ptr = 0;
-            infile.read((char *)&(freeobj_ptr), sizeof(uint64_t));
+            io_manager.read((void *)&(freeobj_ptr), sizeof(freeobj_ptr));
             if (debug)
                 cout << "RWDBGINFO: read freelist obj_id " << freeobj_ptr
                      << endl;
@@ -352,75 +372,81 @@ void MemPagePool::__readFreeListInfo(std::ifstream &infile, bool debug) {
     }
 }
 
-void MemPagePool::__writeChunks(std::ofstream &outfile, bool debug) {
-    int i = 0;
-    for (auto &mem_chunk : chunks_) {
-        if (debug)
-            cout << "RWDBGINFO: write chunk#" << i << " with size "
-                 << mem_chunk->getSize() << endl;
-        outfile.write((char *)(mem_chunk->getChunk()), mem_chunk->getSize());
-        ++i;
+/// @brief __writeChunks Ouput chunks
+///
+/// @param io_manager
+/// @param debug
+void MemPagePool::__writeChunks(IOManager &io_manager, bool debug) {
+    std::vector<void*> buffers;
+    std::vector<uint32_t> sizes;
+
+    MemChunk *mem_chunk = nullptr;
+    for (int i = 0; i < num_chunks_; ++i) {
+        mem_chunk = chunks_[i];
+
+        sizes.push_back(mem_chunk->getSize());
+        buffers.push_back((char*)mem_chunk->getChunk());
     }
+    io_manager.writeCompressBlock(kCompressLz4, buffers, sizes);
+
+    return;
 }
 
-void MemPagePool::__readChunks(std::ifstream &infile, bool debug) {
-    for (uint64_t i = 0; i < num_chunks_; ++i) {
-        void *chunk = chunks_[i]->getChunk();
-        size_t size = chunks_[i]->getSize();
-        if (debug)
-            cout << "RWDBGINFO: read chunk#" << i << " with size "
-                 << chunks_[i]->getSize() << endl;
-        if (debug)
-            cout << "RWDBGINFO: read (before) chunk_data "
-                 << ((long *)(chunk))[0] << endl;
+/// @brief __readChunks Read chunks
+///
+/// @param io_manager
+/// @param debug
+void MemPagePool::__readChunks(IOManager &io_manager, bool debug) {
+    std::vector<void*> buffers;
+    std::vector<uint32_t> sizes;
 
-        infile.read((char *)(chunk), size);
-        if (debug)
-            cout << "RWDBGINFO: read chunk_data " << ((long *)(chunk))[0]
-                 << endl;
+    MemChunk *mem_chunk = nullptr;
+    for (int i = 0; i < num_chunks_; ++i) {
+        mem_chunk = chunks_[i];
+
+        sizes.push_back(mem_chunk->getSize());
+        buffers.push_back((char*)mem_chunk->getChunk());
     }
+    io_manager.readCompressBlock(kCompressLz4, buffers, sizes);
+
+    for (int i = 0; i < num_chunks_; ++i) {
+        mem_chunk = chunks_[i];
+        mem_chunk->setSize(sizes[i]);
+    }
+
+    return;
 }
 
 /// @brief write header to a file
-void MemPagePool::writeHeaderToFile(std::ofstream &outfile, bool debug) {
-    if (!outfile) {
-        return;
-    }
+void MemPagePool::writeHeaderToFile(IOManager &io_manager, bool debug) {
     // 2. write num_chunk & chunk_size
-    __writeChunkSizeInfo(outfile, debug);
+    __writeChunkSizeInfo(io_manager, debug);
     // 3. write num_pages & page_info
-    __writePageInfo(outfile, debug);
+    __writePageInfo(io_manager, debug);
     // 4. write num_free_list & typeid+free_object_ids
-    __writeFreeListInfo(outfile, debug);
+    __writeFreeListInfo(io_manager, debug);
 }
 
 /// @brief write chunk/content to a file
-void MemPagePool::writeContentToFile(std::ofstream &outfile, bool debug) {
-    if (!outfile) {
-        return;
-    }
+void MemPagePool::writeContentToFile(IOManager &io_manager, bool debug) {
     // 5. write chunks
-    __writeChunks(outfile, debug);
+    __writeChunks(io_manager, debug);
     // close-file moved to the UI callback.
-    // outfile.close();
+    // io_manager.close();
 }
 
 /// @brief read from file:
-void MemPagePool::readFromFile(std::ifstream &infile, bool debug) {
-    if (!infile) {
-        return;
-    }
-
+void MemPagePool::readFromFile(IOManager &io_manager, bool debug) {
     // 2. read num_chunk & chunk_size
-    __readChunkSizeInfo(infile, debug);
+    __readChunkSizeInfo(io_manager, debug);
     // 3. read num_pages & page_info
-    __readPageInfo(infile, debug);
+    __readPageInfo(io_manager, debug);
     // 4. read num_free_list & typeid+free_object_ids
-    __readFreeListInfo(infile, debug);
+    __readFreeListInfo(io_manager, debug);
     // 5. read chunks
-    __readChunks(infile, debug);
+    __readChunks(io_manager, debug);
     // close-file moved to UI callback.
-    // infile.close();
+    // io_manager.close();
     if (debug) {
         printUsage();
     }
@@ -479,11 +505,11 @@ MemPagePool *MemPool::newPagePool() {
 
     if (!initialized_) {
         message->issueMsg(kError, "Cannot new Page pool when Memory pool"
-                                  "is not initialized.\n");
+                                  " is not initialized.\n");
         return nullptr;
     }
     if (pool_no_ == MEM_POOL_MAX) {
-        message->issueMsg(kError, "page pool is full. %d\n", pool_no_);
+        message->issueMsg(kError, "Page pool is full. %d\n", pool_no_);
         return nullptr;
     }
 
@@ -505,11 +531,11 @@ MemPagePool *MemPool::newPagePool(uint64_t cell_id) {
 
     if (!initialized_) {
         message->issueMsg(kError, "Cannot new Page pool when Memory pool"
-                                  "is not initialized.\n");
+                                  " is not initialized.\n");
         return nullptr;
     }
     if (pool_no_ == MEM_POOL_MAX) {
-        message->issueMsg(kError, "page pool is full. %d\n", pool_no_);
+        message->issueMsg(kError, "Page pool is full. %d\n", pool_no_);
         return nullptr;
     }
 

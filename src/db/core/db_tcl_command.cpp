@@ -50,7 +50,8 @@ static int writeLefCommand(ClientData cld, Tcl_Interp *itp, int argc, const char
 
 // read DEF file
 static int readDefCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
-    return util::runCommandWithProcessBar(readDef, argc, argv);
+    int result = util::runCommandWithProcessBar(readDef, argc, argv);
+    return result;
 }
 
 static int writeDefCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
@@ -75,6 +76,7 @@ static int writeVerilogCommand(ClientData cld, Tcl_Interp *itp, int argc, const 
 enum readWriteDBArgument { kRWDBDBFile = 1, kRWDBDebug = 2, kRWDBUnknown };
 
 static int readDBCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
+    MonitorId monitor_id = createMonitor();
     std::string cell_name;
     bool debug = false;
 
@@ -95,12 +97,19 @@ static int readDBCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *
     ReadDesign read_design(cell_name);
     read_design.setTop();
     read_design.setDebug(debug);
-    return read_design.run();
+    int result = read_design.run();
+
+    outputMonitor(monitor_id, kElapsedTime, "read_design ");
+    destroyMonitor(monitor_id);
+
+    return result;
 }
 // end of read_design
 
 // write db to disk
 static int writeDBCommand(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
+    MonitorId monitor_id = createMonitor();
+
     std::string cell_name;
     bool debug = false;
 
@@ -120,17 +129,23 @@ static int writeDBCommand(ClientData cld, Tcl_Interp *itp, int argc, const char 
 
     if (!cell_name.compare("")) {
         message->issueMsg(kError, "Invalid DB file name.\n");
+        destroyMonitor(monitor_id);
         return TCL_ERROR;
     }
 
     Cell *top_cell = getTopCell();
     if (!top_cell || !top_cell->getPool()) {
         message->issueMsg(kError, "Failed to get top cell.\n");
+        destroyMonitor(monitor_id);
         return TCL_ERROR;
     }
     WriteDesign write_design(cell_name);
     write_design.setDebug(debug);
-    return write_design.run();
+    write_design.run();
+
+    outputMonitor(monitor_id, kElapsedTime, "write_design ");
+    destroyMonitor(monitor_id);
+    return 0;
 }
 // end of write_design
 

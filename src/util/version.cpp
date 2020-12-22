@@ -11,8 +11,6 @@
  */
 
 #include "util/version.h"
-#include <fstream>
-#include <iostream>
 #include <sstream>
 
 namespace open_edi {
@@ -51,33 +49,33 @@ const std::string & Version::getVersionString() {
     return version_string_;
 }
 
-void Version::writeToFile(std::ofstream & outfile, bool debug)
+void Version::writeToFile(IOManager & io_manager, bool debug)
 {
     const char *version = getVersionString().c_str();
     Bits8 size = strlen(version);
-    if (debug) { 
+    if (debug) {
         cout << "RWDBGINFO: version size " << (int)size << endl;
     }
     if (size == 0) return;
 
-    outfile.write((char *) &(size), sizeof(Bits8));
+    io_manager.write((void *) &(size), sizeof(Bits8));
     if (debug) { 
         cout << "RWDBGINFO: version string: " << version << endl;
     }
-    outfile.write((char *)version, size);
+    io_manager.write((void *)version, size);
 }
 
-void Version::readFromFile(std::ifstream & infile, bool debug)
+void Version::readFromFile(IOManager & io_manager, bool debug)
 {
     Bits8 size = 0;
-    infile.read((char *) &(size), sizeof(Bits8));
+    io_manager.read((void *) &(size), sizeof(Bits8));
     if (debug) { 
         cout << "RWDBGINFO: version size " << (int)size << endl;
     }
     if (size == 0) return; //shouldn't happen
 
     char *version = new char [size + 1];
-    infile.read(version, size);
+    io_manager.read(version, size);
     version[size] = '\0';
     stringstream sstream(version);
     char header;
