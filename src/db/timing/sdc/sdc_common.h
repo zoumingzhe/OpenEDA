@@ -62,7 +62,8 @@ std::size_t hash_value(const UnorderedPair<T, U> &p) {
     boost::hash_combine(seed1, p.first);
     std::size_t seed2 = 0;
     boost::hash_combine(seed2, p.second);
-    return seed1 xor seed2;
+    std::size_t seed = (seed1 xor seed2) + p.first + p.second;
+    return seed;
 }
 
 Pin* getPinByFullName(const std::string &full_name);

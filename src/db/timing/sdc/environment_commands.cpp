@@ -33,18 +33,34 @@ std::string to_string(const CaseAnalysisValue &value) {
     return "unknown";
 }
 
-void SetCaseAnalysis::setValue(std::string& input) {
+bool SetCaseAnalysis::setValue(std::string& input) {
     if (input=="0" or input=="zero") {
         value_ = CaseAnalysisValue::kZero;
-    } else if (input=="1" or input=="one") {
-        value_ = CaseAnalysisValue::kOne;
-    } else if (input=="rising" or input=="rise") {
-        value_ = CaseAnalysisValue::kRise;
-    } else if (input=="falling" or input=="fall") {
-        value_ = CaseAnalysisValue::kFall;
-    } else {
-        value_ = CaseAnalysisValue::kUnknown;
+        return true;
     }
+    if (input=="1" or input=="one") {
+        value_ = CaseAnalysisValue::kOne;
+        return true;
+    }
+    if (input=="rising" or input=="rise") {
+        value_ = CaseAnalysisValue::kRise;
+        return true;
+    }
+    if (input=="falling" or input=="fall") {
+        value_ = CaseAnalysisValue::kFall;
+        return true;
+    }
+    value_ = CaseAnalysisValue::kUnknown;
+    return false;
+}
+
+bool CaseAnalysisCotnainerData::add(const std::string &pin_name, const SetCaseAnalysis &case_analysis) {
+    const auto &pin = getPinByFullName(pin_name);
+    if (!pin) {
+        return false;
+    }
+    const auto &pin_id = pin->getId();
+    pin_to_case_analysis_.emplace(pin_id, case_analysis);
 }
 
 std::string to_string(const LogicValue &value) {

@@ -532,9 +532,8 @@ bool createSdcTimingConstraints() {
 
 // environment commands 
 bool createSdcEnvironmentCommands() {
-    //TODO command create success check
     CommandManager* cmd_manager = CommandManager::getCommandManager();
-
+    assert(cmd_manager);
     Command* cmd = cmd_manager->createCommand(
         "set_case_analysis", "\n", 
             *(new Option("value", OptionDataType::kString, true, "\n")) + 

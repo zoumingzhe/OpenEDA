@@ -38,7 +38,7 @@ enum class CaseAnalysisValue : Bits8 { kZero, kOne, kRise, kFall, kUnknown };
 std::string to_string(const CaseAnalysisValue &value);
 class SetCaseAnalysis {
   public:
-    void setValue(std::string& input);
+    bool setValue(std::string& input);
 
   private:
     CaseAnalysisValue value_ = CaseAnalysisValue::kUnknown;
@@ -50,7 +50,7 @@ using SetCaseAnalysisPtr = std::shared_ptr<SetCaseAnalysis>;
 
 class CaseAnalysisCotnainerData {
   public:
-    void add(const ObjectId &pin_id, const SetCaseAnalysis &case_analysis) { pin_to_case_analysis_.emplace(pin_id, case_analysis); }
+    bool add(const std::string &pin_name, const SetCaseAnalysis &case_analysis);
 
   private:
     std::unordered_map<ObjectId, SetCaseAnalysis> pin_to_case_analysis_;

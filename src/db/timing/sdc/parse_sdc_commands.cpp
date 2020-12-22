@@ -3835,19 +3835,14 @@ int parseSdcSetPropagatedClock(ClientData cld, Tcl_Interp *itp, int argc, const 
 
 // environment commands manager
 int parseSdcSetCaseAnalysis(ClientData cld, Tcl_Interp *itp, int argc, const char *argv[]) {
-    SdcPtr sdc = getSdc();
-    assert(sdc);
-    if (!sdc) {
-        //TODO messages
-        return TCL_ERROR;
-    }
-    auto case_analysis_container = sdc->getCaseAnalysisContainer();
-    if (!case_analysis_container) {
-        //TODO messages
-        return TCL_ERROR;
-    }
     Command* cmd = CommandManager::parseCommand(argc, argv);
     assert(cmd);
+    if (!( cmd->isOptionSet("value") and cmd->isOptionSet("port_or_pin_list") )) {
+        return TCL_ERROR;
+    }
+    SdcPtr sdc = getSdc();
+    auto container = sdc->getCaseAnalysisContainer();
+    auto container_data = container->getData();
     SetCaseAnalysis case_analysis;
     if (cmd->isOptionSet("value")) {
         std::string value;
@@ -3856,8 +3851,11 @@ int parseSdcSetCaseAnalysis(ClientData cld, Tcl_Interp *itp, int argc, const cha
             //TODO messages
             return TCL_ERROR;
         }
-        case_analysis.setValue(value);
-        message->info("get first value %s \n", value.c_str());
+        bool success = case_analysis.setValue(value); 
+        if (!success) {
+            //error messages
+            return TCL_OK;
+        }
     }
     if (cmd->isOptionSet("port_or_pin_list")) {
         std::vector<std::string> port_or_pin_list;
@@ -3866,22 +3864,11 @@ int parseSdcSetCaseAnalysis(ClientData cld, Tcl_Interp *itp, int argc, const cha
             //TODO messages
             return TCL_ERROR;
         }
-        Cell* topCell = getTopCell();
-        assert(topCell);
-        if (topCell == nullptr) {
-            //TODO messages
-            return TCL_ERROR;
-        }
         for (const auto& pin_name : port_or_pin_list) {
-            ObjectId pin_id = 1; 
-            //Pin *pin = topCell->getPin(pin_name); 
-            //if (pin == nullptr) {
-            //    //TODO messages
-            //    return TCL_ERROR;
-            //}
-            //ObjectId pin_id = pin->getId();
-            case_analysis_container->add(pin_id, case_analysis);
-            message->info("get second value %s \n", pin_name.c_str());
+            bool success = container_data->add(pin_name, case_analysis);
+            if (!success) {
+                //error messages
+            }
         }
     }
     return TCL_OK;

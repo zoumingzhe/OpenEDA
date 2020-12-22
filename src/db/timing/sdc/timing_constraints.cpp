@@ -254,6 +254,10 @@ void ClockGroupsContainerData::addClockRelationship(const UnorderedClockPair &cl
 void ClockGroupsContainerData::setRelationBetweenClockGroups(const std::vector<ClockId> &lhs, const std::vector<ClockId> &rhs, const RelationshipType &relation) {
     for (const auto &clock_id : lhs) {
         for (const auto &other_clock_id : rhs) {
+            if (clock_id == other_clock_id) {
+                //error messages
+                continue;
+            }
             UnorderedClockPair clock_pair(clock_id, other_clock_id);
             addClockRelationship(clock_pair, relation);
         }

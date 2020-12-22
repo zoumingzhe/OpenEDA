@@ -445,14 +445,12 @@ class SdcCaseAnalysisContainer {
   public:
     SdcCaseAnalysisContainer() { data_ = std::make_shared<CaseAnalysisCotnainerData>(); }
 
-  public:
-    void add(const ObjectId &pin_id, const SetCaseAnalysis &case_analysis) { data_->add(pin_id, case_analysis); }
-
-    const CaseAnalysisCotnainerDataPtr &getData() const { return data_; }
+    void setData(const CaseAnalysisCotnainerDataPtr &data) { data_ = data; };
+    const CaseAnalysisCotnainerDataPtr getData() const { return data_; };
+    CaseAnalysisCotnainerDataPtr getData() { return data_; };
     const CaseAnalysisValue getPinValue(const ObjectId &pin_id) const;
     bool isPinConstZero(const ObjectId &pin_id) const;
     bool isPinConstOne(const ObjectId &pin_id) const;
-
     friend std::ostream &operator<<(std::ostream &os, SdcCaseAnalysisContainer &rhs);
 
   private:
