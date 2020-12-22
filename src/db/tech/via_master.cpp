@@ -72,7 +72,7 @@ int ViaLayer::getMaskNum(int num) { return masks_[num]; }
  *
  * @param rect
  */
-void ViaLayer::addRect(Box* rect) { rects_.push_back(rect); }
+void ViaLayer::addRect(Box rect) { rects_.push_back(rect); }
 
 /**
  * @brief Get the Rect object
@@ -80,14 +80,14 @@ void ViaLayer::addRect(Box* rect) { rects_.push_back(rect); }
  * @param num
  * @return Box*
  */
-Box* ViaLayer::getRect(int num) { return rects_[num]; }
+Box ViaLayer::getRect(int num) { return rects_[num]; }
 
 /**
  * @brief Get the Rects object
  *
  * @return std::vector<Box*>
  */
-std::vector<Box*> ViaLayer::getRects() { return rects_; }
+std::vector<Box> ViaLayer::getRects() { return rects_; }
 
 /**
  * @brief print out
@@ -97,22 +97,22 @@ std::vector<Box*> ViaLayer::getRects() { return rects_; }
 void ViaLayer::print(int is_def) {
     if (!is_def) {
         message->info("   LAYER %s ;\n", getName().c_str());
-        std::vector<Box*> rects = getRects();
+        std::vector<Box> rects = getRects();
         for (int i = 0; i < rects.size(); ++i) {
-            Box* box = getRect(i);
-            message->info("      RECT  %d %d %d %d ;\n", box->getLLX(),
-                          box->getLLY(), box->getURX(), box->getURY());
+            Box box = getRect(i);
+            message->info("      RECT  %d %d %d %d ;\n", box.getLLX(),
+                          box.getLLY(), box.getURX(), box.getURY());
         }
     } else {
         message->info("   + RECT %s ", getName().c_str());
-        std::vector<Box*> rects = getRects();
+        std::vector<Box> rects = getRects();
         for (int i = 0; i < rects.size(); ++i) {
-            Box* box = getRect(i);
+            Box box = getRect(i);
             if (getMaskNum(i)) {
                 message->info(" + MASK  %d ", getMaskNum(i));
             }
-            message->info(" ( %d %d ) ( %d %d ) \n", box->getLLX(),
-                          box->getLLY(), box->getURX(), box->getURY());
+            message->info(" ( %d %d ) ( %d %d ) \n", box.getLLX(), box.getLLY(),
+                          box.getURX(), box.getURY());
         }
     }
 }
@@ -122,26 +122,26 @@ void ViaLayer::printLEF(std::ofstream& ofs, uint32_t num_spaces) {
     std::string space_str = getSpaceStr(num_spaces);
 
     ofs << space_str << "   LAYER " << getName().c_str() << " ;\n";
-    std::vector<Box*> rects = getRects();
+    std::vector<Box> rects = getRects();
     for (int i = 0; i < rects.size(); ++i) {
-        Box* box = getRect(i);
-        ofs << space_str << "      RECT  " << lib->dbuToMicrons(box->getLLX())
-            << " " << lib->dbuToMicrons(box->getLLY()) << " "
-            << lib->dbuToMicrons(box->getURX()) << " "
-            << lib->dbuToMicrons(box->getURY()) << " ;\n";
+        Box box = getRect(i);
+        ofs << space_str << "      RECT  " << lib->dbuToMicrons(box.getLLX())
+            << " " << lib->dbuToMicrons(box.getLLY()) << " "
+            << lib->dbuToMicrons(box.getURX()) << " "
+            << lib->dbuToMicrons(box.getURY()) << " ;\n";
     }
 }
 
 void ViaLayer::printDEF(FILE* fp) {
     fprintf(fp, "\n   + RECT %s ", getName().c_str());
-    std::vector<Box*> rects = getRects();
+    std::vector<Box> rects = getRects();
     for (int i = 0; i < rects.size(); ++i) {
-        Box* box = getRect(i);
+        Box box = getRect(i);
         if (getMaskNum(i)) {
             fprintf(fp, " + MASK  %d ", getMaskNum(i));
         }
-        fprintf(fp, " ( %d %d ) ( %d %d )", box->getLLX(), box->getLLY(),
-                box->getURX(), box->getURY());
+        fprintf(fp, " ( %d %d ) ( %d %d )", box.getLLX(), box.getLLY(),
+                box.getURX(), box.getURY());
     }
 }
 
@@ -765,8 +765,8 @@ bool ViaMaster::isDefault() const { return is_default_; }
  * @return ViaLayer*
  */
 ViaLayer* ViaMaster::creatViaLayer(std::string& name) {
-    ViaLayer* via_layer = Object::createObject<ViaLayer>(
-        kObjectTypeViaMaster, getTechLib()->getId());
+    ViaLayer* via_layer = Object::createObject<ViaLayer>(kObjectTypeViaMaster,
+                                                         getTechLib()->getId());
     via_layer->setName(name);
     return via_layer;
 }
@@ -775,8 +775,7 @@ int ViaMaster::addViaLayer(ViaLayer* via_layer) {
     if (via_layers_ == 0) {
         via_layers_ = __createObjectIdArray(64);
     }
-    IdArray* via_layer_vector =
-        addr<IdArray>(via_layers_);
+    IdArray* via_layer_vector = addr<IdArray>(via_layers_);
     via_layer_vector->pushBack(via_layer->getId());
     return 0;
 }
@@ -869,8 +868,7 @@ void ViaMaster::print() {
         }
 
         if (via_layers_) {
-            IdArray* via_layer_vector =
-                addr<IdArray>(via_layers_);
+            IdArray* via_layer_vector = addr<IdArray>(via_layers_);
             for (IdArray::iterator iter = via_layer_vector->begin();
                  iter != via_layer_vector->end(); ++iter) {
                 ObjectId id = (*iter);
@@ -927,8 +925,7 @@ void ViaMaster::print() {
         if (getResistance())
             message->info("  RESISTANCE %f ;\n", getResistance());
         if (via_layers_) {
-            IdArray* via_layer_vector =
-                addr<IdArray>(via_layers_);
+            IdArray* via_layer_vector = addr<IdArray>(via_layers_);
             for (IdArray::iterator iter = via_layer_vector->begin();
                  iter != via_layer_vector->end(); ++iter) {
                 ObjectId id = (*iter);
@@ -980,8 +977,7 @@ void ViaMaster::printDEF(FILE* fp) {
 
     if (getResistance()) fprintf(fp, "\n  RESISTANCE %f", getResistance());
     if (via_layers_) {
-        IdArray* via_layer_vector =
-            addr<IdArray>(via_layers_);
+        IdArray* via_layer_vector = addr<IdArray>(via_layers_);
         int i = 0;
         int size = via_layer_vector->getSize();
         for (IdArray::iterator iter = via_layer_vector->begin();
@@ -1048,8 +1044,7 @@ void ViaMaster::printLEF(std::ofstream& ofs, uint32_t num_spaces) {
         ofs << space_str << "   RESISTANCE " << getResistance() << " ;\n";
 
     if (via_layers_) {
-        IdArray* via_layer_vector =
-            addr<IdArray>(via_layers_);
+        IdArray* via_layer_vector = addr<IdArray>(via_layers_);
         for (IdArray::iterator iter = via_layer_vector->begin();
              iter != via_layer_vector->end(); ++iter) {
             ObjectId id = (*iter);
@@ -1060,8 +1055,7 @@ void ViaMaster::printLEF(std::ofstream& ofs, uint32_t num_spaces) {
 
     if (numProperties() > 0) {
         ofs << space_str << "   PROPERTY";
-        IdArray* vobj =
-            addr<IdArray>(properties_);
+        IdArray* vobj = addr<IdArray>(properties_);
         for (int i = 0; i < numProperties(); i++) {
             ObjectId obj_id = (*vobj)[i];
             Property* obj_data = addr<Property>(obj_id);

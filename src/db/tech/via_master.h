@@ -30,11 +30,11 @@ class ViaLayer : public Object {
     std::string const& getName();
 
     void addMask(int num);
-    void addRect(Box* rect);
+    void addRect(Box rect);
 
-    Box* getRect(int num);
+    Box getRect(int num);
     int getMaskNum(int num);
-    std::vector<Box*> getRects();
+    std::vector<Box> getRects();
 
     void print(int is_def);
     void printLEF(std::ofstream& ofs, uint32_t num_spaces = 0);
@@ -43,7 +43,7 @@ class ViaLayer : public Object {
   private:
     SymbolIndex name_index_;
     std::vector<int> masks_;
-    std::vector<Box*> rects_;
+    std::vector<Box> rects_;
 };
 
 class ViaMaster : public Object {

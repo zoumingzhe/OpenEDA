@@ -1181,9 +1181,9 @@ int readVia(defiVia* io_via) {
             io_via->layer(i, &layer_name, &xl, &yl, &xh, &yh);
             std::string via_layer_name = layer_name;
             ViaLayer* via_layer = db_via->creatViaLayer(via_layer_name);
-            Box* box = creatBox(xl, yl, xh, yh);
+            Box* box = new Box(xl, yl, xh, yh);
             via_layer->addMask(io_via->rectMask(i));
-            via_layer->addRect(box);
+            via_layer->addRect(*box);
             db_via->addViaLayer(via_layer);
         }
     }
@@ -1906,7 +1906,6 @@ int readNet(defiNet* io_net) {
     Net* net;
     VPin* v_pin;
     Point* loc;
-    Box* bbox;
     Cell* top_cell = getTopCell();
     Tech* lib = top_cell->getTechLib();
 
@@ -1973,7 +1972,7 @@ int readNet(defiNet* io_net) {
             v_pin->setHasLayer(true);
             v_pin->setLayer(const_cast<char*>(io_vpin->layer()));
         }
-        bbox = creatBox(io_vpin->xl(), io_vpin->yl(), io_vpin->xh(),
+        Box* bbox = new Box(io_vpin->xl(), io_vpin->yl(), io_vpin->xh(),
                         io_vpin->yh());
         v_pin->setBox(*bbox);
 
@@ -2985,7 +2984,7 @@ int readPin(defiPin* def_pin) {
                 top_cell->createObject<Geometry>(kObjectTypeGeometry);
             int xl, yl, xh, yh;
             def_pin->bounds(i, &xl, &yl, &xh, &yh);
-            Box* b = creatBox(xl, yl, xh, yh);
+            Box* b = new Box(xl, yl, xh, yh);
             geo->setBox(b);
             if (def_pin->layerMask(i)) {
                 geo->setNumMask(def_pin->layerMask(i));
@@ -3085,7 +3084,7 @@ int readPin(defiPin* def_pin) {
                     top_cell->createObject<Geometry>(kObjectTypeGeometry);
                 int xl, yl, xh, yh;
                 port->bounds(i, &xl, &yl, &xh, &yh);
-                Box* b = creatBox(xl, yl, xh, yh);
+                Box* b = new Box(xl, yl, xh, yh);
                 geo->setBox(b);
                 if (port->layerMask(i)) {
                     geo->setNumMask(port->layerMask(i));

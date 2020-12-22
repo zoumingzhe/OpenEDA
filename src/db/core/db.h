@@ -17,10 +17,10 @@
 #include "db/core/object.h"
 #include "db/core/object_attr.h"
 // model
-#include "db/core/root.h"
-#include "db/core/cell.h"
-#include "db/core/term.h"
 #include "db/core/bus.h"
+#include "db/core/cell.h"
+#include "db/core/root.h"
+#include "db/core/term.h"
 // design
 #include "db/core/inst.h"
 #include "db/core/inst_attr.h"
@@ -43,8 +43,6 @@ void setTopCell(ObjectId top_cell_id);
 void setTimingLib(ObjectId timing_lib_id);
 void setTechLib(ObjectId tech_lib_id);
 Cell* getCell();
-Box* creatBox();
-Box* creatBox(int llx, int lly, int urx, int ury);
 
 using Version = open_edi::util::Version;
 Version& getCurrentVersion();
