@@ -14,8 +14,8 @@
 
 #include "db/core/cell.h"
 #include "db/core/db.h"
-#include "db/util/symbol_table.h"
 #include "db/util/array.h"
+#include "db/util/symbol_table.h"
 #include "util/util_mem.h"
 
 namespace open_edi {
@@ -59,7 +59,7 @@ std::string &Row::getName() {
 void Row::setName(SymbolIndex &row_name_index) {
     row_name_index_ = row_name_index;
     getFloorplan()->getOwnerCell()->addSymbolReference(row_name_index_,
-                                                  this->getId());
+                                                       this->getId());
 }
 
 /// @brief setName
@@ -73,7 +73,7 @@ bool Row::setName(std::string &name) {
 
     row_name_index_ = index;
     getFloorplan()->getOwnerCell()->addSymbolReference(row_name_index_,
-                                                  this->getId());
+                                                       this->getId());
     return true;
 }
 
@@ -88,7 +88,7 @@ bool Row::setName(const char *name) {
 
     row_name_index_ = index;
     getFloorplan()->getOwnerCell()->addSymbolReference(row_name_index_,
-                                                  this->getId());
+                                                       this->getId());
     return true;
 }
 
@@ -124,9 +124,7 @@ void Row::setOrient(Orient &o) { orient_ = o; }
 
 void Row::setSiteId(ObjectId &site_id) { site_id_ = site_id; }
 
-Site *Row::getSite() const {
-    return addr<Site>(site_id_);
-}
+Site *Row::getSite() const { return addr<Site>(site_id_); }
 
 ObjectId Row::getSiteId() const { return site_id_; }
 
@@ -173,9 +171,7 @@ void Row::setFloorplan(ObjectId fp) { floorplan_ = fp; }
 /// @brief getFloorplan
 ///
 /// @return
-Floorplan *Row::getFloorplan() {
-    return addr<Floorplan>(floorplan_);
-}
+Floorplan *Row::getFloorplan() { return addr<Floorplan>(floorplan_); }
 
 void Row::setSiteName(const char *site_name) {
     if (!site_name) {
@@ -183,9 +179,10 @@ void Row::setSiteName(const char *site_name) {
         return;
     }
 
-    site_name_index_ = getFloorplan()->getOwnerCell()->getOrCreateSymbol(site_name);
+    site_name_index_ =
+        getFloorplan()->getOwnerCell()->getOrCreateSymbol(site_name);
     getFloorplan()->getOwnerCell()->addSymbolReference(site_name_index_,
-                                                  this->getId());
+                                                       this->getId());
 }
 
 std::string &Row::getSiteName() {
@@ -277,9 +274,7 @@ Track::~Track() {}
 
 void Track::setFloorplan(ObjectId fp) { floorplan_ = fp; }
 
-Floorplan *Track::getFloorplan() {
-    return addr<Floorplan>(floorplan_);
-}
+Floorplan *Track::getFloorplan() { return addr<Floorplan>(floorplan_); }
 
 void Track::setDirectionX(bool direction_x) { direction_x_ = direction_x; }
 bool Track::getDirectionX() { return direction_x_; }
@@ -307,13 +302,14 @@ bool Track::getHasSameMask() { return has_same_mask_; }
 void Track::addLayer(Int32 &layer_index) {
     ArrayObject<Int32> *id_array_ptr = nullptr;
     if (layers_ == 0) {
-        id_array_ptr = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        id_array_ptr =
+            getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
         if (id_array_ptr == nullptr) return;
         id_array_ptr->setPool(getOwnerCell()->getPool());
-        id_array_ptr->reserve(256);        
+        id_array_ptr->reserve(256);
         layers_ = id_array_ptr->getId();
     } else {
-        id_array_ptr = addr< ArrayObject<Int32> >(layers_);
+        id_array_ptr = addr<ArrayObject<Int32>>(layers_);
     }
 
     if (id_array_ptr) id_array_ptr->pushBack(layer_index);
@@ -335,13 +331,14 @@ void Track::addLayer(const char *layer_name) {
 
     ArrayObject<Int32> *id_array_ptr = nullptr;
     if (layers_ == 0) {
-        id_array_ptr = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        id_array_ptr =
+            getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
         if (id_array_ptr == nullptr) return;
         id_array_ptr->setPool(getOwnerCell()->getPool());
-        id_array_ptr->reserve(256);        
+        id_array_ptr->reserve(256);
         layers_ = id_array_ptr->getId();
     } else {
-        id_array_ptr = addr< ArrayObject<Int32> >(layers_);
+        id_array_ptr = addr<ArrayObject<Int32>>(layers_);
     }
 
     if (id_array_ptr) id_array_ptr->pushBack(layer_index);
@@ -364,13 +361,14 @@ void Track::addLayer(std::string &layer_name) {
 
     ArrayObject<Int32> *id_array_ptr = nullptr;
     if (layers_ == 0) {
-        id_array_ptr = getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
+        id_array_ptr =
+            getOwnerCell()->createObject<ArrayObject<Int32>>(kObjectTypeArray);
         if (id_array_ptr == nullptr) return;
         id_array_ptr->setPool(getOwnerCell()->getPool());
-        id_array_ptr->reserve(256);        
+        id_array_ptr->reserve(256);
         layers_ = id_array_ptr->getId();
     } else {
-        id_array_ptr = addr< ArrayObject<Int32> >(layers_);
+        id_array_ptr = addr<ArrayObject<Int32>>(layers_);
     }
 
     if (id_array_ptr) id_array_ptr->pushBack(layer_index);
@@ -397,7 +395,7 @@ void Track::print() {
         }
     }
 
-    ArrayObject<Int32> *id_array_ptr = addr< ArrayObject<Int32> >(layers_);
+    ArrayObject<Int32> *id_array_ptr = addr<ArrayObject<Int32>>(layers_);
     for (int i = 0; i < id_array_ptr->getSize(); ++i) {
         Int32 layer_index = (*id_array_ptr)[i];
         Layer *layer = tech_lib->getLayer(layer_index);
@@ -429,7 +427,7 @@ void Track::print(FILE *fp) {
     }
 
     if (layers_ > 0) {
-        ArrayObject<Int32> *id_array_ptr = addr< ArrayObject<Int32> >(layers_);
+        ArrayObject<Int32> *id_array_ptr = addr<ArrayObject<Int32>>(layers_);
         for (int i = 0; i < id_array_ptr->getSize(); ++i) {
             Int32 layer_index = (*id_array_ptr)[i];
             Layer *layer = tech_lib->getLayer(layer_index);
@@ -498,9 +496,7 @@ Grid::GridType Grid::getGridType() { return grid_type_; }
 
 void Grid::setFloorplan(ObjectId fp) { floorplan_ = fp; }
 
-Floorplan *Grid::getFloorplan() {
-    return addr<Floorplan>(floorplan_);
-}
+Floorplan *Grid::getFloorplan() { return addr<Floorplan>(floorplan_); }
 
 void Grid::setDirectionX(bool direction_x) { direction_x_ = direction_x; }
 bool Grid::getDirectionX() { return direction_x_; }
@@ -636,7 +632,7 @@ Polygon *Floorplan::getDieAreaPolygon() {
     if (die_area_ == -1) {
         return nullptr;
     }
-    
+
     if (!getOwnerCell()) {
         message->issueMsg(kError,
                           "Cannot get top cell when getting die area.\n");
@@ -699,9 +695,7 @@ void Floorplan::setYOffset(int32_t &offset) { y_offset_ = offset; }
 /// @brief getCoreSite
 ///
 /// @return
-Site *Floorplan::getCoreSite() const {
-    return addr<Site>(core_site_id_);
-}
+Site *Floorplan::getCoreSite() const { return addr<Site>(core_site_id_); }
 /// @brief getCoreSiteId
 ///
 /// @return
@@ -746,7 +740,8 @@ Constraint *Floorplan::createPlaceBlockage() {
     id_array_ptr = addr<IdArray>(place_blockages_);
     if (id_array_ptr == nullptr) return nullptr;
 
-    cons = getOwnerCell()->createObject<Constraint>(kObjectTypePhysicalConstraint);
+    cons =
+        getOwnerCell()->createObject<Constraint>(kObjectTypePhysicalConstraint);
     if (cons == nullptr) {
         getOwnerCell()->deleteObject<Constraint>(cons);
         return nullptr;
@@ -825,7 +820,8 @@ Constraint *Floorplan::createRouteBlockage() {
     id_array_ptr = addr<IdArray>(route_blockages_);
     if (id_array_ptr == nullptr) return nullptr;
 
-    cons = getOwnerCell()->createObject<Constraint>(kObjectTypePhysicalConstraint);
+    cons =
+        getOwnerCell()->createObject<Constraint>(kObjectTypePhysicalConstraint);
     if (cons == nullptr) {
         getOwnerCell()->deleteObject<Constraint>(cons);
         return nullptr;
@@ -932,9 +928,7 @@ void Constraint::setFloorplan(ObjectId fp) { floorplan_ = fp; }
 /// @brief getFloorplan
 ///
 /// @return
-Floorplan *Constraint::getFloorplan() {
-    return addr<Floorplan>(floorplan_);
-}
+Floorplan *Constraint::getFloorplan() { return addr<Floorplan>(floorplan_); }
 
 void Constraint::setHasLayer(bool has_layer) { has_layer_ = has_layer; }
 
@@ -984,10 +978,8 @@ bool Constraint::setComponent(const char *name) {
 }
 /// @brief component get component pointer
 ///
-/// @return 
-Inst *Constraint::component() const {
-    return addr<Inst>(component_id_);
-}
+/// @return
+Inst *Constraint::component() const { return addr<Inst>(component_id_); }
 
 void Constraint::setSlots(bool has_slots) { has_slots_ = has_slots; }
 
@@ -1067,21 +1059,20 @@ std::string Constraint::componentName() const { return component_name_; }
 
 Box *Constraint::createBox(int64_t xl, int64_t yl, int64_t xh, int64_t yh) {
     Cell *top_cell = getOwnerCell();
-    Box *box = top_cell->createObject<Box>(kObjectTypeBox);
-    if (!box) {
-        message->issueMsg(kError, "create box failed.\n");
-        return nullptr;
-    }
-    box->setOwner(top_cell);
-    box->setLLX(xl);
-    box->setLLY(yl);
-    box->setURX(xh);
-    box->setURY(yh);
+    Box *box = new Box(xl, yl, xh, yh);
     if (boxes_id_ == 0) {
-        boxes_id_ = __createObjectIdArray(256);
+        if (!owner_) return 0;
+        ArrayObject<Box> *box_array_ptr =
+            createObject<ArrayObject<Box>>(kObjectTypeArray, owner_);
+        ediAssert(box_array_ptr != nullptr);
+        StorageUtil *storage_util = getStorageUtilById(owner_);
+        assert(storage_util != nullptr);
+        box_array_ptr->setPool(storage_util->getPool());
+        box_array_ptr->reserve(256);
+        boxes_id_ = box_array_ptr->getId();
     }
-    IdArray *box_vector = addr<IdArray>(boxes_id_);
-    box_vector->pushBack(box->getId());
+    ArrayObject<Box> *box_vector = addr<ArrayObject<Box>>(boxes_id_);
+    box_vector->pushBack(*box);
     return box;
 }
 ObjectId Constraint::getBoxesId() const { return boxes_id_; }
@@ -1154,10 +1145,10 @@ void Constraint::printBlockage() const {
     }
 
     if (boxes_id_ > 0) {
-        IdArray *box_vector = addr<IdArray>(boxes_id_);
+        ArrayObject<Box> *box_vector = addr<ArrayObject<Box>>(boxes_id_);
         uint32_t num_boxes = box_vector->getSize();
         for (int i = 0; i < num_boxes; ++i) {
-            Box *box = addr<Box>((*box_vector)[i]);
+            Box *box = &(*box_vector)[i];
             if (!box) {
                 continue;
             }
@@ -1238,10 +1229,10 @@ void Constraint::printBlockage(FILE *fp) const {
     }
 
     if (boxes_id_ > 0) {
-        IdArray *box_vector = addr<IdArray>(boxes_id_);
+        ArrayObject<Box> *box_vector = addr<ArrayObject<Box>>(boxes_id_);
         uint32_t num_boxes = box_vector->getSize();
         for (int i = 0; i < num_boxes; ++i) {
-            Box *box = addr<Box>((*box_vector)[i]);
+            Box *box = &(*box_vector)[i];
             if (!box) {
                 continue;
             }
@@ -1311,10 +1302,10 @@ void Constraint::printRegion(FILE *fp) {
     std::string name = getName();
     fprintf(fp, "- %s", name.c_str());
     if (boxes_id_ > 0) {
-        IdArray *box_vector = addr<IdArray>(boxes_id_);
+        ArrayObject<Box> *box_vector = addr<ArrayObject<Box>>(boxes_id_);
         uint32_t num_boxes = box_vector->getSize();
         for (int i = 0; i < num_boxes; ++i) {
-            Box *box = addr<Box>((*box_vector)[i]);
+            Box *box = &((*box_vector)[i]);
             if (!box) {
                 continue;
             }

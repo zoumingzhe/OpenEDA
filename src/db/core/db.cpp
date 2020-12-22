@@ -10,11 +10,12 @@
  */
 
 #include "db/core/db.h"
+
+#include "db/core/object.h"
 #include "db/core/root.h"
+#include "db/util/array.h"
 #include "db/util/symbol_table.h"
 #include "util/polygon_table.h"
-#include "db/core/object.h"
-#include "db/util/array.h"
 
 namespace open_edi {
 namespace db {
@@ -27,10 +28,10 @@ static bool kIsTopCellInitialized = false;
 static Version kCurrentVersion;
 static Root &kRoot = Root::getInstance();
 
-/// @brief resetTopCell: 
+/// @brief resetTopCell:
 //    Note currently the root is also reset. might be changed someday.
 void resetTopCell() {
-    //MemPool::initMemPool();
+    // MemPool::initMemPool();
     kRoot.reset();
     kTopCell = nullptr;
     kCurrentVersion.reset();
@@ -123,27 +124,6 @@ void setCurrentVersion(Version &v) { kCurrentVersion.set(v); }
 Cell *getCell() {
     Cell *cell = getTopCell();
     return cell;
-}
-
-/// @brief  creatBox
-///
-/// @return
-Box *creatBox() {
-    Box *box = getCell()->createObject<Box>(kObjectTypeBox);
-    return box;
-}
-
-/// @brief  creatBox
-///
-/// @return
-Box *creatBox(int llx, int lly, int urx, int ury) {
-    Box *box = getCell()->createObject<Box>(kObjectTypeBox);
-    box->setLLX(llx);
-    box->setLLY(lly);
-    box->setURX(urx);
-    box->setURY(ury);
-
-    return box;
 }
 
 }  // namespace db

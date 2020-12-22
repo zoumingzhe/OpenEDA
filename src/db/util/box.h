@@ -16,12 +16,12 @@
 namespace open_edi {
 namespace db {
 
-class Box : public Object {
+class Box {
   public:
     Box();
     Box(int llx, int lly, int urx, int ury);
     ~Box(){};
-    bool isInvalid() const {return (llx_ >= lly_ || urx_ >= ury_); }
+    bool isInvalid() const { return (llx_ >= lly_ || urx_ >= ury_); }
     int getLLX() const { return llx_; }
     int getLLY() const { return lly_; }
     int getURX() const { return urx_; }

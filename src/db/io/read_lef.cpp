@@ -201,7 +201,7 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                 if (rect->colorMask != 0) {
                     base->setNumMask(rect->colorMask);
                 }
-                Box *b = creatBox(
+                Box *b = new Box(
                     lib->micronsToDBU(rect->xl), lib->micronsToDBU(rect->yl),
                     lib->micronsToDBU(rect->xh), lib->micronsToDBU(rect->yh));
                 base->setBox(b);
@@ -224,7 +224,7 @@ int prtGeometry(lefiGeometries *geometry, Port *port = nullptr) {
                             base->setNumMask(rectIter->colorMask);
 
                         Box *b =
-                            creatBox(lib->micronsToDBU(rectIter->xl +
+                            new Box(lib->micronsToDBU(rectIter->xl +
                                                        i * rectIter->xStep),
                                      lib->micronsToDBU(rectIter->yl +
                                                        j * rectIter->yStep),
@@ -957,7 +957,7 @@ int densityCB(lefrCallbackType_e c, lefiDensity *density, lefiUserData) {
             DensityLayer *layer = Object::createObject<DensityLayer>(
                 kObjectTypeDensityLayer, lib->getId());
             rect = density->lefiDensity::getRect(i, j);
-            Box *box = creatBox(
+            Box *box = new Box(
                 lib->micronsToDBU(rect.xl), lib->micronsToDBU(rect.yl),
                 lib->micronsToDBU(rect.xh), lib->micronsToDBU(rect.yh));
             layer->setRect(*box);
@@ -2527,12 +2527,12 @@ int readViaMaster(lefiVia *io_via, bool is_from_ndr) {
             std::string via_layer_name = io_via->layerName(i);
             ViaLayer *via_layer = db_via_master->creatViaLayer(via_layer_name);
             for (int j = 0; j < io_via->numRects(i); ++j) {
-                Box *box = creatBox(lib->micronsToDBU(io_via->xl(i, j)),
+                Box *box = new Box(lib->micronsToDBU(io_via->xl(i, j)),
                                     lib->micronsToDBU(io_via->yl(i, j)),
                                     lib->micronsToDBU(io_via->xh(i, j)),
                                     lib->micronsToDBU(io_via->yh(i, j)));
                 via_layer->addMask(io_via->rectColorMask(i, j));
-                via_layer->addRect(box);
+                via_layer->addRect(*box);
             }
             db_via_master->addViaLayer(via_layer);
         }
