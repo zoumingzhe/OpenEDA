@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <libgen.h>
 #include "flow/src/global_place.h"
+#include "flow/src/common_place_DB.h"
 #include "utility/src/Msg.h"
 
 DREAMPLACE_BEGIN_NAMESPACE
@@ -25,6 +26,7 @@ int GlobalPlace::run()
         dreamplacePrint(kERROR, "DB not ready, quit.\n");
         return -1;
     }
+    
     //well a tricky way to get path of target python module to start with. 
     std::wstring modulePath;
     char dest[PATH_MAX];
@@ -43,7 +45,7 @@ int GlobalPlace::run()
         modulePath.append(temp1);
     }
     int rtn_value = 0;
-    std::string json_file; // = getPara()->getJsonFile();
+    std::string json_file = getPara().getJsonFile();
     //const std::wstring kModulePath(L"@CMAKE_INSTALL_PREFIX@/dreamplace");
     std::wstring kSitePaths(L"@Python_SITELIB@");
     std::wstring kSitePathsOrig(kSitePaths);
@@ -86,7 +88,8 @@ int GlobalPlace::run()
         PyObject *func = PyObject_GetAttrString(module, kFunctionName.c_str());
         if (func && PyCallable_Check(func))
         {
-            PyObject *value = PyObject_CallFunction(func, "s", json_file.c_str());
+            unsigned long db_ptr = (unsigned long)db_;
+            PyObject *value = PyObject_CallFunction(func, "sk", json_file.c_str(), db_ptr);
             Py_XDECREF(value);
             Py_DECREF(func);
         }         

@@ -201,6 +201,7 @@ bool Command::getOptionValue(const char * name, db::Box** value) {
             message->issueMsg("INFRA", kOptionDataTypeError, kError, name);
             return false;
         }
+        (*value) = new db::Box;
         (*value)->setLLX(((db::Box *)op->getData())->getLLX());
         (*value)->setLLY(((db::Box *)op->getData())->getLLY());
         (*value)->setURX(((db::Box *)op->getData())->getURX());
@@ -229,6 +230,92 @@ bool Command::getOptionValue(const char * name, std::vector<std::string>** value
     }
 }
 
+bool Command::getOptionValue(const char * name, std::vector<std::string>& value) {
+    if (option_names_.find(name) != option_names_.end()) {
+        Option* op = getOption(option_names_.find(name)->second);
+        if ( op->getType() != OptionDataType::kStringList) {
+            message->issueMsg("INFRA", kOptionDataTypeError, kError, name);
+            return false;
+        }
+	std::vector<std::string>* op_data = (std::vector<std::string>* )op->getData();
+	for (int i = 0; i < op_data->size(); i++)
+            value.push_back(op_data->at(i));
+        return true;
+    } else {
+        message->issueMsg("INFRA", kInvalidOption, kError, name);
+        return false;
+    }
+}
+
+bool Command::getOptionValue(const char * name, std::vector<int>** value) {
+    if (option_names_.find(name) != option_names_.end()) {
+        Option* op = getOption(option_names_.find(name)->second);
+        if ( op->getType() != OptionDataType::kIntList) {
+            message->issueMsg("INFRA", kOptionDataTypeError, kError, name);
+            return false;
+        }
+	std::vector<int>* op_data = (std::vector<int>* )op->getData();
+	for (int i = 0; i < op_data->size(); i++)
+            (*value)->push_back(op_data->at(i));
+        return true;
+    } else {
+        message->issueMsg("INFRA", kInvalidOption, kError, name);
+        return false;
+    }
+}
+
+bool Command::getOptionValue(const char * name, std::vector<int>& value) {
+    if (option_names_.find(name) != option_names_.end()) {
+        Option* op = getOption(option_names_.find(name)->second);
+        if ( op->getType() != OptionDataType::kIntList) {
+            message->issueMsg("INFRA", kOptionDataTypeError, kError, name);
+            return false;
+        }
+	std::vector<int>* op_data = (std::vector<int>* )op->getData();
+	for (int i = 0; i < op_data->size(); i++)
+            value.push_back(op_data->at(i));
+        return true;
+    } else {
+        message->issueMsg("INFRA", kInvalidOption, kError, name);
+        return false;
+    }
+}
+
+
+bool Command::getOptionValue(const char * name, std::vector<double>** value) {
+    if (option_names_.find(name) != option_names_.end()) {
+        Option* op = getOption(option_names_.find(name)->second);
+        if ( op->getType() != OptionDataType::kDoubleList) {
+            message->issueMsg("INFRA", kOptionDataTypeError, kError, name);
+            return false;
+        }
+	std::vector<double>* op_data = (std::vector<double>* )op->getData();
+	for (int i = 0; i < op_data->size(); i++)
+            (*value)->push_back(op_data->at(i));
+        return true;
+    } else {
+        message->issueMsg("INFRA", kInvalidOption, kError, name);
+        return false;
+    }
+}
+
+bool Command::getOptionValue(const char * name, std::vector<double>& value) {
+    if (option_names_.find(name) != option_names_.end()) {
+        Option* op = getOption(option_names_.find(name)->second);
+        if ( op->getType() != OptionDataType::kDoubleList) {
+            message->issueMsg("INFRA", kOptionDataTypeError, kError, name);
+            return false;
+        }
+	std::vector<double>* op_data = (std::vector<double>* )op->getData();
+	for (int i = 0; i < op_data->size(); i++)
+            value.push_back(op_data->at(i));
+        return true;
+    } else {
+        message->issueMsg("INFRA", kInvalidOption, kError, name);
+        return false;
+    }
+}
+
 int Command::preParse() {
     for (int i = 0; i <getOptionNum(); i++) {
         Option *opt = getOption(i);
@@ -236,6 +323,18 @@ int Command::preParse() {
             // fprintf(stderr, "ERROR: invalid option type %s \n", *argv);
             message->issueMsg("INFRA", kGetOptionFail, kError);
             return kGetOptionFail;
+        }
+        if (opt->getType() == kIntList) {
+            std::vector<int> *datas = (std::vector<int> *)opt->getTempData();
+            datas->clear();
+        }
+        if (opt->getType() == kStringList ) {
+            std::vector<std::string> *datas = (std::vector<std::string> *)opt->getTempData();
+            datas->clear();
+        }
+        if (opt->getType() == kDoubleList) {
+            std::vector<double> *datas = (std::vector<double> *)opt->getTempData();
+            datas->clear();
         }
         opt->setTempIsSet(false);
         opt->setIsSet(false);
@@ -363,7 +462,6 @@ int Command::parser(int argc, const char** argv) {
             if (res == false)
                 return kUserLogicError;
         }
-        message->info("will set data\n");
         setData();
     }
 
@@ -463,8 +561,7 @@ int Command::parseValue(Option* opt, const char** argv) {
     case OptionDataType::kPoint:
     {
         Point* data = (Point*) opt->getTempData();
-        if (!strcmp(*argv, "}") || !strcmp(*argv, ")") ||
-            !strcmp(*argv, "{") || !strcmp(*argv, "(")) {
+        if (!strcmp(*argv, ")") || !strcmp(*argv, "(")) {
             break;
         }
         int value;
@@ -494,18 +591,68 @@ int Command::parseValue(Option* opt, const char** argv) {
     case OptionDataType::kRect:
     {
         db::Box* data = (db::Box*) opt->getTempData();
-        if (!strcmp(*argv, "}") || !strcmp(*argv, ")") ||
-            !strcmp(*argv, "{") || !strcmp(*argv, "(")) {
+        if (!strcmp(*argv, ")") || !strcmp(*argv, "(")) {
             break;
         }
         int value;
         std::string incoming_string = *argv;
-        int res = parseNum(incoming_string, value);
-        if (res != kSuccess) {
-            message->issueMsg("INFRA", kDataNotSupport, kError, *argv, opt->getName().c_str());
-            return kDataNotSupport;
-        }
-        switch (current_num_) {
+        std::string::size_type pos = incoming_string.find(" ");
+        if (pos != std::string::npos) { // input by {}
+            while (pos != std::string::npos) {
+                if (pos == 0) {
+                    incoming_string = incoming_string.substr(pos + 1);
+                    pos = incoming_string.find(" ");
+                }
+                std::string sub_string = incoming_string.substr(0, pos);
+                int res = parseNum(sub_string, value);
+                if (res != kSuccess) {
+                    message->issueMsg("INFRA", kDataNotSupport, kError, *argv, opt->getName().c_str());
+                    return kDataNotSupport;
+                }
+                switch (current_num_) {
+                case 0:
+                    data->setLLX(value);
+                    current_num_ = 1;
+                    break;
+                case 1:
+                    data->setLLY(value);
+                    current_num_ = 2;
+                    break;
+                case 2: {
+                    data->setURX(value);
+                    incoming_string = incoming_string.substr(pos + 1);
+                    int res = parseNum(incoming_string, value);
+                    if (res != kSuccess) {
+                        message->issueMsg("INFRA", kDataNotSupport, kError, *argv, opt->getName().c_str());
+                        return kDataNotSupport;
+                    }
+                    data->setURY(value);
+                    current_num_ = 4;
+                    break;
+                }
+                default:
+                    message->issueMsg("INFRA", kOptionOneValue, kError, *argv);
+                    return kOptionOneValue;
+                }
+                if (current_num_ < 4) {
+                    incoming_string = incoming_string.substr(pos + 1);
+                    pos = incoming_string.find(" ");
+                } else {
+                    break;
+                }
+            }
+            if (current_num_ != 4) {
+                message->issueMsg("INFRA", kOptionIncorrectPara, kError, opt->getName().c_str());
+                return kOptionIncorrectPara;
+            }
+        } else {
+            int res = parseNum(incoming_string, value);
+            if (res != kSuccess) {
+                message->issueMsg("INFRA", kDataNotSupport, kError, *argv, opt->getName().c_str());
+                return kDataNotSupport;
+            }
+            switch (current_num_)
+            {
             case 0:
                 data->setLLX(value);
                 current_num_ = 1;
@@ -525,7 +672,9 @@ int Command::parseValue(Option* opt, const char** argv) {
             default:
                 message->issueMsg("INFRA", kOptionOneValue, kError, *argv);
                 return kOptionOneValue;
+            }
         }
+
         break;
     }
     case OptionDataType::kIntList:

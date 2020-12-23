@@ -130,6 +130,30 @@ Option::Option(const char* name, OptionDataType type, bool is_required, std::vec
     setEnums(v);
 }
 
+Option::Option(const char* name, OptionDataType type, bool is_required, const char* v, const char* description) {
+    if (type != OptionDataType::kEnum) {
+        message->issueMsg("INFRA", kOptionIncorrectPara, kError, name);
+    }
+    initPara(name, type, is_required, description);
+    int *a = new int();
+    setData(a);
+    int *temp = new int();
+    setTempData(temp);
+    std::vector<std::string>* enums = new std::vector<std::string>();
+    std::string enum_string = v;
+    std::string::size_type pos = enum_string.find(" ");
+    while (pos != std::string::npos) {
+        std::string sub_string = enum_string.substr(0, pos);
+        enums->push_back(sub_string);
+        enum_string = enum_string.substr(pos + 1);
+        pos = enum_string.find(" ");
+        if (pos == std::string::npos) {
+            enums->push_back(enum_string);
+        }
+    }
+    setEnums(enums);
+}
+
 Option::Option(const char* name, OptionDataType type, bool is_required, bool v, const char* description) {
     if (type != OptionDataType::kBool) {
         message->issueMsg("INFRA", kOptionIncorrectPara, kError, name);
@@ -174,6 +198,12 @@ void Option::initPara(const char* name, OptionDataType type, bool is_required, c
     setType(type);
     setDescription(description);
     setIsRequired(is_required);
+    is_set_ = false;
+    value_int_max_ = 0;
+    value_int_min_ = 0;
+    value_double_max_ = 0;
+    value_double_min_ = 0;
+    next_ = nullptr;
 }
 
 
@@ -188,7 +218,7 @@ void Option::setName( const char * v) {
 int Option::checkRule() {
     // mandatory should be set
     if (isRequired()) {
-        if (isSet() == false) {
+        if (isSet() == false && tempIsSet() == false) {
             message->issueMsg("INFRA", kOptionMandatory, kError, getName().c_str());
         }
     }
@@ -224,6 +254,15 @@ OptionGroup::OptionGroup(const char* name1, const char* name2, OptionRelation r)
     setOpt1Name(name1);
     setOpt2Name(name2);
     setRelation(r);
+    opt1_ptr_ = nullptr;
+    opt2_ptr_ = nullptr;
+    next_ = nullptr;
+}
+
+OptionGroup::OptionGroup() {
+    opt1_ptr_ = nullptr;
+    opt2_ptr_ = nullptr;
+    next_ = nullptr;
 }
 
 int OptionGroup::checkRule() {

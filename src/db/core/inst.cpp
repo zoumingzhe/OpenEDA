@@ -19,7 +19,7 @@
 #include "db/core/db.h"
 #include "db/core/pin.h"
 #include "db/util/array.h"
-#include "db/util/vector_object_var.h"
+#include "db/util/transform.h"
 
 namespace open_edi {
 namespace db {
@@ -55,6 +55,8 @@ Inst::Inst() {
 }
 
 Inst::Inst(Inst const &rhs) { copy(rhs); }
+
+Inst::~Inst() { clear(); }
 
 Inst &Inst::operator=(Inst const &rhs) {
     if (this != &rhs) {
@@ -112,10 +114,9 @@ Box Inst::getBox() {
         size_x = cell->getSizeX();
         size_y = cell->getSizeY();
     }
-
+    
     // size_x += origin_x;
     // size_y += origin_y;
-
     if (getOrient() == Orient::kN || getOrient() == Orient::kS ||
         getOrient() == Orient::kFN || getOrient() == Orient::kFS) {
         llx = getLocation().getX();
@@ -520,7 +521,55 @@ ArrayObject<ObjectId> *Inst::getPGPinArray() const {
 }
 
 void Inst::clear() {
-    // TODO.
+    //clear pg pins:
+    ArrayObject<ObjectId> *id_array = getPGPinArray();
+    if (id_array != nullptr) {
+        for (ArrayObject<ObjectId>::iterator iter = id_array->begin();
+            iter != id_array->end(); ++iter) {
+            if (*iter == 0) continue; //invalid pin id.
+            Pin *pin = addr<Pin>(*iter);
+            Object::deleteObject<Pin>(pin);
+        }
+    }
+    __deleteObjectIdArray(pg_pins_);
+
+    //clear pins:
+    id_array = getPinArray();
+    if (id_array != nullptr) {
+        for (ArrayObject<ObjectId>::iterator iter = id_array->begin();
+            iter != id_array->end(); ++iter) {
+            if (*iter == 0) continue; //invalid pin id.
+            Pin *pin = addr<Pin>(*iter);
+            Object::deleteObject<Pin>(pin);
+        }
+    }
+    __deleteObjectIdArray(pins_);
+    //TODO: if master != 0, decr master's ref_count.
+}
+
+void Inst::printPinGeoms() {
+    ObjectId pins = getPins();
+    ArrayObject<ObjectId> *pins_vector =
+            addr<ArrayObject<ObjectId>>(pins);
+    std::vector<Box> box_vector;
+    for (int j = 0; pins_vector && j < pins_vector->getSize(); j++) {
+        ObjectId pin_id = (*pins_vector)[j];
+        Pin *pin = addr<Pin>(pin_id);
+        if (!pin) {
+            continue;
+        }
+        std::cout << "DEBUG_transform: "
+          << getName() << "/" << pin->getName() << std::endl;
+        pin->getBoxVector(box_vector);
+        for (int index = 0; index < box_vector.size(); ++index) {
+            std::cout << "Box#" << index << " ( " <<
+                box_vector[index].getLLX() << " " <<
+                box_vector[index].getLLY() << " " <<
+                box_vector[index].getURX() << " " <<
+                box_vector[index].getURY() << " )." << std::endl;
+        }
+        box_vector.clear();
+    }
 }
 
 void Inst::print(FILE *fp) {
@@ -603,7 +652,6 @@ void Inst::print(FILE *fp) {
             property->printDEF(fp);
         }
     }
-
     fprintf(fp, " ;\n");
 }
 

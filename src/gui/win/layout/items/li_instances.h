@@ -1,0 +1,43 @@
+#ifndef LI_INSTANCES_H
+#define LI_INSTANCES_H
+
+#include <QPainter>
+#include <qmath.h>
+#include "../graphicitems/lgi_instances.h"
+#include "../graphics_scene.h"
+#include "db/core/cell.h"
+#include "db/core/db.h"
+#include "db/io/write_def.h"
+#include "db/util/array.h"
+#include "db/util/property_definition.h"
+#include "db/util/vector_object_var.h"
+#include "li_base.h"
+#include "li_pins.h"
+#include "util/util.h"
+
+namespace open_edi {
+namespace gui {
+class LI_Instances : public LI_Base {
+  public:
+    explicit LI_Instances(int* scale_factor);
+    LI_Instances(const LI_Instances& other) = delete;
+    LI_Instances& operator=(const LI_Instances& rhs) = delete;
+    ~LI_Instances();
+
+    LI_Pins* li_pins;
+
+    virtual void   preDraw() override;
+    LGI_Instances* getGraphicItem();
+    void           update();
+
+  protected:
+    virtual void draw(QPainter* painter);
+
+  private:
+    LGI_Instances* item_;
+    QPen           pen_;
+};
+} // namespace gui
+} // namespace open_edi
+
+#endif

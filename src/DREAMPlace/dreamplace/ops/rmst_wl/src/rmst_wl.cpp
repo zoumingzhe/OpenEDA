@@ -6,10 +6,7 @@
 #include "utility/src/torch.h"
 #include "utility/src/Msg.h"
 
-extern "C" 
-{
-#include <flute.h>
-}
+#include <flute.hpp>
 
 DREAMPLACE_BEGIN_NAMESPACE
 

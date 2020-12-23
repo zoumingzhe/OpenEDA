@@ -19,44 +19,79 @@
 #include "db/core/db.h"
 #include "parser/verilog/kernel/register.h"
 #include "parser/verilog/kernel/log.h"
-
+#include "infra/command_manager.h"
 #include "util/message.h"
 
 namespace open_edi {
 
 namespace db {
+using namespace open_edi::infra;
 using IdArray = ArrayObject<ObjectId>;
 Yosys::RTLIL::Design *yosys_design = NULL;
 bool kFirstRunReadVerilog = false;
 std::map<Inst*, std::string> kInstMasterMap;
+std::map<Pin*, std::string> kPinNameMap;
 
 int kModuleNameHeaderLength = 10;
 
+void registerReadVerilog() {
+    CommandManager* cmd_manager = CommandManager::getCommandManager();
+    // Command* test_command = cmd_manager->createCommand(itp, "read_verilog"
+    //         "read_verilog", "read verilog files\n",
+    //         ( *(new Option(toString(ReadVerilogOption::kTop),
+    //                       OptionDataType::kInt, false,
+    //                       "set top cell"))
+    //         + *(new Option(toString(ReadVerilogOption::kFileName),
+    //                       OptionDataType::kStringList, true,
+    //                       "verilog name list"))));
+}
+
+static bool parseArgument (
+    int argc, const char **argv,
+    std::string & top, bool &is_top_set,
+    std::vector<std::string> &files
+) {
+    Command* cmd = CommandManager::parseCommand(argc, argv);
+    if (cmd == nullptr) return false;
+
+    bool res = false;
+    if (cmd->isOptionSet(toString(ReadVerilogOption::kFileName))) {
+        res = cmd->getOptionValue(
+            toString(ReadVerilogOption::kFileName), files);
+    }
+    if (res && cmd->isOptionSet(toString(ReadVerilogOption::kTop))) {
+        is_top_set = true;
+        res = cmd->getOptionValue(
+            toString(ReadVerilogOption::kTop), top);
+    }
+    return res;
+}
+
 int readVerilog(int argc, const char **argv) {
-    FILE *fp = NULL;
 
     std::vector<std::string> args;
-    for (int i = 0; i < argc; ++i) {
-        std::string token = argv[i];
-        if (i > 0) {
-            if (argv[i][0] != '-') {
-                fp = fopen(argv[i], "r");
-                if (NULL == fp) {
-                    message->issueMsg(kError, "Cannot open file %s\n", argv[i]);
-                } else {
-                    fclose(fp);
-                    args.push_back(token);
-                }
-            } else {
-                args.push_back(token);
-            }
+    std::string top_name;
+    bool is_top_set = false;
+
+    args.push_back(argv[0]);
+    if (!parseArgument(argc, argv, top_name, is_top_set, args)) {
+        message->issueMsg(kError, "Failed in option parser\n");
+        return TCL_ERROR;
+    }
+    if (args.size() > 1) { //keep the original behavior:
+        const char *filename = args[1].c_str();
+        FILE *fp = fopen(filename, "r");
+        if (NULL == fp) {
+            message->issueMsg(kError, 
+              "Cannot open file %s\n", filename);
+            return TCL_ERROR;
         } else {
-            args.push_back(token);
+            fclose(fp);
         }
     }
-    if (args.size() <= 1) {
-        message->issueMsg(kError, "No file name.\n");
-        return 1;
+    if (is_top_set) {
+        Cell *top_cell = getTopCell();
+        top_cell->setName(top_name);
     }
 
     if (!kFirstRunReadVerilog) {
@@ -71,14 +106,13 @@ int readVerilog(int argc, const char **argv) {
 
     message->info("\nReading Verilog\n");
     fflush(stdout);
-
     auto state = Yosys::pass_register[args[0]]->pre_execute();
     Yosys::pass_register[args[0]]->execute(args, yosys_design);
     Yosys::pass_register[args[0]]->post_execute(state);
 
     message->info("\nRead Verilog successfully.\n");
-
-    return 0;
+    args.clear();
+    return TCL_OK;
 }
 
 static std::string id2vl(std::string txt) {
@@ -351,6 +385,9 @@ static bool readVerilogInstToDB(Cell *hcell,
                         hcell->getName().c_str());
                 break;
             }
+            if (!cell) {
+                kPinNameMap[pin] = pin_name;
+            }
             for (auto child_child : child->children) {
                 if (child_child->type ==
                                     Yosys::AST::AstNodeType::AST_IDENTIFIER) {
@@ -363,7 +400,10 @@ static bool readVerilogInstToDB(Cell *hcell,
                         break;
                     }
                     pin->setNet(net);
-                    net->addPin(pin);
+                    // Adds net=>pin connection when master is available.
+                    if (cell) {
+                        net->addPin(pin);
+                    }
                     break;
                 } else if (child_child->type ==
                                     Yosys::AST::AstNodeType::AST_CONCAT) {
@@ -378,7 +418,10 @@ static bool readVerilogInstToDB(Cell *hcell,
                             break;
                         }
                         pin->addNet(net);
-                        net->addPin(pin);
+                        // Adds net=>pin connection when master is available.
+                        if (cell) {
+                            net->addPin(pin);
+                        }
                     }
                 }
             }
@@ -451,8 +494,10 @@ static void findMasterForInst() {
         std::string cell_name = it.second;
         Cell *cell = top_cell->getCell(cell_name);
         if (!cell) {
-            message->issueMsg(kWarn, "cannot find cell %s.\n",
-                              cell_name.c_str());
+            message->issueMsg(kWarn, 
+                "cannot find cell %s -- inst is deleted.\n",
+                cell_name.c_str());
+            Object::deleteObject<Inst>(inst);
             continue;
         }
 
@@ -464,7 +509,8 @@ static void findMasterForInst() {
         for (int i = 0; i < pins_vector->getSize(); i++) {
             ObjectId pin_id = (*pins_vector)[i];
             Pin *pin = Object::addr<Pin>(pin_id);
-            Term *term = cell->getTerm(pin->getName());
+            const char *pin_name = kPinNameMap[pin].c_str();
+            Term *term = cell->getTerm(pin_name);
             if (!term) {
                 message->issueMsg(kError,
                         "cell %s does't has term %s.\n",
@@ -472,8 +518,55 @@ static void findMasterForInst() {
                 break;
             }
             pin->setTerm(term);
+            Net *net = pin->getNet();
+            net->addPin(pin);
         }
     }
+}
+
+static void collectHierMasterNameSet(struct Yosys::AST::AstNode *inst_ast_node, std::unordered_set<std::string> & module_name_set) {
+    ediAssert(inst_ast_node != nullptr &&
+          inst_ast_node->type == Yosys::AST::AstNodeType::AST_CELL);
+    for (auto child : inst_ast_node->children) {
+        if (child->type == Yosys::AST::AstNodeType::AST_CELLTYPE) {
+            std::string cell_name = id2vl(child->str);
+            if (!getTopCell()->getCellFromTechLib(cell_name)) {
+                module_name_set.insert(cell_name);
+            }
+            break;
+        }
+    }
+}
+
+
+//top_ast_node's type is DESIGN.
+static void setTopCellName(struct Yosys::AST::AstNode *top_ast_node) {
+    std::unordered_set<std::string> master_name_set;
+    std::vector<std::string> module_name_vector;
+
+    for (auto child : top_ast_node->children) {
+        if (child->type == Yosys::AST::AstNodeType::AST_MODULE) {
+            std::string module_name = id2vl(child->str);
+            module_name_vector.push_back(module_name);
+            for (auto child_child : child->children) {
+                if (child_child->type ==
+                    Yosys::AST::AstNodeType::AST_CELL) {
+                    collectHierMasterNameSet(child_child, master_name_set);
+                }
+            }
+        }
+    }
+    for (auto name : module_name_vector) {
+        if (master_name_set.find(name) == master_name_set.end()) {
+            // TODO: message ID:
+            std::cout << "Setting " << name << " as top cell." << std::endl;
+            Cell *top_cell = getTopCell();
+            top_cell->setName(name);
+            break;
+        }
+    }
+    master_name_set.clear();
+    module_name_vector.clear();
 }
 
 bool readVerilogToDB(struct Yosys::AST::AstNode *ast_node) {
@@ -481,11 +574,16 @@ bool readVerilogToDB(struct Yosys::AST::AstNode *ast_node) {
         message->issueMsg(kError, "input ast node is null\n");
         return false;
     }
+    // The first time of calling readVerilogToDB()
+    // will set top module if the top cell is still anonymous.
+    Cell *top_cell = getTopCell();
+    if (top_cell->getNameIndex() == kInvalidSymbolIndex) {
+        setTopCellName(ast_node);
+    }
 
     std::queue<Yosys::AST::AstNode*> ast_nodes;
     ast_nodes.push(ast_node);
 
-    Cell *top_cell = getTopCell();
     Cell *current_hcell = nullptr;
     Inst *inst = nullptr;
     std::string module_name;
@@ -499,7 +597,11 @@ bool readVerilogToDB(struct Yosys::AST::AstNode *ast_node) {
             switch (current_ast->type) {
                 case Yosys::AST::AstNodeType::AST_MODULE:
                     module_name = id2vl(current_ast->str);
-                    current_hcell = top_cell->createCell(module_name, true);
+                    if (!module_name.compare(top_cell->getName())) {
+                        current_hcell = top_cell;
+                    } else {
+                        current_hcell = top_cell->createCell(module_name, true);
+                    }
                     if (!current_hcell) {
                         message->issueMsg(kError,
                                 "Create cell failed for module %s.\n",

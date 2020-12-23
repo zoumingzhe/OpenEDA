@@ -66,16 +66,95 @@ Command* CommandManager::createCommandByName(const char* name) {
 
 Command* CommandManager::parseCommand(int argc, const char *argv[]) {
     Command* cmd = getCommandManager()->getCommandByName(argv[0]);
-    if (!strcmp(argv[1], "--help")) {
+    if (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-help")) {
         message->info(cmd->getDescription().c_str());
         for (int i = 0; i < cmd->getOptionNum(); i++) {
             Option *opt = cmd->getOption(i);
             if (opt == nullptr) {
                 message->issueMsg("INFRA", kGetOptionFail, kError);
             }
-            message->info(opt->getDescription().c_str());
+            std::string head = opt->getName();
+            switch (opt->getType())
+            {
+            case OptionDataType::kNone:
+                break;
+            case OptionDataType::kBool:
+            {
+                head += " <bool>";
+                break;
+            }
+            case OptionDataType::kInt:
+            {
+                head += " <int>";
+                break;
+            }
+            case OptionDataType::kDouble:
+            {
+                head += " <double>";
+                break;
+            }
+            case OptionDataType::kString:
+            {
+                head += " <string>";
+                break;
+            }
+            case OptionDataType::kEnum:
+            {
+                head += " <enum>";
+                break;
+            }
+            case OptionDataType::kPoint:
+            {
+                head += " <point>";
+                break;
+            }
+            case OptionDataType::kRect:
+            {
+                head += " <rect>";
+                break;
+            }
+            case OptionDataType::kIntList:
+            {
+                head += " <int list>";
+                break;
+            }
+            case OptionDataType::kDoubleList:
+            {
+                head += " <double list>";
+                break;
+            }
+            case OptionDataType::kStringList:
+            {
+                head += " <string list>";
+                break;
+            }
+            default:
+            {
+                break;
+            }
+            }
+            int max_size = 30;
+            if (head.size() > max_size) {
+                head += "\n";
+                message->info(head.c_str());
+                std::string body;
+                for (int i = 0; i < max_size; i++) {
+                    body += " ";
+                }
+                body += opt->getDescription().c_str();
+                //body += "\n";
+                message->info(body.c_str());
+            } else {
+                int blank_size = max_size - head.size();
+                for (int i = 0; i < blank_size; i++) {
+                    head += " ";
+                }
+                head += opt->getDescription().c_str();
+                //head += "\n";
+                message->info(head.c_str());
+            }
         }
-        //return nullptr;
+        return nullptr;
     }
     if (cmd != nullptr) {
         int res = cmd->parser(argc, argv);
@@ -89,7 +168,7 @@ Command* CommandManager::parseCommand(int argc, const char *argv[]) {
     return cmd;
 }
 
-Command* CommandManager::createCommand(const char* cmd_name, const char* description, Option& opt_head) {
+Command* CommandManager::createCommand(Tcl_Interp *itp, commandCallback cb, const char* cmd_name, const char* description, Option& opt_head) {
     Command* command = new Command();
     std::string name_cmd = cmd_name;
     command->setName(cmd_name);
@@ -106,11 +185,12 @@ Command* CommandManager::createCommand(const char* cmd_name, const char* descrip
         //  message->info("add opt %s in create command \n", opt_stack.top()->getName().c_str());
         opt_stack.pop();
     }
+    Tcl_CreateCommand(itp, cmd_name, cb, NULL, NULL);
 
     return command;
 }
 
-Command* CommandManager::createCommand(const char* cmd_name, const char* description, Option& opt_head, OptionGroup& group_head) {
+Command* CommandManager::createCommand(Tcl_Interp *itp, commandCallback cb, const char* cmd_name, const char* description, Option& opt_head, OptionGroup& group_head) {
     Command* command = new Command();
     std::string name_cmd = cmd_name;
     command->setName(cmd_name);
@@ -143,8 +223,38 @@ Command* CommandManager::createCommand(const char* cmd_name, const char* descrip
         group_ptr = group_ptr->getNext();
     }
 
+    Tcl_CreateCommand(itp, cmd_name, cb, NULL, NULL);
     return command;
 }
+
+Option& CommandManager::createOption(const char* name, OptionDataType type, bool is_required, const char* description) {
+    return *(new Option(name, type, is_required, description));
+}
+
+Option& CommandManager::createOption(const char* name, OptionDataType type, bool is_required, std::vector<std::string>* v, const char* description) {
+    return *(new Option(name, type, is_required, v, description));
+}
+
+Option& CommandManager::createOption(const char* name, OptionDataType type, bool is_required, const char* v, const char* description) {
+    return *(new Option(name, type, is_required, v, description));
+}
+
+Option& CommandManager::createOption(const char* name, OptionDataType type, bool is_required, bool v, const char* description) {
+    return *(new Option(name, type, is_required, v, description));
+}
+
+Option& CommandManager::createOption(const char* name, OptionDataType type, bool is_required, int v, const char* description, int min, int max) {
+    return *(new Option(name, type, is_required, v, description, min, max));
+}
+
+Option& CommandManager::createOption(const char* name, OptionDataType type, bool is_required, double v, const char* description, double min, double max){
+    return *(new Option(name, type, is_required, v, description, min, max));
+}
+
+OptionGroup& CommandManager::createOptionGroup(const char* name1, const char* name2, OptionRelation r) {
+    return *(new OptionGroup(name1, name2, r));
+}
+
 
 }  //  namespace infra
 }  //  namespace open_edi

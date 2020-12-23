@@ -264,11 +264,30 @@ TFunction *TTerm::getFunction(void) {
     }
     return nullptr;
 }
-TimingArc *TTerm::getTimingarc(ObjectId id) {
+TimingArc *TTerm::getTimingArc(ObjectId id) {
     if (id != UNINIT_OBJECT_ID) {
         return Object::addr<TimingArc>(id);
     }
     return nullptr;
+}
+std::vector<TimingArc *> TTerm::getTimingArcs(void) {
+    std::vector<TimingArc *> timingArcs;
+    if (timing_arcs_ != UNINIT_OBJECT_ID) {
+        Timing *timing_lib = getTimingLib();
+        if (timing_lib != nullptr) {
+            ArrayObject<ObjectId> *p =
+                Object::addr<ArrayObject<ObjectId>>(timing_arcs_);
+            if (p != nullptr) {
+                int64_t count = p->getSize();
+                timingArcs.reserve(count);
+                for (int64_t i = 0; i < count; ++i) {
+                    auto q = Object::addr<TimingArc>((*p)[i]);
+                    if (q != nullptr) timingArcs.emplace_back(q);
+                }
+            }
+        }
+    }
+    return timingArcs;
 }
 TPgTerm *TTerm::getRelatedPowerPin(void) const {
     if (related_power_pin_ != UNINIT_OBJECT_ID) {
