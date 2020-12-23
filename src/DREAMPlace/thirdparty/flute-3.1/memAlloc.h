@@ -49,7 +49,7 @@ static int iminarg1,iminarg2;
 #define MAX(a,b) ((a)>(b) ? (a) : (b))
 #define MIN(a,b) ((a)<(b) ? (a) : (b))
 
-void runtimeError(char error_text[]);
+void runtimeError(const char error_text[]);
 float *vector(long nl, long nh);
 int *ivector(long nl, long nh);
 unsigned char *cvector(long nl, long nh);
