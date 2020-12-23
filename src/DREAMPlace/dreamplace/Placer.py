@@ -21,7 +21,6 @@ import Params
 import PlaceDB
 import NonLinearPlace 
 import pdb 
-from utility_mon import pthread_monitor, sysload_monitoring,terminator,dir_exists
 from datetime import datetime
 import psutil
 
@@ -163,39 +162,9 @@ if __name__ == "__main__":
     logging.info("parameters = %s" % (params))
     # control numpy multithreading
     os.environ["OMP_NUM_THREADS"] = "%d" % (params.num_threads)
-
-    #shenhai added to start a thread to monitor the CPU load,2020/09/09
-    args = sys.argv[1:]
-    path = "%s/%s" % (params.result_dir, params.design_name())
-    if not dir_exists(path):
-        os.system("mkdir -p %s" % (path))
-    monfile = path+'/'+params.design_name()+'.mon'
-    pid = os.getpid()
-    if torch.cuda.is_available():
-        device = 'cuda'
-    else:
-        device = 'cpu'
-    pthread_id=pthread_monitor(monfile,pid,device)
-    
-
-    
     
     place(params)
 
-    # terminate the thread
-    terminator(pthread_id)
-    with open(monfile, 'a') as fp:       
-        if device=='cuda':
-            device_id = torch.cuda.current_device()
-            gpu_mem=torch.cuda.max_memory_allocated(device_id)/1e6
-        else:
-            gpu_mem=0
-            device_id=0
-        sysload_monitoring(fp,pid,psutil.Process(pid).memory_info().rss/1e6,device,device_id,gpu_mem)   
-        if device=='cuda':
-            fp.write(torch.cuda.memory_summary(device_id))
-        fp.write('\nEnd Time: %s\n'%(datetime.now().strftime('%Y-%m-%d %H:%M:%S')))
-        logging.info('monitering file stored in %s'%monfile)
     logging.info("placement takes %.3f seconds" % (time.time()-tt))
 
 
