@@ -38,57 +38,66 @@ class NetParasitics : public Object {
     NetParasitics();
     /// @brief destructor
     ~NetParasitics();
-    //virtual bool isReduced() const { return false; }
-    ObjectId getNetId() const { return netId_; }
-    void setNetId(ObjectId netId) { netId_ = netId; } 
-    float getNetTotalCap() const { return totalCap_; }
-    void setNetTotalCap(float totCap) { totalCap_ = totCap; }
+    ObjectId getNetId() const { return net_id_; }
+    void setNetId(ObjectId netId) { net_id_ = netId; } 
+    float getNetTotalCap() const { return total_cap_; }
+    void setNetTotalCap(float totCap) { total_cap_ = totCap; }
 
   private:
-    ObjectId netId_;
-    float totalCap_;
+    ObjectId net_id_;
+    float total_cap_;
 };
 
 class DNetParasitics : public NetParasitics {
   public:
     DNetParasitics();
     ~DNetParasitics();
-    ObjectId getPinNodeVecId() const { return pinNodeVecId_; }
-    ObjectId getGroundCapVecId() const { return gCapVecId_; }
-    ObjectId getCouplingCapVecId() const { return xCapVecId_; }
-    ObjectId getResistorVecId() const { return resVecId_; } 
+    //ObjectId getPinNodeVecId() const { return pin_node_vec_id_; }
+    ObjectId getGroundCapVecId() const { return gcap_vec_id_; }
+    ObjectId getCouplingCapVecId() const { return xcap_vec_id_; }
+    ObjectId getResistorVecId() const { return res_vec_id_; } 
+    std::vector<std::vector<OptParaNode>> getParasiticForest();
 
     ObjectId createPinNode(ObjectId pinId);
     ObjectId createIntNode(uint32_t intNodeId);
     ObjectId createExtNode(ObjectId netId, uint32_t extNodeId);
-    void addPinNode(ObjectId pinNodeId);
+    //void addPinNode(ObjectId pinNodeId);
     void addGroundCap(ObjectId nodeId, float capValue);
     void addCouplingCap(ObjectId node1Id, ObjectId node2Id, float capValue);
     void addResistor(ObjectId node1Id, ObjectId node2Id, float resValue);
+    void checkLoop();
+    bool hasParasiticForest() const { return parasitic_forest_.size() > 0; };
+    void addRoot(ParasiticPinNode *node);
     
-
-  protected:
-    /// @brief overload output stream
-    //friend OStreamBase &operator<<(OStreamBase &os, DNetParasitics const &rhs);
 
   private:
     /// The vector to store Pin Node pointer belongs to this net
-    ObjectId pinNodeVecId_;
+    /// Don't need this any more and to use net to get connecting pins instead
+    //ObjectId pin_node_vec_id_;
     /// The vector to store Grounded Cap pointer belongs to this net
-    ObjectId gCapVecId_;
+    /// ArrayObject<ParasiticCap>
+    ObjectId gcap_vec_id_;
     /// The vector to store Coupling Cap pointer belongs to this net
-    ObjectId xCapVecId_;
+    ObjectId xcap_vec_id_;
     /// The vector to store Resistor pointer belongs to this net
-    ObjectId resVecId_;
+    ObjectId res_vec_id_;
+    std::vector<ParasiticPinNode*> *roots_;
+    std::unordered_map<ParasiticNode*, std::list<ParasiticResistor*>> *adjacent_map_;
+    std::unordered_map<ParasiticNode*, float> *node_gcap_map_;
+    std::vector<std::vector<OptParaNode>> parasitic_forest_;
+
+    void buildParasiticForest();
+    void prepareGraphData();
+    void clearGraphData();
+    void addAdjacentEdge(ParasiticNode *from, ParasiticResistor *resistance);
 };
 
 class RNetParasitics : public NetParasitics {
   public:
     RNetParasitics();
     ~RNetParasitics();
-     //virtual bool isReduced() const { return true; }
-     void setDriverPinId(ObjectId drvrPinId) { drvrPinId_ = drvrPinId; }
-     ObjectId getDriverPinId() const { return drvrPinId_; }
+     void setDriverPinId(ObjectId drvrPinId) { drvr_pin_id_ = drvrPinId; }
+     ObjectId getDriverPinId() const { return drvr_pin_id_; }
      void setC2(float c2) { c2_ = c2; }
      void setR1(float r1) { r1_ = r1; }
      void setC1(float c1) { c1_ = c1; }
@@ -96,13 +105,9 @@ class RNetParasitics : public NetParasitics {
      float getR1() const { return r1_; }
      float getC1() const { return c1_; }
 
-  protected:
-    /// @brief overload output stream
-    //friend OStreamBase &operator<<(OStreamBase &os, RNetParasitics const &rhs);  
-
   private:
     /// Driver pin ObjectId
-    ObjectId drvrPinId_;
+    ObjectId drvr_pin_id_;
     float c2_;
     float r1_;
     float c1_;

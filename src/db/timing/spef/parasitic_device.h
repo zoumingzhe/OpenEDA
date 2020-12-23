@@ -34,10 +34,6 @@ class ParasiticNode : public Object {
     
     ParasiticNode();
     ~ParasiticNode() {}
-
-    //virtual bool isIntNode() const { return false; }
-    //virtual bool isPinNode() const { return false; }
-    //virtual bool isExtNode() const { return false; }
 };
 
 class ParasiticIntNode : public ParasiticNode {
@@ -45,12 +41,11 @@ class ParasiticIntNode : public ParasiticNode {
     ParasiticIntNode();
     ~ParasiticIntNode() {}
 
-    //virtual bool isIntNode() const { return true; } 
-    void setIntNodeId(uint32_t nodeId) { nodeId_ = nodeId; }
-    uint32_t getIntNodeId() const { return nodeId_; }
+    void setIntNodeId(uint32_t nodeId) { node_id_ = nodeId; }
+    uint32_t getIntNodeId() const { return node_id_; }
 
   private:
-    uint32_t nodeId_; 
+    uint32_t node_id_; 
 };
 
 class ParasiticPinNode : public ParasiticNode {
@@ -58,12 +53,11 @@ class ParasiticPinNode : public ParasiticNode {
     ParasiticPinNode();
     ~ParasiticPinNode() {}
  
-    //virtual bool isPinNode() const { return true; }
-    void setPinId(ObjectId pinId) { pinId_ = pinId; }
-    ObjectId getPinId() const { return pinId_; }
+    void setPinId(ObjectId pinId) { pin_id_ = pinId; }
+    ObjectId getPinId() const { return pin_id_; }
 
   private:
-    ObjectId pinId_;
+    ObjectId pin_id_;
 };
 
 class ParasiticExtNode : public ParasiticNode {
@@ -71,15 +65,14 @@ class ParasiticExtNode : public ParasiticNode {
     ParasiticExtNode();
     ~ParasiticExtNode() {}
 
-    //virtual bool isExtNode() const { return true; }
-    void setExtNetId(ObjectId nodeNetId) { nodeNetId_ = nodeNetId; }
-    ObjectId getExtNetId() const { return nodeNetId_; }
-    void setExtNodeId(uint32_t nodeId) { nodeId_ = nodeId; }
-    uint32_t getExtNodeId() const { return nodeId_; }
+    void setExtNetId(ObjectId nodeNetId) { node_net_id_ = nodeNetId; }
+    ObjectId getExtNetId() const { return node_net_id_; }
+    void setExtNodeId(uint32_t nodeId) { node_id_ = nodeId; }
+    uint32_t getExtNodeId() const { return node_id_; }
 
   private:
-    ObjectId nodeNetId_;
-    uint32_t nodeId_;
+    ObjectId node_net_id_;
+    uint32_t node_id_;
 };
 
 class ParasiticDevice : public Object {
@@ -89,14 +82,11 @@ class ParasiticDevice : public Object {
     ParasiticDevice();
     ~ParasiticDevice() {}
 
-    //virtual bool isResistor() const { return false; }
-    //virtual bool isGroundCap() const { return false; }
-    //virtual bool isXCap() const { return false; }
-    void setNode1Id(ObjectId node1Id) { node1Id_ = node1Id; }
-    ObjectId getNode1Id() const { return node1Id_; }
+    void setNode1Id(ObjectId node1Id) { node1_id_ = node1Id; }
+    ObjectId getNode1Id() const { return node1_id_; }
 
   private:
-    ObjectId node1Id_;
+    ObjectId node1_id_;
 };
 
 class ParasiticResistor : public ParasiticDevice {
@@ -104,14 +94,13 @@ class ParasiticResistor : public ParasiticDevice {
     ParasiticResistor();
     ~ParasiticResistor();
 
-    //virtual bool isResistor() const { return true; }
     void setResistance(float resValue) { resistance_ = resValue; }
     float getResistance() const { return resistance_; }
-    void setNode2Id(ObjectId node2Id) { node2Id_ = node2Id; }
-    ObjectId getNode2Id() const { return node2Id_; }
+    void setNode2Id(ObjectId node2Id) { node2_id_ = node2Id; }
+    ObjectId getNode2Id() const { return node2_id_; }
 
   private:
-    ObjectId node2Id_;
+    ObjectId node2_id_;
     float resistance_;
 };
 
@@ -120,14 +109,13 @@ class ParasiticXCap : public ParasiticDevice {
     ParasiticXCap();
     ~ParasiticXCap();
 
-    //virtual bool isXCap() const { return true; }
     void setCapacitance(float capValue) { capacitance_ = capValue; }
     float getCapacitance() const { return capacitance_; }
-    void setNode2Id(ObjectId node2Id) { node2Id_ = node2Id; }
-    ObjectId getNode2Id() const { return node2Id_; }
+    void setNode2Id(ObjectId node2Id) { node2_id_ = node2Id; }
+    ObjectId getNode2Id() const { return node2_id_; }
 
    private:
-    ObjectId node2Id_;
+    ObjectId node2_id_;
     float capacitance_; 
 };
 
@@ -136,13 +124,36 @@ class ParasiticCap : public ParasiticDevice {
     ParasiticCap();
     ~ParasiticCap();
 
-    //virtual bool isGroundCap() const { return true; }
     void setCapacitance(float capValue) { capacitance_ = capValue; }
     float getCapacitance() const { return capacitance_; }
 
    private:
     float capacitance_;
 };
+
+struct OptParaNode {
+    /// ParasiticNode
+    ObjectId    node;
+    ObjectId    parent;
+    float       resistance;
+    float       capacitance;
+};
+
+// class ParasiticEdge {
+//   public:
+//     ParasiticEdge(ParasiticVertex *vtx, float resistance) :
+//         vertex_(vtx), resistance_(resistance) {};
+//     ParasiticVertex* getNext() const;
+//   private:
+//     ParasiticVertex *vertex_;
+//     float resistance_;
+// };
+// 
+// class ParasiticVertex {
+//   private:
+//     ParasiticNode *node_;
+//     std::list<ParasiticEdge> edges_;
+// };
 
 }  // namespace db
 }  // namespace open_edi

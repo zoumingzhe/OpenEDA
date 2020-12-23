@@ -14,6 +14,7 @@
 
 #include "db/timing/spef/nets_parasitics.h"
 
+#include <unordered_set>
 #include <stdio.h>
 #include <time.h>
 #include "stdlib.h"
@@ -21,24 +22,32 @@
 #include "db/core/timing.h"
 #include "util/stream.h"
 
+extern uint32_t net_with_loop_;
+extern uint32_t net_with_bid_;
+extern uint32_t valid_net_;
+
 namespace open_edi {
 namespace db {
 
 NetsParasitics::NetsParasitics()
     : NetsParasitics::BaseType(),
-      netParasiticsMap_(),
-      nameMap_(),
-      revertNameMap_(),
-      revertPortsMap_(),
+      name_map_(),
+      revert_name_map_(),
+      revert_ports_map_(),
+      netparasitics_vec_id_(UNINIT_OBJECT_ID),
+      nameid_vec_id_(UNINIT_OBJECT_ID),
+      symidx_vec_id_(UNINIT_OBJECT_ID),
+      design_flow_vec_id_(UNINIT_OBJECT_ID),
+      ports_vec_id_(UNINIT_OBJECT_ID),
+      cell_id_(UNINIT_OBJECT_ID),
+      time_scale_(1.0),
+      res_scale_(1.0),
+      cap_scale_(1.0),
+      induct_scale_(1.0),
       divider_('\0'),
       delimiter_('\0'),
-      preBusDel_('\0'),
-      sufBusDel_('\0'),
-      cellId_(UNINIT_OBJECT_ID),
-      timeScale_(1.0),
-      resScale_(1.0),
-      capScale_(1.0),
-      inductScale_(1.0) {
+      pre_bus_del_('\0'),
+      suf_bus_del_('\0') {
     setObjectType(ObjectType::kObjectTypeNetsParasitics);
 }
 
@@ -47,21 +56,23 @@ NetsParasitics::~NetsParasitics() {
 
 NetsParasitics::NetsParasitics(Object* owner, NetsParasitics::IndexType id)
     : NetsParasitics::BaseType(owner, id),
-      netParasiticsMap_(),
-      nameMap_(),
-      designFlowVec_(10,""),
-      revertNameMap_(),
-      revertPortsMap_(),
-      portsVec_(100,UNINIT_OBJECT_ID),
+      name_map_(),
+      revert_name_map_(),
+      revert_ports_map_(),
+      netparasitics_vec_id_(UNINIT_OBJECT_ID),
+      nameid_vec_id_(UNINIT_OBJECT_ID),
+      symidx_vec_id_(UNINIT_OBJECT_ID),
+      design_flow_vec_id_(UNINIT_OBJECT_ID),
+      ports_vec_id_(UNINIT_OBJECT_ID),
+      cell_id_(UNINIT_OBJECT_ID),
+      time_scale_(1.0),
+      res_scale_(1.0),
+      cap_scale_(1.0),
+      induct_scale_(1.0),
       divider_('\0'),
       delimiter_('\0'),
-      preBusDel_('\0'),
-      sufBusDel_('\0'),
-      cellId_(UNINIT_OBJECT_ID),
-      timeScale_(1.0),
-      resScale_(1.0),
-      capScale_(1.0),
-      inductScale_(1.0) {
+      pre_bus_del_('\0'),
+      suf_bus_del_('\0') {
     setObjectType(ObjectType::kObjectTypeNetsParasitics);
 }
 
@@ -86,42 +97,156 @@ NetsParasitics& NetsParasitics::operator=(NetsParasitics&& rhs) noexcept {
 void NetsParasitics::copy(NetsParasitics const& rhs) {
     this->BaseType::copy(rhs);
 
-    netParasiticsMap_ = rhs.netParasiticsMap_;
-    nameMap_ = rhs.nameMap_;
-    designFlowVec_ = rhs.designFlowVec_;
-    revertNameMap_ = rhs.revertNameMap_;
-    revertPortsMap_ = rhs.revertPortsMap_;
-    portsVec_ = rhs.portsVec_;
+    name_map_ = rhs.name_map_;
+    revert_name_map_ = rhs.revert_name_map_;
+    revert_ports_map_ = rhs.revert_ports_map_;
+    netparasitics_vec_id_ = rhs.netparasitics_vec_id_;
+    nameid_vec_id_ = rhs.nameid_vec_id_;
+    symidx_vec_id_ = rhs.symidx_vec_id_;
+    design_flow_vec_id_ = rhs.design_flow_vec_id_;
+    ports_vec_id_ = rhs.ports_vec_id_;
+    cell_id_ = rhs.cell_id_;
+    time_scale_ = rhs.time_scale_;
+    res_scale_ = rhs.res_scale_;
+    cap_scale_ = rhs.cap_scale_;
+    induct_scale_ = rhs.induct_scale_;
     divider_ = rhs.divider_;
     delimiter_ = rhs.delimiter_;
-    preBusDel_ = rhs.preBusDel_;
-    sufBusDel_ = rhs.sufBusDel_;
-    cellId_ = rhs.cellId_;
-    timeScale_ = rhs.timeScale_;
-    resScale_ = rhs.resScale_;
-    capScale_ = rhs.capScale_;
-    inductScale_ = rhs.inductScale_;
+    pre_bus_del_ = rhs.pre_bus_del_;
+    suf_bus_del_ = rhs.suf_bus_del_;
 }
 
 void NetsParasitics::move(NetsParasitics&& rhs) {
     this->BaseType::move(std::move(rhs));
-    netParasiticsMap_ = std::move(rhs.netParasiticsMap_);
-    nameMap_ = std::move(rhs.nameMap_);
-    designFlowVec_ = std::move(rhs.designFlowVec_);
-    revertNameMap_ = std::move(rhs.revertNameMap_);
-    revertPortsMap_ = std::move(rhs.revertPortsMap_);
-    portsVec_ = std::move(rhs.portsVec_);
+    name_map_ = std::move(rhs.name_map_);
+    revert_name_map_ = std::move(rhs.revert_name_map_);
+    revert_ports_map_ = std::move(rhs.revert_ports_map_);
+    netparasitics_vec_id_ = std::move(rhs.netparasitics_vec_id_);
+    nameid_vec_id_ = std::move(rhs.nameid_vec_id_);
+    symidx_vec_id_ = std::move(rhs.symidx_vec_id_);
+    design_flow_vec_id_ = std::move(rhs.design_flow_vec_id_);
+    ports_vec_id_ = std::move(rhs.ports_vec_id_);
+    cell_id_ = std::move(rhs.cell_id_);
+    time_scale_ = std::move(rhs.time_scale_);
+    res_scale_ = std::move(rhs.res_scale_);
+    cap_scale_ = std::move(rhs.cap_scale_);
+    induct_scale_ = std::move(rhs.induct_scale_);
     divider_ = std::move(rhs.divider_);
     delimiter_ = std::move(rhs.delimiter_);
-    preBusDel_ = std::move(rhs.preBusDel_);
-    sufBusDel_ = std::move(rhs.sufBusDel_);
-    cellId_ = std::move(rhs.cellId_);
-    timeScale_ = std::move(rhs.timeScale_);
-    resScale_ = std::move(rhs.resScale_);
-    capScale_ = std::move(rhs.capScale_);
-    inductScale_ = std::move(rhs.inductScale_);
-    rhs.netParasiticsMap_.clear();
-    rhs.nameMap_.clear();
+    pre_bus_del_ = std::move(rhs.pre_bus_del_);
+    suf_bus_del_ = std::move(rhs.suf_bus_del_);
+    rhs.name_map_.clear();
+    rhs.revert_name_map_.clear();
+    rhs.revert_ports_map_.clear();
+    
+}
+
+void NetsParasitics::addDesignFlow(std::string flowStr) {
+    Timing *timingdb = getTimingLib();
+    if (timingdb) {
+        ArrayObject<SymbolIndex> *vctSym = nullptr;
+        if (design_flow_vec_id_ == UNINIT_OBJECT_ID) {
+            vctSym = timingdb->createObject< ArrayObject<SymbolIndex> >(kObjectTypeArray, timingdb->getId());
+            if (vctSym == nullptr)
+                return;
+            vctSym->setPool(timingdb->getPool());
+	    vctSym->reserve(5);
+            design_flow_vec_id_ = vctSym->getId();
+        } else {
+            vctSym = addr< ArrayObject<SymbolIndex> >(design_flow_vec_id_);
+        }
+        if (vctSym != nullptr) {
+	    SymbolIndex symIdx = timingdb->getOrCreateSymbol(flowStr.c_str());
+            vctSym->pushBack(symIdx);
+	}
+    }
+
+}
+
+void NetsParasitics::addNameMapIdx(uint32_t index) {
+    Timing *timingdb = getTimingLib();
+    if (timingdb) {
+	ArrayObject<uint32_t> *vctIdx = nullptr;
+	if (nameid_vec_id_ == UNINIT_OBJECT_ID) {
+	    vctIdx = timingdb->createObject< ArrayObject<uint32_t> >(kObjectTypeArray, timingdb->getId());
+            if (vctIdx == nullptr)
+                return;
+            vctIdx->setPool(timingdb->getPool());
+	    vctIdx->reserve(1000);
+            nameid_vec_id_ = vctIdx->getId();
+	} else {
+	    vctIdx = addr< ArrayObject<uint32_t> >(nameid_vec_id_);
+	}
+        if (vctIdx != nullptr)
+            vctIdx->pushBack(index);
+    }
+}
+
+void NetsParasitics::addNameMapSymIdx(SymbolIndex symIdx) {
+    Timing *timingdb = getTimingLib();
+    if (timingdb) {
+        ArrayObject<SymbolIndex> *vctSym = nullptr; 
+        if (symidx_vec_id_ == UNINIT_OBJECT_ID) {
+            vctSym = timingdb->createObject< ArrayObject<SymbolIndex> >(kObjectTypeArray, timingdb->getId());
+            if (vctSym == nullptr)
+                return;
+            vctSym->setPool(timingdb->getPool());
+	    vctSym->reserve(1000);
+            symidx_vec_id_ = vctSym->getId();
+        } else {
+            vctSym = addr< ArrayObject<SymbolIndex> >(symidx_vec_id_);
+        }
+        if (vctSym != nullptr)
+            vctSym->pushBack(symIdx);
+    }
+}
+
+
+void NetsParasitics::addNameMap(uint32_t index, SymbolIndex symIdx) { 
+    name_map_[index] = symIdx; 
+ 
+    addNameMapIdx(index);   
+    addNameMapSymIdx(symIdx);
+}
+    
+void NetsParasitics::addPort(ObjectId portId) { 
+    Timing *timingdb = getTimingLib();
+    if (timingdb) {
+        ArrayObject<ObjectId> *vctPort = nullptr;
+        if (ports_vec_id_ == UNINIT_OBJECT_ID) {
+            vctPort = timingdb->createObject< ArrayObject<ObjectId> >(kObjectTypeArray, timingdb->getId());
+            if (vctPort == nullptr)
+                return;
+            vctPort->setPool(timingdb->getPool());
+	    vctPort->reserve(100);
+            ports_vec_id_ = vctPort->getId();
+        } else {
+            vctPort = addr< ArrayObject<ObjectId> >(ports_vec_id_);
+        }
+        if (vctPort != nullptr)
+            vctPort->pushBack(portId);
+    }
+
+}
+
+void NetsParasitics::addNetParasitics(ObjectId netParaId) {
+    Timing *timingdb = getTimingLib();
+    if (timingdb) {
+        ArrayObject<ObjectId> *vctNetPara = nullptr;
+        if (netparasitics_vec_id_ == UNINIT_OBJECT_ID) {
+            vctNetPara = timingdb->createObject< ArrayObject<ObjectId> >(kObjectTypeArray, timingdb->getId());
+            if (vctNetPara == nullptr)
+                return;
+            vctNetPara->setPool(timingdb->getPool());
+            vctNetPara->reserve(1000);
+            netparasitics_vec_id_ = vctNetPara->getId();
+        } else {
+            vctNetPara = addr< ArrayObject<ObjectId> >(netparasitics_vec_id_);
+        }
+        if (vctNetPara != nullptr)
+            vctNetPara->pushBack(netParaId);
+    }
+
 }
 
 bool NetsParasitics::isDigits(const char *str)
@@ -134,7 +259,7 @@ bool NetsParasitics::isDigits(const char *str)
 }
 
 Net* NetsParasitics::getNetBySymbol(SymbolIndex index) {
-    Cell *cell = Object::addr<Cell>(cellId_);
+    Cell *cell = Object::addr<Cell>(cell_id_);
     if (cell) {
         std::vector<ObjectId> objectVec = cell->getSymbolTable()->getReferences(index);
         for (auto obj : objectVec) {
@@ -148,16 +273,15 @@ Net* NetsParasitics::getNetBySymbol(SymbolIndex index) {
 }   
 
 Net* NetsParasitics::findNet(const char *netName) {
-    //Cell *topCell = getTopCell();   //Need to use current cell in future
-    Cell *cell = Object::addr<Cell>(cellId_);
+    Cell *cell = Object::addr<Cell>(cell_id_);
     Net *net = nullptr;
     std::string netStr = netName;
 
     if (cell && netName) {
 	if (netName[0] == '*') {
 	    uint32_t idx = strtoul(netName+1, NULL, 0);
-	    if (nameMap_.find(idx) != nameMap_.end()) {
-		net = getNetBySymbol(nameMap_[idx]);
+	    if (name_map_.find(idx) != name_map_.end()) {
+		net = getNetBySymbol(name_map_[idx]);
             } 
         } else 
 	    net = cell->getNet(netStr); 
@@ -170,7 +294,7 @@ Net* NetsParasitics::findNet(const char *netName) {
 }
 
 Pin* NetsParasitics::getPinBySymbol(SymbolIndex index, const std::string& pinName) {
-    Cell *cell = Object::addr<Cell>(cellId_);
+    Cell *cell = Object::addr<Cell>(cell_id_);
     if (cell) {
         std::vector<ObjectId> objectVec = cell->getSymbolTable()->getReferences(index);
 	for (auto obj : objectVec) {
@@ -184,7 +308,7 @@ Pin* NetsParasitics::getPinBySymbol(SymbolIndex index, const std::string& pinNam
 }
 
 Pin* NetsParasitics::getPortBySymbol(SymbolIndex index) {
-    Cell *cell = Object::addr<Cell>(cellId_);
+    Cell *cell = Object::addr<Cell>(cell_id_);
     if (cell) {
         std::vector<ObjectId> objectVec = cell->getSymbolTable()->getReferences(index);
         for (auto obj : objectVec) {
@@ -198,15 +322,15 @@ Pin* NetsParasitics::getPortBySymbol(SymbolIndex index) {
 }
 
 Pin* NetsParasitics::findPin(const char *pinName) {
-    Cell *cell = Object::addr<Cell>(cellId_);
+    Cell *cell = Object::addr<Cell>(cell_id_);
     if (cell && pinName) {
         std::string pinStr = pinName;
 	std::size_t found = pinStr.find_last_of(delimiter_);
 	if (found != std::string::npos) {
             if (pinName[0] == '*') {
                 uint32_t idx = strtoul(pinStr.substr(1, found).c_str(), NULL, 0);
-                if (nameMap_.find(idx) != nameMap_.end()) 
-		    return getPinBySymbol(nameMap_[idx], pinStr.substr(found+1));
+                if (name_map_.find(idx) != name_map_.end()) 
+		    return getPinBySymbol(name_map_[idx], pinStr.substr(found+1));
             } else {  //Name map doesn't exist
 		Inst *inst = cell->getInstance(pinStr.substr(0, found));
 		if (inst)
@@ -215,8 +339,8 @@ Pin* NetsParasitics::findPin(const char *pinName) {
         } else {  //Handle IO pin
             if (pinName[0] == '*') {
 		uint32_t idx = strtoul(pinName+1, NULL, 0);
-		if (nameMap_.find(idx) != nameMap_.end()) {
-		    return getPortBySymbol(nameMap_[idx]);
+		if (name_map_.find(idx) != name_map_.end()) {
+		    return getPortBySymbol(name_map_[idx]);
                 } 
 	    } else 
                 return cell->getIOPin(pinStr); 
@@ -226,8 +350,7 @@ Pin* NetsParasitics::findPin(const char *pinName) {
 }
 
 ObjectId  NetsParasitics::createParaNode(DNetParasitics *netParasitics, const char *nodeName) {
-    //Cell *topCell = getTopCell();   //Need to use current cell in future
-    Cell *cell = Object::addr<Cell>(cellId_);
+    Cell *cell = Object::addr<Cell>(cell_id_);
     if (cell && nodeName) {
         std::string nodeStr = nodeName;
         std::size_t found = nodeStr.find_last_of(delimiter_);
@@ -249,6 +372,10 @@ ObjectId  NetsParasitics::createParaNode(DNetParasitics *netParasitics, const ch
 		pin = findPin(nodeName);
 		if (pin != nullptr) {
 		    ObjectId pinNodeId = netParasitics->createPinNode(pin->getId());
+                    if (pin->getDirection() == SignalDirection::kOutput || pin->getDirection() == SignalDirection::kInout) {
+                        auto pin_addr = Object::addr<ParasiticPinNode>(pinNodeId);
+                        netParasitics->addRoot(pin_addr);
+                    }
                     /*if (pin->getNet()->getId() == netParasitics->getNetId()) { //Add internal pin node
                         netParasitics->addPinNode(pinNodeId);
 		    }*/
@@ -259,6 +386,10 @@ ObjectId  NetsParasitics::createParaNode(DNetParasitics *netParasitics, const ch
 	    pin = findPin(nodeName);
             if (pin != nullptr) {
 		ObjectId pinNodeId = netParasitics->createPinNode(pin->getId());
+                if (pin->getDirection() == SignalDirection::kOutput || pin->getDirection() == SignalDirection::kInout) {
+                    auto pin_addr = Object::addr<ParasiticPinNode>(pinNodeId);
+                    netParasitics->addRoot(pin_addr);
+                }
                 /*if (pin->getNet()->getId() == netParasitics->getNetId()) { //Add internal pin node
                     netParasitics->addPinNode(pinNodeId);
                 }*/
@@ -270,8 +401,6 @@ ObjectId  NetsParasitics::createParaNode(DNetParasitics *netParasitics, const ch
 }
 
 DNetParasitics* NetsParasitics::addDNetParasitics(ObjectId netId, float totCap) {
-    //Cell *topCell = getTopCell();
-    //Cell *cell = Object::addr<Cell>(cellId_);
     Timing *timingdb = getTimingLib();
     if (timingdb) {
 	auto netPara = timingdb->createObject<DNetParasitics>(kObjectTypeDNetParasitics, timingdb->getId());
@@ -280,7 +409,8 @@ DNetParasitics* NetsParasitics::addDNetParasitics(ObjectId netId, float totCap) 
             netPara->setNetId(netId);
 	    netPara->setNetTotalCap(totCap);
             ObjectId netParaId = netPara->getId();
-            netParasiticsMap_[netId] = netParaId;
+            //addNet(netId);
+            addNetParasitics(netParaId);
             return netPara;
 	}
     }
@@ -288,8 +418,6 @@ DNetParasitics* NetsParasitics::addDNetParasitics(ObjectId netId, float totCap) 
 }
 
 RNetParasitics* NetsParasitics::addRNetParasitics(ObjectId netId, float totCap) {
-    //Cell *topCell = getTopCell();
-    //Cell *cell = Object::addr<Cell>(cellId_);
     Timing *timingdb = getTimingLib();
     if (timingdb) {
         auto netPara = timingdb->createObject<RNetParasitics>(kObjectTypeRNetParasitics, timingdb->getId());
@@ -298,7 +426,8 @@ RNetParasitics* NetsParasitics::addRNetParasitics(ObjectId netId, float totCap) 
             netPara->setNetId(netId);
             netPara->setNetTotalCap(totCap);
             ObjectId netParaId = netPara->getId();
-            netParasiticsMap_[netId] = netParaId;
+            //addNet(netId);
+	    addNetParasitics(netParaId);
             return netPara;
         }
     }
@@ -306,17 +435,23 @@ RNetParasitics* NetsParasitics::addRNetParasitics(ObjectId netId, float totCap) 
 }
 
 ///Functions for SPEF dumpping
+void NetsParasitics::clearTempMapContent() {
+    revert_name_map_.clear();
+    revert_ports_map_.clear();
+}
+
+
 std::string NetsParasitics::getNetDumpName(Net *net) {
     std::string netName = net->getName();
-    if (revertNameMap_.find(netName) != revertNameMap_.end())
-        netName = "*" + std::to_string(revertNameMap_[netName]);   
+    if (revert_name_map_.find(netName) != revert_name_map_.end())
+        netName = "*" + std::to_string(revert_name_map_[netName]);   
     return netName;
 }
 
 std::string NetsParasitics::getCellDumpName(Cell *cell) { //for RNet
     std::string cellName = cell->getName();
-    if (revertNameMap_.find(cellName) != revertNameMap_.end())
-        cellName = "*" + std::to_string(revertNameMap_[cellName]);
+    if (revert_name_map_.find(cellName) != revert_name_map_.end())
+        cellName = "*" + std::to_string(revert_name_map_[cellName]);
     return cellName;
 }
 
@@ -329,14 +464,14 @@ std::string NetsParasitics::getIntNodeDumpName(Net *net, ParasiticIntNode *intNo
 
 std::string NetsParasitics::getPinDumpName(Pin *pin) {
     std::string pinName = pin->getName();
-    if (revertPortsMap_.find(pinName) != revertPortsMap_.end())
-        pinName = "*" + std::to_string(revertPortsMap_[pinName]);
+    if (revert_ports_map_.find(pinName) != revert_ports_map_.end())
+        pinName = "*" + std::to_string(revert_ports_map_[pinName]);
     else {
 	Inst *inst = pin->getInst();
         if (inst) {
 	    std::string instName = inst->getName();
-            if (revertNameMap_.find(instName) != revertNameMap_.end()) {
-                pinName = "*" + std::to_string(revertNameMap_[instName]);
+            if (revert_name_map_.find(instName) != revert_name_map_.end()) {
+                pinName = "*" + std::to_string(revert_name_map_[instName]);
                 pinName += std::string(1,getDelimiter());
                 pinName += pin->getTerm()->getName();
             }
@@ -383,11 +518,14 @@ std::string NetsParasitics::getNodeDumpName(Net *net, ObjectId objId) {
 }
 
 void NetsParasitics::dumpSpefHeader(std::ofstream& os) {
+    Timing *timingdb = getTimingLib();
     os << ("*SPEF \"IEEE 1481-2009\"\n");
 
-    Cell *cell = Object::addr<Cell>(cellId_);
-    std::string cellName = cell->getName();  //Waiting for DB team to fix this issue
-    os << ("*DESIGN \"") << (cellName) << ("\"\n");
+    Cell *cell = Object::addr<Cell>(cell_id_);
+    if (cell) {
+        std::string cellName = cell->getName();  //Waiting for DB team to fix this issue
+        os << ("*DESIGN \"") << (cellName) << ("\"\n");
+    }
 
     time_t rawtime;
     struct tm *timeinfo;
@@ -400,10 +538,19 @@ void NetsParasitics::dumpSpefHeader(std::ofstream& os) {
     os << ("*PROGRAM \"openEDA\"\n");
     os << ("*VERSION \"1.0\"\n");
     os << ("*DESIGN_FLOW");
-    for (auto &str : designFlowVec_) 
-        os << (" ") << ("\"") << (str) << ("\"");
-
+    if (design_flow_vec_id_ != UNINIT_OBJECT_ID) {
+	ArrayObject<SymbolIndex> *vct =  Object::addr< ArrayObject<SymbolIndex> >(design_flow_vec_id_);
+	if (vct) {
+            for (auto obj : *vct) {
+		if (timingdb) {
+		    std::string flwStr = timingdb->getSymbolByIndex(obj);
+                    os << (" ") << ("\"") << (flwStr) << ("\"");
+		}
+	    }
+	}
+    }
     os << ("\n");
+
     os << ("*DIVIDER ") << (std::string(1,getDivider())) << ("\n");
     os << ("*DELIMITER ") << (std::string(1,getDelimiter())) << ("\n");
     os << ("*BUS_DELIMITER ") << (std::string(1,getPreBusDel()));
@@ -417,58 +564,68 @@ void NetsParasitics::dumpSpefHeader(std::ofstream& os) {
 }
 
 void NetsParasitics::dumpNameMap(std::ofstream& os) {
-     if (!nameMap_.empty()) {
-        Cell *cell = Object::addr<Cell>(cellId_);
+     if (nameid_vec_id_ != UNINIT_OBJECT_ID && 
+	 symidx_vec_id_ != UNINIT_OBJECT_ID) {
+        Cell *cell = Object::addr<Cell>(cell_id_);
         os << ("*NAME_MAP\n\n");
-        for (auto obj : nameMap_) {
-            std::string name = cell->getSymbolByIndex(obj.second);
-            os << ("*") << (std::to_string(obj.first));
-            os << (" ") << (name) << ("\n");
-            revertNameMap_[name] = obj.first;
-        }
+        ArrayObject<uint32_t> *vctUint =  Object::addr< ArrayObject<uint32_t> >(nameid_vec_id_);
+	ArrayObject<SymbolIndex> *vctSym =  Object::addr< ArrayObject<SymbolIndex> >(symidx_vec_id_);
+	if (vctUint && vctSym) {
+            for (size_t i=0; i<vctUint->getSize(); i++) {
+                std::string name = cell->getSymbolByIndex((*vctSym)[i]);
+                os << ("*") << (std::to_string((*vctUint)[i]));
+                os << (" ") << (name) << ("\n");
+                revert_name_map_[name] = (*vctUint)[i];
+            }
+	}
         os << ("\n\n");
     }
 }
 
 void NetsParasitics::dumpPorts(std::ofstream& os) {
-    if (!portsVec_.empty()) {
+    if (ports_vec_id_ != UNINIT_OBJECT_ID) {
         os << ("*PORTS\n\n");
-        for (auto obj : portsVec_) {
-            Pin *pin = Object::addr<Pin>(obj);
-            std::string pinName = pin->getName();
-            if (revertNameMap_.find(pinName) != revertNameMap_.end()) {  //To use index instead of port name directly
-		revertPortsMap_[pinName] = revertNameMap_[pinName];
-                pinName = std::to_string(revertNameMap_[pinName]);
-            }
+	ArrayObject<ObjectId> *vctObj =  Object::addr< ArrayObject<ObjectId> >(ports_vec_id_);
+	if (vctObj) {
+            for (auto obj : *vctObj) {
+                Pin *pin = Object::addr<Pin>(obj);
+                std::string pinName = pin->getName();
+                if (revert_name_map_.find(pinName) != revert_name_map_.end()) {  //To use index instead of port name directly
+		    revert_ports_map_[pinName] = revert_name_map_[pinName];
+                    pinName = std::to_string(revert_name_map_[pinName]);
+                }
 
-            os << ("*") << (pinName) << (" ");
-            os << (getTermDirDumpName(pin)) << ("\n");
-        }
+                os << ("*") << (pinName) << (" ");
+                os << (getTermDirDumpName(pin)) << ("\n");
+            }
+	}
         os << ("\n");
     }
 }
 
 void NetsParasitics::dumpDNetConn(std::ofstream& os, DNetParasitics *dNetPara) {
     os << ("*CONN\n");
-    ObjectId pinNodeVecId = dNetPara->getPinNodeVecId(); 
-    if (pinNodeVecId != UNINIT_OBJECT_ID) {
-	ArrayObject<ObjectId> *objVector = addr< ArrayObject<ObjectId> >(pinNodeVecId);
-        for (auto obj : *objVector) {
-            ParasiticPinNode *pinNode = Object::addr<ParasiticPinNode>(obj);
-            if (pinNode) {
-                Pin *pin = Object::addr<Pin>(pinNode->getPinId());
+    ObjectId netId = dNetPara->getNetId(); 
+    if (netId != UNINIT_OBJECT_ID) {
+        Net *net = Object::addr<Net>(netId);
+        if (net) {
+	        ArrayObject<ObjectId> *objVector = net->getPinArray();
+          if (objVector != nullptr) {
+            for (auto obj : *objVector) {
+                Pin *pin = Object::addr<Pin>(obj);
                 if (pin != nullptr) {
                     std::string pinName = pin->getName();
-                    if (revertPortsMap_.find(pinName) != revertPortsMap_.end())
+                    if (revert_ports_map_.find(pinName) != revert_ports_map_.end())
                         os << ("*P ");
                     else
                         os << ("*I ");
 
-                    os << (getPinDumpName(pin)) << (" "); // << ("\n");
+                    os << (getPinDumpName(pin)) << (" ");
                     os << (getTermDirDumpName(pin)) << ("\n");
-	        }
-	    }
-        }
+	            }
+            }
+          }
+	      }
     }
     os << ("\n");
 }
@@ -554,15 +711,17 @@ void NetsParasitics::dumpRNet(std::ofstream& os, RNetParasitics *rNetPara) {
 }
 
 void NetsParasitics::dumpNets(std::ofstream& os) {
-    for (auto obj : netParasiticsMap_) {
-        Net *net = Object::addr<Net>(obj.first);
-        NetParasitics *unObj = Object::addr<NetParasitics>(obj.second);  //Need to check further
-        if (unObj->getObjectType() == ObjectType::kObjectTypeDNetParasitics) {
-            DNetParasitics *dNetPara = Object::addr<DNetParasitics>(obj.second);
-            dumpDNet(os, dNetPara);
-        } else if (unObj->getObjectType() == ObjectType::kObjectTypeRNetParasitics) {
-            RNetParasitics *rNetPara = Object::addr<RNetParasitics>(obj.second);
-            dumpRNet(os, rNetPara);
+    if (netparasitics_vec_id_ != UNINIT_OBJECT_ID) {
+        ArrayObject<ObjectId> *objVector = addr< ArrayObject<ObjectId> >(netparasitics_vec_id_);
+        for (auto obj : *objVector) {
+            NetParasitics *unObj = Object::addr<NetParasitics>(obj);  //Need to check further
+            if (unObj->getObjectType() == ObjectType::kObjectTypeDNetParasitics) {
+                DNetParasitics *dNetPara = Object::addr<DNetParasitics>(obj);
+                dumpDNet(os, dNetPara);
+            } else if (unObj->getObjectType() == ObjectType::kObjectTypeRNetParasitics) {
+                RNetParasitics *rNetPara = Object::addr<RNetParasitics>(obj);
+                dumpRNet(os, rNetPara);
+            }
         }
     }
 }
@@ -577,7 +736,109 @@ std::ofstream& operator<<(std::ofstream& os, NetsParasitics &rhs) {
 
     rhs.dumpNets(os);
 
+    rhs.clearTempMapContent();
+
     return os;
+}
+
+void DNetParasitics::buildParasiticForest() {
+    assert(adjacent_map_);
+    auto size = adjacent_map_->size();
+    bool has_loop = false;
+    if (!roots_) return;
+    ++valid_net_;
+    for (auto root : *roots_) {
+        std::unordered_set<ParasiticNode*> visited;
+        std::unordered_set<ParasiticResistor*> visited_r;
+        std::vector<OptParaNode> tree;
+        tree.reserve(size);
+        size_t index = 0;
+        tree.push_back({root->getId(), UNINIT_OBJECT_ID, 0, 0});
+        visited.insert(Object::addr<ParasiticNode>(root->getId()));
+        for (int i = 0; i < size; ++i) {
+            // To reduce runtime memory, using pre-reversed vector to do queueing.
+            OptParaNode cur_node = tree[i];
+            auto node_addr = Object::addr<ParasiticNode>(cur_node.node);
+            auto resistances = (*adjacent_map_)[node_addr];
+            for (auto res : resistances) {
+                if (visited_r.count(res)) {
+                    continue;
+                }
+                visited_r.insert(res);
+                auto next_addr = node_addr->getId() == res->getNode1Id() ?
+                                 Object::addr<ParasiticNode>(res->getNode2Id()) :
+                                 Object::addr<ParasiticNode>(res->getNode1Id());
+                if (visited.count(next_addr)) {
+                    has_loop = true;
+                    continue;
+                }
+                visited.insert(next_addr);
+                tree.push_back({next_addr->getId(), /* node */
+                                           cur_node.node,                            /* parent_node */
+                                           res->getResistance(),       /* resistance */
+                                           (*node_gcap_map_)[next_addr]       /* capacitance */
+                                           });
+            }
+        }
+        parasitic_forest_.push_back(std::move(tree));
+    }
+    if (has_loop) {
+        std::cout << "HAS LOOP!!!" << std::endl;
+        ++net_with_loop_;
+    }
+}
+
+void DNetParasitics::addAdjacentEdge(ParasiticNode *from, ParasiticResistor *resistance) {
+    auto iter = adjacent_map_->find(from);
+    if (iter == adjacent_map_->end()) {
+        (*adjacent_map_)[from] = {resistance};
+    } else {
+        iter->second.push_back(resistance);
+    }
+}
+
+void DNetParasitics::prepareGraphData() {
+    assert(!node_gcap_map_);
+    assert(!adjacent_map_);
+    node_gcap_map_ = new std::unordered_map<ParasiticNode*, float>();
+    adjacent_map_ = new std::unordered_map<ParasiticNode*, std::list<ParasiticResistor*>>();
+
+    auto gcap_vec = Object::addr<ArrayObject<ObjectId>>(gcap_vec_id_);
+    for (auto gcap_id : (*gcap_vec)) {
+        auto gcap = Object::addr<ParasiticCap>(gcap_id);
+        auto node = Object::addr<ParasiticNode>(gcap->getNode1Id());
+        (*node_gcap_map_)[node] = gcap->getCapacitance();
+    }
+    auto res_vec = Object::addr<ArrayObject<ObjectId>>(res_vec_id_);
+    for (auto res_id : (*res_vec)) {
+        auto res = Object::addr<ParasiticResistor>(res_id);
+        auto node1_addr = Object::addr<ParasiticNode>(res->getNode1Id());
+        auto node2_addr = Object::addr<ParasiticNode>(res->getNode2Id());
+
+        // non-directed
+        addAdjacentEdge(node1_addr, res);
+        addAdjacentEdge(node2_addr, res);
+    }
+}
+
+void DNetParasitics::clearGraphData() { 
+    delete adjacent_map_; 
+    delete node_gcap_map_;
+    adjacent_map_ = nullptr; 
+    node_gcap_map_ = nullptr;
+}
+
+std::vector<std::vector<OptParaNode>> DNetParasitics::getParasiticForest() {
+    if (!hasParasiticForest() && gcap_vec_id_ && res_vec_id_) {
+        prepareGraphData();
+        buildParasiticForest();
+        clearGraphData();
+    }
+    return parasitic_forest_;
+}
+
+void DNetParasitics::checkLoop() {
+    getParasiticForest();
 }
 
 }  // namespace db

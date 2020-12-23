@@ -49,18 +49,18 @@ class SpefReader {
     ~SpefReader();
 
     void stringDelete(const char *str);
-    void recordChar(const char ch) { recordStr_ += ch; }
-    const char* getRecordStr() { return stringCopy(recordStr_.c_str()); }
-    void clearRecordStr() { recordStr_.clear(); }
+    void recordChar(const char ch) { record_str_ += ch; }
+    const char* getRecordStr() { return stringCopy(record_str_.c_str()); }
+    void clearRecordStr() { record_str_.clear(); }
     const char* stringCopy(const char *str);
     bool isDigits(const char *str);
     Cell* getCell() const { return cell_; }
     void setCell(const char *designName);
     void addDesignNetsParasitics();
-    void setDivider(const char divider) { if (netsParasitics_) netsParasitics_->setDivider(divider); }
-    void setDelimiter(const char delimiter) { if (netsParasitics_) netsParasitics_->setDelimiter(delimiter); }
-    void setPreBusDel(const char prebusdel) { if (netsParasitics_) netsParasitics_->setPreBusDel(prebusdel); }
-    void setSufBusDel(const char sufbusdel) { if (netsParasitics_) netsParasitics_->setSufBusDel(sufbusdel); }
+    void setDivider(const char divider) { if (nets_parasitics_) nets_parasitics_->setDivider(divider); }
+    void setDelimiter(const char delimiter) { if (nets_parasitics_) nets_parasitics_->setDelimiter(delimiter); }
+    void setPreBusDel(const char prebusdel) { if (nets_parasitics_) nets_parasitics_->setPreBusDel(prebusdel); }
+    void setSufBusDel(const char sufbusdel) { if (nets_parasitics_) nets_parasitics_->setSufBusDel(sufbusdel); }
     void setTimeScale(float digits, const char *unit);
     void setCapScale(float digits, const char *unit);
     void setResScale(float digits, const char *unit);
@@ -68,26 +68,26 @@ class SpefReader {
     void setDesignFlow(StringVec *dsgFlow);
     void addNameMap(const char *index, const char *name);
     void addPort(const char *name);
-    float addParValue(float value1) { parValue_ = value1; return parValue_; }
+    float addParValue(float value1) { par_value_ = value1; return par_value_; }
     float addParValue(float value1, float value2, float value3);
     Net* findNet(const char *name);
     Pin* findPin(const char *name);
     void addDNetBegin(Net *net);
     void addDNetEnd();
     void addPinNode(const char *pinName);
-    ObjectId getParasiticNode(std::string nodeName);
+    ObjectId getParasiticNode(const std::string &nodeName);
     void addGroundCap(const char *nodeName);
     void addCouplingCap(const char *nodeName1, const char *nodeName2);
     void addResistor(const char *nodeName1, const char *nodeName2);
     void addRNetBegin(Net *net);
     void addRNetDrvr(const char *pinName);
     void addPiModel(float c2, float r1, float c1); 
-    void addRNetEnd() { net_ = nullptr; rnetParasitics_ = nullptr; netNodeMap_.clear(); }
-    void setSpefField(uint8_t spefFiled) { spefField_ = spefFiled; }
-    uint8_t getSpefField() const { return spefField_; }
-    void incrLineNo() { lineNo_++; }
-    uint32_t getLineNo() const { return lineNo_; }
-    std::string getSpefFile() const { return spefFileName_; }
+    void addRNetEnd() { net_ = nullptr; rnet_parasitics_ = nullptr; net_node_map_.clear(); }
+    void setSpefField(uint8_t spefFiled) { spef_field_ = spefFiled; }
+    uint8_t getSpefField() const { return spef_field_; }
+    void incrLineNo() { line_no_++; }
+    uint32_t getLineNo() const { return line_no_; }
+    std::string getSpefFile() const { return spef_file_name_; }
     bool parseSpefFile();
 
   private:
@@ -95,19 +95,20 @@ class SpefReader {
     void __spef_parse_end(FILE *fp);
     int  __spef_parse();
 
-    std::string spefFileName_;
-    std::string recordStr_;
+    //std::map<std::string, ObjectId> net_node_map_; //use to check if node created for net
+    std::unordered_map<std::string, ObjectId> net_node_map_; //use to check if node created for net
+    DesignParasitics *design_parasitics_;
+    NetsParasitics *nets_parasitics_;
+    DNetParasitics *dnet_parasitics_;
+    RNetParasitics *rnet_parasitics_;
     Cell *cell_;
-    DesignParasitics *designParasitics_;
-    NetsParasitics *netsParasitics_;
-    float parValue_;
-    Net *net_;
-    DNetParasitics *dnetParasitics_;
-    RNetParasitics *rnetParasitics_;
-    uint8_t spefField_;
-    uint32_t lineNo_;
-    std::map<std::string, ObjectId> netNodeMap_; //use to check if node created for net
+    Net *net_; 
     void *scanner_;
+    std::string spef_file_name_;
+    std::string record_str_;
+    float par_value_;
+    uint32_t line_no_;
+    uint8_t spef_field_;
 };
 
 }  // namespace SpefReader

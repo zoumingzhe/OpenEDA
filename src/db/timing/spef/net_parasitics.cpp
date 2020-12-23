@@ -21,13 +21,15 @@
 #include "util/stream.h"
 #include "util/util_mem.h"
 
+extern uint32_t net_with_bid_;
+
 namespace open_edi {
 namespace db {
 
 NetParasitics::NetParasitics()
     : NetParasitics::BaseType(),
-      netId_(UNINIT_OBJECT_ID),
-      totalCap_(0.0) {
+      net_id_(UNINIT_OBJECT_ID),
+      total_cap_(0.0) {
     setObjectType(ObjectType::kObjectTypeNetParasitics);
 }
 
@@ -36,35 +38,43 @@ NetParasitics::~NetParasitics() {
 
 DNetParasitics::DNetParasitics()
     : NetParasitics(),
-      pinNodeVecId_(UNINIT_OBJECT_ID),
-      gCapVecId_(UNINIT_OBJECT_ID),
-      xCapVecId_(UNINIT_OBJECT_ID),
-      resVecId_(UNINIT_OBJECT_ID) {
+      gcap_vec_id_(UNINIT_OBJECT_ID),
+      xcap_vec_id_(UNINIT_OBJECT_ID),
+      res_vec_id_(UNINIT_OBJECT_ID),
+      roots_(nullptr),
+      adjacent_map_(nullptr),
+      node_gcap_map_(nullptr) {
     setObjectType(ObjectType::kObjectTypeDNetParasitics);
 }
 
-void DNetParasitics::addPinNode(ObjectId pinNodeId) {
+DNetParasitics::~DNetParasitics()
+{
+    delete roots_;
+    delete adjacent_map_;
+    delete node_gcap_map_;
+}
+
+///Don't need to save it as we could get connecting pins directly from net
+/*void DNetParasitics::addPinNode(ObjectId pinNodeId) {
     ArrayObject<ObjectId> *vct = nullptr;
     Timing *timingdb = getTimingLib();
     if (timingdb) {
-        if (pinNodeVecId_ == UNINIT_OBJECT_ID) {
+        if (pin_node_vec_id_ == UNINIT_OBJECT_ID) {
             vct = timingdb->createObject< ArrayObject<ObjectId> >(kObjectTypeArray, timingdb->getId());
             if (vct != nullptr) {
                 vct->setPool(timingdb->getPool());
                 vct->reserve(5);
-                pinNodeVecId_ = vct->getId();
+                pin_node_vec_id_ = vct->getId();
             }
         } else 
-            vct = addr< ArrayObject<ObjectId> >(pinNodeVecId_);
+            vct = addr< ArrayObject<ObjectId> >(pin_node_vec_id_);
                 
         if (vct != nullptr)
             vct->pushBack(pinNodeId);    
     }
-}
+}*/
 
 ObjectId DNetParasitics::createPinNode(ObjectId pinId) {
-    //Cell *timingdb = getTopCell();
-    //Cell *timingdb = Object::addr<Cell>(cellId);
     Timing *timingdb = getTimingLib();
     if (timingdb) {
         auto pinNode = timingdb->createObject<ParasiticPinNode>(kObjectTypeParasiticPinNode, timingdb->getId());
@@ -78,8 +88,6 @@ ObjectId DNetParasitics::createPinNode(ObjectId pinId) {
 }
 
 ObjectId DNetParasitics::createIntNode(uint32_t intNodeId) {
-    //Cell *timingdb = getTopCell();
-    //Cell *timingdb = Object::addr<Cell>(cellId);
     Timing *timingdb = getTimingLib();
     if (timingdb) {
         auto intNode = timingdb->createObject<ParasiticIntNode>(kObjectTypeParasiticIntNode, timingdb->getId());
@@ -93,8 +101,6 @@ ObjectId DNetParasitics::createIntNode(uint32_t intNodeId) {
 }
 
 ObjectId DNetParasitics::createExtNode(ObjectId netId, uint32_t extNodeId) {
-    //Cell *timingdb = getTopCell();
-    //Cell *timingdb = Object::addr<Cell>(cellId);
     Timing *timingdb = getTimingLib();
     if (timingdb) {
         auto extNode = timingdb->createObject<ParasiticExtNode>(kObjectTypeParasiticExtNode, timingdb->getId());
@@ -109,8 +115,6 @@ ObjectId DNetParasitics::createExtNode(ObjectId netId, uint32_t extNodeId) {
 }
 
 void DNetParasitics::addGroundCap(ObjectId nodeId, float capValue) {
-    //Cell *timingdb = getTopCell();
-    //Cell *timingdb = Object::addr<Cell>(cellId);
     Timing *timingdb = getTimingLib();
     if (timingdb) {
         auto gCap = timingdb->createObject<ParasiticCap>(kObjectTypeParasiticCap, timingdb->getId());
@@ -120,15 +124,15 @@ void DNetParasitics::addGroundCap(ObjectId nodeId, float capValue) {
 	    gCap->setCapacitance(capValue);
 
 	    ArrayObject<ObjectId> *vct = nullptr;
-            if (gCapVecId_ == UNINIT_OBJECT_ID) {
+            if (gcap_vec_id_ == UNINIT_OBJECT_ID) {
                 vct = timingdb->createObject< ArrayObject<ObjectId> >(kObjectTypeArray, timingdb->getId());
                 if (vct == nullptr)
 		    return;
                 vct->setPool(timingdb->getPool());
-                vct->reserve(50);
-                gCapVecId_ = vct->getId();
+                vct->reserve(20);
+                gcap_vec_id_ = vct->getId();
             } else {
-                vct = addr< ArrayObject<ObjectId> >(gCapVecId_);
+                vct = addr< ArrayObject<ObjectId> >(gcap_vec_id_);
             }
             if (vct != nullptr)
                 vct->pushBack(gCap->getId());
@@ -137,8 +141,6 @@ void DNetParasitics::addGroundCap(ObjectId nodeId, float capValue) {
 }
 
 void DNetParasitics::addCouplingCap(ObjectId node1Id, ObjectId node2Id, float capValue) {
-    //Cell *timingdb = getTopCell();
-    //Cell *timingdb = Object::addr<Cell>(cellId);
     Timing *timingdb = getTimingLib();
     if (timingdb) {
         auto xCap = timingdb->createObject<ParasiticXCap>(kObjectTypeParasiticXCap, timingdb->getId());
@@ -149,15 +151,15 @@ void DNetParasitics::addCouplingCap(ObjectId node1Id, ObjectId node2Id, float ca
             xCap->setCapacitance(capValue);
 
 	    ArrayObject<ObjectId> *vct = nullptr;
-            if (xCapVecId_ == UNINIT_OBJECT_ID) {
+            if (xcap_vec_id_ == UNINIT_OBJECT_ID) {
                 vct = timingdb->createObject< ArrayObject<ObjectId> >(kObjectTypeArray, timingdb->getId());
                 if (vct == nullptr)
                     return;
                 vct->setPool(timingdb->getPool());
-                vct->reserve(20);
-                gCapVecId_ = vct->getId();
+                vct->reserve(10);
+                xcap_vec_id_ = vct->getId();
             } else {
-                vct = addr< ArrayObject<ObjectId> >(xCapVecId_);
+                vct = addr< ArrayObject<ObjectId> >(xcap_vec_id_);
             }
             if (vct != nullptr)
                 vct->pushBack(xCap->getId());
@@ -166,8 +168,6 @@ void DNetParasitics::addCouplingCap(ObjectId node1Id, ObjectId node2Id, float ca
 }
 
 void DNetParasitics::addResistor(ObjectId node1Id, ObjectId node2Id, float resValue) {
-    //Cell *timingdb = getTopCell();
-    //Cell *timingdb = Object::addr<Cell>(cellId);
     Timing *timingdb = getTimingLib();
     if (timingdb) {
         auto res = timingdb->createObject<ParasiticResistor>(kObjectTypeParasiticResistor, timingdb->getId());
@@ -178,15 +178,15 @@ void DNetParasitics::addResistor(ObjectId node1Id, ObjectId node2Id, float resVa
             res->setResistance(resValue);
 
 	    ArrayObject<ObjectId> *vct = nullptr;
-            if (resVecId_ == UNINIT_OBJECT_ID) {
+            if (res_vec_id_ == UNINIT_OBJECT_ID) {
                 vct = timingdb->createObject< ArrayObject<ObjectId> >(kObjectTypeArray, timingdb->getId());
                 if (vct == nullptr)
                     return;
                 vct->setPool(timingdb->getPool());
-                vct->reserve(50);
-                resVecId_ = vct->getId();
+                vct->reserve(20);
+                res_vec_id_ = vct->getId();
             } else {
-                vct = addr< ArrayObject<ObjectId> >(resVecId_);
+                vct = addr< ArrayObject<ObjectId> >(res_vec_id_);
             }
             if (vct != nullptr)
                 vct->pushBack(res->getId());
@@ -200,6 +200,16 @@ RNetParasitics::RNetParasitics()
       r1_(0.0),
       c1_(0.0) {
     setObjectType(ObjectType::kObjectTypeRNetParasitics);
+}
+
+void DNetParasitics::addRoot(ParasiticPinNode *node) {
+    if (!roots_) {
+        roots_ = new std::vector<ParasiticPinNode*>();
+    }
+    roots_->push_back(node);
+    if (roots_->size() == 2) {
+        ++net_with_bid_;
+    }
 }
 
 }  // namespace db

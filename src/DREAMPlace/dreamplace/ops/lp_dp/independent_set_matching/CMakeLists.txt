@@ -52,10 +52,18 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/../.."
     "${CMAKE_CURRENT_SOURCE_DIR}/../../../../.."
     "${MUNKRES_CPP_INCLUDE_DIRS}"
     "${LEMON_INCLUDE_DIRS}"
-    "${CUB_DIR}"
+    #"${CUB_DIR}"
     "${LIMBO_SOURCE_DIR}"
     "${Boost_INCLUDE_DIRS}"
     )
+
+if(CUDA_FOUND)     
+    if (NOT ${CUDA_VERSION_MAJOR} VERSION_GREATER "10")
+        include_directories("${CUB_DIR}")
+    endif (NOT ${CUDA_VERSION_MAJOR} VERSION_GREATER "10")
+endif(CUDA_FOUND)
+
+
 link_directories(${UTILITY_LIBRARY_DIRS} ${CUB_DIR})
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)

@@ -66,16 +66,95 @@ Command* CommandManager::createCommandByName(const char* name) {
 
 Command* CommandManager::parseCommand(int argc, const char *argv[]) {
     Command* cmd = getCommandManager()->getCommandByName(argv[0]);
-    if (!strcmp(argv[1], "--help")) {
+    if (!strcmp(argv[1], "--help") || !strcmp(argv[1], "-help")) {
         message->info(cmd->getDescription().c_str());
         for (int i = 0; i < cmd->getOptionNum(); i++) {
             Option *opt = cmd->getOption(i);
             if (opt == nullptr) {
                 message->issueMsg("INFRA", kGetOptionFail, kError);
             }
-            message->info(opt->getDescription().c_str());
+            std::string head = opt->getName();
+            switch (opt->getType())
+            {
+            case OptionDataType::kNone:
+                break;
+            case OptionDataType::kBool:
+            {
+                head += " <bool>";
+                break;
+            }
+            case OptionDataType::kInt:
+            {
+                head += " <int>";
+                break;
+            }
+            case OptionDataType::kDouble:
+            {
+                head += " <double>";
+                break;
+            }
+            case OptionDataType::kString:
+            {
+                head += " <string>";
+                break;
+            }
+            case OptionDataType::kEnum:
+            {
+                head += " <enum>";
+                break;
+            }
+            case OptionDataType::kPoint:
+            {
+                head += " <point>";
+                break;
+            }
+            case OptionDataType::kRect:
+            {
+                head += " <rect>";
+                break;
+            }
+            case OptionDataType::kIntList:
+            {
+                head += " <int list>";
+                break;
+            }
+            case OptionDataType::kDoubleList:
+            {
+                head += " <double list>";
+                break;
+            }
+            case OptionDataType::kStringList:
+            {
+                head += " <string list>";
+                break;
+            }
+            default:
+            {
+                break;
+            }
+            }
+            int max_size = 30;
+            if (head.size() > max_size) {
+                head += "\n";
+                message->info(head.c_str());
+                std::string body;
+                for (int i = 0; i < max_size; i++) {
+                    body += " ";
+                }
+                body += opt->getDescription().c_str();
+                //body += "\n";
+                message->info(body.c_str());
+            } else {
+                int blank_size = max_size - head.size();
+                for (int i = 0; i < blank_size; i++) {
+                    head += " ";
+                }
+                head += opt->getDescription().c_str();
+                //head += "\n";
+                message->info(head.c_str());
+            }
         }
-        //return nullptr;
+        return nullptr;
     }
     if (cmd != nullptr) {
         int res = cmd->parser(argc, argv);
